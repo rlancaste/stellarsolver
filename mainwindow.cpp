@@ -342,7 +342,12 @@ bool MainWindow::sextract()
     sextractorProcess.clear();
     sextractorProcess = new QProcess(this);
 
-    QString sextractorBinaryPath = "/usr/local/bin/sex";
+    QString sextractorBinaryPath;
+#if defined(Q_OS_OSX)
+        sextractorBinaryPath = "/usr/local/bin/sex";
+#elif defined(Q_OS_LINUX)
+        sextractorBinaryPath = "/usr/bin/sextractor";
+#endif
 
     sextractorProcess->setWorkingDirectory(QDir::tempPath());
 
@@ -559,6 +564,11 @@ bool MainWindow::solveField()
     QStringList solverArgs=getSolverOptionsFromFITS();
 
     QString confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
+#if defined(Q_OS_OSX)
+        confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
+#elif defined(Q_OS_LINUX)
+        confPath = "/etc/astrometry.cfg";
+#endif
     solverArgs << "--config" << confPath;
 
     QString solutionFile = QDir::tempPath() + "/solution.wcs";
@@ -569,7 +579,13 @@ bool MainWindow::solveField()
     solver.clear();
     solver = new QProcess(this);
 
-    QString solverPath = "/usr/local/bin/solve-field";
+    QString solverPath;
+
+#if defined(Q_OS_OSX)
+        solverPath = "/usr/local/bin/solve-field";
+#elif defined(Q_OS_LINUX)
+        solverPath = "/usr/bin/solve-field";
+#endif
 
     //connect(solver, SIGNAL(finished(int)), this, SLOT(solverComplete(int)));
     solver->setProcessChannelMode(QProcess::MergedChannels);
