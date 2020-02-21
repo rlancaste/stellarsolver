@@ -20,6 +20,8 @@ MainWindow::MainWindow() :
     connect(ui->AutoScale,&QAbstractButton::clicked, this, &MainWindow::autoScale );
 
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
+
+    dirPath=QDir::homePath();
 }
 
 bool MainWindow::loadImage()
