@@ -567,7 +567,7 @@ bool MainWindow::solveField()
 #if defined(Q_OS_OSX)
         confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
 #elif defined(Q_OS_LINUX)
-        confPath = "/etc/astrometry.cfg";
+        confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
 #endif
     solverArgs << "--config" << confPath;
 
