@@ -54,12 +54,12 @@ target_link_libraries(astrosex
     ${GSL_LIBRARIES}
 
     #Astrometry Libraries, Not sure which of these will be needed yet
-    "$ENV{HOME}/AstroRoot/craft-root/lib/libkd.a"
-    "$ENV{HOME}/AstroRoot/craft-root/lib/libqfits.a"
-    "$ENV{HOME}/AstroRoot/craft-root/lib/libanbase.a"
-    "$ENV{HOME}/AstroRoot/craft-root/lib/libanfiles.a"
-    "$ENV{HOME}/AstroRoot/craft-root/lib/libanutils.a"
-    "$ENV{HOME}/AstroRoot/craft-root/lib/libastrometry.a"
+    #"$ENV{HOME}/AstroRoot/craft-root/lib/libkd.a"
+    #"$ENV{HOME}/AstroRoot/craft-root/lib/libqfits.a"
+    #"$ENV{HOME}/AstroRoot/craft-root/lib/libanbase.a"
+    #"$ENV{HOME}/AstroRoot/craft-root/lib/libanfiles.a"
+    #"$ENV{HOME}/AstroRoot/craft-root/lib/libanutils.a"
+    #"$ENV{HOME}/AstroRoot/craft-root/lib/libastrometry.a"
 
     Qt5::Gui
     Qt5::Widgets
