@@ -3,6 +3,8 @@
 #include <QUuid>
 #include <QDebug>
 #include <QImageReader>
+#include <QTableWidgetItem>
+#include <QPainter>
 
 MainWindow::MainWindow() :
     QMainWindow(),
@@ -14,6 +16,7 @@ MainWindow::MainWindow() :
    this->show();
 
     connect(ui->LoadImage,&QAbstractButton::clicked, this, &MainWindow::loadImage );
+    connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractAndDisplay );
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveImage );
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     connect(ui->ClearLog,&QAbstractButton::clicked, this, &MainWindow::clearLog );
@@ -22,6 +25,7 @@ MainWindow::MainWindow() :
     connect(ui->AutoScale,&QAbstractButton::clicked, this, &MainWindow::autoScale );
 
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
+    ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() << 0 );
 
     dirPath=QDir::homePath();
 
@@ -53,6 +57,9 @@ bool MainWindow::loadImage()
 
     if(loadSuccess)
     {
+        ui->starList->clear();
+        stars.clear();
+        ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() << 0 );
         ui->fileNameDisplay->setText("Image: " + fileURL);
         initDisplayImage();
         return true;
@@ -83,6 +90,7 @@ void MainWindow::abort()
     log("Solve Aborted");
 }
 
+//This method was copied and pasted and modified from fitsdata in KStars
 bool MainWindow::loadFits()
 {
 
@@ -206,6 +214,7 @@ bool MainWindow::loadFits()
     return true;
 }
 
+//This method I wrote combining code from the fits loading method above, the fits debayering method below, and QT
 bool MainWindow::loadOtherFormat()
 {
     QImageReader fileReader(fileToSolve.toLatin1());
@@ -306,7 +315,8 @@ bool MainWindow::loadOtherFormat()
     return true;
 }
 
-//This will be very necessary for solving non-fits images with Sextractor
+//This is very necessary for solving non-fits images with external Sextractor
+//This was copied and pasted from fitsdata in KStars
 bool MainWindow::saveAsFITS()
 {
     QFileInfo fileInfo(fileToSolve.toLatin1());
@@ -385,6 +395,7 @@ bool MainWindow::saveAsFITS()
     return status;
 }
 
+//This method was copied and pasted from Fitsdata in KStars
 bool MainWindow::checkDebayer()
 {
     int status = 0;
@@ -425,6 +436,7 @@ bool MainWindow::checkDebayer()
     return true;
 }
 
+//This method was copied and pasted from Fitsdata in KStars
 bool MainWindow::debayer()
 {
     switch (m_DataType)
@@ -440,6 +452,7 @@ bool MainWindow::debayer()
     }
 }
 
+//This method was copied and pasted from Fitsdata in KStars
 bool MainWindow::debayer_8bit()
 {
     dc1394error_t error_code;
@@ -516,6 +529,7 @@ bool MainWindow::debayer_8bit()
     return true;
 }
 
+//This method was copied and pasted from Fitsdata in KStars
 bool MainWindow::debayer_16bit()
 {
     dc1394error_t error_code;
@@ -592,6 +606,7 @@ bool MainWindow::debayer_16bit()
     return true;
 }
 
+//This method was copied and pasted from Fitsdata in KStars
 void MainWindow::initDisplayImage()
 {
     // Account for leftover when sampling. Thus a 5-wide image sampled by 2
@@ -613,33 +628,23 @@ void MainWindow::initDisplayImage()
         rawImage = QImage(w, h, QImage::Format_RGB32);
     }
 
-    doStretch(&rawImage);
     autoScale();
 
 }
 
 void MainWindow::zoomIn()
 {
-    int w = (stats.width + sampling - 1) / sampling;
-    int h = (stats.height + sampling - 1) / sampling;
     currentZoom *= 1.5;
-    currentWidth  = static_cast<int> (w * (currentZoom));
-    currentHeight = static_cast<int> (h * (currentZoom));
-    scaledImage = rawImage.scaled(currentWidth, currentHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    ui->Image->setPixmap(QPixmap::fromImage(scaledImage));
+    updateImage();
 }
 
 void MainWindow::zoomOut()
 {
-    int w = (stats.width + sampling - 1) / sampling;
-    int h = (stats.height + sampling - 1) / sampling;
     currentZoom /= 1.5;
-    currentWidth  = static_cast<int> (w * (currentZoom));
-    currentHeight = static_cast<int> (h * (currentZoom));
-    scaledImage = rawImage.scaled(currentWidth, currentHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    ui->Image->setPixmap(QPixmap::fromImage(scaledImage));
+    updateImage();
 }
 
+//This method was copied and pasted and modified from Fitsdata in KStars
 void MainWindow::autoScale()
 {
     int w = (stats.width + sampling - 1) / sampling;
@@ -653,12 +658,36 @@ void MainWindow::autoScale()
     double zoomY                  = ( height / h);
     (zoomX < zoomY) ? currentZoom = zoomX : currentZoom = zoomY;
 
-    currentWidth  = static_cast<int> (w * (currentZoom));
-    currentHeight = static_cast<int> (h * (currentZoom));
-    scaledImage = rawImage.scaled(currentWidth, currentHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    ui->Image->setPixmap(QPixmap::fromImage(scaledImage));
+    updateImage();
 }
 
+void MainWindow::updateImage()
+{
+    int w = (stats.width + sampling - 1) / sampling;
+    int h = (stats.height + sampling - 1) / sampling;
+    currentWidth  = static_cast<int> (w * (currentZoom));
+    currentHeight = static_cast<int> (h * (currentZoom));
+    doStretch(&rawImage);
+
+    scaledImage = rawImage.scaled(currentWidth, currentHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QPixmap renderedImage = QPixmap::fromImage(scaledImage);
+    QPainter p(&renderedImage);
+    p.setPen(QColor("red"));
+    p.setOpacity(0.6);
+    for(int star = 0 ; star < stars.size() ; star++)
+    {
+        int starx = stars.at(star).x() * currentWidth / stats.width ;
+        int stary = stars.at(star).y() * currentHeight / stats.height ;
+        int r = 10 * currentWidth / stats.width ;
+
+        p.drawEllipse(starx - r, stary - r , r*2, r*2);
+    }
+    p.end();
+
+    ui->Image->setPixmap(renderedImage);
+}
+
+//This code is copied and pasted from KStars
 void MainWindow::doStretch(QImage *outputImage)
 {
     if (outputImage->isNull())
@@ -674,6 +703,7 @@ void MainWindow::doStretch(QImage *outputImage)
     stretch.run(m_ImageBuffer, outputImage, sampling);
 }
 
+//This method was copied and pasted from Fitsdata in KStars
 void MainWindow::clearImageBuffers()
 {
     delete[] m_ImageBuffer;
@@ -681,6 +711,13 @@ void MainWindow::clearImageBuffers()
     //m_BayerBuffer = nullptr;
 }
 
+bool MainWindow::sextractAndDisplay()
+{
+    sextract();
+    getSextractorTable();
+}
+
+//This method is copied and pasted and modified from the code I wrote to use sextractor in KStars
 bool MainWindow::sextract()
 {
 
@@ -767,6 +804,185 @@ bool MainWindow::sextract()
 
     return true;
 
+}
+
+//This method is copied and modified from tablist.c in astrometry.net
+bool MainWindow::getSextractorTable()
+{
+     QFile sextractorFile(sextractorFilePath);
+     if(!sextractorFile.exists())
+     {
+         log("Can't display sextractor file since it doesn't exist.");
+         return false;
+     }
+
+    fitsfile * new_fptr;
+    char error_status[512];
+
+    /* FITS file pointer, defined in fitsio.h */
+    char *val, value[1000], nullstr[]="*";
+    char keyword[FLEN_KEYWORD], colname[FLEN_VALUE];
+    int status = 0;   /*  CFITSIO status value MUST be initialized to zero!  */
+    int hdunum, hdutype = ANY_HDU, ncols, ii, anynul, dispwidth[1000];
+    long nelements[1000];
+    int firstcol, lastcol = 1, linewidth;
+    int max_linewidth = 80;
+    int elem, firstelem, lastelem = 0, nelems;
+    long jj, nrows, kk;
+    int quiet = 0;
+
+
+
+    if (fits_open_diskfile(&new_fptr, sextractorFilePath.toLatin1(), READONLY, &status))
+    {
+        fits_report_error(stderr, status);
+        fits_get_errstatus(status, error_status);
+        log(QString::fromUtf8(error_status));
+        return false;
+    }
+
+    if ( fits_get_hdu_num(new_fptr, &hdunum) == 1 )
+        /* This is the primary array;  try to move to the */
+        /* first extension and see if it is a table */
+        fits_movabs_hdu(new_fptr, 2, &hdutype, &status);
+    else
+        fits_get_hdu_type(new_fptr, &hdutype, &status); /* Get the HDU type */
+
+    if (!(hdutype == ASCII_TBL || hdutype == BINARY_TBL)) {
+        printf("Error: this program only displays tables, not images\n");
+        return -1;
+    }
+
+    fits_get_num_rows(new_fptr, &nrows, &status);
+    fits_get_num_cols(new_fptr, &ncols, &status);
+
+    for (jj=1; jj<=ncols; jj++)
+        fits_get_coltype(new_fptr, jj, NULL, &nelements[jj], NULL, &status);
+    //printf("nelements[%i] = %i.\n", (int)jj, (int)nelements[jj]);
+
+    /* find the number of columns that will fit within max_linewidth
+     characters */
+    for (;;) {
+        int breakout = 0;
+        linewidth = 0;
+        /* go on to the next element in the current column. */
+        /* (if such an element does not exist, the inner 'for' loop
+         does not get run and we skip to the next column.) */
+        firstcol = lastcol;
+        firstelem = lastelem + 1;
+        elem = firstelem;
+
+        for (lastcol = firstcol; lastcol <= ncols; lastcol++) {
+            int typecode;
+            fits_get_col_display_width(new_fptr, lastcol, &dispwidth[lastcol], &status);
+            fits_get_coltype(new_fptr, lastcol, &typecode, NULL, NULL, &status);
+            typecode = abs(typecode);
+            if (typecode == TBIT)
+                nelements[lastcol] = (nelements[lastcol] + 7)/8;
+            else if (typecode == TSTRING)
+                nelements[lastcol] = 1;
+            nelems = nelements[lastcol];
+            for (lastelem = elem; lastelem <= nelems; lastelem++) {
+                int nextwidth = linewidth + dispwidth[lastcol] + 1;
+                if (nextwidth > max_linewidth) {
+                    breakout = 1;
+                    break;
+                }
+                linewidth = nextwidth;
+            }
+            if (breakout)
+                break;
+            /* start at the first element of the next column. */
+            elem = 1;
+        }
+
+        /* if we exited the loop naturally, (not via break) then include all columns. */
+        if (!breakout) {
+            lastcol = ncols;
+            lastelem = nelements[lastcol];
+        }
+
+        if (linewidth == 0)
+            break;
+
+        ui->starList->clear();
+        stars.clear();
+
+        ui->starList->setColumnCount(4);
+        ui->starList->setRowCount(nrows);
+
+        /* print column names as column headers */
+        //if (!quiet) {
+            printf("\n    ");
+            for (ii = firstcol; ii <= lastcol; ii++) {
+                int maxelem;
+                fits_make_keyn("TTYPE", ii, keyword, &status);
+                fits_read_key(new_fptr, TSTRING, keyword, colname, NULL, &status);
+                colname[dispwidth[ii]] = '\0';  /* truncate long names */
+                kk = ((ii == firstcol) ? firstelem : 1);
+                maxelem = ((ii == lastcol) ? lastelem : nelements[ii]);
+
+                for (; kk <= maxelem; kk++) {
+                    if (kk > 1) {
+                        char buf[32];
+                        int len = snprintf(buf, 32, "(%li)", kk);
+                        printf("%*.*s%s ",dispwidth[ii]-len, dispwidth[ii]-len, colname, buf);
+                        ui->starList->setItem(0,ii,new QTableWidgetItem(QString(colname)));
+                    }
+                    else
+                    {
+                        ui->starList->setItem(0,ii,new QTableWidgetItem(QString(colname)));
+                        printf("%*s ",dispwidth[ii], colname);
+                    }
+
+                }
+            }
+            printf("\n");  /* terminate header line */
+        //}
+
+
+
+        /* print each column, row by row (there are faster ways to do this) */
+        val = value;
+        for (jj = 1; jj <= nrows && !status; jj++) {
+            //if (!quiet)
+                printf("%4d ", (int)jj);
+                ui->starList->setItem(jj,0,new QTableWidgetItem(QString::number(jj)));
+            double starx = 0;
+            double stary = 0;
+            for (ii = firstcol; ii <= lastcol; ii++)
+                {
+                    kk = ((ii == firstcol) ? firstelem : 1);
+                    nelems = ((ii == lastcol) ? lastelem : nelements[ii]);
+                    for (; kk <= nelems; kk++)
+                        {
+                            /* read value as a string, regardless of intrinsic datatype */
+                            if (fits_read_col_str (new_fptr,ii,jj,kk, 1, nullstr,
+                                                   &val, &anynul, &status) )
+                                break;  /* jump out of loop on error */
+                            printf("%-*s ",dispwidth[ii], value);
+                            ui->starList->setItem(jj,ii,new QTableWidgetItem(QString(value)));
+                            if(ii == 2)
+                                starx = QString(value).trimmed().toDouble();
+                            if(ii == 3)
+                                stary = QString(value).trimmed().toDouble();
+                        }
+                }
+            printf("\n");
+
+            stars.append(QPoint(starx, stary));
+        }
+
+        if (!breakout)
+            break;
+    }
+    fits_close_file(new_fptr, &status);
+
+    ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << ui->splitter_2->width() / 2 );
+    updateImage();
+
+    if (status) fits_report_error(stderr, status); /* print any error message */
+    return(status);
 }
 
 QStringList MainWindow::getSolverOptionsFromFITS()

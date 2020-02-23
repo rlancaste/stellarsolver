@@ -54,6 +54,7 @@ private:
     QPointer<QProcess> sextractorProcess;
     QString fileToSolve;
     QString sextractorFilePath;
+    QList<QPoint> stars;
     BayerParams debayerParams;
     bool checkDebayer();
     Statistic stats;
@@ -89,10 +90,13 @@ public slots:
     void zoomIn();
     void zoomOut();
     void autoScale();
+    void updateImage();
 
     void doStretch(QImage *outputImage);
     void clearImageBuffers();
+    bool sextractAndDisplay();
     bool sextract();
+    bool getSextractorTable();
     QStringList getSolverOptionsFromFITS();
     bool solveField();
 
