@@ -16,6 +16,7 @@
 #include "stretch.h"
 #include "math.h"
 #include "dms.h"
+#include "bayer.h"
 
 namespace Ui {
 class MainWindow;
@@ -53,6 +54,8 @@ private:
     QPointer<QProcess> sextractorProcess;
     QString fileToSolve;
     QString sextractorFilePath;
+    BayerParams debayerParams;
+    bool checkDebayer();
     Statistic stats;
     fitsfile *fptr { nullptr };
 
@@ -77,6 +80,11 @@ public slots:
     void abort();
 
     bool loadFits();
+    bool loadOtherFormat();
+    bool saveAsFITS();
+    bool debayer();
+    bool debayer_8bit();
+    bool debayer_16bit();
     void initDisplayImage();
     void zoomIn();
     void zoomOut();

@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QUuid>
+#include <QDebug>
+#include <QImageReader>
 
 MainWindow::MainWindow() :
     QMainWindow(),
@@ -22,12 +24,36 @@ MainWindow::MainWindow() :
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
 
     dirPath=QDir::homePath();
+
+    debayerParams.method  = DC1394_BAYER_METHOD_NEAREST;
+    debayerParams.filter  = DC1394_COLOR_FILTER_RGGB;
+    debayerParams.offsetX = debayerParams.offsetY = 0;
 }
 
 bool MainWindow::loadImage()
 {
-    if(loadFits())
+    QString fileURL = QFileDialog::getOpenFileName(nullptr, "Load Image", dirPath,
+                                               "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.tif *.tiff)");
+    if (fileURL.isEmpty())
+        return false;
+    QFileInfo fileInfo(fileURL);
+    if(!fileInfo.exists())
+        return false;
+    QString newFileURL=QDir::tempPath() + "/" + fileInfo.fileName().remove(" ");
+    QFile::copy(fileURL, newFileURL);
+    QFileInfo newFileInfo(newFileURL);
+    dirPath = fileInfo.absolutePath();
+    fileToSolve = newFileURL;
+
+    bool loadSuccess;
+    if(newFileInfo.suffix()=="fits"||newFileInfo.suffix()=="fit")
+        loadSuccess = loadFits();
+    else
+        loadSuccess = loadOtherFormat();
+
+    if(loadSuccess)
     {
+        ui->fileNameDisplay->setText("Image: " + fileURL);
         initDisplayImage();
         return true;
     }
@@ -59,16 +85,6 @@ void MainWindow::abort()
 
 bool MainWindow::loadFits()
 {
-    QString fileURL = QFileDialog::getOpenFileName(nullptr, "Load Image", dirPath,
-                                               "Images (*.fits *.fit *.jpg *.jpeg)");
-    if (fileURL.isEmpty())
-        return false;
-    QFileInfo fileInfo(fileURL);
-    QString newFileURL=QDir::tempPath() + "/" + fileInfo.fileName().remove(" ");
-    QFile::copy(fileURL, newFileURL);
-    QFileInfo newFileInfo(newFileURL);
-    dirPath = fileInfo.absolutePath();
-    fileToSolve = newFileURL;
 
     int status = 0, anynull = 0;
     long naxes[3];
@@ -165,11 +181,6 @@ bool MainWindow::loadFits()
 
     m_Channels = static_cast<uint8_t>(naxes[2]);
 
-    // Channels always set to #1 if we are not required to process 3D Cubes
-    // Or if mode is not FITS_NORMAL (guide, focus..etc)
-    //if (m_Mode != FITS_NORMAL || !Options::auto3DCube())
-        m_Channels = 1;
-
     m_ImageBufferSize = stats.samples_per_channel * m_Channels * static_cast<uint16_t>(stats.bytesPerPixel);
     m_ImageBuffer = new uint8_t[m_ImageBufferSize];
     if (m_ImageBuffer == nullptr)
@@ -189,12 +200,403 @@ bool MainWindow::loadFits()
         return false;
     }
 
+    if(checkDebayer())
+        debayer();
+
     return true;
 }
+
+bool MainWindow::loadOtherFormat()
+{
+    QImageReader fileReader(fileToSolve.toLatin1());
+
+    if (QImageReader::supportedImageFormats().contains(fileReader.format()) == false)
+    {
+        log("Failed to convert" + fileToSolve + "to FITS since format, " + fileReader.format() + ", is not supported in Qt");
+        return false;
+    }
+
+    QString errMessage;
+    QImage imageFromFile;
+    if(!imageFromFile.load(fileToSolve.toLatin1()))
+    {
+        log("Failed to open image.");
+        return false;
+    }
+
+    imageFromFile = imageFromFile.convertToFormat(QImage::Format_RGB32);
+
+    stats.bitpix = 8; //Note: This will need to be changed.  I think QT only loads 8 bpp images.  Also the depth method gives the total bits per pixel in the image not just the bits per pixel in each channel.
+    switch (stats.bitpix)
+        {
+            case BYTE_IMG:
+                m_DataType           = TBYTE;
+                stats.bytesPerPixel = sizeof(uint8_t);
+                break;
+            case SHORT_IMG:
+                // Read SHORT image as USHORT
+                m_DataType           = TUSHORT;
+                stats.bytesPerPixel = sizeof(int16_t);
+                break;
+            case USHORT_IMG:
+                m_DataType           = TUSHORT;
+                stats.bytesPerPixel = sizeof(uint16_t);
+                break;
+            case LONG_IMG:
+                // Read LONG image as ULONG
+                m_DataType           = TULONG;
+                stats.bytesPerPixel = sizeof(int32_t);
+                break;
+            case ULONG_IMG:
+                m_DataType           = TULONG;
+                stats.bytesPerPixel = sizeof(uint32_t);
+                break;
+            case FLOAT_IMG:
+                m_DataType           = TFLOAT;
+                stats.bytesPerPixel = sizeof(float);
+                break;
+            case LONGLONG_IMG:
+                m_DataType           = TLONGLONG;
+                stats.bytesPerPixel = sizeof(int64_t);
+                break;
+            case DOUBLE_IMG:
+                m_DataType           = TDOUBLE;
+                stats.bytesPerPixel = sizeof(double);
+                break;
+            default:
+                errMessage = QString("Bit depth %1 is not supported.").arg(stats.bitpix);
+                QMessageBox::critical(nullptr,"Message",errMessage);
+                log(errMessage);
+                return false;
+        }
+
+    stats.width = static_cast<uint16_t>(imageFromFile.width());
+    stats.height = static_cast<uint16_t>(imageFromFile.height());
+    m_Channels = 3;
+    stats.samples_per_channel = stats.width * stats.height;
+    clearImageBuffers();
+    m_ImageBufferSize = stats.samples_per_channel * m_Channels * static_cast<uint16_t>(stats.bytesPerPixel);
+    m_ImageBuffer = new uint8_t[m_ImageBufferSize];
+    if (m_ImageBuffer == nullptr)
+    {
+        log(QString("FITSData: Not enough memory for image_buffer channel. Requested: %1 bytes ").arg(m_ImageBufferSize));
+        clearImageBuffers();
+        return false;
+    }
+
+    auto debayered_buffer = reinterpret_cast<uint8_t *>(m_ImageBuffer);
+    auto * original_bayered_buffer = reinterpret_cast<uint8_t *>(imageFromFile.bits());
+
+    // Data in RGB32, with bytes in the order of B,G,R,A, we need to copy them into 3 layers for FITS
+
+    uint8_t * rBuff = debayered_buffer;
+    uint8_t * gBuff = debayered_buffer + (stats.width * stats.height);
+    uint8_t * bBuff = debayered_buffer + (stats.width * stats.height * 2);
+
+    int imax = stats.samples_per_channel * 4 - 4;
+    for (int i = 0; i <= imax; i += 4)
+    {
+        *rBuff++ = original_bayered_buffer[i + 2];
+        *gBuff++ = original_bayered_buffer[i + 1];
+        *bBuff++ = original_bayered_buffer[i + 0];
+    }
+
+    saveAsFITS();
+
+    return true;
+}
+
+//This will be very necessary for solving non-fits images with Sextractor
+bool MainWindow::saveAsFITS()
+{
+    QFileInfo fileInfo(fileToSolve.toLatin1());
+    QString newFilename = QDir::tempPath() + "/" + fileInfo.baseName() + "_solve.fits";
+    qDebug() << newFilename;
+
+    int status = 0, exttype = 0;
+    fitsfile * new_fptr;
+    long  fpixel = 1, naxis = rawImage.allGray() ? 2 : 3, nelements, exposure;
+    long naxes[3] = { stats.width, stats.height, naxis == 3 ? 3 : 1 };
+    char error_status[512] = {0};
+
+    QFileInfo newFileInfo(newFilename);
+    if(newFileInfo.exists())
+        QFile(newFilename).remove();
+
+    nelements = stats.samples_per_channel * m_Channels;
+
+    /* Create a new File, overwriting existing*/
+    if (fits_create_file(&new_fptr, newFilename.toLatin1(), &status))
+    {
+        fits_report_error(stderr, status);
+        return status;
+    }
+
+    fptr = new_fptr;
+
+    if (fits_create_img(fptr, BYTE_IMG, naxis, naxes, &status))
+    {
+        log(QString("fits_create_img failed: %1").arg(error_status));
+        status = 0;
+        fits_flush_file(fptr, &status);
+        fits_close_file(fptr, &status);
+        return false;
+    }
+
+    /* Write Data */
+    if (fits_write_img(fptr, m_DataType, 1, nelements, m_ImageBuffer, &status))
+    {
+        fits_report_error(stderr, status);
+        return status;
+    }
+
+    /* Write keywords */
+
+    exposure = 1;
+    fits_update_key(fptr, TLONG, "EXPOSURE", &exposure, "Total Exposure Time", &status);
+
+    // NAXIS1
+    if (fits_update_key(fptr, TUSHORT, "NAXIS1", &(stats.width), "length of data axis 1", &status))
+    {
+        fits_report_error(stderr, status);
+        return status;
+    }
+
+    // NAXIS2
+    if (fits_update_key(fptr, TUSHORT, "NAXIS2", &(stats.height), "length of data axis 2", &status))
+    {
+        fits_report_error(stderr, status);
+        return status;
+    }
+
+    // ISO Date
+    if (fits_write_date(fptr, &status))
+    {
+        fits_report_error(stderr, status);
+        return status;
+    }
+
+    fileToSolve = newFilename;
+
+    fits_flush_file(fptr, &status);
+
+    log("Saved FITS file:" + fileToSolve);
+
+    return status;
+}
+
+bool MainWindow::checkDebayer()
+{
+    int status = 0;
+    char bayerPattern[64];
+
+    // Let's search for BAYERPAT keyword, if it's not found we return as there is no bayer pattern in this image
+    if (fits_read_keyword(fptr, "BAYERPAT", bayerPattern, nullptr, &status))
+        return false;
+
+    if (stats.bitpix != 16 && stats.bitpix != 8)
+    {
+        log("Only 8 and 16 bits bayered images supported.");
+        return false;
+    }
+    QString pattern(bayerPattern);
+    pattern = pattern.remove('\'').trimmed();
+
+    if (pattern == "RGGB")
+        debayerParams.filter = DC1394_COLOR_FILTER_RGGB;
+    else if (pattern == "GBRG")
+        debayerParams.filter = DC1394_COLOR_FILTER_GBRG;
+    else if (pattern == "GRBG")
+        debayerParams.filter = DC1394_COLOR_FILTER_GRBG;
+    else if (pattern == "BGGR")
+        debayerParams.filter = DC1394_COLOR_FILTER_BGGR;
+    // We return unless we find a valid pattern
+    else
+    {
+        log(QString("Unsupported bayer pattern %1.").arg(pattern));
+        return false;
+    }
+
+    fits_read_key(fptr, TINT, "XBAYROFF", &debayerParams.offsetX, nullptr, &status);
+    fits_read_key(fptr, TINT, "YBAYROFF", &debayerParams.offsetY, nullptr, &status);
+
+    //HasDebayer = true;
+
+    return true;
+}
+
+bool MainWindow::debayer()
+{
+    switch (m_DataType)
+    {
+        case TBYTE:
+            return debayer_8bit();
+
+        case TUSHORT:
+            return debayer_16bit();
+
+        default:
+            return false;
+    }
+}
+
+bool MainWindow::debayer_8bit()
+{
+    dc1394error_t error_code;
+
+    uint32_t rgb_size = stats.samples_per_channel * 3 * stats.bytesPerPixel;
+    auto * destinationBuffer = new uint8_t[rgb_size];
+
+    auto * bayer_source_buffer      = reinterpret_cast<uint8_t *>(m_ImageBuffer);
+    auto * bayer_destination_buffer = reinterpret_cast<uint8_t *>(destinationBuffer);
+
+    if (bayer_destination_buffer == nullptr)
+    {
+        log("Unable to allocate memory for temporary bayer buffer.");
+        return false;
+    }
+
+    int ds1394_height = stats.height;
+    auto dc1394_source = bayer_source_buffer;
+
+    if (debayerParams.offsetY == 1)
+    {
+        dc1394_source += stats.width;
+        ds1394_height--;
+    }
+
+    if (debayerParams.offsetX == 1)
+    {
+        dc1394_source++;
+    }
+
+    error_code = dc1394_bayer_decoding_8bit(dc1394_source, bayer_destination_buffer, stats.width, ds1394_height, debayerParams.filter,
+                                            debayerParams.method);
+
+    if (error_code != DC1394_SUCCESS)
+    {
+        log(QString("Debayer failed (%1)").arg(error_code));
+        m_Channels = 1;
+        delete[] destinationBuffer;
+        return false;
+    }
+
+    if (m_ImageBufferSize != rgb_size)
+    {
+        delete[] m_ImageBuffer;
+        m_ImageBuffer = new uint8_t[rgb_size];
+
+        if (m_ImageBuffer == nullptr)
+        {
+            delete[] destinationBuffer;
+            log("Unable to allocate memory for temporary bayer buffer.");
+            return false;
+        }
+
+        m_ImageBufferSize = rgb_size;
+    }
+
+    auto bayered_buffer = reinterpret_cast<uint8_t *>(m_ImageBuffer);
+
+    // Data in R1G1B1, we need to copy them into 3 layers for FITS
+
+    uint8_t * rBuff = bayered_buffer;
+    uint8_t * gBuff = bayered_buffer + (stats.width * stats.height);
+    uint8_t * bBuff = bayered_buffer + (stats.width * stats.height * 2);
+
+    int imax = stats.samples_per_channel * 3 - 3;
+    for (int i = 0; i <= imax; i += 3)
+    {
+        *rBuff++ = bayer_destination_buffer[i];
+        *gBuff++ = bayer_destination_buffer[i + 1];
+        *bBuff++ = bayer_destination_buffer[i + 2];
+    }
+
+    delete[] destinationBuffer;
+    return true;
+}
+
+bool MainWindow::debayer_16bit()
+{
+    dc1394error_t error_code;
+
+    uint32_t rgb_size = stats.samples_per_channel * 3 * stats.bytesPerPixel;
+    auto * destinationBuffer = new uint8_t[rgb_size];
+
+    auto * bayer_source_buffer      = reinterpret_cast<uint16_t *>(m_ImageBuffer);
+    auto * bayer_destination_buffer = reinterpret_cast<uint16_t *>(destinationBuffer);
+
+    if (bayer_destination_buffer == nullptr)
+    {
+        log("Unable to allocate memory for temporary bayer buffer.");
+        return false;
+    }
+
+    int ds1394_height = stats.height;
+    auto dc1394_source = bayer_source_buffer;
+
+    if (debayerParams.offsetY == 1)
+    {
+        dc1394_source += stats.width;
+        ds1394_height--;
+    }
+
+    if (debayerParams.offsetX == 1)
+    {
+        dc1394_source++;
+    }
+
+    error_code = dc1394_bayer_decoding_16bit(dc1394_source, bayer_destination_buffer, stats.width, ds1394_height, debayerParams.filter,
+                 debayerParams.method, 16);
+
+    if (error_code != DC1394_SUCCESS)
+    {
+        log(QString("Debayer failed (%1)").arg(error_code));
+        m_Channels = 1;
+        delete[] destinationBuffer;
+        return false;
+    }
+
+    if (m_ImageBufferSize != rgb_size)
+    {
+        delete[] m_ImageBuffer;
+        m_ImageBuffer = new uint8_t[rgb_size];
+
+        if (m_ImageBuffer == nullptr)
+        {
+            delete[] destinationBuffer;
+            log("Unable to allocate memory for temporary bayer buffer.");
+            return false;
+        }
+
+        m_ImageBufferSize = rgb_size;
+    }
+
+    auto bayered_buffer = reinterpret_cast<uint16_t *>(m_ImageBuffer);
+
+    // Data in R1G1B1, we need to copy them into 3 layers for FITS
+
+    uint16_t * rBuff = bayered_buffer;
+    uint16_t * gBuff = bayered_buffer + (stats.width * stats.height);
+    uint16_t * bBuff = bayered_buffer + (stats.width * stats.height * 2);
+
+    int imax = stats.samples_per_channel * 3 - 3;
+    for (int i = 0; i <= imax; i += 3)
+    {
+        *rBuff++ = bayer_destination_buffer[i];
+        *gBuff++ = bayer_destination_buffer[i + 1];
+        *bBuff++ = bayer_destination_buffer[i + 2];
+    }
+
+    delete[] destinationBuffer;
+    return true;
+}
+
 void MainWindow::initDisplayImage()
 {
     // Account for leftover when sampling. Thus a 5-wide image sampled by 2
     // would result in a width of 3 (samples 0, 2 and 4).
+
     int w = (stats.width + sampling - 1) / sampling;
     int h = (stats.height + sampling - 1) / sampling;
 
@@ -244,7 +646,7 @@ void MainWindow::autoScale()
     int h = (stats.height + sampling - 1) / sampling;
 
     double width = ui->scrollArea->rect().width();
-    double height = ui->scrollArea->rect().height();
+    double height = ui->scrollArea->rect().height() - 30; //The minus 30 is due to the image filepath label
 
     // Find the zoom level which will enclose the current FITS in the current window size
     double zoomX                  = ( width / w);

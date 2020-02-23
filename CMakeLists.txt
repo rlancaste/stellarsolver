@@ -40,6 +40,7 @@ set(astrosex_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/stretch.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/dms.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/bayer.c
    )
 
 qt5_wrap_ui(astrosexui_SRCS
