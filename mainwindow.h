@@ -54,7 +54,7 @@ private:
     QPointer<QProcess> sextractorProcess;
     QString fileToSolve;
     QString sextractorFilePath;
-    QList<QPoint> stars;
+    QList<QPointF> stars;
     BayerParams debayerParams;
     bool checkDebayer();
     Statistic stats;

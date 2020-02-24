@@ -90,7 +90,7 @@ void MainWindow::abort()
     log("Solve Aborted");
 }
 
-//This method was copied and pasted and modified from fitsdata in KStars
+//This method was copied and pasted and modified from the method privateLoad in fitsdata in KStars
 bool MainWindow::loadFits()
 {
 
@@ -215,6 +215,7 @@ bool MainWindow::loadFits()
 }
 
 //This method I wrote combining code from the fits loading method above, the fits debayering method below, and QT
+//I also consulted the ImageToFITS method in fitsdata in KStars
 bool MainWindow::loadOtherFormat()
 {
     QImageReader fileReader(fileToSolve.toLatin1());
@@ -316,16 +317,15 @@ bool MainWindow::loadOtherFormat()
 }
 
 //This is very necessary for solving non-fits images with external Sextractor
-//This was copied and pasted from fitsdata in KStars
+//This was copied and pasted and modified from ImageToFITS in fitsdata in KStars
 bool MainWindow::saveAsFITS()
 {
     QFileInfo fileInfo(fileToSolve.toLatin1());
     QString newFilename = QDir::tempPath() + "/" + fileInfo.baseName() + "_solve.fits";
-    qDebug() << newFilename;
 
-    int status = 0, exttype = 0;
+    int status = 0;
     fitsfile * new_fptr;
-    long  fpixel = 1, naxis = rawImage.allGray() ? 2 : 3, nelements, exposure;
+    long naxis = rawImage.allGray() ? 2 : 3, nelements, exposure;
     long naxes[3] = { stats.width, stats.height, naxis == 3 ? 3 : 1 };
     char error_status[512] = {0};
 
@@ -606,7 +606,7 @@ bool MainWindow::debayer_16bit()
     return true;
 }
 
-//This method was copied and pasted from Fitsdata in KStars
+//This method was copied and pasted from Fitsview in KStars
 void MainWindow::initDisplayImage()
 {
     // Account for leftover when sampling. Thus a 5-wide image sampled by 2
@@ -644,7 +644,7 @@ void MainWindow::zoomOut()
     updateImage();
 }
 
-//This method was copied and pasted and modified from Fitsdata in KStars
+//This code was copied and pasted and modified from rescale in Fitsview in KStars
 void MainWindow::autoScale()
 {
     int w = (stats.width + sampling - 1) / sampling;
@@ -661,6 +661,7 @@ void MainWindow::autoScale()
     updateImage();
 }
 
+//This method is very loosely based on updateFrame in Fitsview in Kstars
 void MainWindow::updateImage()
 {
     int w = (stats.width + sampling - 1) / sampling;
@@ -676,8 +677,8 @@ void MainWindow::updateImage()
     p.setOpacity(0.6);
     for(int star = 0 ; star < stars.size() ; star++)
     {
-        int starx = stars.at(star).x() * currentWidth / stats.width ;
-        int stary = stars.at(star).y() * currentHeight / stats.height ;
+        int starx = static_cast<int>(round(stars.at(star).x() * currentWidth / stats.width)) ;
+        int stary = static_cast<int>(round(stars.at(star).y() * currentHeight / stats.height)) ;
         int r = 10 * currentWidth / stats.width ;
 
         p.drawEllipse(starx - r, stary - r , r*2, r*2);
@@ -687,7 +688,7 @@ void MainWindow::updateImage()
     ui->Image->setPixmap(renderedImage);
 }
 
-//This code is copied and pasted from KStars
+//This code is copied and pasted from FITSView in KStars
 void MainWindow::doStretch(QImage *outputImage)
 {
     if (outputImage->isNull())
@@ -717,7 +718,7 @@ bool MainWindow::sextractAndDisplay()
     getSextractorTable();
 }
 
-//This method is copied and pasted and modified from the code I wrote to use sextractor in KStars
+//This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
 bool MainWindow::sextract()
 {
 
@@ -806,7 +807,7 @@ bool MainWindow::sextract()
 
 }
 
-//This method is copied and modified from tablist.c in astrometry.net
+//This method is copied and pasted and modified from tablist.c in astrometry.net
 bool MainWindow::getSextractorTable()
 {
      QFile sextractorFile(sextractorFilePath);
@@ -829,9 +830,6 @@ bool MainWindow::getSextractorTable()
     int max_linewidth = 80;
     int elem, firstelem, lastelem = 0, nelems;
     long jj, nrows, kk;
-    int quiet = 0;
-
-
 
     if (fits_open_diskfile(&new_fptr, sextractorFilePath.toLatin1(), READONLY, &status))
     {
@@ -849,8 +847,7 @@ bool MainWindow::getSextractorTable()
         fits_get_hdu_type(new_fptr, &hdutype, &status); /* Get the HDU type */
 
     if (!(hdutype == ASCII_TBL || hdutype == BINARY_TBL)) {
-        printf("Error: this program only displays tables, not images\n");
-        return -1;
+        return false;
     }
 
     fits_get_num_rows(new_fptr, &nrows, &status);
@@ -858,7 +855,7 @@ bool MainWindow::getSextractorTable()
 
     for (jj=1; jj<=ncols; jj++)
         fits_get_coltype(new_fptr, jj, NULL, &nelements[jj], NULL, &status);
-    //printf("nelements[%i] = %i.\n", (int)jj, (int)nelements[jj]);
+
 
     /* find the number of columns that will fit within max_linewidth
      characters */
@@ -911,9 +908,6 @@ bool MainWindow::getSextractorTable()
         ui->starList->setColumnCount(4);
         ui->starList->setRowCount(nrows);
 
-        /* print column names as column headers */
-        //if (!quiet) {
-            printf("\n    ");
             for (ii = firstcol; ii <= lastcol; ii++) {
                 int maxelem;
                 fits_make_keyn("TTYPE", ii, keyword, &status);
@@ -924,29 +918,21 @@ bool MainWindow::getSextractorTable()
 
                 for (; kk <= maxelem; kk++) {
                     if (kk > 1) {
-                        char buf[32];
-                        int len = snprintf(buf, 32, "(%li)", kk);
-                        printf("%*.*s%s ",dispwidth[ii]-len, dispwidth[ii]-len, colname, buf);
                         ui->starList->setItem(0,ii,new QTableWidgetItem(QString(colname)));
                     }
                     else
                     {
                         ui->starList->setItem(0,ii,new QTableWidgetItem(QString(colname)));
-                        printf("%*s ",dispwidth[ii], colname);
                     }
 
                 }
             }
-            printf("\n");  /* terminate header line */
-        //}
 
 
 
         /* print each column, row by row (there are faster ways to do this) */
         val = value;
         for (jj = 1; jj <= nrows && !status; jj++) {
-            //if (!quiet)
-                printf("%4d ", (int)jj);
                 ui->starList->setItem(jj,0,new QTableWidgetItem(QString::number(jj)));
             double starx = 0;
             double stary = 0;
@@ -960,17 +946,15 @@ bool MainWindow::getSextractorTable()
                             if (fits_read_col_str (new_fptr,ii,jj,kk, 1, nullstr,
                                                    &val, &anynul, &status) )
                                 break;  /* jump out of loop on error */
-                            printf("%-*s ",dispwidth[ii], value);
-                            ui->starList->setItem(jj,ii,new QTableWidgetItem(QString(value)));
+                            ui->starList->setItem(jj,ii,new QTableWidgetItem(QString(value).trimmed()));
                             if(ii == 2)
                                 starx = QString(value).trimmed().toDouble();
                             if(ii == 3)
                                 stary = QString(value).trimmed().toDouble();
                         }
                 }
-            printf("\n");
 
-            stars.append(QPoint(starx, stary));
+            stars.append(QPointF(starx, stary));
         }
 
         if (!breakout)
@@ -985,6 +969,7 @@ bool MainWindow::getSextractorTable()
     return(status);
 }
 
+//This method is copied and pasted and modified from Align in KStars
 QStringList MainWindow::getSolverOptionsFromFITS()
 {
     QStringList solverArgs;
@@ -1179,6 +1164,7 @@ QStringList MainWindow::getSolverOptionsFromFITS()
     return solverArgs;
 }
 
+//The code for this method is copied and pasted and modified from OfflineAstroetryParser in KStars
 bool MainWindow::solveField()
 {
     QStringList solverArgs=getSolverOptionsFromFITS();
