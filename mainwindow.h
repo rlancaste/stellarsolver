@@ -17,6 +17,34 @@
 #include "math.h"
 #include "dms.h"
 #include "bayer.h"
+#include <QTime>
+
+extern "C"{
+#include "tabsort.h"
+#include "resort-xylist.h"
+#include "os-features.h"
+#include "tic.h"
+#include "fileutils.h"
+#include "ioutils.h"
+#include "bl.h"
+#include "an-bool.h"
+#include "solver.h"
+#include "math.h"
+#include "fitsioutils.h"
+#include "blindutils.h"
+#include "blind.h"
+#include "log.h"
+#include "errors.h"
+#include "engine.h"
+#include "an-opts.h"
+#include "gslutils.h"
+#include "augment-xylist.h"
+
+
+#include "sip_qfits.h"
+#include "sip-utils.h"
+}
+
 
 namespace Ui {
 class MainWindow;
@@ -51,6 +79,7 @@ private:
     Ui::MainWindow *ui;
     QString dirPath;
     QPointer<QProcess> solver;
+    QPointer<QThread> internalSolver;
     QPointer<QProcess> sextractorProcess;
     QString fileToSolve;
     QString sextractorFilePath;
@@ -75,6 +104,13 @@ private:
     /// Above buffer size in bytes
     uint32_t m_ImageBufferSize { 0 };
     StretchParams stretchParams;
+
+    QTime solverTimer;
+    augment_xylist_t theallaxy;
+    augment_xylist_t* allaxy = &theallaxy;
+
+    void removeTempFile(char * fileName);
+
 public slots:
     bool loadImage();
     bool solveImage();
@@ -100,10 +136,16 @@ public slots:
     QStringList getSolverOptionsFromFITS();
     bool solveField();
 
-    void log(QString text);
+    void logOutput(QString text);
     void logSolver();
     void logSextractor();
     void clearLog();
+
+    bool solveInternally();
+    bool augmentXYList();
+    int runEngine();
+
+    bool solverComplete(int x);
 };
 
 #endif // MAINWINDOW_H

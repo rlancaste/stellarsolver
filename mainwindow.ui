@@ -200,6 +200,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="InnerSolve">
+        <property name="text">
+         <string>Solve Internal</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="Abort">
         <property name="text">
          <string>Abort</string>
