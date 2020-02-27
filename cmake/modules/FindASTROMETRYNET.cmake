@@ -52,6 +52,7 @@ else (ASTROMETRYNET_INCLUDE_DIR AND ASTROMETRYNET_LIBRARIES)
       ${_obIncDir}
       ${GNUWIN32_DIR}/include
       $ENV{HOME}/AstroRoot/craft-root/include/astrometry
+      /usr/include/astrometry
   )
 
   find_library(ASTROMETRYNET_LIBRARIES NAMES libastrometry.so libastrometry-dev libastrometry0 astrometry.net
@@ -60,6 +61,7 @@ else (ASTROMETRYNET_INCLUDE_DIR AND ASTROMETRYNET_LIBRARIES)
         ${_obIncDir}
         ${GNUWIN32_DIR}/include
         $ENV{HOME}/AstroRoot/craft-root/lib
+        /usr/lib/x86_64-linux-gnu/lib
   )
 
   if(ASTROMETRYNET_INCLUDE_DIR AND ASTROMETRYNET_LIBRARIES)
@@ -74,7 +76,7 @@ else (ASTROMETRYNET_INCLUDE_DIR AND ASTROMETRYNET_LIBRARIES)
     endif (NOT ASTROMETRYNET_FIND_QUIETLY)
   else (ASTROMETRYNET_FOUND)
     if (ASTROMETRYNET_FIND_REQUIRED)
-      message(FATAL_ERROR "ASTROMETRYNET not found. Please install astrometry.net and try again.")
+      message(FATAL_ERROR "ASTROMETRYNET development library not found. Please install libastrometry-dev and try again.")
     endif (ASTROMETRYNET_FIND_REQUIRED)
   endif (ASTROMETRYNET_FOUND)
 

@@ -1328,11 +1328,11 @@ bool MainWindow::solveInternally()
         internalSolver.clear();
 
         //This method can be aborted
-        internalSolver = QThread::create([this]{ runEngine(); });
-        internalSolver->start();
+        //internalSolver = QThread::create([this]{ runEngine(); });
+        //internalSolver->start();
 
         //This method cannot be aborted
-        //QtConcurrent::run(this, &MainWindow::runEngine);
+        QtConcurrent::run(this, &MainWindow::runEngine);
 
         return true;
     }
@@ -1941,7 +1941,12 @@ int MainWindow::runEngine()
     log_to(stderr);
     log_init(LOG_MSG);
 
-    QByteArray ba = QString("/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg").toLatin1();
+    QByteArray ba;
+#if defined(Q_OS_OSX)
+        ba = QString("/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg").toLatin1();
+#elif defined(Q_OS_LINUX)
+        ba = QString("%1/.local/share/kstars/astrometry/astrometry.cfg").arg(QDir::homePath()).toLatin1();
+#endif
     configfn = ba.data();
 
     QByteArray ba3 = QString(QDir::tempPath()).toLatin1();
