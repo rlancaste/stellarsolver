@@ -1402,7 +1402,7 @@ bool MainWindow::sextractInternally()
 
     // #4 Source Extraction
     // Note that we set deblend_cont = 1.0 to turn off deblending.
-    status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, 10, conv, 3, 3, SEP_FILTER_CONV, 32, 1.0, 1, 1.0, &catalog);
+    status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, 5, conv, 3, 3, SEP_FILTER_CONV, 32, 0.005, 1, 1.0, &catalog);
     if (status != 0) goto exit;
 
     stars.clear();
@@ -1410,36 +1410,36 @@ bool MainWindow::sextractInternally()
     for (int i = 0; i < catalog->nobj; i++)
     {
         double kronrad;
-        double r = 1; //Not sure what this should be
+        double kron_fact = 2.5;
+        double r = 3;
         short flag;
-        int subpix = 5; //Not sure what this should be
-        float r_min =4;  // minimum diameter = 3.5
+        int subpix = 5;
+        float r_min = 3.5;
 
 
         float xPos = catalog->x[i];
         float yPos = catalog->y[i];
-        float a = catalog->cxx[i];
-        float b = catalog->cxy[i];
-        float theta = catalog->cyy[i];
-       // float flux = catalog->flux[i];
+        //float a = catalog->cxx[i];
+        //float b = catalog->cxy[i];
+        //float theta = catalog->cyy[i];
 
         short inflags;
         double sum;
         double sumerr;
         double area;
 
-        sep_kron_radius(&im, xPos, yPos, a, b, theta, r, &kronrad, &flag);
+       // sep_kron_radius(&im, xPos, yPos, a, b, theta, r, &kronrad, &flag);
 
-        bool use_circle = kronrad * sqrt(a * b) < r_min;
+        //bool use_circle = kronrad * sqrt(a * b) < r_min;
 
-        if(use_circle)
-        {
+        //if(use_circle)
+        //{
             sep_sum_circle(&im, xPos, yPos, r_min, subpix, inflags, &sum, &sumerr, &area, &flag);
-        }
-        else
-        {
-            sep_sum_ellipse(&im, xPos, yPos, a, b, theta, 2.5*kronrad, subpix, inflags, &sum, &sumerr, &area, &flag);
-        }
+        //}
+        //else
+        //{
+            //sep_sum_ellipse(&im, xPos, yPos, a, b, theta, kron_fact*kronrad, subpix, inflags, &sum, &sumerr, &area, &flag);
+        //}
 
         float magzero = 20;
         float mag = magzero - 2.5 * log10(sum);

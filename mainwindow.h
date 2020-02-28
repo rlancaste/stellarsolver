@@ -50,13 +50,6 @@ extern "C"{
 
 namespace Ui {
 
-typedef struct
-{
-    float x;
-    float y;
-    float mag;
-} Star;
-
 class MainWindow;
 }
 
