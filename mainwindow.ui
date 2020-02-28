@@ -188,7 +188,14 @@
       <item>
        <widget class="QPushButton" name="SextractStars">
         <property name="text">
-         <string>Sextract Stars</string>
+         <string>Sextract</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="InnerSextract">
+        <property name="text">
+         <string>Sextract Internal</string>
         </property>
        </widget>
       </item>

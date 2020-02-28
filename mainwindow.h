@@ -19,6 +19,8 @@
 #include "bayer.h"
 #include <QTime>
 
+#include "sep/sep.h"
+
 extern "C"{
 #include "tabsort.h"
 #include "resort-xylist.h"
@@ -47,6 +49,14 @@ extern "C"{
 
 
 namespace Ui {
+
+typedef struct
+{
+    float x;
+    float y;
+    float mag;
+} Star;
+
 class MainWindow;
 }
 
@@ -70,6 +80,14 @@ class MainWindow : public QMainWindow
         uint16_t width { 0 };
         uint16_t height { 0 };
     } Statistic;
+
+    typedef struct
+    {
+        float x;
+        float y;
+        float mag;
+    } Star;
+
 public:
     explicit MainWindow();
     ~MainWindow();
@@ -83,7 +101,8 @@ private:
     QPointer<QProcess> sextractorProcess;
     QString fileToSolve;
     QString sextractorFilePath;
-    QList<QPointF> stars;
+    QList<Star> stars;
+    int selectedStar;
     BayerParams debayerParams;
     bool checkDebayer();
     Statistic stats;
@@ -111,6 +130,10 @@ private:
 
     void removeTempFile(char * fileName);
 
+    template <typename T>
+    void getFloatBuffer(float * buffer, int x, int y, int w, int h);
+    char* charQStr(QString in);
+
 public slots:
     bool loadImage();
     bool solveImage();
@@ -127,6 +150,8 @@ public slots:
     void zoomOut();
     void autoScale();
     void updateImage();
+    void starClickedInTable();
+    void updateStarTableFromList();
 
     void doStretch(QImage *outputImage);
     void clearImageBuffers();
@@ -135,12 +160,15 @@ public slots:
     bool getSextractorTable();
     QStringList getSolverOptionsFromFITS();
     bool solveField();
+    void sortStars();
 
     void logOutput(QString text);
     void logSolver();
     void logSextractor();
     void clearLog();
 
+    bool sextractInternally();
+    bool writeSextractorTable();
     bool solveInternally();
     bool augmentXYList();
     int runEngine();

@@ -32,6 +32,8 @@ MainWindow::MainWindow() :
 
    this->show();
 
+    ui->starList->setSelectionBehavior(QAbstractItemView::SelectRows);
+
     connect(ui->LoadImage,&QAbstractButton::clicked, this, &MainWindow::loadImage );
     connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractAndDisplay );
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveImage );
@@ -41,6 +43,8 @@ MainWindow::MainWindow() :
     connect(ui->zoomOut,&QAbstractButton::clicked, this, &MainWindow::zoomOut );
     connect(ui->AutoScale,&QAbstractButton::clicked, this, &MainWindow::autoScale );
     connect(ui->InnerSolve,&QAbstractButton::clicked, this, &MainWindow::solveInternally );
+    connect(ui->InnerSextract,&QAbstractButton::clicked, this, &MainWindow::sextractInternally );
+    connect(ui->starList,&QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
 
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
     ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() << 0 );
@@ -80,6 +84,7 @@ bool MainWindow::loadImage()
     {
         ui->starList->clear();
         stars.clear();
+        selectedStar = 0;
         ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() << 0 );
         ui->fileNameDisplay->setText("Image: " + fileURL);
         initDisplayImage();
@@ -96,13 +101,13 @@ bool MainWindow::solveImage()
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
     ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
 
-    if(sextract())
-    {
+    //if(sextract())
+    //{
         if(solveField())
             return true;
         return false;
-    }
-    return false;
+   // }
+    //return false;
 }
 
 //This method will abort the sextractor, sovler, and any other processes currently being run, no matter which type
@@ -700,13 +705,22 @@ void MainWindow::updateImage()
     scaledImage = rawImage.scaled(currentWidth, currentHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     QPixmap renderedImage = QPixmap::fromImage(scaledImage);
     QPainter p(&renderedImage);
-    p.setPen(QColor("red"));
-    p.setOpacity(0.6);
     for(int star = 0 ; star < stars.size() ; star++)
     {
-        int starx = static_cast<int>(round(stars.at(star).x() * currentWidth / stats.width)) ;
-        int stary = static_cast<int>(round(stars.at(star).y() * currentHeight / stats.height)) ;
+        int starx = static_cast<int>(round(stars.at(star).x * currentWidth / stats.width)) ;
+        int stary = static_cast<int>(round(stars.at(star).y * currentHeight / stats.height)) ;
         int r = 10 * currentWidth / stats.width ;
+
+        if(star == selectedStar - 1)
+        {
+            p.setPen(QColor("yellow"));
+            p.setOpacity(1);
+        }
+        else
+        {
+            p.setPen(QColor("red"));
+            p.setOpacity(0.6);
+        }
 
         p.drawEllipse(starx - r, stary - r , r*2, r*2);
     }
@@ -739,6 +753,56 @@ void MainWindow::clearImageBuffers()
     //m_BayerBuffer = nullptr;
 }
 
+void MainWindow::starClickedInTable()
+{
+    if(ui->starList->selectedItems().count() > 0)
+    {
+        QTableWidgetItem *currentItem = ui->starList->selectedItems().first();
+        selectedStar = ui->starList->row(currentItem);
+        updateImage();
+    }
+}
+
+void MainWindow::sortStars()
+{
+    if(stars.size() > 1)
+    {
+        //Note that a star is dimmer when the mag is greater!
+        //We want to sort in decreasing order though!
+        std::sort(stars.begin(), stars.end(), [](const Star &s1, const Star &s2)
+        {
+            return s1.mag < s2.mag;
+        });
+    }
+    updateStarTableFromList();
+}
+
+void MainWindow::updateStarTableFromList()
+{
+    selectedStar = 0;
+    ui->starList->clear();
+    ui->starList->setColumnCount(4);
+    ui->starList->setRowCount(stars.count()+1);
+    ui->starList->setItem(0,1,new QTableWidgetItem(QString("MAG_AUTO")));
+    ui->starList->setItem(0,2,new QTableWidgetItem(QString("X_IMAGE")));
+    ui->starList->setItem(0,3,new QTableWidgetItem(QString("Y_IMAGE")));
+
+    for(int i = 0; i < stars.size(); i ++)
+    {
+        Star star = stars.at(i);
+        ui->starList->setItem(i+1,0,new QTableWidgetItem(QString::number(i+1)));
+        ui->starList->setItem(i+1,1,new QTableWidgetItem(QString::number(star.mag)));
+        ui->starList->setItem(i+1,2,new QTableWidgetItem(QString::number(star.x)));
+        ui->starList->setItem(i+1,3,new QTableWidgetItem(QString::number(star.y)));
+    }
+}
+
+
+
+
+
+
+
 bool MainWindow::sextractAndDisplay()
 {
     sextract();
@@ -749,6 +813,9 @@ bool MainWindow::sextractAndDisplay()
 //This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
 bool MainWindow::sextract()
 {
+    logOutput("++++++++++++++++++++++++++++++++++++++++++++++");
+    if(ui->splitter->sizes().last() < 10)
+         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
 
     sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
     QFile sextractorFile(sextractorFilePath);
@@ -806,6 +873,8 @@ bool MainWindow::sextract()
     }
     sextractorArgs << "-FILTER" << "Y";
     sextractorArgs << "-FILTER_NAME" << convPath;
+    sextractorArgs << "-MAG_ZEROPOINT" << "20";
+
 
     sextractorArgs <<  fileToSolve;
 
@@ -930,40 +999,16 @@ bool MainWindow::getSextractorTable()
         if (linewidth == 0)
             break;
 
-        ui->starList->clear();
         stars.clear();
-
-        ui->starList->setColumnCount(4);
-        ui->starList->setRowCount(nrows);
-
-            for (ii = firstcol; ii <= lastcol; ii++) {
-                int maxelem;
-                fits_make_keyn("TTYPE", ii, keyword, &status);
-                fits_read_key(new_fptr, TSTRING, keyword, colname, nullptr, &status);
-                colname[dispwidth[ii]] = '\0';  /* truncate long names */
-                kk = ((ii == firstcol) ? firstelem : 1);
-                maxelem = ((ii == lastcol) ? lastelem : nelements[ii]);
-
-                for (; kk <= maxelem; kk++) {
-                    if (kk > 1) {
-                        ui->starList->setItem(0,ii,new QTableWidgetItem(QString(colname)));
-                    }
-                    else
-                    {
-                        ui->starList->setItem(0,ii,new QTableWidgetItem(QString(colname)));
-                    }
-
-                }
-            }
-
 
 
         /* print each column, row by row (there are faster ways to do this) */
         val = value;
         for (jj = 1; jj <= nrows && !status; jj++) {
                 ui->starList->setItem(jj,0,new QTableWidgetItem(QString::number(jj)));
-            double starx = 0;
-            double stary = 0;
+            float starx = 0;
+            float stary = 0;
+            float mag = 0;
             for (ii = firstcol; ii <= lastcol; ii++)
                 {
                     kk = ((ii == firstcol) ? firstelem : 1);
@@ -974,15 +1019,18 @@ bool MainWindow::getSextractorTable()
                             if (fits_read_col_str (new_fptr,ii,jj,kk, 1, nullptrstr,
                                                    &val, &anynul, &status) )
                                 break;  /* jump out of loop on error */
-                            ui->starList->setItem(jj,ii,new QTableWidgetItem(QString(value).trimmed()));
+                            if(ii == 1)
+                                mag = QString(value).trimmed().toFloat();
                             if(ii == 2)
-                                starx = QString(value).trimmed().toDouble();
+                                starx = QString(value).trimmed().toFloat();
                             if(ii == 3)
-                                stary = QString(value).trimmed().toDouble();
+                                stary = QString(value).trimmed().toFloat();
                         }
                 }
 
-            stars.append(QPointF(starx, stary));
+            Star star = {starx, stary, mag};
+
+            stars.append(star);
         }
 
         if (!breakout)
@@ -990,7 +1038,11 @@ bool MainWindow::getSextractorTable()
     }
     fits_close_file(new_fptr, &status);
 
-    ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << ui->splitter_2->width() / 2 );
+    sortStars();
+    updateStarTableFromList();
+
+    if(ui->splitter_2->sizes().last() < 10)
+        ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << ui->splitter_2->width() / 2 );
     updateImage();
 
     if (status) fits_report_error(stderr, status); /* print any error message */
@@ -1195,6 +1247,14 @@ QStringList MainWindow::getSolverOptionsFromFITS()
 //The code for this method is copied and pasted and modified from OfflineAstroetryParser in KStars
 bool MainWindow::solveField()
 {
+    logOutput("++++++++++++++++++++++++++++++++++++++++++++++");
+    sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
+    QFile sextractorFile(sextractorFilePath);
+    if(!sextractorFile.exists())
+    {
+        logOutput("Please Sextract the image first");
+    }
+
     QStringList solverArgs=getSolverOptionsFromFITS();
 
     QString confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
@@ -1274,17 +1334,252 @@ void MainWindow::logOutput(QString text)
 
 
 
+bool MainWindow::sextractInternally()
+{
+    logOutput("++++++++++++++++++++++++++++++++++++++++++++++");
+    if(ui->splitter->sizes().last() < 10)
+         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
+
+    int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
+
+    auto * data = new float[w * h];
+
+    switch (stats.bitpix)
+    {
+        case BYTE_IMG:
+            getFloatBuffer<uint8_t>(data, x, y, w, h);
+            break;
+        case SHORT_IMG:
+            getFloatBuffer<int16_t>(data, x, y, w, h);
+            break;
+        case USHORT_IMG:
+            getFloatBuffer<uint16_t>(data, x, y, w, h);
+            break;
+        case LONG_IMG:
+            getFloatBuffer<int32_t>(data, x, y, w, h);
+            break;
+        case ULONG_IMG:
+            getFloatBuffer<uint32_t>(data, x, y, w, h);
+            break;
+        case FLOAT_IMG:
+            delete [] data;
+            data = reinterpret_cast<float *>(m_ImageBuffer);
+            break;
+        case LONGLONG_IMG:
+            getFloatBuffer<int64_t>(data, x, y, w, h);
+            break;
+        case DOUBLE_IMG:
+            getFloatBuffer<double>(data, x, y, w, h);
+            break;
+        default:
+            delete [] data;
+            return false;
+    }
+
+    float * imback = nullptr;
+    double * flux = nullptr, *fluxerr = nullptr, *area = nullptr;
+    short * flag = nullptr;
+    int status = 0;
+    sep_bkg * bkg = nullptr;
+    sep_catalog * catalog = nullptr;
+    float conv[] = {1, 2, 1, 2, 4, 2, 1, 2, 1};
+
+    // #0 Create SEP Image structure
+    sep_image im = {data, nullptr, nullptr, SEP_TFLOAT, 0, 0, w, h, 0.0, SEP_NOISE_NONE, 1.0, 0.0};
+
+    // #1 Background estimate
+    status = sep_background(&im, 64, 64, 3, 3, 0.0, &bkg);
+    if (status != 0) goto exit;
+
+    // #2 Background evaluation
+    imback = (float *)malloc((w * h) * sizeof(float));
+    status = sep_bkg_array(bkg, imback, SEP_TFLOAT);
+    if (status != 0) goto exit;
+
+    // #3 Background subtraction
+    status = sep_bkg_subarray(bkg, im.data, im.dtype);
+    if (status != 0) goto exit;
+
+    // #4 Source Extraction
+    // Note that we set deblend_cont = 1.0 to turn off deblending.
+    status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, 10, conv, 3, 3, SEP_FILTER_CONV, 32, 1.0, 1, 1.0, &catalog);
+    if (status != 0) goto exit;
+
+    stars.clear();
+
+    for (int i = 0; i < catalog->nobj; i++)
+    {
+        double kronrad;
+        double r = 1; //Not sure what this should be
+        short flag;
+        int subpix = 5; //Not sure what this should be
+        float r_min =4;  // minimum diameter = 3.5
 
 
+        float xPos = catalog->x[i];
+        float yPos = catalog->y[i];
+        float a = catalog->cxx[i];
+        float b = catalog->cxy[i];
+        float theta = catalog->cyy[i];
+       // float flux = catalog->flux[i];
+
+        short inflags;
+        double sum;
+        double sumerr;
+        double area;
+
+        sep_kron_radius(&im, xPos, yPos, a, b, theta, r, &kronrad, &flag);
+
+        bool use_circle = kronrad * sqrt(a * b) < r_min;
+
+        if(use_circle)
+        {
+            sep_sum_circle(&im, xPos, yPos, r_min, subpix, inflags, &sum, &sumerr, &area, &flag);
+        }
+        else
+        {
+            sep_sum_ellipse(&im, xPos, yPos, a, b, theta, 2.5*kronrad, subpix, inflags, &sum, &sumerr, &area, &flag);
+        }
+
+        float magzero = 20;
+        float mag = magzero - 2.5 * log10(sum);
+
+        Star star = {xPos, yPos, mag};
+
+        stars.append(star);
+
+    }
+
+    sortStars();
+    updateStarTableFromList();
+
+    if(ui->splitter_2->sizes().last() < 10)
+        ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << ui->splitter_2->width() / 2 );
+    updateImage();
+
+    writeSextractorTable();
+    logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
+
+    return true;
+
+exit:
+    if (stats.bitpix != FLOAT_IMG)
+        delete [] data;
+    sep_bkg_free(bkg);
+    sep_catalog_free(catalog);
+    free(imback);
+    free(flux);
+    free(fluxerr);
+    free(area);
+    free(flag);
+
+    if (status != 0)
+    {
+        char errorMessage[512];
+        sep_get_errmsg(status, errorMessage);
+        logOutput(errorMessage);
+        return false;
+    }
+
+    return false;
+}
+
+template <typename T>
+void MainWindow::getFloatBuffer(float * buffer, int x, int y, int w, int h)
+{
+    auto * rawBuffer = reinterpret_cast<T *>(m_ImageBuffer);
+
+    float * floatPtr = buffer;
+
+    int x2 = x + w;
+    int y2 = y + h;
+
+    for (int y1 = y; y1 < y2; y1++)
+    {
+        int offset = y1 * stats.width;
+        for (int x1 = x; x1 < x2; x1++)
+        {
+            *floatPtr++ = rawBuffer[offset + x1];
+        }
+    }
+}
+
+bool MainWindow::writeSextractorTable()
+{
+    sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
+    QFile sextractorFile(sextractorFilePath);
+    if(sextractorFile.exists())
+        sextractorFile.remove();
+
+    int status = 0;
+    fitsfile * new_fptr;
 
 
+    if (fits_create_file(&new_fptr, sextractorFilePath.toLatin1(), &status))
+    {
+        fits_report_error(stderr, status);
+        return false;
+    }
+
+    int tfields=3;
+    int nrows=stars.size();
+    QString extname="Sextractor_File";
+    //Columns: MAG_AUTO, mag, X_IMAGE, pixels, Y_IMAGE, pixels
+    char* ttype[] = { "MAG_AUTO", "X_IMAGE", "Y_IMAGE" };
+    char* tform[] = { "1E", "1E", "1E" };
+    char* tunit[] = { "mag", "pixels", "pixels" };
+    char* extfile = charQStr("Sextractor_File");
+
+    float magArray[stars.size()];
+    float xArray[stars.size()];
+    float yArray[stars.size()];
+
+    for (int i = 0; i < stars.size(); i++)
+    {
+        magArray[i] = stars.at(i).mag; //THIS NEEDS TO BE MAGs
+        xArray[i] = stars.at(i).x;
+        yArray[i] = stars.at(i).y;
+    }
 
 
+    if(fits_create_tbl(new_fptr, BINARY_TBL, nrows, tfields,
+        ttype, tform, tunit, extfile, &status))
+    {
+        logOutput(QString("Could not create binary table."));
+        return false;
+    }
 
+    int firstrow  = 1;  /* first row in table to write   */
+    int firstelem = 1;
+    int column = 1;
 
+    if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, magArray, &status))
+    {
+        logOutput(QString("Could not write mag in binary table."));
+        return false;
+    }
+    column = 2;
+    if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, xArray, &status))
+    {
+        logOutput(QString("Could not write x pixels in binary table."));
+        return false;
+    }
 
+    column = 3;
+    if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, yArray, &status))
+    {
+        logOutput(QString("Could not write y pixels in binary table."));
+        return false;
+    }
 
+    if(fits_close_file(new_fptr, &status))
+    {
+        logOutput(QString("Error closing file."));
+        return false;
+    }
 
+    return true;
+}
 
 
 
@@ -1318,13 +1613,15 @@ testEngine(0,&cmd);  //Note that I had renamed the method in astrometry-engine t
 //I wrote this method to start the internal solver in QThread so it would be non-blocking.
 bool MainWindow::solveInternally()
 {
-    ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
+    logOutput("++++++++++++++++++++++++++++++++++++++++++++++");
+    if(ui->splitter->sizes().last() < 10)
+         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
     ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
 
      solverTimer.start();
 
-    if(sextract())
-    {
+    //if(sextractInternally())
+    //{
         internalSolver.clear();
 
         //This method can be aborted
@@ -1335,12 +1632,12 @@ bool MainWindow::solveInternally()
         QtConcurrent::run(this, &MainWindow::runEngine);
 
         return true;
-    }
-    return false;
+   // }
+   // return false;
 }
 
 //I had to create this method because i was having some difficulty turning a QString into a char* that would persist long enough to be used in the program.
-char* charQStr(QString in) {
+char* MainWindow::charQStr(QString in) {
     std::string fname = QString(in).toStdString();
     char* cstr;
     cstr = new char [fname.size()+1];
@@ -1920,6 +2217,13 @@ bool MainWindow::augmentXYList()
 //This method was adapted from the main method in engine-main.c in astrometry.net
 int MainWindow::runEngine()
 {
+    sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
+    QFile sextractorFile(sextractorFilePath);
+    if(!sextractorFile.exists())
+    {
+        logOutput("Please Sextract the image first");
+    }
+
     augmentXYList();
     QByteArray ba2 = QString(QDir::tempPath() + "/SextractorList.axy").toLatin1();
     char* theAXYFile =  ba2.data();

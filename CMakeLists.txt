@@ -46,6 +46,17 @@ if (GSL_FOUND)
   include_directories(${GSL_INCLUDE_DIR})
 endif (GSL_FOUND)
 
+set (sep_SRCS
+   ${CMAKE_CURRENT_SOURCE_DIR}/sep/analyse.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sep/aperture.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sep/background.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sep/convolve.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sep/deblend.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sep/extract.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sep/lutz.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sep/util.c
+    )
+
 set(astrosex_SRCS
 
    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
@@ -65,7 +76,7 @@ qt5_wrap_ui(astrosexui_SRCS
     )
 
 
-add_executable(astrosex ${astrosex_SRCS} ${astrosexui_SRCS})
+add_executable(astrosex ${astrosex_SRCS} ${astrosexui_SRCS} ${sep_SRCS})
 
 target_link_libraries(astrosex
     ${CFITSIO_LIBRARIES}
