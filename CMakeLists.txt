@@ -88,5 +88,6 @@ target_link_libraries(astrosex
     Qt5::Core
     Qt5::Concurrent
     )
+install(TARGETS astrosex RUNTIME DESTINATION bin)
 
 
