@@ -35,16 +35,20 @@ MainWindow::MainWindow() :
     ui->starList->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     connect(ui->LoadImage,&QAbstractButton::clicked, this, &MainWindow::loadImage );
-    connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractAndDisplay );
+
+    connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractImage );
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveImage );
+    connect(ui->InnerSextract,&QAbstractButton::clicked, this, &MainWindow::sextractInternally);
+    connect(ui->InnerSolve,&QAbstractButton::clicked, this, &MainWindow::solveInternally );
+
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     connect(ui->ClearLog,&QAbstractButton::clicked, this, &MainWindow::clearLog );
     connect(ui->zoomIn,&QAbstractButton::clicked, this, &MainWindow::zoomIn );
     connect(ui->zoomOut,&QAbstractButton::clicked, this, &MainWindow::zoomOut );
     connect(ui->AutoScale,&QAbstractButton::clicked, this, &MainWindow::autoScale );
-    connect(ui->InnerSolve,&QAbstractButton::clicked, this, &MainWindow::solveInternally );
-    connect(ui->InnerSextract,&QAbstractButton::clicked, this, &MainWindow::sextractInternally );
+
     connect(ui->starList,&QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
+    connect(this, SIGNAL(logNeedsUpdating(QString)), this, SLOT(logOutput(QString)), Qt::QueuedConnection);
 
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
     ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() << 0 );
@@ -93,22 +97,100 @@ bool MainWindow::loadImage()
     return false;
 }
 
+bool MainWindow::sextractImage()
+{
+    if(ui->splitter->sizes().last() < 10)
+         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
+    ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
+
+    if(sextract())
+    {
+        sortStars();
+        updateStarTableFromList();
+
+        if(ui->splitter_2->sizes().last() < 10)
+            ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << ui->splitter_2->width() / 2 );
+        updateImage();
+
+        return true;
+    }
+    return false;
+}
+
 //I wrote this method to call the sextract and solve methods below in basically the same way we do in KStars right now.
 bool MainWindow::solveImage()
 {
-     solverTimer.start();
+    solverTimer.start();
 
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
     ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
 
-    //if(sextract())
-    //{
+    if(sextract())
+    {
         if(solveField())
             return true;
         return false;
-   // }
-    //return false;
+    }
+    return false;
 }
+
+bool MainWindow::sextractInternally()
+{
+    if(ui->splitter->sizes().last() < 10)
+         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
+    ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
+
+    if(runInnerSextractor())
+    {
+        sortStars();
+        updateStarTableFromList();
+
+        if(ui->splitter_2->sizes().last() < 10)
+            ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << ui->splitter_2->width() / 2 );
+        updateImage();
+
+        return true;
+    }
+    return false;
+}
+
+//I wrote this method to start the internal solver in QThread so it would be non-blocking.
+bool MainWindow::solveInternally()
+{
+    if(ui->splitter->sizes().last() < 10)
+         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
+    ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
+
+    solverTimer.start();
+
+    if(runInnerSextractor())
+    {
+        internalSolver.clear();
+
+        //This method can be aborted, but doesn't seem to work on Linux?
+      //  internalSolver = QThread::create([this]{ runEngine(); });
+      //  internalSolver->start();
+
+        //This method cannot be aborted
+
+        QtConcurrent::run(this, &MainWindow::runEngine);
+
+        return true;
+    }
+    return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 //This method will abort the sextractor, sovler, and any other processes currently being run, no matter which type
 void MainWindow::abort()
@@ -243,6 +325,8 @@ bool MainWindow::loadFits()
     if(checkDebayer())
         debayer();
 
+    getSolverOptionsFromFITS();
+
     return true;
 }
 
@@ -250,6 +334,13 @@ bool MainWindow::loadFits()
 //I also consulted the ImageToFITS method in fitsdata in KStars
 bool MainWindow::loadOtherFormat()
 {
+    use_position = false;
+    ra = 0;
+    dec = 0;
+    use_scale = false;
+    fov_low = "";
+    fov_high = "";
+
     QImageReader fileReader(fileToSolve.toLatin1());
 
     if (QImageReader::supportedImageFormats().contains(fileReader.format()) == false)
@@ -798,24 +889,10 @@ void MainWindow::updateStarTableFromList()
 }
 
 
-
-
-
-
-
-bool MainWindow::sextractAndDisplay()
-{
-    sextract();
-    getSextractorTable();
-    return true;
-}
-
 //This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
 bool MainWindow::sextract()
 {
     logOutput("++++++++++++++++++++++++++++++++++++++++++++++");
-    if(ui->splitter->sizes().last() < 10)
-         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
 
     sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
     QFile sextractorFile(sextractorFilePath);
@@ -1038,19 +1115,12 @@ bool MainWindow::getSextractorTable()
     }
     fits_close_file(new_fptr, &status);
 
-    sortStars();
-    updateStarTableFromList();
-
-    if(ui->splitter_2->sizes().last() < 10)
-        ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << ui->splitter_2->width() / 2 );
-    updateImage();
-
     if (status) fits_report_error(stderr, status); /* print any error message */
     return(status);
 }
 
 //This method is copied and pasted and modified from Align in KStars
-QStringList MainWindow::getSolverOptionsFromFITS()
+QStringList MainWindow::getSolverArgsList()
 {
     QStringList solverArgs;
 
@@ -1065,12 +1135,45 @@ QStringList MainWindow::getSolverOptionsFromFITS()
     // downsample
     solverArgs << "--downsample" << QString::number(2);
 
+
+    solverArgs << "--width" << QString::number(stats.width);
+    solverArgs << "--height" << QString::number(stats.height);
+    solverArgs << "--x-column" << "X_IMAGE";
+    solverArgs << "--y-column" << "Y_IMAGE";
+    solverArgs << "--sort-column" << "MAG_AUTO";
+    solverArgs << "--sort-ascending";
+
+                //Note This set of items is NOT NEEDED for Sextractor, it is needed to avoid python usage
+                //This may need to be changed later, but since the goal for using sextractor is to avoid python, this is placed here.
+    solverArgs << "--no-remove-lines";
+    solverArgs << "--uniformize" << "0";
+
+    if (use_position)
+        solverArgs << "-3" << QString::number(ra * 15.0) << "-4" << QString::number(dec) << "-5" << "15";
+
+
+    if (use_scale)
+        solverArgs << "-L" << fov_low << "-H" << fov_high << "-u" << "aw";
+
+    return solverArgs;
+}
+
+//This method is copied and pasted and modified from Align in KStars
+bool MainWindow::getSolverOptionsFromFITS()
+{
+    ra = 0;
+    dec = 0;
+    fov_low = "";
+    fov_high= "";
+    use_scale = false;
+    use_position = false;
+
     int status = 0, fits_ccd_width, fits_ccd_height, fits_binx = 1, fits_biny = 1;
     char comment[128], error_status[512];
     fitsfile *fptr = nullptr;
-    double ra = 0, dec = 0, fits_fov_x, fits_fov_y, fov_lower, fov_upper, fits_ccd_hor_pixel = -1,
+
+    double fits_fov_x, fits_fov_y, fov_lower, fov_upper, fits_ccd_hor_pixel = -1,
            fits_ccd_ver_pixel = -1, fits_focal_length = -1;
-    QString fov_low, fov_high;
 
     status = 0;
 
@@ -1081,7 +1184,7 @@ QStringList MainWindow::getSolverOptionsFromFITS()
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
         logOutput(QString::fromUtf8(error_status));
-        return solverArgs;
+        return false;
     }
 
     status = 0;
@@ -1090,7 +1193,7 @@ QStringList MainWindow::getSolverOptionsFromFITS()
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
         logOutput(QString::fromUtf8(error_status));
-        return solverArgs;
+        return false;
     }
 
     status = 0;
@@ -1099,7 +1202,7 @@ QStringList MainWindow::getSolverOptionsFromFITS()
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
         logOutput("FITS header: cannot find NAXIS1.");
-        return solverArgs;
+        return false;
     }
 
     status = 0;
@@ -1108,20 +1211,8 @@ QStringList MainWindow::getSolverOptionsFromFITS()
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
         logOutput("FITS header: cannot find NAXIS2.");
-        return solverArgs;
+        return false;
     }
-
-    solverArgs << "--width" << QString::number(fits_ccd_width);
-    solverArgs << "--height" << QString::number(fits_ccd_height);
-    solverArgs << "--x-column" << "X_IMAGE";
-    solverArgs << "--y-column" << "Y_IMAGE";
-    solverArgs << "--sort-column" << "MAG_AUTO";
-    solverArgs << "--sort-ascending";
-
-                //Note This set of items is NOT NEEDED for Sextractor, it is needed to avoid python usage
-                //This may need to be changed later, but since the goal for using sextractor is to avoid python, this is placed here.
-    solverArgs << "--no-remove-lines";
-    solverArgs << "--uniformize" << "0";
 
     bool coord_ok = true;
 
@@ -1164,8 +1255,8 @@ QStringList MainWindow::getSolverOptionsFromFITS()
         dec       = deDMS.Degrees();
     }
 
-    if (coord_ok)
-        solverArgs << "-3" << QString::number(ra * 15.0) << "-4" << QString::number(dec) << "-5" << "15";
+    if(coord_ok)
+        use_position = true;
 
     status = 0;
     double pixelScale = 0;
@@ -1176,11 +1267,9 @@ QStringList MainWindow::getSolverOptionsFromFITS()
         fov_low  = QString::number(0.9 * pixelScale);
         fov_high = QString::number(1.1 * pixelScale);
 
-        //if (Options::astrometryUseImageScale())
-            solverArgs << "-L" << fov_low << "-H" << fov_high << "-u"
-                        << "app";
+        use_scale = true;
 
-        return solverArgs;
+        return true;
     }
 
     if (fits_read_key(fptr, TDOUBLE, "FOCALLEN", &fits_focal_length, comment, &status))
@@ -1191,7 +1280,7 @@ QStringList MainWindow::getSolverOptionsFromFITS()
             fits_report_error(stderr, status);
             fits_get_errstatus(status, error_status);
             logOutput(QString("FITS header: cannot find FOCALLEN: (%1).").arg(QString(error_status)));
-            return solverArgs;
+            return false;
         }
         else
             fits_focal_length = integer_focal_length;
@@ -1203,7 +1292,7 @@ QStringList MainWindow::getSolverOptionsFromFITS()
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
         logOutput(QString("FITS header: cannot find PIXSIZE1 (%1).").arg(QString(error_status)));
-        return solverArgs;
+        return false;
     }
 
     status = 0;
@@ -1212,7 +1301,7 @@ QStringList MainWindow::getSolverOptionsFromFITS()
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
         logOutput(QString("FITS header: cannot find PIXSIZE2 (%1).").arg(QString(error_status)));
-        return solverArgs;
+        return false;
     }
 
     status = 0;
@@ -1234,14 +1323,13 @@ QStringList MainWindow::getSolverOptionsFromFITS()
     fov_lower *= 0.90;
     fov_upper *= 1.10;
 
+    //Final Options that get stored.
     fov_low  = QString::number(fov_lower);
     fov_high = QString::number(fov_upper);
 
-    //if (Options::astrometryUseImageScale())
-        solverArgs << "-L" << fov_low << "-H" << fov_high << "-u"
-                    << "aw";
+    use_scale = true;
 
-    return solverArgs;
+    return true;
 }
 
 //The code for this method is copied and pasted and modified from OfflineAstroetryParser in KStars
@@ -1255,7 +1343,7 @@ bool MainWindow::solveField()
         logOutput("Please Sextract the image first");
     }
 
-    QStringList solverArgs=getSolverOptionsFromFITS();
+    QStringList solverArgs=getSolverArgsList();
 
     QString confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
 #if defined(Q_OS_OSX)
@@ -1300,7 +1388,7 @@ bool MainWindow::solveField()
 bool MainWindow::solverComplete(int x)
 {
     double elapsed = solverTimer.elapsed() / 1000.0;
-    logOutput(QString("Solver completed in %1 second(s).").arg( elapsed));
+    logOutput(QString("External Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
 }
 
 
@@ -1334,11 +1422,9 @@ void MainWindow::logOutput(QString text)
 
 
 
-bool MainWindow::sextractInternally()
+bool MainWindow::runInnerSextractor()
 {
     logOutput("++++++++++++++++++++++++++++++++++++++++++++++");
-    if(ui->splitter->sizes().last() < 10)
-         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
 
     int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
 
@@ -1449,13 +1535,6 @@ bool MainWindow::sextractInternally()
         stars.append(star);
 
     }
-
-    sortStars();
-    updateStarTableFromList();
-
-    if(ui->splitter_2->sizes().last() < 10)
-        ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << ui->splitter_2->width() / 2 );
-    updateImage();
 
     writeSextractorTable();
     logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
@@ -1610,32 +1689,6 @@ testEngine(0,&cmd);  //Note that I had renamed the method in astrometry-engine t
 //would not have to prepare command line options and parse them all the time.
 
 
-//I wrote this method to start the internal solver in QThread so it would be non-blocking.
-bool MainWindow::solveInternally()
-{
-    logOutput("++++++++++++++++++++++++++++++++++++++++++++++");
-    if(ui->splitter->sizes().last() < 10)
-         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
-    ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
-
-     solverTimer.start();
-
-    //if(sextractInternally())
-    //{
-        internalSolver.clear();
-
-        //This method can be aborted
-        //internalSolver = QThread::create([this]{ runEngine(); });
-        //internalSolver->start();
-
-        //This method cannot be aborted
-        QtConcurrent::run(this, &MainWindow::runEngine);
-
-        return true;
-   // }
-   // return false;
-}
-
 //I had to create this method because i was having some difficulty turning a QString into a char* that would persist long enough to be used in the program.
 char* MainWindow::charQStr(QString in) {
     std::string fname = QString(in).toStdString();
@@ -1721,9 +1774,9 @@ void MainWindow::removeTempFile(char * fileName)
     {
         QFile(fileName).remove();
         if(QFile(fileName).exists())
-            logOutput(QString("Error: %1 was NOT removed").arg(fileName));
+            emit logNeedsUpdating(QString("Error: %1 was NOT removed").arg(fileName));
         else
-            logOutput(QString("%1 was removed").arg(fileName));
+            emit logNeedsUpdating(QString("%1 was removed").arg(fileName));
     }
 }
 
@@ -1732,7 +1785,7 @@ void MainWindow::removeTempFile(char * fileName)
 bool MainWindow::augmentXYList()
 {
 
-    logOutput("Attempting to make an AXY file from the xyls file");
+    emit logNeedsUpdating("Attempting to make an AXY file from the xyls file");
     char* newfits;
     int i, I;
 
@@ -1755,7 +1808,7 @@ bool MainWindow::augmentXYList()
     newfits          = charQStr(QString("%1_withWCS.fits").arg(basedir));
         //index_xyls = "%s-indx.xyls";
 
-    logOutput(("Deleting Temp files"));
+    emit logNeedsUpdating(("Deleting Temp files"));
     removeTempFile(allaxy->axyfn);
     removeTempFile(allaxy->matchfn);
     removeTempFile(allaxy->rdlsfn);
@@ -1765,25 +1818,6 @@ bool MainWindow::augmentXYList()
 
 
 
-
-
-
-
-    //L
-   // allaxy->scalelo
-    //H
-   // allaxy->scalehi
-    //u
-    //allaxy->scaleunit
-    //resort
-
-    //3
-   // allaxy->ra_center
-    //4
-   // allaxy->dec_center
-    //5
-   // allaxy->search_radius
-
     allaxy->resort=TRUE;
     allaxy->sort_ascending = TRUE;
     allaxy->xcol=strdup("X_IMAGE");
@@ -1791,6 +1825,26 @@ bool MainWindow::augmentXYList()
     allaxy->sortcol=strdup("MAG_AUTO");
     allaxy->W=stats.width;
     allaxy->H=stats.height;
+
+    if(use_scale)
+    {
+        //L
+        allaxy->scalelo = fov_low.toDouble();
+        //H
+        allaxy->scalehi = fov_high.toDouble();
+        //u
+        allaxy->scaleunit = SCALE_UNITS_ARCSEC_PER_PIX;
+    }
+
+    if(use_position)
+    {
+        //3
+        allaxy->ra_center = ra * 15.0;
+        //4
+        allaxy->dec_center = dec;
+        //5
+        allaxy->search_radius = 15;
+    }
 
     // tempfiles to delete when we finish
         sl* tempfiles;
@@ -1809,7 +1863,7 @@ bool MainWindow::augmentXYList()
                                        allaxy->xcol, allaxy->ycol, &reason);
         if (!isxyls)
         {
-            logOutput(QString("not xyls because: %1").arg(reason));
+            emit logNeedsUpdating(QString("not xyls because: %1").arg(reason));
             return false;
         }
 
@@ -1826,14 +1880,14 @@ bool MainWindow::augmentXYList()
 
                 anq = anqfits_open_hdu(allaxy->xylsfn, allaxy->extension);
                 if (!anq) {
-                    logOutput(QString("Failed to open xyls file %1 up to extension %2").arg(
+                    emit logNeedsUpdating(QString("Failed to open xyls file %1 up to extension %2").arg(
                           allaxy->xylsfn).arg(allaxy->extension));
                     return false;
                 }
 
                 fin = fopen(allaxy->xylsfn, "rb");
                 if (!fin) {
-                    logOutput(QString("Failed to open xyls file \"%1\"").arg(allaxy->xylsfn));
+                    emit logNeedsUpdating(QString("Failed to open xyls file \"%1\"").arg(allaxy->xylsfn));
                     return false;
                 }
 
@@ -1846,25 +1900,25 @@ bool MainWindow::augmentXYList()
                 sl_append_nocopy(tempfiles, extfn);
                 fout = fopen(extfn, "wb");
                 if (!fout) {
-                    logOutput(QString("Failed to open temp file \"%1\" to write extension").arg(
+                    emit logNeedsUpdating(QString("Failed to open temp file \"%1\" to write extension").arg(
                              extfn));
                     return false;
                 }
-                logOutput(QString("Copying ext %1 of %2 to temp %3\n").arg( allaxy->extension).arg(
+                emit logNeedsUpdating(QString("Copying ext %1 of %2 to temp %3\n").arg( allaxy->extension).arg(
                         allaxy->xylsfn).arg( extfn));
                 if (pipe_file_offset(fin, 0, nprimary, fout)) {
-                    logOutput(QString("Failed to copy the primary HDU of xylist file %1 to %2").arg(
+                    emit logNeedsUpdating(QString("Failed to copy the primary HDU of xylist file %1 to %2").arg(
                           allaxy->xylsfn).arg( extfn));
                     return false;
                 }
                 if (pipe_file_offset(fin, offset, nbytes, fout)) {
-                    logOutput(QString("Failed to copy HDU %1 of xylist file %2 to %3").arg(
+                    emit logNeedsUpdating(QString("Failed to copy HDU %1 of xylist file %2 to %3").arg(
                           allaxy->extension).arg( allaxy->xylsfn).arg(extfn));
                     return false;
                 }
                 fclose(fin);
                 if (fclose(fout)) {
-                    logOutput(QString("Failed to close %1").arg( extfn));
+                    emit logNeedsUpdating(QString("Failed to close %1").arg( extfn));
                     return false;
                 }
            // }
@@ -1891,15 +1945,15 @@ bool MainWindow::augmentXYList()
                         if (allaxy->resort) {
                             char* err;
                             int rtn;
-                            logOutput(QString("Sorting file \"%1\" to \"%2\" using columns flux (%3) and background (%4), %5scending\n")
+                            emit logNeedsUpdating(QString("Sorting file \"%1\" to \"%2\" using columns flux (%3) and background (%4), %5scending\n")
                                     .arg(allaxy->xylsfn).arg( sortedxylsfn).arg( allaxy->sortcol).arg( allaxy->bgcol).arg( allaxy->sort_ascending?"a":"de"));
                             errors_start_logging_to_string();
                             rtn = resort_xylist(allaxy->xylsfn, sortedxylsfn, allaxy->sortcol, allaxy->bgcol, allaxy->sort_ascending);
                             err = errors_stop_logging_to_string(": ");
                             if (rtn) {
-                                logOutput(QString("Sorting brightness using %1 and BACKGROUND columns failed; falling back to %2.\n").arg
+                                emit logNeedsUpdating(QString("Sorting brightness using %1 and BACKGROUND columns failed; falling back to %2.\n").arg
                                        (allaxy->sortcol).arg (allaxy->sortcol));
-                                logOutput(QString("Reason: %1\n").arg( err));
+                                emit logNeedsUpdating(QString("Reason: %1\n").arg( err));
                                 do_tabsort = TRUE;
                             }
                             free(err);
@@ -1910,7 +1964,7 @@ bool MainWindow::augmentXYList()
                             do_tabsort = TRUE;
 
                         if (do_tabsort) {
-                            logOutput(QString("Sorting by brightness: input=%1, output=%2, column=%3.\n").arg(
+                            emit logNeedsUpdating(QString("Sorting by brightness: input=%1, output=%2, column=%3.\n").arg(
                                     allaxy->xylsfn).arg( sortedxylsfn).arg( allaxy->sortcol));
                             tabsort(allaxy->xylsfn, sortedxylsfn,
                                     allaxy->sortcol, !allaxy->sort_ascending);
@@ -1924,7 +1978,7 @@ bool MainWindow::augmentXYList()
                     // start piling FITS headers in there.
                     hdr = anqfits_get_header2(allaxy->xylsfn, 0);
                     if (!hdr) {
-                        logOutput(QString("Failed to read FITS header from file %1").arg (allaxy->xylsfn));
+                        emit logNeedsUpdating(QString("Failed to read FITS header from file %1").arg (allaxy->xylsfn));
                         exit(-1);
                     }
 
@@ -1977,31 +2031,31 @@ bool MainWindow::augmentXYList()
                         double appu, appl;
                         switch (allaxy->scaleunit) {
                         case SCALE_UNITS_DEG_WIDTH:
-                            logOutput(QString("Scale range: %g to %g degrees wide\n").arg( allaxy->scalelo).arg( allaxy->scalehi));
+                            emit logNeedsUpdating(QString("Scale range: %1 to %1 degrees wide\n").arg( allaxy->scalelo).arg( allaxy->scalehi));
                             appl = deg2arcsec(allaxy->scalelo) / (double)allaxy->W;
                             appu = deg2arcsec(allaxy->scalehi) / (double)allaxy->W;
-                            logOutput(QString("Image width %i pixels; arcsec per pixel range %g %g\n").arg( allaxy->W).arg (appl).arg( appu));
+                            emit logNeedsUpdating(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg( allaxy->W).arg (appl).arg( appu));
                             break;
                         case SCALE_UNITS_ARCMIN_WIDTH:
-                            logOutput(QString("Scale range: %g to %g arcmin wide\n").arg (allaxy->scalelo).arg( allaxy->scalehi));
+                            emit logNeedsUpdating(QString("Scale range: %1 to %2 arcmin wide\n").arg (allaxy->scalelo).arg( allaxy->scalehi));
                             appl = arcmin2arcsec(allaxy->scalelo) / (double)allaxy->W;
                             appu = arcmin2arcsec(allaxy->scalehi) / (double)allaxy->W;
-                            logOutput(QString("Image width %i pixels; arcsec per pixel range %g %g\n").arg (allaxy->W).arg( appl).arg (appu));
+                            emit logNeedsUpdating(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg (allaxy->W).arg( appl).arg (appu));
                             break;
                         case SCALE_UNITS_ARCSEC_PER_PIX:
-                            logOutput(QString("Scale range: %g to %g arcsec/pixel\n").arg (allaxy->scalelo).arg (allaxy->scalehi));
+                            emit logNeedsUpdating(QString("Scale range: %1 to %2 arcsec/pixel\n").arg (allaxy->scalelo).arg (allaxy->scalehi));
                             appl = allaxy->scalelo;
                             appu = allaxy->scalehi;
                             break;
                         case SCALE_UNITS_FOCAL_MM:
-                            logOutput(QString("Scale range: %g to %g mm focal length\n").arg (allaxy->scalelo).arg (allaxy->scalehi));
+                            emit logNeedsUpdating(QString("Scale range: %1 to %2 mm focal length\n").arg (allaxy->scalelo).arg (allaxy->scalehi));
                             // "35 mm" film is 36 mm wide.
                             appu = rad2arcsec(atan(36. / (2. * allaxy->scalelo))) / (double)allaxy->W;
                             appl = rad2arcsec(atan(36. / (2. * allaxy->scalehi))) / (double)allaxy->W;
-                            logOutput(QString("Image width %i pixels; arcsec per pixel range %g %g\n").arg (allaxy->W).arg (appl).arg (appu));
+                            emit logNeedsUpdating(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg (allaxy->W).arg (appl).arg (appu));
                             break;
                         default:
-                            logOutput(QString("Unknown scale unit code %i\n").arg (allaxy->scaleunit));
+                            emit logNeedsUpdating(QString("Unknown scale unit code %1\n").arg (allaxy->scaleunit));
                             return -1;
                         }
                         dl_append(scales, appl);
@@ -2111,7 +2165,7 @@ bool MainWindow::augmentXYList()
                         fn = sl_get(allaxy->verifywcs, i);
                         ext = il_get(allaxy->verifywcs_ext, i);
                         if (!sip_read_header_file_ext(fn, ext, &sip)) {
-                            logOutput(QString("Failed to parse WCS header from file \"%1\" ext %2").arg( fn).arg(ext));
+                            emit logNeedsUpdating(QString("Failed to parse WCS header from file \"%1\" ext %2").arg( fn).arg(ext));
                             continue;
                         }
 
@@ -2145,14 +2199,14 @@ bool MainWindow::augmentXYList()
 
                     fout = fopen(allaxy->axyfn, "wb");
                     if (!fout) {
-                        logOutput(QString("Failed to open output file %1").arg(allaxy->axyfn));
+                        emit logNeedsUpdating(QString("Failed to open output file %1").arg(allaxy->axyfn));
                         exit(-1);
                     }
 
-                    logOutput(QString("Writing headers to file %1\n").arg( allaxy->axyfn));
+                    emit logNeedsUpdating(QString("Writing headers to file %1\n").arg( allaxy->axyfn));
 
                     if (qfits_header_dump(hdr, fout)) {
-                        logOutput(QString("Failed to write FITS header"));
+                        emit logNeedsUpdating(QString("Failed to write FITS header"));
                         exit(-1);
                     }
                     qfits_header_destroy(hdr);
@@ -2167,24 +2221,24 @@ bool MainWindow::augmentXYList()
 
                         anq = anqfits_open_hdu(allaxy->xylsfn, ext);
                         if (!anq) {
-                            logOutput(QString("Failed to open xyls file %1 up to extension %i").arg (allaxy->xylsfn).arg (ext));
+                            emit logNeedsUpdating(QString("Failed to open xyls file %1 up to extension %i").arg (allaxy->xylsfn).arg (ext));
                             exit(-1);
                         }
                         offset = anqfits_header_start(anq, ext);
                         nbytes = anqfits_header_size(anq, ext) + anqfits_data_size(anq, ext);
 
-                        logOutput(QString("Copying data block of file %1 to output %2.\n").arg(
+                        emit logNeedsUpdating(QString("Copying data block of file %1 to output %2.\n").arg(
                                 allaxy->xylsfn).arg( allaxy->axyfn));
                         anqfits_close(anq);
 
                         fin = fopen(allaxy->xylsfn, "rb");
                         if (!fin) {
-                            logOutput(QString("Failed to open xyls file \"%1\"").arg( allaxy->xylsfn));
+                            emit logNeedsUpdating(QString("Failed to open xyls file \"%1\"").arg( allaxy->xylsfn));
                             exit(-1);
                         }
 
                         if (pipe_file_offset(fin, offset, nbytes, fout)) {
-                            logOutput(QString("Failed to copy the data segment of xylist file %1 to %2").arg(
+                            emit logNeedsUpdating(QString("Failed to copy the data segment of xylist file %1 to %2").arg(
                                   allaxy->xylsfn).arg (allaxy->axyfn));
                             exit(-1);
                         }
@@ -2196,9 +2250,9 @@ bool MainWindow::augmentXYList()
                     if (!allaxy->no_delete_temp) {
                         for (i=0; i<sl_size(tempfiles); i++) {
                             char* fn = sl_get(tempfiles, i);
-                            logOutput(QString("Deleting temp file %1\n").arg(fn));
+                            emit logNeedsUpdating(QString("Deleting temp file %1\n").arg(fn));
                             if (unlink(fn)) {
-                                logOutput(QString("Failed to delete temp file \"%1\"").arg( fn));
+                                emit logNeedsUpdating(QString("Failed to delete temp file \"%1\"").arg( fn));
                             }
                         }
                     }
@@ -2209,7 +2263,7 @@ bool MainWindow::augmentXYList()
 
              //augment_xylist_free_contents(allaxy);
 
-             logOutput("The AXY file has been created");
+             emit logNeedsUpdating("The AXY file has been created");
              return 0;
 
 }
@@ -2217,11 +2271,12 @@ bool MainWindow::augmentXYList()
 //This method was adapted from the main method in engine-main.c in astrometry.net
 int MainWindow::runEngine()
 {
+    emit logNeedsUpdating("++++++++++++++++++++++++++++++++++++++++++++++");
     sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
     QFile sextractorFile(sextractorFilePath);
     if(!sextractorFile.exists())
     {
-        logOutput("Please Sextract the image first");
+        emit logNeedsUpdating("Please Sextract the image first");
     }
 
     augmentXYList();
@@ -2242,8 +2297,8 @@ int MainWindow::runEngine()
 
     engine = engine_new();
 
-    log_to(stderr);
-    log_init(LOG_MSG);
+    //log_to(stderr);
+    //log_init(LOG_MSG);
 
     QByteArray ba;
 #if defined(Q_OS_OSX)
@@ -2261,7 +2316,7 @@ int MainWindow::runEngine()
 
     if (!streq(configfn, "none")) {
         if (engine_parse_config_file(engine, configfn)) {
-            logOutput(QString("Failed to parse (or encountered an error while interpreting) config file \"%1\"\n").arg( configfn));
+            emit logNeedsUpdating(QString("Failed to parse (or encountered an error while interpreting) config file \"%1\"\n").arg( configfn));
             return -1;
         }
     }
@@ -2273,12 +2328,12 @@ int MainWindow::runEngine()
             glob_t myglob;
             int flags = GLOB_TILDE | GLOB_BRACE;
             if (glob(s, flags, nullptr, &myglob)) {
-               logOutput(QString("Failed to expand wildcards in index-file path \"%1").arg(s));
+               emit logNeedsUpdating(QString("Failed to expand wildcards in index-file path \"%1").arg(s));
                 return -1;
             }
             for (c=0; c<myglob.gl_pathc; c++) {
                 if (engine_add_index(engine, myglob.gl_pathv[c])) {
-                    logOutput(QString("Failed to add index \"%1\"").arg( myglob.gl_pathv[c]));
+                    emit logNeedsUpdating(QString("Failed to add index \"%1\"").arg( myglob.gl_pathv[c]));
                     return -1;
                 }
             }
@@ -2287,7 +2342,7 @@ int MainWindow::runEngine()
     }
 
     if (!pl_size(engine->indexes)) {
-        logOutput(QString("\n\n"
+        emit logNeedsUpdating(QString("\n\n"
                "---------------------------------------------------------------------\n"
                "You must list at least one index in the config file (%1)\n\n"
                "See http://astrometry.net/use.html about how to get some index files.\n"
@@ -2299,7 +2354,7 @@ int MainWindow::runEngine()
 
 
     if (engine->minwidth <= 0.0 || engine->maxwidth <= 0.0) {
-        logOutput(QString("\"minwidth\" and \"maxwidth\" in the config file %1 must be positive!\n").arg( configfn));
+        emit logNeedsUpdating(QString("\"minwidth\" and \"maxwidth\" in the config file %1 must be positive!\n").arg( configfn));
         return -1;
     }
 
@@ -2320,69 +2375,61 @@ int MainWindow::runEngine()
     jobfn = theAXYFile;
 
     gettimeofday(&tv1, nullptr);
-    logOutput(QString("Reading file \"%1\"...\n").arg( jobfn));
+    emit logNeedsUpdating(QString("Reading file \"%1\"...\n").arg( jobfn));
 
     job = engine_read_job_file(engine, jobfn);
     if (!job) {
-        logOutput(QString("Failed to read job file \"%1\"").arg( jobfn));
+        emit logNeedsUpdating(QString("Failed to read job file \"%1\"").arg( jobfn));
         return -1;
     }
 
     if (basedir) {
-            logOutput(QString("Setting job's output base directory to %1\n").arg( basedir));
+            emit logNeedsUpdating(QString("Setting job's output base directory to %1\n").arg( basedir));
             job_set_output_base_dir(job, basedir);
     }
 
     if (engine_run_job(engine, job))
-        logOutput("Failed to run_job()\n");
+        emit logNeedsUpdating("Failed to run_job()\n");
 
-    //This doesn't work since I think it got reset.
-    /**
-    MatchObj *mo = &job->bp.solver.best_match;
-    double ra,dec;
-    xyzarr2radecdeg(mo->center, &ra, &dec);
-    logOutput(QString("Image RA: %1").arg(ra));
-    logOutput(QString("Image DEC: %1").arg(dec));
-    **/
     sip_t wcs;
         double ra, dec, fieldw, fieldh;
         char rastr[32], decstr[32];
         char* fieldunits;
 
     // print info about the field.
-        logOutput(QString("Solved Field: %1").arg(fileToSolve));
+        emit logNeedsUpdating(QString("Solved Field: %1").arg(fileToSolve));
         if (file_exists (allaxy->wcsfn)) {
             double orient;
             if  (allaxy->wcs_last_mod) {
                 time_t t = file_get_last_modified_time (allaxy->wcsfn);
                 if (t == allaxy->wcs_last_mod) {
-                    logOutput("Warning: there was already a WCS file, and its timestamp has not changed.\n");
+                    emit logNeedsUpdating("Warning: there was already a WCS file, and its timestamp has not changed.\n");
                 }
             }
             if (!sip_read_header_file (allaxy->wcsfn, &wcs)) {
-                logOutput(QString("Failed to read WCS header from file %1").arg( allaxy->wcsfn));
+                emit logNeedsUpdating(QString("Failed to read WCS header from file %1").arg( allaxy->wcsfn));
                 exit(-1);
             }
             sip_get_radec_center(&wcs, &ra, &dec);
             sip_get_radec_center_hms_string(&wcs, rastr, decstr);
             sip_get_field_size(&wcs, &fieldw, &fieldh, &fieldunits);
             orient = sip_get_orientation(&wcs);
-            logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
-            logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
-            logOutput(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));
-            logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
+            emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
+            emit logNeedsUpdating(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
+            emit logNeedsUpdating(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));
+            emit logNeedsUpdating(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
             // Note, negative determinant = positive parity.
             double det = sip_det_cd(&wcs);
-            logOutput(QString("Field parity: %1\n").arg( (det < 0 ? "pos" : "neg")));
+            emit logNeedsUpdating(QString("Field parity: %1\n").arg( (det < 0 ? "pos" : "neg")));
 
         } else {
-            logOutput("Did not solve (or no WCS file was written).\n");
+            emit logNeedsUpdating("Did not solve (or no WCS file was written).\n");
         }
 
     job_free(job);
     gettimeofday(&tv2, nullptr);
-    logOutput(QString("Spent %1 seconds on this field.\n").arg(millis_between(&tv1, &tv2)/1000.0));
+    emit logNeedsUpdating(QString("Spent %1 seconds on this field.\n").arg(millis_between(&tv1, &tv2)/1000.0));
 
     engine_free(engine);
     sl_free2(strings);
@@ -2392,7 +2439,7 @@ int MainWindow::runEngine()
         fclose(fin);
 
     double elapsed = solverTimer.elapsed() / 1000.0;
-    logOutput(QString("Solver completed in %1 second(s).").arg( elapsed));
+    emit logNeedsUpdating(QString("Internal Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
 
     return 0;
 }

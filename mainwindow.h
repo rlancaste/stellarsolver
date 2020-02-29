@@ -98,9 +98,17 @@ private:
     int selectedStar;
     BayerParams debayerParams;
     bool checkDebayer();
+
+    //Parameters for sovling
+    bool use_position = false;
+    double ra;
+    double dec;
+    bool use_scale = false;
+    QString fov_low, fov_high;
+
+    //Data about the image
     Statistic stats;
     fitsfile *fptr { nullptr };
-
     QImage rawImage;
     QImage scaledImage;
     int currentWidth;
@@ -117,6 +125,7 @@ private:
     uint32_t m_ImageBufferSize { 0 };
     StretchParams stretchParams;
 
+
     QTime solverTimer;
     augment_xylist_t theallaxy;
     augment_xylist_t* allaxy = &theallaxy;
@@ -129,9 +138,12 @@ private:
 
 public slots:
     bool loadImage();
+    bool sextractImage();
     bool solveImage();
-    void abort();
+    bool sextractInternally();
+    bool solveInternally();
 
+    void abort();
     bool loadFits();
     bool loadOtherFormat();
     bool saveAsFITS();
@@ -148,10 +160,10 @@ public slots:
 
     void doStretch(QImage *outputImage);
     void clearImageBuffers();
-    bool sextractAndDisplay();
     bool sextract();
     bool getSextractorTable();
-    QStringList getSolverOptionsFromFITS();
+    QStringList getSolverArgsList();
+    bool getSolverOptionsFromFITS();
     bool solveField();
     void sortStars();
 
@@ -160,13 +172,17 @@ public slots:
     void logSextractor();
     void clearLog();
 
-    bool sextractInternally();
     bool writeSextractorTable();
-    bool solveInternally();
     bool augmentXYList();
+
+    bool runInnerSextractor();
     int runEngine();
 
     bool solverComplete(int x);
+
+signals:
+    void logNeedsUpdating(QString logText);
+
 };
 
 #endif // MAINWINDOW_H
