@@ -69,6 +69,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="showStars">
+        <property name="text">
+         <string>ShowStars</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>

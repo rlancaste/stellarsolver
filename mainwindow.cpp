@@ -46,6 +46,7 @@ MainWindow::MainWindow() :
     connect(ui->zoomIn,&QAbstractButton::clicked, this, &MainWindow::zoomIn );
     connect(ui->zoomOut,&QAbstractButton::clicked, this, &MainWindow::zoomOut );
     connect(ui->AutoScale,&QAbstractButton::clicked, this, &MainWindow::autoScale );
+    connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
 
     connect(ui->starList,&QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
     connect(this, SIGNAL(logNeedsUpdating(QString)), this, SLOT(logOutput(QString)), Qt::QueuedConnection);
@@ -841,12 +842,18 @@ void MainWindow::initDisplayImage()
 
 void MainWindow::zoomIn()
 {
+    if(!imageLoaded)
+        return;
+
     currentZoom *= 1.5;
     updateImage();
 }
 
 void MainWindow::zoomOut()
 {
+    if(!imageLoaded)
+        return;
+
     currentZoom /= 1.5;
     updateImage();
 }
@@ -854,6 +861,9 @@ void MainWindow::zoomOut()
 //This code was copied and pasted and modified from rescale in Fitsview in KStars
 void MainWindow::autoScale()
 {
+    if(!imageLoaded)
+        return;
+
     int w = (stats.width + sampling - 1) / sampling;
     int h = (stats.height + sampling - 1) / sampling;
 
@@ -871,6 +881,9 @@ void MainWindow::autoScale()
 //This method is very loosely based on updateFrame in Fitsview in Kstars
 void MainWindow::updateImage()
 {
+    if(!imageLoaded)
+        return;
+
     int w = (stats.width + sampling - 1) / sampling;
     int h = (stats.height + sampling - 1) / sampling;
     currentWidth  = static_cast<int> (w * (currentZoom));
@@ -879,29 +892,32 @@ void MainWindow::updateImage()
 
     scaledImage = rawImage.scaled(currentWidth, currentHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     QPixmap renderedImage = QPixmap::fromImage(scaledImage);
-    QPainter p(&renderedImage);
-    for(int star = 0 ; star < stars.size() ; star++)
+    if(ui->showStars->isChecked())
     {
-        int starx = static_cast<int>(round(stars.at(star).x * currentWidth / stats.width)) ;
-        int stary = static_cast<int>(round(stars.at(star).y * currentHeight / stats.height)) ;
-        int r = 10 * currentWidth / stats.width ;
+        QPainter p(&renderedImage);
+        for(int star = 0 ; star < stars.size() ; star++)
+        {
+            int starx = static_cast<int>(round(stars.at(star).x * currentWidth / stats.width)) ;
+            int stary = static_cast<int>(round(stars.at(star).y * currentHeight / stats.height)) ;
+            int r = 10 * currentWidth / stats.width ;
 
-        if(star == selectedStar - 1)
-        {
-            QPen highlighter(QColor("yellow"));
-            highlighter.setWidth(4);
-            p.setPen(highlighter);
-            p.setOpacity(1);
-            p.drawEllipse(starx - r, stary - r , r*2, r*2);
+            if(star == selectedStar - 1)
+            {
+                QPen highlighter(QColor("yellow"));
+                highlighter.setWidth(4);
+                p.setPen(highlighter);
+                p.setOpacity(1);
+                p.drawEllipse(starx - r, stary - r , r*2, r*2);
+            }
+            else
+            {
+                p.setPen(QColor("red"));
+                p.setOpacity(0.6);
+                p.drawEllipse(starx - r, stary - r , r*2, r*2);
+            }
         }
-        else
-        {
-            p.setPen(QColor("red"));
-            p.setOpacity(0.6);
-            p.drawEllipse(starx - r, stary - r , r*2, r*2);
-        }
+        p.end();
     }
-    p.end();
 
     ui->Image->setPixmap(renderedImage);
 }

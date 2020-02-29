@@ -139,15 +139,22 @@ private:
     char* charQStr(QString in);
 
 public slots:
-    bool loadImage();
+
+    bool prepareForProcesses();
+    void logOutput(QString text);
+    void logSolver();
+    void logSextractor();
+    void clearLog();
+
+    //These are the functions that run when the bottom buttons are clicked
     bool sextractImage();
     bool solveImage();
     bool sextractInternally();
     bool solveInternally();
-    bool prepareForProcesses();
-    void displayTable();
-
     void abort();
+
+    //These functions are for loading and displaying the table
+    bool loadImage();
     bool loadFits();
     bool loadOtherFormat();
     bool saveAsFITS();
@@ -155,34 +162,37 @@ public slots:
     bool debayer_8bit();
     bool debayer_16bit();
     void initDisplayImage();
+    void doStretch(QImage *outputImage);
+    void clearImageBuffers();
+
     void zoomIn();
     void zoomOut();
     void autoScale();
     void updateImage();
+
+    //These functions are for the display of stars in the table
+    void displayTable();
+    void sortStars();
     void starClickedInTable();
     void updateStarTableFromList();
-
-    void doStretch(QImage *outputImage);
-    void clearImageBuffers();
-    bool sextract();
     bool getSextractorTable();
+
+    //These functions are for loading and parsing the options
     QStringList getSolverArgsList();
     bool getSolverOptionsFromFITS();
+
+    //These functions are for the external sextractor and solver
+    bool sextract();
     bool solveField();
-    void sortStars();
-
-    void logOutput(QString text);
-    void logSolver();
-    void logSextractor();
-    void clearLog();
-
-    bool writeSextractorTable();
-    bool augmentXYList();
-
-    bool runInnerSextractor();
-    int runEngine();
-
     bool solverComplete(int x);
+
+    //These are for the internal sextractor
+    bool writeSextractorTable();
+    bool runInnerSextractor();
+
+    //These are for the internal solver
+    bool augmentXYList();
+    int runEngine();
 
 signals:
     void logNeedsUpdating(QString logText);
