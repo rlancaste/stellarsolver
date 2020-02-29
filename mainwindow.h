@@ -105,6 +105,7 @@ private:
     double dec;
     bool use_scale = false;
     QString fov_low, fov_high;
+    QString units;
 
     //Data about the image
     Statistic stats;

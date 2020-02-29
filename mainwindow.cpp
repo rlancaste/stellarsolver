@@ -105,11 +105,12 @@ bool MainWindow::sextractImage()
 
     if(sextract())
     {
+        getSextractorTable();
         sortStars();
         updateStarTableFromList();
 
         if(ui->splitter_2->sizes().last() < 10)
-            ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << ui->splitter_2->width() / 2 );
+            ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << 200 );
         updateImage();
 
         return true;
@@ -146,7 +147,7 @@ bool MainWindow::sextractInternally()
         updateStarTableFromList();
 
         if(ui->splitter_2->sizes().last() < 10)
-            ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << ui->splitter_2->width() / 2 );
+            ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << 200 );
         updateImage();
 
         return true;
@@ -804,16 +805,18 @@ void MainWindow::updateImage()
 
         if(star == selectedStar - 1)
         {
-            p.setPen(QColor("yellow"));
+            QPen highlighter(QColor("yellow"));
+            highlighter.setWidth(10);
+            p.setPen(highlighter);
             p.setOpacity(1);
+            p.drawEllipse(starx - r, stary - r , r*2, r*2);
         }
         else
         {
             p.setPen(QColor("red"));
             p.setOpacity(0.6);
+            p.drawEllipse(starx - r, stary - r , r*2, r*2);
         }
-
-        p.drawEllipse(starx - r, stary - r , r*2, r*2);
     }
     p.end();
 
@@ -892,7 +895,7 @@ void MainWindow::updateStarTableFromList()
 //This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
 bool MainWindow::sextract()
 {
-    logOutput("++++++++++++++++++++++++++++++++++++++++++++++");
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
     sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
     QFile sextractorFile(sextractorFilePath);
@@ -976,6 +979,8 @@ bool MainWindow::sextract()
     logOutput(sextractorBinaryPath + " " + sextractorArgs.join(' '));
     sextractorProcess->waitForFinished();
     logOutput(sextractorProcess->readAllStandardError().trimmed());
+
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
     return true;
 
@@ -1148,12 +1153,11 @@ QStringList MainWindow::getSolverArgsList()
     solverArgs << "--no-remove-lines";
     solverArgs << "--uniformize" << "0";
 
+    if (use_scale)
+        solverArgs << "-L" << fov_low << "-H" << fov_high << "-u" << units;
+
     if (use_position)
         solverArgs << "-3" << QString::number(ra * 15.0) << "-4" << QString::number(dec) << "-5" << "15";
-
-
-    if (use_scale)
-        solverArgs << "-L" << fov_low << "-H" << fov_high << "-u" << "aw";
 
     return solverArgs;
 }
@@ -1266,6 +1270,7 @@ bool MainWindow::getSolverOptionsFromFITS()
     {
         fov_low  = QString::number(0.9 * pixelScale);
         fov_high = QString::number(1.1 * pixelScale);
+        units = "app";
 
         use_scale = true;
 
@@ -1326,6 +1331,8 @@ bool MainWindow::getSolverOptionsFromFITS()
     //Final Options that get stored.
     fov_low  = QString::number(fov_lower);
     fov_high = QString::number(fov_upper);
+
+    units = "aw";
 
     use_scale = true;
 
@@ -1389,6 +1396,7 @@ bool MainWindow::solverComplete(int x)
 {
     double elapsed = solverTimer.elapsed() / 1000.0;
     logOutput(QString("External Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 }
 
 
@@ -1538,6 +1546,8 @@ bool MainWindow::runInnerSextractor()
 
     writeSextractorTable();
     logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
+
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
     return true;
 
@@ -1833,7 +1843,10 @@ bool MainWindow::augmentXYList()
         //H
         allaxy->scalehi = fov_high.toDouble();
         //u
-        allaxy->scaleunit = SCALE_UNITS_ARCSEC_PER_PIX;
+        if(units == "app")
+            allaxy->scaleunit = SCALE_UNITS_ARCSEC_PER_PIX;
+        if(units =="aw")
+             allaxy->scaleunit = SCALE_UNITS_ARCMIN_WIDTH;
     }
 
     if(use_position)
@@ -2388,6 +2401,8 @@ int MainWindow::runEngine()
             job_set_output_base_dir(job, basedir);
     }
 
+    emit logNeedsUpdating("Starting Solver Engine!");
+
     if (engine_run_job(engine, job))
         emit logNeedsUpdating("Failed to run_job()\n");
 
@@ -2430,6 +2445,7 @@ int MainWindow::runEngine()
     job_free(job);
     gettimeofday(&tv2, nullptr);
     emit logNeedsUpdating(QString("Spent %1 seconds on this field.\n").arg(millis_between(&tv1, &tv2)/1000.0));
+    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
     engine_free(engine);
     sl_free2(strings);
