@@ -108,6 +108,7 @@ private:
     QString units;
 
     //Data about the image
+    bool imageLoaded = false;
     Statistic stats;
     fitsfile *fptr { nullptr };
     QImage rawImage;
@@ -143,6 +144,8 @@ public slots:
     bool solveImage();
     bool sextractInternally();
     bool solveInternally();
+    bool prepareForProcesses();
+    void displayTable();
 
     void abort();
     bool loadFits();

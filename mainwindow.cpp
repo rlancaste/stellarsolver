@@ -58,9 +58,199 @@ MainWindow::MainWindow() :
     debayerParams.method  = DC1394_BAYER_METHOD_NEAREST;
     debayerParams.filter  = DC1394_COLOR_FILTER_RGGB;
     debayerParams.offsetX = debayerParams.offsetY = 0;
-
-
 }
+
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+
+//These methods are for the logging of information to the textfield at the bottom of the window.
+//They are used by everything
+
+void MainWindow::logSextractor()
+{
+    QString rawText(sextractorProcess->readAll().trimmed());
+    logOutput(rawText.remove("[1M>").remove("[1A"));
+}
+
+void MainWindow::logSolver()
+{
+     logOutput(solver->readAll().trimmed());
+}
+
+void MainWindow::clearLog()
+{
+    ui->logDisplay->clear();
+}
+
+void MainWindow::logOutput(QString text)
+{
+     ui->logDisplay->append(text);
+     ui->logDisplay->show();
+}
+
+
+//These are some utility functions that can be used in all the code below
+
+//I had to create this method because i was having some difficulty turning a QString into a char* that would persist long enough to be used in the program.
+char* MainWindow::charQStr(QString in) {
+    std::string fname = QString(in).toStdString();
+    char* cstr;
+    cstr = new char [fname.size()+1];
+    strcpy( cstr, fname.c_str() );
+    return cstr;
+}
+
+//I created this method because I wanted to remove some temp files and display the output and the code was getting repetitive.
+void MainWindow::removeTempFile(char * fileName)
+{
+
+    if(QFile(fileName).exists())
+    {
+        QFile(fileName).remove();
+        if(QFile(fileName).exists())
+            emit logNeedsUpdating(QString("Error: %1 was NOT removed").arg(fileName));
+        else
+            emit logNeedsUpdating(QString("%1 was removed").arg(fileName));
+    }
+}
+
+//I wrote this method because we really want to do this before all 4 processes
+//It was getting repetitive.
+bool MainWindow::prepareForProcesses()
+{
+    if(ui->splitter->sizes().last() < 10)
+         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << 100 );
+    ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
+
+    if(!imageLoaded)
+    {
+        logOutput("Please Load an Image First");
+        return false;
+    }
+    return true;
+}
+
+//I wrote this method to display the table after sextraction has occured.
+void MainWindow::displayTable()
+{
+    sortStars();
+    updateStarTableFromList();
+
+    if(ui->splitter_2->sizes().last() < 10)
+        ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << 200 );
+    updateImage();
+}
+
+
+
+
+
+//The following methods are meant for starting the sextractor and image solving.
+//The methods run when the buttons are clicked.  The actual methods for doing sextraction and solving are further down.
+
+//I wrote this method to call the sextract method below in basically the same way we do in KStars right now.
+//It uses the external sextractor (or sex) program
+//It then will load the results into a table to the right of the image
+bool MainWindow::sextractImage()
+{
+    if(!prepareForProcesses())
+        return false;
+
+    if(sextract())
+    {
+        getSextractorTable();
+        displayTable();
+
+        return true;
+    }
+    return false;
+}
+
+//I wrote this method to call the sextract and solve methods below in basically the same way we do in KStars right now.
+//It uses the external programs solve-field and sextractor (or sex)
+//It times the entire process and prints out how long it took
+bool MainWindow::solveImage()
+{
+    if(!prepareForProcesses())
+        return false;
+
+    solverTimer.start();
+
+
+    if(sextract())
+    {
+        if(solveField())
+            return true;
+        return false;
+    }
+    return false;
+}
+
+//I wrote this method to call the internal sextract method below.
+//It then will load the results into a table to the right of the image
+bool MainWindow::sextractInternally()
+{
+    if(!prepareForProcesses())
+        return false;
+
+    if(runInnerSextractor())
+    {
+        displayTable();
+        return true;
+    }
+    return false;
+}
+
+//I wrote this method to start the internal solver method below
+//It runs in a separate thread so that it is nonblocking
+//It times the entire process and prints out how long it took
+bool MainWindow::solveInternally()
+{
+    if(!prepareForProcesses())
+        return false;
+
+    solverTimer.start();
+
+    if(runInnerSextractor())
+    {
+        internalSolver.clear();
+
+        //This method can be aborted, but doesn't seem to work on Linux?
+      //  internalSolver = QThread::create([this]{ runEngine(); });
+      //  internalSolver->start();
+
+        //This method cannot be aborted
+
+        QtConcurrent::run(this, &MainWindow::runEngine);
+
+        return true;
+    }
+    return false;
+}
+
+//This method will abort the sextractor, sovler, and any other processes currently being run, no matter which type
+//It will NOT abort the solver if the internal solver is run with QT Concurrent
+void MainWindow::abort()
+{
+    if(!solver.isNull())
+        solver->kill();
+    if(!sextractorProcess.isNull())
+        sextractorProcess->kill();
+    if(!internalSolver.isNull())
+        internalSolver->terminate();
+    logOutput("Solve Aborted");
+}
+
+
+
+
+
+//The following methods deal with the loading and displaying of the image
+
 
 //I wrote this method to select the file name for the image and call the load methods below to load it
 bool MainWindow::loadImage()
@@ -86,6 +276,7 @@ bool MainWindow::loadImage()
 
     if(loadSuccess)
     {
+        imageLoaded = true;
         ui->starList->clear();
         stars.clear();
         selectedStar = 0;
@@ -95,114 +286,6 @@ bool MainWindow::loadImage()
         return true;
     }
     return false;
-}
-
-bool MainWindow::sextractImage()
-{
-    if(ui->splitter->sizes().last() < 10)
-         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
-    ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
-
-    if(sextract())
-    {
-        getSextractorTable();
-        sortStars();
-        updateStarTableFromList();
-
-        if(ui->splitter_2->sizes().last() < 10)
-            ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << 200 );
-        updateImage();
-
-        return true;
-    }
-    return false;
-}
-
-//I wrote this method to call the sextract and solve methods below in basically the same way we do in KStars right now.
-bool MainWindow::solveImage()
-{
-    solverTimer.start();
-
-    ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
-    ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
-
-    if(sextract())
-    {
-        if(solveField())
-            return true;
-        return false;
-    }
-    return false;
-}
-
-bool MainWindow::sextractInternally()
-{
-    if(ui->splitter->sizes().last() < 10)
-         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
-    ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
-
-    if(runInnerSextractor())
-    {
-        sortStars();
-        updateStarTableFromList();
-
-        if(ui->splitter_2->sizes().last() < 10)
-            ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << 200 );
-        updateImage();
-
-        return true;
-    }
-    return false;
-}
-
-//I wrote this method to start the internal solver in QThread so it would be non-blocking.
-bool MainWindow::solveInternally()
-{
-    if(ui->splitter->sizes().last() < 10)
-         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << ui->splitter->height() /2 );
-    ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
-
-    solverTimer.start();
-
-    if(runInnerSextractor())
-    {
-        internalSolver.clear();
-
-        //This method can be aborted, but doesn't seem to work on Linux?
-      //  internalSolver = QThread::create([this]{ runEngine(); });
-      //  internalSolver->start();
-
-        //This method cannot be aborted
-
-        QtConcurrent::run(this, &MainWindow::runEngine);
-
-        return true;
-    }
-    return false;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-//This method will abort the sextractor, sovler, and any other processes currently being run, no matter which type
-void MainWindow::abort()
-{
-    if(!solver.isNull())
-        solver->kill();
-    if(!sextractorProcess.isNull())
-        sextractorProcess->kill();
-    if(!internalSolver.isNull())
-        internalSolver->terminate();
-    logOutput("Solve Aborted");
 }
 
 //This method was copied and pasted and modified from the method privateLoad in fitsdata in KStars
@@ -806,7 +889,7 @@ void MainWindow::updateImage()
         if(star == selectedStar - 1)
         {
             QPen highlighter(QColor("yellow"));
-            highlighter.setWidth(10);
+            highlighter.setWidth(4);
             p.setPen(highlighter);
             p.setOpacity(1);
             p.drawEllipse(starx - r, stary - r , r*2, r*2);
@@ -847,6 +930,13 @@ void MainWindow::clearImageBuffers()
     //m_BayerBuffer = nullptr;
 }
 
+
+
+
+//I wrote these methods to load the sextracted stars into a table to the right of the image
+
+
+//THis method responds to row selections in the table and higlights the star you select in the image
 void MainWindow::starClickedInTable()
 {
     if(ui->starList->selectedItems().count() > 0)
@@ -857,6 +947,7 @@ void MainWindow::starClickedInTable()
     }
 }
 
+//This sorts the stars by magnitude for display purposes
 void MainWindow::sortStars()
 {
     if(stars.size() > 1)
@@ -871,6 +962,7 @@ void MainWindow::sortStars()
     updateStarTableFromList();
 }
 
+//This copies the stars into the table
 void MainWindow::updateStarTableFromList()
 {
     selectedStar = 0;
@@ -891,102 +983,8 @@ void MainWindow::updateStarTableFromList()
     }
 }
 
-
-//This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
-bool MainWindow::sextract()
-{
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-
-    sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
-    QFile sextractorFile(sextractorFilePath);
-    if(sextractorFile.exists())
-        sextractorFile.remove();
-
-    //Configuration arguments for sextractor
-    QStringList sextractorArgs;
-    //This one is not really that necessary, it will use the defaults if it can't find it
-    //We will set all of the things we need in the parameters below
-    //sextractorArgs << "-c" << "/usr/local/share/sextractor/default.sex";
-
-    sextractorArgs << "-CATALOG_NAME" << sextractorFilePath;
-    sextractorArgs << "-CATALOG_TYPE" << "FITS_1.0";
-
-    //sextractor needs a default.param file in the working directory
-    //This creates that file with the options we need for astrometry.net
-
-    QString paramPath =  QDir::tempPath() + "/default.param";
-    QFile paramFile(paramPath);
-    if(!paramFile.exists())
-    {
-        if (paramFile.open(QIODevice::WriteOnly) == false)
-            QMessageBox::critical(nullptr,"Message","Sextractor file write error.");
-        else
-        {
-            QTextStream out(&paramFile);
-            out << "MAG_AUTO                 Kron-like elliptical aperture magnitude                   [mag]\n";
-            out << "X_IMAGE                  Object position along x                                   [pixel]\n";
-            out << "Y_IMAGE                  Object position along y                                   [pixel]\n";
-            paramFile.close();
-        }
-    }
-    sextractorArgs << "-PARAMETERS_NAME" << paramPath;
-
-
-    //sextractor needs a default.conv file in the working directory
-    //This creates the default one
-
-    QString convPath =  QDir::tempPath() + "/default.conv";
-    QFile convFile(convPath);
-    if(!convFile.exists())
-    {
-        if (convFile.open(QIODevice::WriteOnly) == false)
-            QMessageBox::critical(nullptr,"Message","Sextractor file write error.");
-        else
-        {
-            QTextStream out(&convFile);
-            out << "CONV NORM\n";
-            out << "1 2 1\n";
-            out << "2 4 2\n";
-            out << "1 2 1\n";
-            convFile.close();
-        }
-    }
-    sextractorArgs << "-FILTER" << "Y";
-    sextractorArgs << "-FILTER_NAME" << convPath;
-    sextractorArgs << "-MAG_ZEROPOINT" << "20";
-
-
-    sextractorArgs <<  fileToSolve;
-
-    sextractorProcess.clear();
-    sextractorProcess = new QProcess(this);
-
-    QString sextractorBinaryPath;
-#if defined(Q_OS_OSX)
-        sextractorBinaryPath = "/usr/local/bin/sex";
-#elif defined(Q_OS_LINUX)
-        sextractorBinaryPath = "/usr/bin/sextractor";
-#endif
-
-    sextractorProcess->setWorkingDirectory(QDir::tempPath());
-
-    sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
-    connect(sextractorProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(logSextractor()));
-
-
-    sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
-    logOutput("Starting sextractor...");
-    logOutput(sextractorBinaryPath + " " + sextractorArgs.join(' '));
-    sextractorProcess->waitForFinished();
-    logOutput(sextractorProcess->readAllStandardError().trimmed());
-
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-
-    return true;
-
-}
-
 //This method is copied and pasted and modified from tablist.c in astrometry.net
+//This is needed to load in the stars sextracted by an extrnal sextractor to get them into the table
 bool MainWindow::getSextractorTable()
 {
      QFile sextractorFile(sextractorFilePath);
@@ -1124,45 +1122,23 @@ bool MainWindow::getSextractorTable()
     return(status);
 }
 
-//This method is copied and pasted and modified from Align in KStars
-QStringList MainWindow::getSolverArgsList()
-{
-    QStringList solverArgs;
-
-    // Start with always-used arguments
-    solverArgs << "-O"
-                << "--no-plots";
-
-    // Now go over boolean options
-    solverArgs << "--no-verify";
-    solverArgs << "--resort";
-
-    // downsample
-    solverArgs << "--downsample" << QString::number(2);
 
 
-    solverArgs << "--width" << QString::number(stats.width);
-    solverArgs << "--height" << QString::number(stats.height);
-    solverArgs << "--x-column" << "X_IMAGE";
-    solverArgs << "--y-column" << "Y_IMAGE";
-    solverArgs << "--sort-column" << "MAG_AUTO";
-    solverArgs << "--sort-ascending";
 
-                //Note This set of items is NOT NEEDED for Sextractor, it is needed to avoid python usage
-                //This may need to be changed later, but since the goal for using sextractor is to avoid python, this is placed here.
-    solverArgs << "--no-remove-lines";
-    solverArgs << "--uniformize" << "0";
 
-    if (use_scale)
-        solverArgs << "-L" << fov_low << "-H" << fov_high << "-u" << units;
 
-    if (use_position)
-        solverArgs << "-3" << QString::number(ra * 15.0) << "-4" << QString::number(dec) << "-5" << "15";
 
-    return solverArgs;
-}
 
-//This method is copied and pasted and modified from Align in KStars
+
+
+//These methods will get the solver options from a fits file and prepare them for image solving.
+
+
+
+//This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
+//Then it was split in two parts
+//Tnis part extracts the options from the FITS file and prepares them.
+//It is used by both the internal and external solver
 bool MainWindow::getSolverOptionsFromFITS()
 {
     ra = 0;
@@ -1339,6 +1315,149 @@ bool MainWindow::getSolverOptionsFromFITS()
     return true;
 }
 
+
+
+//This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
+//Then it was split in two parts
+//Tnis part generates the argument list from the options for the external solver only
+QStringList MainWindow::getSolverArgsList()
+{
+    QStringList solverArgs;
+
+    // Start with always-used arguments
+    solverArgs << "-O"
+                << "--no-plots";
+
+    // Now go over boolean options
+    solverArgs << "--no-verify";
+    solverArgs << "--resort";
+
+    // downsample
+    solverArgs << "--downsample" << QString::number(2);
+
+
+    solverArgs << "--width" << QString::number(stats.width);
+    solverArgs << "--height" << QString::number(stats.height);
+    solverArgs << "--x-column" << "X_IMAGE";
+    solverArgs << "--y-column" << "Y_IMAGE";
+    solverArgs << "--sort-column" << "MAG_AUTO";
+    solverArgs << "--sort-ascending";
+
+                //Note This set of items is NOT NEEDED for Sextractor, it is needed to avoid python usage
+                //This may need to be changed later, but since the goal for using sextractor is to avoid python, this is placed here.
+    solverArgs << "--no-remove-lines";
+    solverArgs << "--uniformize" << "0";
+
+    if (use_scale)
+        solverArgs << "-L" << fov_low << "-H" << fov_high << "-u" << units;
+
+    if (use_position)
+        solverArgs << "-3" << QString::number(ra * 15.0) << "-4" << QString::number(dec) << "-5" << "15";
+
+    return solverArgs;
+}
+
+
+
+
+
+
+//This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
+bool MainWindow::sextract()
+{
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+    sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
+    QFile sextractorFile(sextractorFilePath);
+    if(sextractorFile.exists())
+        sextractorFile.remove();
+
+    //Configuration arguments for sextractor
+    QStringList sextractorArgs;
+    //This one is not really that necessary, it will use the defaults if it can't find it
+    //We will set all of the things we need in the parameters below
+    //sextractorArgs << "-c" << "/usr/local/share/sextractor/default.sex";
+
+    sextractorArgs << "-CATALOG_NAME" << sextractorFilePath;
+    sextractorArgs << "-CATALOG_TYPE" << "FITS_1.0";
+
+    //sextractor needs a default.param file in the working directory
+    //This creates that file with the options we need for astrometry.net
+
+    QString paramPath =  QDir::tempPath() + "/default.param";
+    QFile paramFile(paramPath);
+    if(!paramFile.exists())
+    {
+        if (paramFile.open(QIODevice::WriteOnly) == false)
+            QMessageBox::critical(nullptr,"Message","Sextractor file write error.");
+        else
+        {
+            QTextStream out(&paramFile);
+            out << "MAG_AUTO                 Kron-like elliptical aperture magnitude                   [mag]\n";
+            out << "X_IMAGE                  Object position along x                                   [pixel]\n";
+            out << "Y_IMAGE                  Object position along y                                   [pixel]\n";
+            paramFile.close();
+        }
+    }
+    sextractorArgs << "-PARAMETERS_NAME" << paramPath;
+
+
+    //sextractor needs a default.conv file in the working directory
+    //This creates the default one
+
+    QString convPath =  QDir::tempPath() + "/default.conv";
+    QFile convFile(convPath);
+    if(!convFile.exists())
+    {
+        if (convFile.open(QIODevice::WriteOnly) == false)
+            QMessageBox::critical(nullptr,"Message","Sextractor file write error.");
+        else
+        {
+            QTextStream out(&convFile);
+            out << "CONV NORM\n";
+            out << "1 2 1\n";
+            out << "2 4 2\n";
+            out << "1 2 1\n";
+            convFile.close();
+        }
+    }
+    sextractorArgs << "-FILTER" << "Y";
+    sextractorArgs << "-FILTER_NAME" << convPath;
+    sextractorArgs << "-MAG_ZEROPOINT" << "20";
+
+
+    sextractorArgs <<  fileToSolve;
+
+    sextractorProcess.clear();
+    sextractorProcess = new QProcess(this);
+
+    QString sextractorBinaryPath;
+#if defined(Q_OS_OSX)
+        sextractorBinaryPath = "/usr/local/bin/sex";
+#elif defined(Q_OS_LINUX)
+        sextractorBinaryPath = "/usr/bin/sextractor";
+#endif
+
+    sextractorProcess->setWorkingDirectory(QDir::tempPath());
+
+    sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
+    connect(sextractorProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(logSextractor()));
+
+
+    sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
+    logOutput("Starting sextractor...");
+    logOutput(sextractorBinaryPath + " " + sextractorArgs.join(' '));
+    sextractorProcess->waitForFinished();
+    logOutput(sextractorProcess->readAllStandardError().trimmed());
+
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+    return true;
+
+}
+
+
+
 //The code for this method is copied and pasted and modified from OfflineAstroetryParser in KStars
 bool MainWindow::solveField()
 {
@@ -1395,38 +1514,20 @@ bool MainWindow::solveField()
 bool MainWindow::solverComplete(int x)
 {
     double elapsed = solverTimer.elapsed() / 1000.0;
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     logOutput(QString("External Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 }
 
 
 
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
 
-void MainWindow::logSextractor()
-{
-    QString rawText(sextractorProcess->readAll().trimmed());
-    logOutput(rawText.remove("[1M>").remove("[1A"));
-}
 
-void MainWindow::logSolver()
-{
-     logOutput(solver->readAll().trimmed());
-}
 
-void MainWindow::clearLog()
-{
-    ui->logDisplay->clear();
-}
 
-void MainWindow::logOutput(QString text)
-{
-     ui->logDisplay->append(text);
-     ui->logDisplay->show();
-}
+//The code in this section is my attempt at running an internal sextractor program based on SEP
+//I used KStars and the SEP website as a guide for creating these functions
+//It saves the output to SextractorList.xyls in the temp directory.
 
 
 
@@ -1593,6 +1694,10 @@ void MainWindow::getFloatBuffer(float * buffer, int x, int y, int w, int h)
     }
 }
 
+//This method writes the table to the file
+//I had to create it from the examples on NASA's website
+//https://heasarc.gsfc.nasa.gov/docs/software/fitsio/quick/node10.html
+//https://heasarc.gsfc.nasa.gov/docs/software/fitsio/cookbook/node16.html
 bool MainWindow::writeSextractorTable()
 {
     sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
@@ -1676,37 +1781,10 @@ bool MainWindow::writeSextractorTable()
 
 
 
-
-
-
-//This was my first attempt at doing astrometry.net using it as a library, I couldn't get the arguments I created to parse correctly
-//It treated them as one big string no matter what I did, so I finally started implementing all the functions below.
-/**
-sl* engineargs = sl_new(16);
-sl_append_nocopy(engineargs, shell_escape("./Users/rlancaste/AstroRoot/craft-root/bin/astrometry-engine"));
-//sl_append(engineargs, "--verbose");
-sl_append(engineargs, shell_escape("-c"));
-sl_append_nocopy(engineargs, shell_escape("/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg"));
-sl_append(engineargs, shell_escape("/private/var/folders/_t/ntxs0hp56b31tsp0_9t3rttm0000gn/T/SextractorList.axy"));
-char* cmd = sl_implode(engineargs, " ");
-testEngine(0,&cmd);  //Note that I had renamed the method in astrometry-engine to this just to test it out.
-**/
-
-
-
 //All the code below is my attempt to implement astrometry.net code in such a way that it could run internally in a program instead of requiring
 //external method calls.  This would be critical for running astrometry.net on windows and it might make the code more efficient on Linux and mac since it
 //would not have to prepare command line options and parse them all the time.
 
-
-//I had to create this method because i was having some difficulty turning a QString into a char* that would persist long enough to be used in the program.
-char* MainWindow::charQStr(QString in) {
-    std::string fname = QString(in).toStdString();
-    char* cstr;
-    cstr = new char [fname.size()+1];
-    strcpy( cstr, fname.c_str() );
-    return cstr;
-}
 
 //This method was copied and pasted from augment-xylist.c in astrometry.net
 void augment_xylist_free_contents(augment_xylist_t* axy) {
@@ -1773,20 +1851,6 @@ static void add_sip_coeffs(qfits_header* hdr, const char* prefix, const sip_t* s
                 fits_header_add_double(hdr, key, sip->bp[m][n], "");
             }
         }
-    }
-}
-
-//I created this method because I wanted to remove some temp files and display the output and the code was getting repetitive.
-void MainWindow::removeTempFile(char * fileName)
-{
-
-    if(QFile(fileName).exists())
-    {
-        QFile(fileName).remove();
-        if(QFile(fileName).exists())
-            emit logNeedsUpdating(QString("Error: %1 was NOT removed").arg(fileName));
-        else
-            emit logNeedsUpdating(QString("%1 was removed").arg(fileName));
     }
 }
 
@@ -2293,8 +2357,9 @@ int MainWindow::runEngine()
     }
 
     augmentXYList();
-    QByteArray ba2 = QString(QDir::tempPath() + "/SextractorList.axy").toLatin1();
-    char* theAXYFile =  ba2.data();
+
+    char* theAXYFile =  charQStr(QDir::tempPath() + "/SextractorList.axy");
+
 
     int c;
     char* configfn = nullptr;
@@ -2313,16 +2378,13 @@ int MainWindow::runEngine()
     //log_to(stderr);
     //log_init(LOG_MSG);
 
-    QByteArray ba;
 #if defined(Q_OS_OSX)
-        ba = QString("/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg").toLatin1();
+        configfn = charQStr("/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg");
 #elif defined(Q_OS_LINUX)
-        ba = QString("%1/.local/share/kstars/astrometry/astrometry.cfg").arg(QDir::homePath()).toLatin1();
+        configfn = charQStr(QString("%1/.local/share/kstars/astrometry/astrometry.cfg").arg(QDir::homePath());
 #endif
-    configfn = ba.data();
 
-    QByteArray ba3 = QString(QDir::tempPath()).toLatin1();
-    basedir = ba3.data();
+    basedir = charQStr(QDir::tempPath());
 
     gslutils_use_error_system();
 
@@ -2456,6 +2518,7 @@ int MainWindow::runEngine()
 
     double elapsed = solverTimer.elapsed() / 1000.0;
     emit logNeedsUpdating(QString("Internal Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
+    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
     return 0;
 }
