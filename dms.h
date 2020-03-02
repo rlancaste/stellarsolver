@@ -23,6 +23,7 @@
 #include <QDataStream>
 
 #include <cmath>
+#include <math.h>
 
 //#define COUNT_DMS_SINCOS_CALLS true
 //#define PROFILE_SINCOS true
