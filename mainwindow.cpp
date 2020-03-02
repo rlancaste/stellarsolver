@@ -18,7 +18,7 @@
 #include <getopt.h>
 #include <dirent.h>
 #include <assert.h>
-#include <glob.h>
+
 #include <QThread>
 #include <QtConcurrent>
 
@@ -2412,6 +2412,8 @@ int MainWindow::runEngine()
         }
     }
 
+    //Removed because of a windows issue with glob, not sure if this is needed or not.
+/**
     if (sl_size(inds)) {
         // Expand globs.
         for (i=0; i<sl_size(inds); i++) {
@@ -2431,7 +2433,7 @@ int MainWindow::runEngine()
             globfree(&myglob);
         }
     }
-
+**/
     if (!pl_size(engine->indexes)) {
         emit logNeedsUpdating(QString("\n\n"
                "---------------------------------------------------------------------\n"
