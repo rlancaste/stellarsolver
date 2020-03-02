@@ -9,8 +9,6 @@
 #include <string.h>
 #include <assert.h>
 
-// DEBUG
-#include <sys/mman.h>
 
 #include "anqfits.h"
 #include "ioutils.h"
