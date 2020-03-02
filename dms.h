@@ -23,7 +23,6 @@
 #include <QDataStream>
 
 #include <cmath>
-#include <math.h>
 
 //#define COUNT_DMS_SINCOS_CALLS true
 //#define PROFILE_SINCOS true
@@ -383,12 +382,12 @@ class dms
     /** PI is a const static member; it's public so that it can be used anywhere,
          * as long as dms.h is included.
          */
-    static constexpr double PI = { M_PI };
+    static constexpr double PI = { 3.14159265358979323846264338327950288 };
 
     /** DegToRad is a const static member equal to the number of radians in
          * one degree (dms::PI/180.0).
          */
-    static constexpr double DegToRad = { M_PI / 180.0 };
+    static constexpr double DegToRad = { 3.14159265358979323846264338327950288 / 180.0 };
 
     /** @short Static function to create a DMS object from a QString.
          *
