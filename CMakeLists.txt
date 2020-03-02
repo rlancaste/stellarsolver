@@ -65,9 +65,6 @@ set(astrosex_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/dms.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/bayer.c
 
-   #These are from astrometry.net, for some reason, they don't seem t be in the library?
-   ${CMAKE_CURRENT_SOURCE_DIR}/resort-xylist.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/tabsort.c
 
    )
 

@@ -21,6 +21,8 @@
 
 #include "sep/sep.h"
 
+#include <sys/mman.h>
+
 extern "C"{
 #include "tabsort.h"
 #include "resort-xylist.h"
@@ -40,7 +42,11 @@ extern "C"{
 #include "an-opts.h"
 #include "gslutils.h"
 #include "augment-xylist.h"
-
+#include "anqfits.h"
+#include "ioutils.h"
+#include "fitsioutils.h"
+#include "permutedsort.h"
+#include "fitstable.h"
 
 #include "sip_qfits.h"
 #include "sip-utils.h"
@@ -192,6 +198,11 @@ public slots:
     //These are for the internal solver
     bool augmentXYList();
     int runEngine();
+    int resort_xylist(const char* infn, const char* outfn,
+                      const char* fluxcol, const char* backcol,
+                      int ascending);
+    int tabsort(const char* infn, const char* outfn, const char* colname,
+                int descending);
 
 signals:
     void logNeedsUpdating(QString logText);
