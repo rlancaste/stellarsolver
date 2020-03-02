@@ -36,7 +36,6 @@ extern "C"{
 #include "blindutils.h"
 #include "blind.h"
 #include "log.h"
-#include "errors.h"
 #include "engine.h"
 #include "an-opts.h"
 #include "gslutils.h"

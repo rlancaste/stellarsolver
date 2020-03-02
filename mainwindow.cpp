@@ -2036,20 +2036,20 @@ bool MainWindow::augmentXYList()
                         }
 
                         if (allaxy->resort) {
-                            char* err;
+                            //char* err;
                             int rtn;
                             emit logNeedsUpdating(QString("Sorting file \"%1\" to \"%2\" using columns flux (%3) and background (%4), %5scending\n")
                                     .arg(allaxy->xylsfn).arg( sortedxylsfn).arg( allaxy->sortcol).arg( allaxy->bgcol).arg( allaxy->sort_ascending?"a":"de"));
-                            errors_start_logging_to_string();
+                            //errors_start_logging_to_string();
                             rtn = resort_xylist(allaxy->xylsfn, sortedxylsfn, allaxy->sortcol, allaxy->bgcol, allaxy->sort_ascending);
-                            err = errors_stop_logging_to_string(": ");
+                            //err = errors_stop_logging_to_string(": ");
                             if (rtn) {
                                 emit logNeedsUpdating(QString("Sorting brightness using %1 and BACKGROUND columns failed; falling back to %2.\n").arg
                                        (allaxy->sortcol).arg (allaxy->sortcol));
-                                emit logNeedsUpdating(QString("Reason: %1\n").arg( err));
+                                //emit logNeedsUpdating(QString("Reason: %1\n").arg( err));
                                 do_tabsort = TRUE;
                             }
-                            free(err);
+                           // free(err);
 
                         } else
 
