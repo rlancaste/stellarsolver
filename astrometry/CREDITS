@@ -1,0 +1,90 @@
+This file lists some of the code we've imported from elsewhere.
+
+First, the obvious ones:
+
+-gsl-an/
+  GSL (the GNU Scientific Library) v1.11
+  Licensed under the GPL v3+.
+
+-qfits-an/
+  QFITS library v6.2, licensed under the GPL v2+.  Heavily modified by us.
+
+Now, some miscellaneous files:
+
+-util/EXIF.py
+  3-clause BSD license.
+  https://github.com/ianare/exif-py
+
+-util/ctmf.c
+  (c) Simon Perreault, licensed under the GPL v3+.
+
+-util/bt.c
+  AVL code was yoinked from GNU libavl which is under the GPL.
+
+-util/cutest.{c,h} and util/make-tests.sh
+  Imported from cutest-1.4.  Patches sent upstream 24-01-2008.
+  http://cutest.sourceforge.net/
+  zlib/libpng license.
+
+-util/md5.{c,h}
+  (c) Christophe Devine, licensed under the GPL v2+.
+
+-util/qsort_reentrant.{c,h}
+  From FreeBSD.  Distributed under the BSD license, big surprise.
+
+-sdss/sqlcl.py
+  (c) Tamas Budavari
+
+-sdss/yanny.py
+  (c) Ben Weaver
+
+-blind/an_mm_malloc.h
+  (c) FSF, from GCC.  GPL v3+.  Imported for use by ctmf.c
+
+-blind/anet.py
+  (c) Josh Bloom, licensed under GPL v3.
+
+-blind/{tablist,modhead,fitscopy,tabmerge,fitstomatlab,liststruc,listhead,
+        imcopy,imarith,imstat}.c
+  From the CFITSIO utilities web page.
+  http://heasarc.gsfc.nasa.gov/docs/software/fitsio/cexamples.html
+  "You may freely modify, reuse, and redistribute these programs as you wish."
+  (fitstomatlab.c is just a modified version of tablist.c)
+
+-blind/fitsverify.c
+  From the "fitsverify" tool,
+  http://heasarc.gsfc.nasa.gov/docs/software/ftools/fitsverify/
+
+-blind/pnpoly.c
+  (c) Wm. Randolph Franklin, MIT license
+  From http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+
+-libkd/an-fls.h
+  (c) Linus Torvalds, GPL v2
+
+
+Data files:
+
+-catalogs/constellation-boundaries.c
+ IAU Constellation boundaries, in J2000, from
+ http://vizier.cfa.harvard.edu/viz-bin/VizieR-3?-source=VI/49/bound_20
+
+
+-catalogs/ngc2000{,names}.dat
+  Imported from ftp://cdsarc.u-strasbg.fr/cats/VII/118/
+  NGC 2000.0, The Complete New General Catalogue and Index Catalogue
+    of Nebulae and Star Clusters by J.L.E. Dreyer
+    Sinnott, R.W. (edited by)
+    Sky Publishing Corporation and Cambridge University Press (1988)
+
+  Copyright Notice:
+    This catalog is copyrighted by Sky Publishing Corporation, which has
+    kindly deposited the machine version in the data centers for permanent
+    archiving and dissemination to astronomers for scientific research
+    purposes only. The data should not be used for commercial purposes
+    without the explicit permission of Sky Publishing Corporation.
+
+-catalogs/{ic,ngc}2000_pos.txt
+  Imported from http://www.ngcic.org/corwin/default.htm
+  Dr. Harold G. Corwin Jr (hgcjr@ipac.caltech.edu)
+

@@ -1,0 +1,18 @@
+# This file is part of the Astrometry.net suite.
+# Licensed under a 3-clause BSD style license - see LICENSE
+
+# if CFITS_INC environment variable is set, assume CFITS_EXISTS.
+# Note also that CFITS_EXISTS can be overridden by the environment.
+ifeq ($(origin CFITS_INC), environment)
+  CFITS_EXISTS := 1
+else
+  X := $(shell pkg-config --exists cfitsio && echo yes || echo no)
+  ifeq ($(X), yes)
+    CFITS_EXISTS ?= 1
+  endif
+endif
+
+CFITS_INC ?= $(shell pkg-config --cflags cfitsio 2>/dev/null)
+CFITS_LIB ?= $(shell pkg-config --libs cfitsio 2>/dev/null)
+CFITS_SLIB :=
+

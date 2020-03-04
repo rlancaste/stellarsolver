@@ -1952,7 +1952,7 @@ bool MainWindow::augmentXYList()
         scales = dl_new(4);
 
         char* reason;
-        anbool isxyls = xylist_is_file_xylist(allaxy->xylsfn, allaxy->extension,
+        uint8_t isxyls = xylist_is_file_xylist(allaxy->xylsfn, allaxy->extension,
                                        allaxy->xcol, allaxy->ycol, &reason);
         if (!isxyls)
         {
@@ -2023,7 +2023,7 @@ bool MainWindow::augmentXYList()
 
 
                     if (allaxy->resort) {
-                        anbool do_tabsort = FALSE;
+                        uint8_t do_tabsort = FALSE;
 
                         if (!allaxy->sortcol)
                             allaxy->sortcol = "FLUX";
@@ -2539,6 +2539,7 @@ int MainWindow::runEngine()
     return 0;
 }
 
+//This is from resort_xylist.c
 int MainWindow::resort_xylist(const char* infn, const char* outfn,
                   const char* fluxcol, const char* backcol,
                   int ascending) {
@@ -2546,7 +2547,7 @@ int MainWindow::resort_xylist(const char* infn, const char* outfn,
     FILE* fout = NULL;
     double *flux = NULL, *back = NULL;
     int *perm1 = NULL, *perm2 = NULL;
-    anbool *used = NULL;
+    uint8_t *used = NULL;
     int start, size, nextens, ext;
     int (*compare)(const void*, const void*);
     fitstable_t* tab = NULL;
@@ -2649,8 +2650,8 @@ int MainWindow::resort_xylist(const char* infn, const char* outfn,
         // Sort by non-background-subtracted flux...
         perm2 = permuted_sort(back, sizeof(double), compare, NULL, N);
 
-        used = (anbool *)malloc(N * sizeof(anbool));
-        memset(used, 0, N * sizeof(anbool));
+        used = (uint8_t *)malloc(N * sizeof(uint8_t));
+        memset(used, 0, N * sizeof(uint8_t));
 
         // Check sort...
         for (i=0; i<N-1; i++) {
@@ -2725,6 +2726,8 @@ int MainWindow::resort_xylist(const char* infn, const char* outfn,
     return -1;
 }
 
+
+//This is from tabsort.c
 int MainWindow::tabsort(const char* infn, const char* outfn, const char* colname,
             int descending) {
     FILE* fin;
@@ -2900,5 +2903,8 @@ int MainWindow::tabsort(const char* infn, const char* outfn, const char* colname
         munmap(map, mapsize);
     return -1;
 }
+
+
+
 
 

@@ -1,0 +1,34 @@
+# This file is part of the Astrometry.net suite.
+# Licensed under a 3-clause BSD style license - see LICENSE
+
+ANFILES_DIR := $(BASEDIR)/util
+ANFILES_INC :=
+ANFILES_LIB := 
+ANFILES_LIB_FILE ?= $(ANFILES_DIR)/libanfiles.a
+ANFILES_SLIB := $(ANFILES_LIB_FILE)
+ANFILES_CFLAGS :=
+
+# $(ANFILES_LIB_FILE): $(addprefix $(ANFILES_DIR)/,$(ANFILES_OBJ))
+# 	$(MAKE) -C $(ANFILES_DIR) libanfiles.a
+
+# Astrometry.net files ("anfiles") depends on:
+#  libkd
+#  anutils (+ qfits)
+
+ifndef NO_KDTREE
+include $(COMMON)/makefile.libkd
+else
+include $(COMMON)/makefile.anutils
+endif
+
+ifndef NO_KDTREE
+ANFILES_INC += $(LIBKD_INC)
+ANFILES_LIB += $(LIBKD_LIB)
+ANFILES_SLIB += $(LIBKD_SLIB)
+endif
+
+ANFILES_CFLAGS += $(ANUTILS_CFLAGS)
+ANFILES_INC += $(ANUTILS_INC)
+ANFILES_LIB += $(ANUTILS_LIB)
+ANFILES_SLIB += $(ANUTILS_SLIB)
+

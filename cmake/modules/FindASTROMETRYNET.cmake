@@ -55,7 +55,7 @@ else (ASTROMETRYNET_INCLUDE_DIR AND ASTROMETRYNET_LIBRARIES)
       /usr/include/astrometry
   )
 
-  find_library(ASTROMETRYNET_LIBRARIES NAMES libastrometry.so libastrometry-dev libastrometry0 astrometry.net
+  find_library(ASTROMETRYNET_LIBRARIES NAMES libastrometry.so libastrometry-dev libastrometry0
     PATHS
         ${PC_ASTROMETRYNET_LIBRARY_DIRS}
         ${_obIncDir}

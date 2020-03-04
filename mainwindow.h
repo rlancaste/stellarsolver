@@ -1,6 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+//system includes
+#include "math.h"
+#include <sys/mman.h>
+
+//QT Includes
 #include <QMainWindow>
 #include <QObject>
 #include <QWidget>
@@ -11,32 +16,33 @@
 #include <QProcess>
 #include <QPointer>
 #include <QScrollBar>
+#include <QTime>
+
+//CFitsio Includes
 #include "longnam.h"
 #include "fitsio.h"
+
+//KStars related includes
 #include "stretch.h"
 #include "math.h"
 #include "dms.h"
 #include "bayer.h"
-#include <QTime>
 
+//Sextractor Includes
 #include "sep/sep.h"
 
-#include <sys/mman.h>
-
+//Astrometry.net includes
 extern "C"{
-#include "tabsort.h"
-#include "resort-xylist.h"
-#include "os-features.h"
 #include "tic.h"
+#include "os-features.h"
 #include "fileutils.h"
 #include "ioutils.h"
 #include "bl.h"
 #include "an-bool.h"
 #include "solver.h"
-#include "math.h"
 #include "fitsioutils.h"
 #include "blindutils.h"
-#include "blind.h"
+#include "astrometry/blind.h"
 #include "log.h"
 #include "engine.h"
 #include "an-opts.h"
@@ -47,11 +53,9 @@ extern "C"{
 #include "fitsioutils.h"
 #include "permutedsort.h"
 #include "fitstable.h"
-
 #include "sip_qfits.h"
 #include "sip-utils.h"
 }
-
 
 namespace Ui {
 

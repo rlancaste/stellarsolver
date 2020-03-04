@@ -1,0 +1,30 @@
+# This file is part of the Astrometry.net suite.
+# Licensed under a 3-clause BSD style license - see LICENSE
+
+# On by default?  This doesn't seem to work
+#SYSTEM_GSL ?= $(shell pkg-config --modversion gsl >/dev/null 2>/dev/null && echo yes)
+
+ifeq ($(SYSTEM_GSL),yes)
+
+GSL_INC ?= $(shell pkg-config --cflags gsl 2>/dev/null)
+GSL_LIB ?= $(shell pkg-config --libs   gsl 2>/dev/null)
+GSL_SLIB ?=
+
+else
+
+GSL_DIR := $(BASEDIR)/gsl-an
+GSL_LIB_FILE := $(GSL_DIR)/libgsl-an.a
+
+# flags needed to compile gsl
+GSL_INC ?= -I$(GSL_DIR)
+
+# flags needed to link gsl
+GSL_LIB ?=
+
+# file dependencies for GSL
+GSL_SLIB ?= $(GSL_LIB_FILE)
+
+# $(GSL_LIB_FILE):
+# 	$(MAKE) -C $(GSL_DIR)
+
+endif

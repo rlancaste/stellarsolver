@@ -5,11 +5,17 @@ set(CMAKE_AUTOMOC ON)
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/")
 include(GNUInstallDirs)
-include_directories("$ENV{HOME}/AstroRoot/craft-root/include/astrometry")
+
+#This one is for craft
+#include_directories("${CMAKE_INSTALL_PREFIX}/include")
+
+include_directories( "${CMAKE_CURRENT_BINARY_DIR}")
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}")
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry")
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/include")
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/include/astrometry")
 include_directories("/usr/local/include")
 include_directories("/usr/include")
-#This one is for craft
-include_directories("${CMAKE_INSTALL_PREFIX}/include")
 
 set(CMAKE_CXX_FLAGS "-g -std=c++0x ${CMAKE_CXX_FLAGS}")
 
@@ -19,7 +25,6 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations" )
 SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wno-deprecated-declarations")
 
 find_package(CFITSIO REQUIRED)
-find_package(ASTROMETRYNET REQUIRED)
 find_package(GSL REQUIRED)
 find_package(Qt5 5.4 REQUIRED COMPONENTS Gui Widgets Core Concurrent)
 
@@ -27,24 +32,153 @@ if (NOT CFITSIO_FOUND OR CFITSIO_VERSION_MAJOR LESS 3)
   message(FATAL_ERROR "CFITSIO version too old, Please install cfitsio 3.x and try again. http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html")
 endif (NOT CFITSIO_FOUND OR CFITSIO_VERSION_MAJOR LESS 3)
 
-if (NOT ASTROMETRYNET_FOUND)
-  message(FATAL_ERROR "Astrometry.net was not found on the system, please install astrometry.net")
-endif (NOT ASTROMETRYNET_FOUND)
-
-include_directories( ${CMAKE_CURRENT_BINARY_DIR})
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR})
-
 if (CFITSIO_FOUND)
   include_directories(${CFITSIO_INCLUDE_DIR})
 endif (CFITSIO_FOUND)
 
-if (ASTROMETRYNET_FOUND)
-  include_directories(${ASTROMETRYNET_INCLUDE_DIR})
-endif(ASTROMETRYNET_FOUND)
-
 if (GSL_FOUND)
   include_directories(${GSL_INCLUDE_DIR})
 endif (GSL_FOUND)
+
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an")
+set(qfits_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/anqfits.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_card.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_convert.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_error.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_header.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_image.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_md5.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_table.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_time.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_tools.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_byteswap.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_memory.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_rw.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_float.c
+    )
+
+add_library(qfits ${qfits_SRCS})
+#install(TARGETS qfits LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd")
+set(kd_SRCS
+    #Internals
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdint_ddd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdint_fff.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdint_ddu.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdint_duu.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdint_dds.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdint_dss.c
+    #kd
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdtree.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdtree_dim.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdtree_mem.c
+    #kd fits
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdtree_fits_io.c
+    #dt
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/dualtree.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/dualtree_rangesearch.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/dualtree_nearestneighbour.c
+    )
+
+add_library(kd ${kd_SRCS})
+#install(TARGETS ld LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util")
+set(anbase_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/starutil.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/mathutil.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/bl-sort.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/bl.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/bt.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/healpix-utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/healpix.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/permutedsort.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/ioutils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/fileutils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/md5.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/os-features.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/an-endian.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/errors.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/an-opts.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/tic.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/log.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/datalog.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/sparsematrix.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/coadd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/convolve-image.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/resample.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/intmap.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/histogram.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/histogram2d.c
+    )
+
+add_library(anbase ${anbase_SRCS})
+#install(TARGETS anbase LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+set(anutils_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/sip-utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/fit-wcs.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/sip.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/anwcs.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/wcs-resample.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/gslutils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/wcs-pv2sip.c
+
+    #These get added if QFITS is to be included
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/fitsioutils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/sip_qfits.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/fitstable.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/fitsbin.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/fitsfile.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/tic.c
+    )
+
+add_library(anutils ${anutils_SRCS})
+target_link_libraries(anutils anbase qfits)
+#install(TARGETS anutils LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+set(anfiles_SRCS
+    #I think thiese only get added if QFITS is to be included
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/multiindex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/index.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/codekd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/starkd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/rdlist.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/xylist.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/starxy.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/qidxfile.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/quadfile.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/scamp.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/scamp-catalog.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/tabsort.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/wcs-xy2rd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/wcs-rd2xy.c
+        )
+
+add_library(anfiles ${anfiles_SRCS})
+target_link_libraries(anfiles anbase qfits kd)
+#install(TARGETS anfiles LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind")
+set(engine_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/engine.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/blindutils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/blind.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/solver.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/quad-utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/matchfile.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/matchobj.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/solvedclient.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/solvedfile.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/tweak2.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/verify.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/tweak.c
+    )
+add_library(astrometry ${engine_SRCS})
+target_link_libraries(astrometry anbase anutils anfiles)
+#install(TARGETS astrometry LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set (sep_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/sep/analyse.c
@@ -57,15 +191,16 @@ set (sep_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/sep/util.c
     )
 
-set(astrosex_SRCS
+add_library(sep ${sep_SRCS})
+target_link_libraries(sep ${CFITSIO_LIBRARIES})
+#install(TARGETS sep LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
+set(astrosex_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/stretch.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/dms.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/bayer.c
-
-
    )
 
 qt5_wrap_ui(astrosexui_SRCS
@@ -73,18 +208,20 @@ qt5_wrap_ui(astrosexui_SRCS
     )
 
 
-add_executable(astrosex ${astrosex_SRCS} ${astrosexui_SRCS} ${sep_SRCS})
+add_executable(astrosex ${astrosex_SRCS} ${astrosexui_SRCS} )
+
+target_link_libraries(astrosex sep astrometry)
 
 target_link_libraries(astrosex
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
-    ${ASTROMETRYNET_LIBRARIES}
 
     Qt5::Gui
     Qt5::Widgets
     Qt5::Core
     Qt5::Concurrent
     )
+
 install(TARGETS astrosex RUNTIME DESTINATION bin)
 
 
