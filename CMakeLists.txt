@@ -48,9 +48,9 @@ file(APPEND "${config_FN}" "#define NEED_DECLARE_QSORT_R ${VAR_2}\n")
 
 try_run(RUN_RESULT_3 COMPILE_SUCCESS_3 ${CMAKE_CURRENT_BINARY_DIR} ${config_SRCS} COMPILE_DEFINITIONS -DTEST_QSORT_R=ON)
 if(COMPILE_SUCCESS_3 AND (RUN_RESULT_3 EQUAL 0))
-    SET(VAR_3 0)
-else()
     SET(VAR_3 1)
+else()
+    SET(VAR_3 0)
 endif()
 file(APPEND "${config_FN}" "#define NEED_QSORT_R ${VAR_3}\n")
 
