@@ -55,6 +55,7 @@ extern "C"{
 #include "fitstable.h"
 #include "sip_qfits.h"
 #include "sip-utils.h"
+#include "tabsort.h"
 }
 
 namespace Ui {
@@ -202,11 +203,6 @@ public slots:
     //These are for the internal solver
     bool augmentXYList();
     int runEngine();
-    int resort_xylist(const char* infn, const char* outfn,
-                      const char* fluxcol, const char* backcol,
-                      int ascending);
-    int tabsort(const char* infn, const char* outfn, const char* colname,
-                int descending);
 
 signals:
     void logNeedsUpdating(QString logText);

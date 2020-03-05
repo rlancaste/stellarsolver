@@ -83,6 +83,7 @@ set(kd_SRCS
     )
 
 add_library(kd ${kd_SRCS})
+target_link_libraries(kd ${CFITSIO_LIBRARIES})
 #install(TARGETS ld LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util")
@@ -115,6 +116,7 @@ set(anbase_SRCS
     )
 
 add_library(anbase ${anbase_SRCS})
+target_link_libraries(anbase -lpthread)
 #install(TARGETS anbase LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set(anutils_SRCS
@@ -136,7 +138,7 @@ set(anutils_SRCS
     )
 
 add_library(anutils ${anutils_SRCS})
-target_link_libraries(anutils anbase qfits)
+target_link_libraries(anutils anbase qfits ${GSL_LIBRARIES})
 #install(TARGETS anutils LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set(anfiles_SRCS
@@ -158,7 +160,7 @@ set(anfiles_SRCS
         )
 
 add_library(anfiles ${anfiles_SRCS})
-target_link_libraries(anfiles anbase qfits kd)
+target_link_libraries(anfiles anbase anutils qfits kd )
 #install(TARGETS anfiles LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind")
