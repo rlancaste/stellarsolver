@@ -1,6 +1,8 @@
 PROJECT(astrometry-sextractor C CXX)
 cmake_minimum_required(VERSION 2.4.7)
 
+cmake_policy(SET CMP0003 NEW)
+
 set(CMAKE_AUTOMOC ON)
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/")
@@ -17,8 +19,53 @@ include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/include/astrometry"
 include_directories("/usr/local/include")
 include_directories("/usr/include")
 
-set(CMAKE_CXX_FLAGS "-g -std=c++0x ${CMAKE_CXX_FLAGS}")
+set(config_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/os-features-test.c
+    )
 
+set(config_FN
+    "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/include/astrometry/os-features-config.h"
+    )
+
+file(REMOVE "${config_FN}")
+
+
+try_run(RUN_RESULT_1 COMPILE_SUCCESS_1 ${CMAKE_CURRENT_BINARY_DIR} ${config_SRCS} COMPILE_DEFINITIONS -DTEST_CANONICALIZE_FILE_NAME=ON)
+if(COMPILE_SUCCESS_1 AND (RUN_RESULT_1 EQUAL 0))
+    SET(VAR_1 0)
+else()
+    SET(VAR_1 1)
+endif()
+file(APPEND "${config_FN}" "#define NEED_CANONICALIZE_FILE_NAME ${VAR_1}\n")
+
+try_run(RUN_RESULT_2 COMPILE_SUCCESS_2 ${CMAKE_CURRENT_BINARY_DIR} ${config_SRCS} COMPILE_DEFINITIONS -DTEST_DECLARE_QSORT_R=ON)
+if(COMPILE_SUCCESS_2 AND (RUN_RESULT_2 EQUAL 0))
+    SET(VAR_2 0)
+else()
+    SET(VAR_2 1)
+endif()
+file(APPEND "${config_FN}" "#define NEED_DECLARE_QSORT_R ${VAR_2}\n")
+
+try_run(RUN_RESULT_3 COMPILE_SUCCESS_3 ${CMAKE_CURRENT_BINARY_DIR} ${config_SRCS} COMPILE_DEFINITIONS -DTEST_QSORT_R=ON)
+if(COMPILE_SUCCESS_3 AND (RUN_RESULT_3 EQUAL 0))
+    SET(VAR_3 0)
+else()
+    SET(VAR_3 1)
+endif()
+file(APPEND "${config_FN}" "#define NEED_QSORT_R ${VAR_3}\n")
+
+try_run(RUN_RESULT_4 COMPILE_SUCCESS_4 ${CMAKE_CURRENT_BINARY_DIR} ${config_SRCS} COMPILE_DEFINITIONS -DTEST_SWAP_QSORT_R=ON)
+if(COMPILE_SUCCESS_4 AND (RUN_RESULT_4 EQUAL 0))
+    SET(VAR_4 0)
+else()
+    SET(VAR_4 1)
+endif()
+file(APPEND "${config_FN}" "#define NEED_SWAP_QSORT_R ${VAR_4}\n")
+
+# We aren't using netpbm in this program, so set this to 1 no matter what
+file(APPEND "${config_FN}" "#define HAVE_NETPBM 1")
+
+set(CMAKE_CXX_FLAGS "-g -std=c++0x ${CMAKE_CXX_FLAGS}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations" )
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wno-deprecated-declarations")
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations" )

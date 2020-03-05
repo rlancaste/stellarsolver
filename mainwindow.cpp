@@ -2023,7 +2023,7 @@ bool MainWindow::augmentXYList()
 
 
                     if (allaxy->resort) {
-                        uint8_t do_tabsort = FALSE;
+                        uint8_t do_tabsort = TRUE;
 
                         if (!allaxy->sortcol)
                             allaxy->sortcol = "FLUX";
@@ -2034,7 +2034,8 @@ bool MainWindow::augmentXYList()
                             sortedxylsfn = create_temp_file("sorted", allaxy->tempdir);
                             sl_append_nocopy(tempfiles, sortedxylsfn);
                         }
-
+//We aren't now using this because it requires a library not available on Windows.  Also it uses background which is not a column we use in sextractor right now.
+/**
                         if (allaxy->resort) {
                             //char* err;
                             int rtn;
@@ -2053,7 +2054,7 @@ bool MainWindow::augmentXYList()
 
                         } else
                             do_tabsort = TRUE;
-
+**/
                         if (do_tabsort) {
 
                             emit logNeedsUpdating(QString("Sorting by brightness: input=%1, output=%2, column=%3.\n").arg(
