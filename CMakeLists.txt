@@ -40,9 +40,9 @@ file(APPEND "${config_FN}" "#define NEED_CANONICALIZE_FILE_NAME ${VAR_1}\n")
 
 try_run(RUN_RESULT_2 COMPILE_SUCCESS_2 ${CMAKE_CURRENT_BINARY_DIR} ${config_SRCS} COMPILE_DEFINITIONS -DTEST_DECLARE_QSORT_R=ON)
 if(COMPILE_SUCCESS_2 AND (RUN_RESULT_2 EQUAL 0))
-    SET(VAR_2 1)
-else()
     SET(VAR_2 0)
+else()
+    SET(VAR_2 1)
 endif()
 file(APPEND "${config_FN}" "#define NEED_DECLARE_QSORT_R ${VAR_2}\n")
 
@@ -62,8 +62,8 @@ else()
 endif()
 file(APPEND "${config_FN}" "#define NEED_SWAP_QSORT_R ${VAR_4}\n")
 
-# We aren't using netpbm in this program, so set this to 1 no matter what
-file(APPEND "${config_FN}" "#define HAVE_NETPBM 1")
+# We aren't using netpbm in this program, so set this to 0 no matter what
+file(APPEND "${config_FN}" "#define HAVE_NETPBM 0")
 
 set(CMAKE_CXX_FLAGS "-g -std=c++0x ${CMAKE_CXX_FLAGS}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations" )
