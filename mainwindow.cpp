@@ -1529,7 +1529,7 @@ bool MainWindow::sextractorComplete()
 bool MainWindow::runInnerSextractor()
 {
     internalSolver.clear();
-    internalSolver = new InternalSolver(fileToSolve, stats, nullptr, m_ImageBuffer, true, this);
+    internalSolver = new InternalSolver(fileToSolve, sextractorFilePath, stats, m_ImageBuffer, true, this);
     connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
     connect(internalSolver, &InternalSolver::starsFound, this, &MainWindow::sextractorComplete);
     internalSolver->start();
@@ -1538,9 +1538,16 @@ bool MainWindow::runInnerSextractor()
 
 bool MainWindow::runInnerSolver()
 {
-    solverTimer.start();
+    sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
 
-    augment_xylist_init(allaxy);
+    solverTimer.start();
+    internalSolver.clear();
+    internalSolver = new InternalSolver(fileToSolve, sextractorFilePath, stats ,m_ImageBuffer, false, this);
+    connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
+    connect(internalSolver, &InternalSolver::finished, this, &MainWindow::solverComplete);
+
+
+    augment_xylist_t* allaxy =internalSolver->solverParams();
 
     // default output filename patterns.
 
@@ -1592,11 +1599,9 @@ bool MainWindow::runInnerSolver()
         allaxy->search_radius = 15;
     }
 
-    internalSolver.clear();
-    internalSolver = new InternalSolver(fileToSolve, stats, allaxy,m_ImageBuffer, false, this);
-    connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
-    connect(internalSolver, &InternalSolver::finished, this, &MainWindow::solverComplete);
+
     internalSolver->start();
+    return true;
 }
 
 

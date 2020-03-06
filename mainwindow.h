@@ -115,14 +115,8 @@ private:
     uint32_t m_ImageBufferSize { 0 };
     StretchParams stretchParams;
 
-    augment_xylist_t theallaxy;
-    augment_xylist_t* allaxy = &theallaxy;
-
-
     QTime solverTimer;
-
     void removeTempFile(char * fileName);
-
     char* charQStr(QString in);
 
 public slots:

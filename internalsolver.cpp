@@ -1,14 +1,15 @@
 #include "internalsolver.h"
 
-InternalSolver::InternalSolver(QString file, Statistic imagestats, augment_xylist_t* theallxy, uint8_t *imageBuffer, bool sextractOnly, QObject *parent) : QThread(parent)
+InternalSolver::InternalSolver(QString file, QString sextractorFile, Statistic imagestats, uint8_t *imageBuffer, bool sextractOnly, QObject *parent) : QThread(parent)
 {
  stats=imagestats;
- allaxy=theallxy;
  m_ImageBuffer=imageBuffer;
  justSextract=sextractOnly;
  fileToSolve=file;
 
- sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
+ augment_xylist_init(allaxy);
+
+ sextractorFilePath = sextractorFile;
 }
 
 void InternalSolver::run()

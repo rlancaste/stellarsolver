@@ -66,7 +66,7 @@ class InternalSolver : public QThread
 {
     Q_OBJECT
 public:
-    explicit InternalSolver(QString file, Statistic imagestats, augment_xylist_t* theallxy,  uint8_t *imageBuffer, bool sextractOnly, QObject *parent = nullptr);
+    explicit InternalSolver(QString file, QString sextractorFile, Statistic imagestats,  uint8_t *imageBuffer, bool sextractOnly, QObject *parent = nullptr);
 
     void run() override;
     template <typename T>
@@ -83,6 +83,8 @@ public:
 
     QList<Star> getStarList(){return stars;}
 
+    augment_xylist_t* solverParams(){return allaxy;}
+
 
 private:
 
@@ -96,7 +98,8 @@ private:
     // Generic data image buffer
     uint8_t *m_ImageBuffer { nullptr };
     //The solving arguments list
-    augment_xylist_t* allaxy = nullptr;
+    augment_xylist_t theallaxy;
+    augment_xylist_t* allaxy = &theallaxy;
 
 signals:
     void starsFound();
