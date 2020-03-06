@@ -1,6 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+//Includes for this project
+#include "structuredefinitions.h"
+#include "internalsolver.h"
+
 //system includes
 #include "math.h"
 #include <sys/mman.h>
@@ -17,6 +21,7 @@
 #include <QPointer>
 #include <QScrollBar>
 #include <QTime>
+#include <QThread>
 
 //CFitsio Includes
 #include "longnam.h"
@@ -27,9 +32,6 @@
 #include "math.h"
 #include "dms.h"
 #include "bayer.h"
-
-//Sextractor Includes
-#include "sep/sep.h"
 
 //Astrometry.net includes
 extern "C"{
@@ -66,41 +68,17 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
-    /// Stats struct to hold statisical data about the FITS data
-    typedef struct
-    {
-        double min[3] = {0}, max[3] = {0};
-        double mean[3] = {0};
-        double stddev[3] = {0};
-        double median[3] = {0};
-        double SNR { 0 };
-        int bitpix { 8 };
-        int bytesPerPixel { 1 };
-        int ndim { 2 };
-        int64_t size { 0 };
-        uint32_t samples_per_channel { 0 };
-        uint16_t width { 0 };
-        uint16_t height { 0 };
-    } Statistic;
-
-    typedef struct
-    {
-        float x;
-        float y;
-        float mag;
-    } Star;
-
 public:
     explicit MainWindow();
     ~MainWindow();
 
+    void setStarList(QList<Star> starList){stars = starList;};
 
 private:
     Ui::MainWindow *ui;
     QString dirPath;
     QPointer<QProcess> solver;
-    QPointer<QThread> internalSolver;
+    QPointer<InternalSolver> internalSolver;
     QPointer<QProcess> sextractorProcess;
     QString fileToSolve;
     QString sextractorFilePath;
@@ -137,15 +115,14 @@ private:
     uint32_t m_ImageBufferSize { 0 };
     StretchParams stretchParams;
 
-
-    QTime solverTimer;
     augment_xylist_t theallaxy;
     augment_xylist_t* allaxy = &theallaxy;
 
+
+    QTime solverTimer;
+
     void removeTempFile(char * fileName);
 
-    template <typename T>
-    void getFloatBuffer(float * buffer, int x, int y, int w, int h);
     char* charQStr(QString in);
 
 public slots:
@@ -194,19 +171,14 @@ public slots:
     //These functions are for the external sextractor and solver
     bool sextract();
     bool solveField();
-    bool solverComplete(int x);
 
-    //These are for the internal sextractor
-    bool writeSextractorTable();
+    //These functions are for the internal sextractor and solver
     bool runInnerSextractor();
+    bool runInnerSolver();
 
-    //These are for the internal solver
-    bool augmentXYList();
-    int runEngine();
-
-signals:
-    void logNeedsUpdating(QString logText);
-
+    //These are for both
+    bool sextractorComplete();
+    bool solverComplete(int x);
 };
 
 #endif // MAINWINDOW_H
