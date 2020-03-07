@@ -21,6 +21,7 @@
 
 #include <QThread>
 #include <QtConcurrent>
+#include <QToolTip>
 
 
 MainWindow::MainWindow() :
@@ -49,6 +50,9 @@ MainWindow::MainWindow() :
     connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
 
     connect(ui->starList,&QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
+
+    connect(ui->Image,&ImageLabel::mouseHovered,this, &MainWindow::mouseOverStar);
+    connect(ui->Image,&ImageLabel::mouseClicked,this, &MainWindow::mouseClickedOnStar);
 
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
     ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() << 0 );
@@ -859,6 +863,14 @@ void MainWindow::autoScale()
     updateImage();
 }
 
+QRect MainWindow::getStarInImage(Star star)
+{
+    int starx = static_cast<int>(round(star.x * currentWidth / stats.width)) ;
+    int stary = static_cast<int>(round(star.y * currentHeight / stats.height)) ;
+    int r = 10 * currentWidth / stats.width ;
+    return QRect(starx - r, stary - r , r*2, r*2);
+}
+
 //This method is very loosely based on updateFrame in Fitsview in Kstars
 void MainWindow::updateImage()
 {
@@ -876,31 +888,30 @@ void MainWindow::updateImage()
     if(ui->showStars->isChecked())
     {
         QPainter p(&renderedImage);
-        for(int star = 0 ; star < stars.size() ; star++)
+        for(int starnum = 0 ; starnum < stars.size() ; starnum++)
         {
-            int starx = static_cast<int>(round(stars.at(star).x * currentWidth / stats.width)) ;
-            int stary = static_cast<int>(round(stars.at(star).y * currentHeight / stats.height)) ;
-            int r = 10 * currentWidth / stats.width ;
+            QRect starInImage = getStarInImage(stars.at(starnum));
 
-            if(star == selectedStar - 1)
+            if(starnum == selectedStar)
             {
                 QPen highlighter(QColor("yellow"));
                 highlighter.setWidth(4);
                 p.setPen(highlighter);
                 p.setOpacity(1);
-                p.drawEllipse(starx - r, stary - r , r*2, r*2);
+                p.drawEllipse(starInImage);
             }
             else
             {
                 p.setPen(QColor("red"));
                 p.setOpacity(0.6);
-                p.drawEllipse(starx - r, stary - r , r*2, r*2);
+                p.drawEllipse(starInImage);
             }
         }
         p.end();
     }
 
     ui->Image->setPixmap(renderedImage);
+    ui->Image->setFixedSize(renderedImage.size());
 }
 
 //This code is copied and pasted from FITSView in KStars
@@ -928,7 +939,37 @@ void MainWindow::clearImageBuffers()
 }
 
 
+void MainWindow::mouseOverStar(QPoint location)
+{
+    bool starFound = false;
+    for(int i = 0 ; i < stars.size() ; i ++)
+    {
+        Star star = stars.at(i);
+        QRect starInImage = getStarInImage(star);
+        if(starInImage.contains(location))
+        {
+            QString text = QString("Star: %1, x: %2, y: %3, mag: %4").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag);
+            QToolTip::showText(QCursor::pos(), text, ui->Image);
+            selectedStar = i;
+            starFound = true;
+            updateImage();
+        }
+    }
+    if(!starFound)
+        QToolTip::hideText();
+}
 
+void MainWindow::mouseClickedOnStar(QPoint location)
+{
+    //logOutput(QString("Mouseclicked: x:") + location.x() + QString(", y:") + location.y());
+    for(int i = 0 ; i < stars.size() ; i ++)
+    {
+        QRect starInImage = getStarInImage(stars.at(i));
+        if(starInImage.contains(location))
+            ui->starList->selectRow(i);
+
+    }
+}
 
 //I wrote these methods to load the sextracted stars into a table to the right of the image
 
@@ -964,19 +1005,18 @@ void MainWindow::updateStarTableFromList()
 {
     selectedStar = 0;
     ui->starList->clear();
-    ui->starList->setColumnCount(4);
-    ui->starList->setRowCount(stars.count()+1);
-    ui->starList->setItem(0,1,new QTableWidgetItem(QString("MAG_AUTO")));
-    ui->starList->setItem(0,2,new QTableWidgetItem(QString("X_IMAGE")));
-    ui->starList->setItem(0,3,new QTableWidgetItem(QString("Y_IMAGE")));
+    ui->starList->setColumnCount(3);
+    ui->starList->setRowCount(stars.count());
+    ui->starList->setHorizontalHeaderItem(0,new QTableWidgetItem(QString("MAG_AUTO")));
+    ui->starList->setHorizontalHeaderItem(1,new QTableWidgetItem(QString("X_IMAGE")));
+    ui->starList->setHorizontalHeaderItem(2,new QTableWidgetItem(QString("Y_IMAGE")));
 
     for(int i = 0; i < stars.size(); i ++)
     {
         Star star = stars.at(i);
-        ui->starList->setItem(i+1,0,new QTableWidgetItem(QString::number(i+1)));
-        ui->starList->setItem(i+1,1,new QTableWidgetItem(QString::number(star.mag)));
-        ui->starList->setItem(i+1,2,new QTableWidgetItem(QString::number(star.x)));
-        ui->starList->setItem(i+1,3,new QTableWidgetItem(QString::number(star.y)));
+        ui->starList->setItem(i,0,new QTableWidgetItem(QString::number(star.mag)));
+        ui->starList->setItem(i,1,new QTableWidgetItem(QString::number(star.x)));
+        ui->starList->setItem(i,2,new QTableWidgetItem(QString::number(star.y)));
     }
 }
 

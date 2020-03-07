@@ -158,6 +158,10 @@ public slots:
     void updateStarTableFromList();
     bool getSextractorTable();
 
+    void mouseOverStar(QPoint location);
+    void mouseClickedOnStar(QPoint location);
+    QRect getStarInImage(Star star);
+
     //These functions are for loading and parsing the options
     QStringList getSolverArgsList();
     bool getSolverOptionsFromFITS();
