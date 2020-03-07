@@ -167,16 +167,19 @@ public slots:
     bool getSolverOptionsFromFITS();
 
     //These functions are for the external sextractor and solver
-    bool sextract();
+    bool sextract(bool justSextract);
     bool solveField();
+    bool externalSextractorComplete();
 
     //These functions are for the internal sextractor and solver
     bool runInnerSextractor();
     bool runInnerSolver();
+    bool innerSextractorComplete();
 
     //These are for both
     bool sextractorComplete();
     bool solverComplete(int x);
+
 };
 
 #endif // MAINWINDOW_H

@@ -43,7 +43,8 @@ char* InternalSolver::charQStr(QString in) {
 
 bool InternalSolver::runInnerSextractor()
 {
-    emit logNeedsUpdating("++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logNeedsUpdating("Starting Internal Sextractor");
 
     int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
 
@@ -799,6 +800,7 @@ bool InternalSolver::augmentXYList()
 int InternalSolver::runAstrometryEngine()
 {
     emit logNeedsUpdating("++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logNeedsUpdating("Configuring Internal Solver");
     sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
     QFile sextractorFile(sextractorFilePath);
     if(!sextractorFile.exists())
@@ -915,7 +917,7 @@ int InternalSolver::runAstrometryEngine()
             job_set_output_base_dir(job, basedir);
     }
 
-    emit logNeedsUpdating("Starting Solver Engine!");
+    emit logNeedsUpdating("Starting Internal Solver Engine!");
 
     if (engine_run_job(engine, job))
         emit logNeedsUpdating("Failed to run_job()\n");
@@ -959,7 +961,6 @@ int InternalSolver::runAstrometryEngine()
     job_free(job);
     gettimeofday(&tv2, nullptr);
     emit logNeedsUpdating(QString("Spent %1 seconds on this field.\n").arg(millis_between(&tv1, &tv2)/1000.0));
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
     engine_free(engine);
     sl_free2(strings);

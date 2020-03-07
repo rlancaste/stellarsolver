@@ -164,14 +164,10 @@ bool MainWindow::sextractImage()
     if(!prepareForProcesses())
         return false;
 
-    if(sextract())
-    {
-        getSextractorTable();
-        displayTable();
+    solverTimer.start();
 
-        return true;
-    }
-    return false;
+    sextract(true);
+    return true;
 }
 
 //I wrote this method to call the sextract and solve methods below in basically the same way we do in KStars right now.
@@ -185,7 +181,7 @@ bool MainWindow::solveImage()
     solverTimer.start();
 
 
-    if(sextract())
+    if(sextract(false))
     {
         if(solveField())
             return true;
@@ -201,11 +197,9 @@ bool MainWindow::sextractInternally()
     if(!prepareForProcesses())
         return false;
 
-    if(runInnerSextractor())
-    {
-        return true;
-    }
-    return false;
+    solverTimer.start();
+    runInnerSextractor();
+    return true;
 }
 
 //I wrote this method to start the internal solver method below
@@ -216,6 +210,7 @@ bool MainWindow::solveInternally()
     if(!prepareForProcesses())
         return false;
 
+      solverTimer.start();
       runInnerSolver();
       return true;
 }
@@ -1400,7 +1395,7 @@ QStringList MainWindow::getSolverArgsList()
 
 
 //This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
-bool MainWindow::sextract()
+bool MainWindow::sextract(bool justSextract)
 {
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
@@ -1479,14 +1474,13 @@ bool MainWindow::sextract()
     sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
     connect(sextractorProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(logSextractor()));
 
-
-    sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
     logOutput("Starting sextractor...");
     logOutput(sextractorBinaryPath + " " + sextractorArgs.join(' '));
-    sextractorProcess->waitForFinished();
-    logOutput(sextractorProcess->readAllStandardError().trimmed());
-
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
+    if(justSextract)
+        connect(sextractorProcess, SIGNAL(finished(int)), this, SLOT(externalSextractorComplete()));
+    else
+        sextractorProcess->waitForFinished();
 
     return true;
 
@@ -1497,7 +1491,7 @@ bool MainWindow::sextract()
 //The code for this method is copied and pasted and modified from OfflineAstroetryParser in KStars
 bool MainWindow::solveField()
 {
-    logOutput("++++++++++++++++++++++++++++++++++++++++++++++");
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
     QFile sextractorFile(sextractorFilePath);
     if(!sextractorFile.exists())
@@ -1538,6 +1532,7 @@ bool MainWindow::solveField()
     solver->start(solverPath, solverArgs);
 
     logOutput("Starting solver...");
+    logOutput("Command: " + solverPath + solverArgs.join(" "));
 
 
     QString command = solverPath + ' ' + solverArgs.join(' ');
@@ -1555,10 +1550,23 @@ bool MainWindow::solverComplete(int x)
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 }
 
+bool MainWindow::externalSextractorComplete()
+{
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    logOutput(sextractorProcess->readAllStandardError().trimmed());
+    getSextractorTable();
+    sextractorComplete();
+}
+
+bool MainWindow::innerSextractorComplete()
+{
+    stars = internalSolver->getStarList();
+    sextractorComplete();
+}
+
 bool MainWindow::sextractorComplete()
 {
     double elapsed = solverTimer.elapsed() / 1000.0;
-    stars = internalSolver->getStarList();
     displayTable();
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
@@ -1571,7 +1579,7 @@ bool MainWindow::runInnerSextractor()
     internalSolver.clear();
     internalSolver = new InternalSolver(fileToSolve, sextractorFilePath, stats, m_ImageBuffer, true, this);
     connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
-    connect(internalSolver, &InternalSolver::starsFound, this, &MainWindow::sextractorComplete);
+    connect(internalSolver, &InternalSolver::starsFound, this, &MainWindow::innerSextractorComplete);
     internalSolver->start();
     return true;
 }
@@ -1580,7 +1588,6 @@ bool MainWindow::runInnerSolver()
 {
     sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
 
-    solverTimer.start();
     internalSolver.clear();
     internalSolver = new InternalSolver(fileToSolve, sextractorFilePath, stats ,m_ImageBuffer, false, this);
     connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
