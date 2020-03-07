@@ -10,6 +10,11 @@
     <height>470</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <kerning>true</kerning>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Sextractor - Astrometry Tester</string>
   </property>
@@ -21,6 +26,21 @@
     </sizepolicy>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>3</number>
+    </property>
+    <property name="topMargin">
+     <number>3</number>
+    </property>
+    <property name="rightMargin">
+     <number>3</number>
+    </property>
+    <property name="bottomMargin">
+     <number>3</number>
+    </property>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
@@ -77,8 +97,11 @@
        </property>
        <widget class="QWidget" name="verticalLayoutWidget">
         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="spacing">
+          <number>0</number>
+         </property>
          <property name="leftMargin">
-          <number>10</number>
+          <number>0</number>
          </property>
          <item>
           <widget class="QLabel" name="fileNameDisplay">
@@ -100,8 +123,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>302</width>
-              <height>72</height>
+              <width>320</width>
+              <height>78</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -136,8 +159,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>313</width>
-           <height>189</height>
+           <width>322</width>
+           <height>191</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -239,7 +262,11 @@
    </widget>
    <addaction name="menuSextractor_and_Astrometry_Tester"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>
