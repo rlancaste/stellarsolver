@@ -22,6 +22,7 @@
 #include <QScrollBar>
 #include <QTime>
 #include <QThread>
+#include <QLineEdit>
 
 //CFitsio Includes
 #include "longnam.h"
@@ -76,7 +77,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    QString dirPath;
+
     QPointer<QProcess> solver;
     QPointer<InternalSolver> internalSolver;
     QPointer<QProcess> sextractorProcess;
@@ -84,16 +85,36 @@ private:
     QString sextractorFilePath;
     QList<Star> stars;
     int selectedStar;
-    BayerParams debayerParams;
-    bool checkDebayer();
 
-    //Parameters for sovling
+    //System File Paths
+    QString dirPath;
+    QString tempPath;
+#if defined(Q_OS_OSX)
+    QString sextractorBinaryPath = "/usr/local/bin/sex";
+#elif defined(Q_OS_LINUX)
+    QString sextractorBinaryPath = "/usr/bin/sextractor";
+#endif
+
+#if defined(Q_OS_OSX)
+    QString confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
+#elif defined(Q_OS_LINUX)
+    QString confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
+#endif
+
+#if defined(Q_OS_OSX)
+    QString solverPath = "/usr/local/bin/solve-field";
+#elif defined(Q_OS_LINUX)
+    QString solverPath = "/usr/bin/solve-field";
+#endif
+
+    //Parameters for solving
+    bool use_scale = false;
+    double fov_low, fov_high;
+    QString units;
     bool use_position = false;
     double ra;
     double dec;
-    bool use_scale = false;
-    QString fov_low, fov_high;
-    QString units;
+    double radius;
 
     //Data about the image
     bool imageLoaded = false;
@@ -114,6 +135,8 @@ private:
     /// Above buffer size in bytes
     uint32_t m_ImageBufferSize { 0 };
     StretchParams stretchParams;
+    BayerParams debayerParams;
+    bool checkDebayer();
 
     QTime solverTimer;
     void removeTempFile(char * fileName);

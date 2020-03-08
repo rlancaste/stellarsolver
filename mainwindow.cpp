@@ -55,15 +55,39 @@ MainWindow::MainWindow() :
     connect(ui->Image,&ImageLabel::mouseClicked,this, &MainWindow::mouseClickedOnStar);
 
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
-    ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() << 0 );
+    ui->splitter_2->setSizes(QList<int>() << 0 << ui->splitter_2->width() << 0 );
 
     dirPath=QDir::homePath();
+    tempPath=QDir::tempPath();
+
+    //Basic Settings
+    ui->sextractorPath->setText(sextractorBinaryPath);
+    connect(ui->sextractorPath, &QLineEdit::textChanged, this, [this](){ sextractorBinaryPath = ui->sextractorPath->text(); });
+    ui->solverPath->setText(solverPath);
+    connect(ui->solverPath, &QLineEdit::textChanged, this, [this](){ solverPath = ui->solverPath->text(); });
+    ui->imagesDefaultPath->setText(dirPath);
+    connect(ui->imagesDefaultPath, &QLineEdit::textChanged, this, [this](){ dirPath = ui->imagesDefaultPath->text(); });
+    ui->tempPath->setText(tempPath);
+    connect(ui->tempPath, &QLineEdit::textChanged, this, [this](){ tempPath = ui->tempPath->text(); });
+
+    //Astrometry Settings
+    ui->configFilePath->setText(confPath);
+    connect(ui->configFilePath, &QLineEdit::textChanged, this, [this](){ confPath = ui->configFilePath->text(); });
+    connect(ui->use_scale, &QCheckBox::stateChanged, this, [this](){ use_scale = ui->use_scale->isChecked(); });
+    connect(ui->scale_low, &QLineEdit::textChanged, this, [this](){ fov_low = ui->scale_low->text().toDouble(); });
+    connect(ui->scale_high, &QLineEdit::textChanged, this, [this](){ fov_high = ui->scale_high->text().toDouble(); });
+    connect(ui->use_position, &QCheckBox::stateChanged, this, [this](){ use_position= ui->use_position->isChecked(); });
+    connect(ui->ra, &QLineEdit::textChanged, this, [this](){ ra = ui->ra->text().toDouble(); });
+    connect(ui->dec, &QLineEdit::textChanged, this, [this](){ dec = ui->dec->text().toDouble(); });
+    connect(ui->radius, &QLineEdit::textChanged, this, [this](){ radius = ui->radius->text().toDouble(); });
+
+
+
 
     debayerParams.method  = DC1394_BAYER_METHOD_NEAREST;
     debayerParams.filter  = DC1394_COLOR_FILTER_RGGB;
     debayerParams.offsetX = debayerParams.offsetY = 0;
 }
-
 
 MainWindow::~MainWindow()
 {
@@ -145,7 +169,7 @@ void MainWindow::displayTable()
     updateStarTableFromList();
 
     if(ui->splitter_2->sizes().last() < 10)
-        ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() / 2 << 200 );
+        ui->splitter_2->setSizes(QList<int>() << ui->optionsBox->width() << ui->splitter_2->width() / 2 << 200 );
     updateImage();
 }
 
@@ -243,7 +267,7 @@ bool MainWindow::loadImage()
     QFileInfo fileInfo(fileURL);
     if(!fileInfo.exists())
         return false;
-    QString newFileURL=QDir::tempPath() + "/" + fileInfo.fileName().remove(" ");
+    QString newFileURL=tempPath + "/" + fileInfo.fileName().remove(" ");
     QFile::copy(fileURL, newFileURL);
     QFileInfo newFileInfo(newFileURL);
     dirPath = fileInfo.absolutePath();
@@ -261,7 +285,7 @@ bool MainWindow::loadImage()
         ui->starList->clear();
         stars.clear();
         selectedStar = 0;
-        ui->splitter_2->setSizes(QList<int>() << ui->splitter_2->width() << 0 );
+        ui->splitter_2->setSizes(QList<int>() << ui->optionsBox->width() << ui->splitter_2->width() << 0 );
         ui->fileNameDisplay->setText("Image: " + fileURL);
         initDisplayImage();
         return true;
@@ -403,8 +427,9 @@ bool MainWindow::loadOtherFormat()
     ra = 0;
     dec = 0;
     use_scale = false;
-    fov_low = "";
-    fov_high = "";
+    fov_low = 0;
+    fov_high = 0;
+
 
     QImageReader fileReader(fileToSolve.toLatin1());
 
@@ -509,7 +534,7 @@ bool MainWindow::loadOtherFormat()
 bool MainWindow::saveAsFITS()
 {
     QFileInfo fileInfo(fileToSolve.toLatin1());
-    QString newFilename = QDir::tempPath() + "/" + fileInfo.baseName() + "_solve.fits";
+    QString newFilename = tempPath + "/" + fileInfo.baseName() + "_solve.fits";
 
     int status = 0;
     fitsfile * new_fptr;
@@ -1173,12 +1198,25 @@ bool MainWindow::getSextractorTable()
 //It is used by both the internal and external solver
 bool MainWindow::getSolverOptionsFromFITS()
 {
+    use_scale = false;
+    fov_low = 0;
+    fov_high= 0;
+    use_position = false;
     ra = 0;
     dec = 0;
-    fov_low = "";
-    fov_high= "";
-    use_scale = false;
-    use_position = false;
+    radius = 15;
+
+    ui->use_scale->setChecked(false);
+    ui->scale_low->setText("");
+    ui->scale_high->setText("");
+    ui->use_position->setChecked(false);
+    ui->ra->setText("");
+    ui->dec->setText("");
+    ui->radius->setText("15");
+
+
+
+
 
     int status = 0, fits_ccd_width, fits_ccd_height, fits_binx = 1, fits_biny = 1;
     char comment[128], error_status[512];
@@ -1268,7 +1306,13 @@ bool MainWindow::getSolverOptionsFromFITS()
     }
 
     if(coord_ok)
+    {
+        ui->use_position->setChecked(true);
         use_position = true;
+        ui->ra->setText(QString::number(ra));
+        ui->dec->setText(QString::number(dec));
+
+    }
 
     status = 0;
     double pixelScale = 0;
@@ -1276,11 +1320,15 @@ bool MainWindow::getSolverOptionsFromFITS()
     // instead of calculating it from FOCAL length and other information
     if (fits_read_key(fptr, TDOUBLE, "SCALE", &pixelScale, comment, &status) == 0)
     {
-        fov_low  = QString::number(0.9 * pixelScale);
-        fov_high = QString::number(1.1 * pixelScale);
+        fov_low  = 0.9 * pixelScale;
+        fov_high = 1.1 * pixelScale;
         units = "app";
-
         use_scale = true;
+
+        ui->scale_low->setText(QString::number(fov_low));
+        ui->scale_high->setText(QString::number(fov_high));
+        ui->units->setCurrentText("app");
+        ui->use_scale->setChecked(true);
 
         return true;
     }
@@ -1337,12 +1385,15 @@ bool MainWindow::getSolverOptionsFromFITS()
     fov_upper *= 1.10;
 
     //Final Options that get stored.
-    fov_low  = QString::number(fov_lower);
-    fov_high = QString::number(fov_upper);
-
+    fov_low  = fov_lower;
+    fov_high = fov_upper;
     units = "aw";
-
     use_scale = true;
+
+    ui->scale_low->setText(QString::number(fov_low));
+    ui->scale_high->setText(QString::number(fov_high));
+    ui->units->setCurrentText("aw");
+    ui->use_scale->setChecked(true);
 
     return true;
 }
@@ -1381,10 +1432,10 @@ QStringList MainWindow::getSolverArgsList()
     solverArgs << "--uniformize" << "0";
 
     if (use_scale)
-        solverArgs << "-L" << fov_low << "-H" << fov_high << "-u" << units;
+        solverArgs << "-L" << QString::number(fov_low) << "-H" << QString::number(fov_high) << "-u" << units;
 
     if (use_position)
-        solverArgs << "-3" << QString::number(ra * 15.0) << "-4" << QString::number(dec) << "-5" << "15";
+        solverArgs << "-3" << QString::number(ra * 15.0) << "-4" << QString::number(dec) << "-5" << QString::number(radius);
 
     return solverArgs;
 }
@@ -1399,7 +1450,7 @@ bool MainWindow::sextract(bool justSextract)
 {
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
-    sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
+    sextractorFilePath = tempPath + "/SextractorList.xyls";
     QFile sextractorFile(sextractorFilePath);
     if(sextractorFile.exists())
         sextractorFile.remove();
@@ -1416,7 +1467,7 @@ bool MainWindow::sextract(bool justSextract)
     //sextractor needs a default.param file in the working directory
     //This creates that file with the options we need for astrometry.net
 
-    QString paramPath =  QDir::tempPath() + "/default.param";
+    QString paramPath =  tempPath + "/default.param";
     QFile paramFile(paramPath);
     if(!paramFile.exists())
     {
@@ -1437,7 +1488,7 @@ bool MainWindow::sextract(bool justSextract)
     //sextractor needs a default.conv file in the working directory
     //This creates the default one
 
-    QString convPath =  QDir::tempPath() + "/default.conv";
+    QString convPath =  tempPath + "/default.conv";
     QFile convFile(convPath);
     if(!convFile.exists())
     {
@@ -1463,14 +1514,7 @@ bool MainWindow::sextract(bool justSextract)
     sextractorProcess.clear();
     sextractorProcess = new QProcess(this);
 
-    QString sextractorBinaryPath;
-#if defined(Q_OS_OSX)
-        sextractorBinaryPath = "/usr/local/bin/sex";
-#elif defined(Q_OS_LINUX)
-        sextractorBinaryPath = "/usr/bin/sextractor";
-#endif
-
-    sextractorProcess->setWorkingDirectory(QDir::tempPath());
+    sextractorProcess->setWorkingDirectory(tempPath);
     sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
     connect(sextractorProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(logSextractor()));
 
@@ -1492,7 +1536,7 @@ bool MainWindow::sextract(bool justSextract)
 bool MainWindow::solveField()
 {
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
+    sextractorFilePath = tempPath + "/SextractorList.xyls";
     QFile sextractorFile(sextractorFilePath);
     if(!sextractorFile.exists())
     {
@@ -1501,29 +1545,15 @@ bool MainWindow::solveField()
 
     QStringList solverArgs=getSolverArgsList();
 
-    QString confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
-#if defined(Q_OS_OSX)
-        confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
-#elif defined(Q_OS_LINUX)
-        confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
-#endif
     solverArgs << "--config" << confPath;
 
-    QString solutionFile = QDir::tempPath() + "/SextractorList.wcs";
+    QString solutionFile = tempPath + "/SextractorList.wcs";
     solverArgs << "-W" << solutionFile;
 
     solverArgs << sextractorFilePath;
 
     solver.clear();
     solver = new QProcess(this);
-
-    QString solverPath;
-
-#if defined(Q_OS_OSX)
-        solverPath = "/usr/local/bin/solve-field";
-#elif defined(Q_OS_LINUX)
-        solverPath = "/usr/bin/solve-field";
-#endif
 
     connect(solver, SIGNAL(finished(int)), this, SLOT(solverComplete(int)));
     solver->setProcessChannelMode(QProcess::MergedChannels);
@@ -1586,7 +1616,7 @@ bool MainWindow::runInnerSextractor()
 
 bool MainWindow::runInnerSolver()
 {
-    sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
+    sextractorFilePath = tempPath + "/SextractorList.xyls";
 
     internalSolver.clear();
     internalSolver = new InternalSolver(fileToSolve, sextractorFilePath, stats ,m_ImageBuffer, false, this);
@@ -1598,7 +1628,7 @@ bool MainWindow::runInnerSolver()
 
     // default output filename patterns.
 
-    QString basedir = QDir::tempPath() + "/SextractorList";
+    QString basedir = tempPath + "/SextractorList";
 
     allaxy->axyfn    = charQStr(QString("%1.axy").arg(basedir));
     allaxy->matchfn  = charQStr(QString("%1.match").arg(basedir));
@@ -1626,9 +1656,9 @@ bool MainWindow::runInnerSolver()
     if(use_scale)
     {
         //L
-        allaxy->scalelo = fov_low.toDouble();
+        allaxy->scalelo = fov_low;
         //H
-        allaxy->scalehi = fov_high.toDouble();
+        allaxy->scalehi = fov_high;
         //u
         if(units == "app")
             allaxy->scaleunit = SCALE_UNITS_ARCSEC_PER_PIX;
@@ -1643,7 +1673,7 @@ bool MainWindow::runInnerSolver()
         //4
         allaxy->dec_center = dec;
         //5
-        allaxy->search_radius = 15;
+        allaxy->search_radius = radius;
     }
 
 

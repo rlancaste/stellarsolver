@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>654</width>
-    <height>470</height>
+    <width>567</width>
+    <height>403</height>
    </rect>
   </property>
   <property name="font">
@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Sextractor - Astrometry Tester</string>
+   <string>SexySolver Astrometry Tester</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -26,21 +26,6 @@
     </sizepolicy>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
-    <property name="spacing">
-     <number>0</number>
-    </property>
-    <property name="leftMargin">
-     <number>3</number>
-    </property>
-    <property name="topMargin">
-     <number>3</number>
-    </property>
-    <property name="rightMargin">
-     <number>3</number>
-    </property>
-    <property name="bottomMargin">
-     <number>3</number>
-    </property>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
@@ -91,6 +76,208 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
+      <widget class="QToolBox" name="optionsBox">
+       <property name="currentIndex">
+        <number>2</number>
+       </property>
+       <widget class="QWidget" name="Basic">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>173</width>
+          <height>144</height>
+         </rect>
+        </property>
+        <attribute name="label">
+         <string>Basic</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_10">
+           <property name="text">
+            <string>Images Path</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Solver Path</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="solverPath"/>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="sextractorPath"/>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLineEdit" name="imagesDefaultPath"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Sextractor Path</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>Temp Path</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLineEdit" name="tempPath"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="Sextractor">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>173</width>
+          <height>144</height>
+         </rect>
+        </property>
+        <attribute name="label">
+         <string>Sextractor</string>
+        </attribute>
+       </widget>
+       <widget class="QWidget" name="Astrometry">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>173</width>
+          <height>144</height>
+         </rect>
+        </property>
+        <attribute name="label">
+         <string>Astrometry</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="2" column="0">
+          <widget class="QScrollArea" name="scrollArea_3">
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents_3">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>189</width>
+              <height>282</height>
+             </rect>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_5">
+             <item row="0" column="2">
+              <widget class="QLineEdit" name="configFilePath"/>
+             </item>
+             <item row="11" column="0">
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>RA</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QCheckBox" name="use_scale">
+               <property name="text">
+                <string>Use Scale</string>
+               </property>
+              </widget>
+             </item>
+             <item row="13" column="0">
+              <widget class="QLabel" name="label_9">
+               <property name="text">
+                <string>Radius</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QLineEdit" name="scale_low"/>
+             </item>
+             <item row="10" column="2">
+              <widget class="QCheckBox" name="use_position">
+               <property name="text">
+                <string>Use Position</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_4">
+               <property name="text">
+                <string>Low</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="0">
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>Units</string>
+               </property>
+              </widget>
+             </item>
+             <item row="11" column="2">
+              <widget class="QLineEdit" name="ra"/>
+             </item>
+             <item row="13" column="2">
+              <widget class="QLineEdit" name="radius"/>
+             </item>
+             <item row="8" column="2">
+              <widget class="QComboBox" name="units">
+               <item>
+                <property name="text">
+                 <string>app</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>aw</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>Config File</string>
+               </property>
+              </widget>
+             </item>
+             <item row="12" column="0">
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>DEC</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="2">
+              <widget class="QLineEdit" name="scale_high"/>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>High</string>
+               </property>
+              </widget>
+             </item>
+             <item row="12" column="2">
+              <widget class="QLineEdit" name="dec"/>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
       <widget class="QSplitter" name="splitter">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -123,8 +310,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>320</width>
-              <height>78</height>
+              <width>176</width>
+              <height>72</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -159,8 +346,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>322</width>
-           <height>191</height>
+           <width>178</width>
+           <height>145</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -251,13 +438,13 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>654</width>
+     <width>567</width>
      <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuSextractor_and_Astrometry_Tester">
     <property name="title">
-     <string>Sextractor and Astrometry Tester</string>
+     <string>SexySolver Astrometry Tester</string>
     </property>
    </widget>
    <addaction name="menuSextractor_and_Astrometry_Tester"/>

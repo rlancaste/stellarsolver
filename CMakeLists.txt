@@ -259,11 +259,11 @@ qt5_wrap_ui(astrosexui_SRCS
     )
 
 
-add_executable(astrosex ${astrosex_SRCS} ${astrosexui_SRCS} )
+add_executable(sexysolver ${astrosex_SRCS} ${astrosexui_SRCS} )
 
-target_link_libraries(astrosex sep astrometry)
+target_link_libraries(sexysolver sep astrometry)
 
-target_link_libraries(astrosex
+target_link_libraries(sexysolver
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
 
@@ -273,6 +273,6 @@ target_link_libraries(astrosex
     Qt5::Concurrent
     )
 
-install(TARGETS astrosex RUNTIME DESTINATION bin)
+install(TARGETS sexysolver RUNTIME DESTINATION bin)
 
 
