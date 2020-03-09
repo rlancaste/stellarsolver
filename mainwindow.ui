@@ -26,6 +26,21 @@
     </sizepolicy>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
@@ -78,21 +93,36 @@
       </property>
       <widget class="QToolBox" name="optionsBox">
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="Basic">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>173</width>
-          <height>144</height>
+          <width>179</width>
+          <height>188</height>
          </rect>
         </property>
         <attribute name="label">
          <string>Basic</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_3">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <property name="spacing">
+          <number>0</number>
+         </property>
          <item row="4" column="0">
           <widget class="QLabel" name="label_10">
            <property name="text">
@@ -140,8 +170,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>173</width>
-          <height>144</height>
+          <width>179</width>
+          <height>188</height>
          </rect>
         </property>
         <attribute name="label">
@@ -153,14 +183,29 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>173</width>
-          <height>144</height>
+          <width>179</width>
+          <height>188</height>
          </rect>
         </property>
         <attribute name="label">
          <string>Astrometry</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_4">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <property name="spacing">
+          <number>0</number>
+         </property>
          <item row="2" column="0">
           <widget class="QScrollArea" name="scrollArea_3">
            <property name="widgetResizable">
@@ -171,11 +216,26 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>189</width>
-              <height>282</height>
+              <width>178</width>
+              <height>262</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_5">
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <property name="spacing">
+              <number>-1</number>
+             </property>
              <item row="0" column="2">
               <widget class="QLineEdit" name="configFilePath"/>
              </item>
@@ -310,11 +370,26 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>176</width>
+              <width>187</width>
               <height>72</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <property name="spacing">
+              <number>0</number>
+             </property>
              <item row="0" column="0">
               <widget class="ImageLabel" name="Image">
                <property name="sizePolicy">
@@ -346,8 +421,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>178</width>
-           <height>145</height>
+           <width>189</width>
+           <height>189</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -370,7 +445,55 @@
            <number>2</number>
           </property>
           <item row="0" column="0">
-           <widget class="QTextBrowser" name="logDisplay"/>
+           <widget class="QTabWidget" name="tabWidget">
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <widget class="QWidget" name="logOutput">
+             <attribute name="title">
+              <string>Log Output</string>
+             </attribute>
+             <layout class="QGridLayout" name="gridLayout_6">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QTextBrowser" name="logDisplay"/>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="solutionTableView">
+             <attribute name="title">
+              <string>Solution Table</string>
+             </attribute>
+             <layout class="QGridLayout" name="gridLayout_7">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QTableWidget" name="solutionTable"/>
+              </item>
+             </layout>
+            </widget>
+           </widget>
           </item>
          </layout>
         </widget>

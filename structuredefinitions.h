@@ -3,6 +3,7 @@
 
 //system includes
 #include "stdint.h"
+#include <QString>
 
 /// Stats struct to hold statisical data about the FITS data
 typedef struct
@@ -26,6 +27,19 @@ typedef struct
     float x;
     float y;
     float mag;
+    float flux;
 } Star;
+
+typedef struct
+{
+    double fieldWidth;
+    double fieldHeight;
+    double ra;
+    double dec;
+    QString rastr;
+    QString decstr;
+    double orientation;
+
+} Solution;
 
 #endif // STRUCTUREDEFINITIONS_H

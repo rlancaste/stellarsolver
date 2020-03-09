@@ -85,6 +85,8 @@ public:
 
     augment_xylist_t* solverParams(){return allaxy;}
 
+    Solution solution;
+
 
 private:
 

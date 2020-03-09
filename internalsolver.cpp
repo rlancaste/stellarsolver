@@ -150,7 +150,7 @@ bool InternalSolver::runInnerSextractor()
         float magzero = 20;
         float mag = magzero - 2.5 * log10(sum);
 
-        Star star = {xPos, yPos, mag};
+        Star star = {xPos, yPos, mag, (float)sum};
 
         stars.append(star);
 
@@ -927,6 +927,7 @@ int InternalSolver::runAstrometryEngine()
         char rastr[32], decstr[32];
         char* fieldunits;
 
+
     // print info about the field.
         emit logNeedsUpdating(QString("Solved Field: %1").arg(fileToSolve));
         if (file_exists (allaxy->wcsfn)) {
@@ -954,13 +955,15 @@ int InternalSolver::runAstrometryEngine()
             double det = sip_det_cd(&wcs);
             emit logNeedsUpdating(QString("Field parity: %1\n").arg( (det < 0 ? "pos" : "neg")));
 
+            solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient};
+
         } else {
             emit logNeedsUpdating("Did not solve (or no WCS file was written).\n");
         }
 
     job_free(job);
     gettimeofday(&tv2, nullptr);
-    emit logNeedsUpdating(QString("Spent %1 seconds on this field.\n").arg(millis_between(&tv1, &tv2)/1000.0));
+    //emit logNeedsUpdating(QString("Spent %1 seconds on this field.\n").arg(millis_between(&tv1, &tv2)/1000.0));
 
     engine_free(engine);
     sl_free2(strings);

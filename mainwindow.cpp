@@ -23,6 +23,26 @@
 #include <QtConcurrent>
 #include <QToolTip>
 
+void addColumnToTable(QTableWidget *table, QString heading)
+{
+    int colNum = table->columnCount();
+    table->insertColumn(colNum);
+    table->setHorizontalHeaderItem(colNum,new QTableWidgetItem(heading));
+}
+
+bool setItemInColumn(QTableWidget *table, QString colName, QString value)
+{
+    int row = table->rowCount() - 1;
+    for(int c = 0; c < table->columnCount() ; c ++)
+    {
+        if(table->horizontalHeaderItem(c)->text() == colName)
+        {
+            table->setItem(row,c, new QTableWidgetItem(value));
+            return true;
+        }
+    }
+    return false;
+}
 
 MainWindow::MainWindow() :
     QMainWindow(),
@@ -82,11 +102,26 @@ MainWindow::MainWindow() :
     connect(ui->radius, &QLineEdit::textChanged, this, [this](){ radius = ui->radius->text().toDouble(); });
 
 
-
+    addColumnToTable(ui->solutionTable,"Field");
+    addColumnToTable(ui->solutionTable,"Time");
+    addColumnToTable(ui->solutionTable,"Internal?");
+    addColumnToTable(ui->solutionTable,"Use Pos");
+    addColumnToTable(ui->solutionTable,"Use Scale");
+    addColumnToTable(ui->solutionTable,"Resort");
+    addColumnToTable(ui->solutionTable,"RA");
+    addColumnToTable(ui->solutionTable,"DEC");
+    addColumnToTable(ui->solutionTable,"Angle");
 
     debayerParams.method  = DC1394_BAYER_METHOD_NEAREST;
     debayerParams.filter  = DC1394_COLOR_FILTER_RGGB;
     debayerParams.offsetX = debayerParams.offsetY = 0;
+
+
+    //Delete the temp files for Sextractor in case the parameters get changed during testing and coding
+    QDir temp(tempPath);
+    temp.remove("default.param");
+    temp.remove("default.conv");
+
 }
 
 MainWindow::~MainWindow()
@@ -267,7 +302,7 @@ bool MainWindow::loadImage()
     QFileInfo fileInfo(fileURL);
     if(!fileInfo.exists())
         return false;
-    QString newFileURL=tempPath + "/" + fileInfo.fileName().remove(" ");
+    QString newFileURL=tempPath + QDir::separator() + fileInfo.fileName().remove(" ");
     QFile::copy(fileURL, newFileURL);
     QFileInfo newFileInfo(newFileURL);
     dirPath = fileInfo.absolutePath();
@@ -534,7 +569,7 @@ bool MainWindow::loadOtherFormat()
 bool MainWindow::saveAsFITS()
 {
     QFileInfo fileInfo(fileToSolve.toLatin1());
-    QString newFilename = tempPath + "/" + fileInfo.baseName() + "_solve.fits";
+    QString newFilename = tempPath + QDir::separator() + fileInfo.baseName() + "_solve.fits";
 
     int status = 0;
     fitsfile * new_fptr;
@@ -1023,20 +1058,25 @@ void MainWindow::sortStars()
 //This copies the stars into the table
 void MainWindow::updateStarTableFromList()
 {
+    QTableWidget *table = ui->starList;
+    table->clearContents();
+    table->setRowCount(0);
+    table->setColumnCount(0);
     selectedStar = 0;
-    ui->starList->clear();
-    ui->starList->setColumnCount(3);
-    ui->starList->setRowCount(stars.count());
-    ui->starList->setHorizontalHeaderItem(0,new QTableWidgetItem(QString("MAG_AUTO")));
-    ui->starList->setHorizontalHeaderItem(1,new QTableWidgetItem(QString("X_IMAGE")));
-    ui->starList->setHorizontalHeaderItem(2,new QTableWidgetItem(QString("Y_IMAGE")));
+    addColumnToTable(table,"MAG_AUTO");
+    addColumnToTable(table,"X_IMAGE");
+    addColumnToTable(table,"Y_IMAGE");
+    addColumnToTable(table,"FLUX_AUTO");
 
     for(int i = 0; i < stars.size(); i ++)
     {
+        table->insertRow(table->rowCount());
         Star star = stars.at(i);
-        ui->starList->setItem(i,0,new QTableWidgetItem(QString::number(star.mag)));
-        ui->starList->setItem(i,1,new QTableWidgetItem(QString::number(star.x)));
-        ui->starList->setItem(i,2,new QTableWidgetItem(QString::number(star.y)));
+
+        setItemInColumn(table, "MAG_AUTO", QString::number(star.mag));
+        setItemInColumn(table, "FLUX_AUTO", QString::number(star.flux));
+        setItemInColumn(table, "X_IMAGE", QString::number(star.x));
+        setItemInColumn(table, "Y_IMAGE", QString::number(star.y));
     }
 }
 
@@ -1146,6 +1186,7 @@ bool MainWindow::getSextractorTable()
             float starx = 0;
             float stary = 0;
             float mag = 0;
+            float flux = 0;
             for (ii = firstcol; ii <= lastcol; ii++)
                 {
                     kk = ((ii == firstcol) ? firstelem : 1);
@@ -1159,13 +1200,15 @@ bool MainWindow::getSextractorTable()
                             if(ii == 1)
                                 mag = QString(value).trimmed().toFloat();
                             if(ii == 2)
-                                starx = QString(value).trimmed().toFloat();
+                                flux = QString(value).trimmed().toFloat();
                             if(ii == 3)
+                                starx = QString(value).trimmed().toFloat();
+                            if(ii == 4)
                                 stary = QString(value).trimmed().toFloat();
                         }
                 }
 
-            Star star = {starx, stary, mag};
+            Star star = {starx, stary, mag, flux};
 
             stars.append(star);
         }
@@ -1450,7 +1493,7 @@ bool MainWindow::sextract(bool justSextract)
 {
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
-    sextractorFilePath = tempPath + "/SextractorList.xyls";
+    sextractorFilePath = tempPath + QDir::separator() + "SextractorList.xyls";
     QFile sextractorFile(sextractorFilePath);
     if(sextractorFile.exists())
         sextractorFile.remove();
@@ -1467,7 +1510,7 @@ bool MainWindow::sextract(bool justSextract)
     //sextractor needs a default.param file in the working directory
     //This creates that file with the options we need for astrometry.net
 
-    QString paramPath =  tempPath + "/default.param";
+    QString paramPath =  tempPath + QDir::separator() + "default.param";
     QFile paramFile(paramPath);
     if(!paramFile.exists())
     {
@@ -1475,8 +1518,12 @@ bool MainWindow::sextract(bool justSextract)
             QMessageBox::critical(nullptr,"Message","Sextractor file write error.");
         else
         {
+            //Note, if you change the parameters here, make sure you delete the default.param file from your temp directory
+            //Since it will only get created if it doesn't exist.
+            //The program will try to do this at launch,but if you choose a different directory, it won't be able to.
             QTextStream out(&paramFile);
             out << "MAG_AUTO                 Kron-like elliptical aperture magnitude                   [mag]\n";
+            out << "FLUX_AUTO                Flux within a Kron-like elliptical aperture               [count]\n";
             out << "X_IMAGE                  Object position along x                                   [pixel]\n";
             out << "Y_IMAGE                  Object position along y                                   [pixel]\n";
             paramFile.close();
@@ -1488,7 +1535,7 @@ bool MainWindow::sextract(bool justSextract)
     //sextractor needs a default.conv file in the working directory
     //This creates the default one
 
-    QString convPath =  tempPath + "/default.conv";
+    QString convPath =  tempPath + QDir::separator() + "default.conv";
     QFile convFile(convPath);
     if(!convFile.exists())
     {
@@ -1536,7 +1583,7 @@ bool MainWindow::sextract(bool justSextract)
 bool MainWindow::solveField()
 {
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    sextractorFilePath = tempPath + "/SextractorList.xyls";
+    sextractorFilePath = tempPath + QDir::separator() + "SextractorList.xyls";
     QFile sextractorFile(sextractorFilePath);
     if(!sextractorFile.exists())
     {
@@ -1547,7 +1594,7 @@ bool MainWindow::solveField()
 
     solverArgs << "--config" << confPath;
 
-    QString solutionFile = tempPath + "/SextractorList.wcs";
+    QString solutionFile = tempPath + QDir::separator() + "SextractorList.wcs";
     solverArgs << "-W" << solutionFile;
 
     solverArgs << sextractorFilePath;
@@ -1555,7 +1602,7 @@ bool MainWindow::solveField()
     solver.clear();
     solver = new QProcess(this);
 
-    connect(solver, SIGNAL(finished(int)), this, SLOT(solverComplete(int)));
+    connect(solver, SIGNAL(finished(int)), this, SLOT(internalSolverComplete(int)));
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &MainWindow::logSolver);
 
@@ -1571,27 +1618,20 @@ bool MainWindow::solveField()
     return true;
 }
 
-//This was adapted from KStars' OfflineAstrometryParser
-bool MainWindow::solverComplete(int x)
-{
-    double elapsed = solverTimer.elapsed() / 1000.0;
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    logOutput(QString("Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-}
-
 bool MainWindow::externalSextractorComplete()
 {
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     logOutput(sextractorProcess->readAllStandardError().trimmed());
     getSextractorTable();
     sextractorComplete();
+    return true;
 }
 
 bool MainWindow::innerSextractorComplete()
 {
     stars = internalSolver->getStarList();
     sextractorComplete();
+    return true;
 }
 
 bool MainWindow::sextractorComplete()
@@ -1602,6 +1642,34 @@ bool MainWindow::sextractorComplete()
     logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
     logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    return true;
+}
+
+bool MainWindow::internalSolverComplete(int x)
+{
+    solverComplete(x);
+    getSolutionInformation();
+    setItemInColumn(ui->solutionTable, "Internal?", "false");
+    return true;
+}
+
+bool MainWindow::externalSolverComplete(int x)
+{
+    solverComplete(x);
+    addSolutionToTable(internalSolver->solution);
+    setItemInColumn(ui->solutionTable, "Internal?", "true");
+    return true;
+}
+
+
+//This was adapted from KStars' OfflineAstrometryParser
+bool MainWindow::solverComplete(int x)
+{
+    double elapsed = solverTimer.elapsed() / 1000.0;
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    logOutput(QString("Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    return true;
 }
 
 bool MainWindow::runInnerSextractor()
@@ -1616,19 +1684,18 @@ bool MainWindow::runInnerSextractor()
 
 bool MainWindow::runInnerSolver()
 {
-    sextractorFilePath = tempPath + "/SextractorList.xyls";
+    sextractorFilePath = tempPath + QDir::separator() + "SextractorList.xyls";
 
     internalSolver.clear();
     internalSolver = new InternalSolver(fileToSolve, sextractorFilePath, stats ,m_ImageBuffer, false, this);
     connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
-    connect(internalSolver, &InternalSolver::finished, this, &MainWindow::solverComplete);
-
+    connect(internalSolver, &InternalSolver::finished, this, &MainWindow::externalSolverComplete);
 
     augment_xylist_t* allaxy =internalSolver->solverParams();
 
     // default output filename patterns.
 
-    QString basedir = tempPath + "/SextractorList";
+    QString basedir = tempPath + QDir::separator() + "SextractorList";
 
     allaxy->axyfn    = charQStr(QString("%1.axy").arg(basedir));
     allaxy->matchfn  = charQStr(QString("%1.match").arg(basedir));
@@ -1681,8 +1748,79 @@ bool MainWindow::runInnerSolver()
     return true;
 }
 
+void MainWindow::addSolutionToTable(Solution solution)
+{
+    QTableWidget *table = ui->solutionTable;
+    table->insertRow(table->rowCount());
 
+    double elapsed = solverTimer.elapsed() / 1000.0;
+    setItemInColumn(table, "Field", fileToSolve);
+    setItemInColumn(table, "Time", QString::number(elapsed));
+    setItemInColumn(table, "Use Pos", QVariant(use_position).toString());
+    setItemInColumn(table, "Use Scale", QVariant(use_scale).toString());
+    setItemInColumn(table, "Resort", QVariant(resort).toString());
+    setItemInColumn(table, "RA", solution.rastr);
+    setItemInColumn(table, "DEC", solution.decstr);
+    setItemInColumn(table, "Angle", QString::number(solution.orientation));
+}
 
+bool MainWindow::getSolutionInformation()
+{
+    QString solutionFile = tempPath + QDir::separator() + "SextractorList.wcs";
+    QFileInfo solutionInfo(solutionFile);
+    if(!solutionInfo.exists())
+    {
+        logOutput("Solution file doesn't exist");
+        return false;
+    }
+    QProcess wcsProcess;
+    wcsProcess.start(wcsPath, QStringList(solutionFile));
+    wcsProcess.waitForFinished();
+    QString wcsinfo_stdout = wcsProcess.readAllStandardOutput();
+
+    //This is a quick way to find out what keys are available
+   // logOutput(wcsinfo_stdout);
+
+    QStringList wcskeys = wcsinfo_stdout.split(QRegExp("[\n]"));
+
+    QStringList key_value;
+
+    double ra = 0, dec = 0, orient = 0;
+    double fieldw = 0, fieldh = 0;
+    QString rastr, decstr;
+
+    for (auto &key : wcskeys)
+    {
+        key_value = key.split(' ');
+
+        if (key_value.size() > 1)
+        {
+            if (key_value[0] == "ra_center")
+                ra = key_value[1].toDouble();
+            else if (key_value[0] == "dec_center")
+                dec = key_value[1].toDouble();
+            else if (key_value[0] == "orientation_center")
+                orient = key_value[1].toDouble();
+            else if (key_value[0] == "fieldw")
+                fieldw = key_value[1].toDouble();
+            else if (key_value[0] == "fieldh")
+                fieldh = key_value[1].toDouble();
+            else if (key_value[0] == "ra_center_hms")
+                rastr = key_value[1];
+            else if (key_value[0] == "dec_center_dms")
+                decstr = key_value[1];
+
+            //else if (key_value[0] == "pixscale")
+                //pixscale = key_value[1].toDouble();
+            //else if (key_value[0] == "parity")
+               // parity = (key_value[1].toInt() == 0) ? "pos" : "neg";
+        }
+    }
+    Solution solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient};
+    addSolutionToTable(solution);
+    return true;
+
+}
 
 
 

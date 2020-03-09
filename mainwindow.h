@@ -107,7 +107,14 @@ private:
     QString solverPath = "/usr/bin/solve-field";
 #endif
 
+#if defined(Q_OS_OSX)
+    QString wcsPath = "/usr/local/bin/wcsinfo";
+#elif defined(Q_OS_LINUX)
+    QString wcsPath = "/usr/bin/wcsinfo";
+#endif
+
     //Parameters for solving
+    bool resort = true;
     bool use_scale = false;
     double fov_low, fov_high;
     QString units;
@@ -193,15 +200,19 @@ public slots:
     bool sextract(bool justSextract);
     bool solveField();
     bool externalSextractorComplete();
+    bool internalSolverComplete(int x);
 
     //These functions are for the internal sextractor and solver
     bool runInnerSextractor();
     bool runInnerSolver();
     bool innerSextractorComplete();
+    bool externalSolverComplete(int x);
+    bool getSolutionInformation();
 
     //These are for both
     bool sextractorComplete();
     bool solverComplete(int x);
+    void addSolutionToTable(Solution solution);
 
 };
 
