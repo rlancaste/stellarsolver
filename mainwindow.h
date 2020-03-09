@@ -149,6 +149,8 @@ private:
     void removeTempFile(char * fileName);
     char* charQStr(QString in);
 
+    void setupSolutionTable();
+
 public slots:
 
     bool prepareForProcesses();
@@ -164,7 +166,7 @@ public slots:
     bool solveInternally();
     void abort();
 
-    //These functions are for loading and displaying the table
+    //These functions are for loading and displaying the image
     bool loadImage();
     bool loadFits();
     bool loadOtherFormat();

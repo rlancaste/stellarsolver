@@ -100,17 +100,9 @@ MainWindow::MainWindow() :
     connect(ui->ra, &QLineEdit::textChanged, this, [this](){ ra = ui->ra->text().toDouble(); });
     connect(ui->dec, &QLineEdit::textChanged, this, [this](){ dec = ui->dec->text().toDouble(); });
     connect(ui->radius, &QLineEdit::textChanged, this, [this](){ radius = ui->radius->text().toDouble(); });
+    connect(ui->units, &QComboBox::currentTextChanged, this, [this](QString text){ units = text; });
 
-
-    addColumnToTable(ui->solutionTable,"Field");
-    addColumnToTable(ui->solutionTable,"Time");
-    addColumnToTable(ui->solutionTable,"Internal?");
-    addColumnToTable(ui->solutionTable,"Use Pos");
-    addColumnToTable(ui->solutionTable,"Use Scale");
-    addColumnToTable(ui->solutionTable,"Resort");
-    addColumnToTable(ui->solutionTable,"RA");
-    addColumnToTable(ui->solutionTable,"DEC");
-    addColumnToTable(ui->solutionTable,"Angle");
+    setupSolutionTable();
 
     debayerParams.method  = DC1394_BAYER_METHOD_NEAREST;
     debayerParams.filter  = DC1394_COLOR_FILTER_RGGB;
@@ -1748,22 +1740,6 @@ bool MainWindow::runInnerSolver()
     return true;
 }
 
-void MainWindow::addSolutionToTable(Solution solution)
-{
-    QTableWidget *table = ui->solutionTable;
-    table->insertRow(table->rowCount());
-
-    double elapsed = solverTimer.elapsed() / 1000.0;
-    setItemInColumn(table, "Field", fileToSolve);
-    setItemInColumn(table, "Time", QString::number(elapsed));
-    setItemInColumn(table, "Use Pos", QVariant(use_position).toString());
-    setItemInColumn(table, "Use Scale", QVariant(use_scale).toString());
-    setItemInColumn(table, "Resort", QVariant(resort).toString());
-    setItemInColumn(table, "RA", solution.rastr);
-    setItemInColumn(table, "DEC", solution.decstr);
-    setItemInColumn(table, "Angle", QString::number(solution.orientation));
-}
-
 bool MainWindow::getSolutionInformation()
 {
     QString solutionFile = tempPath + QDir::separator() + "SextractorList.wcs";
@@ -1820,6 +1796,43 @@ bool MainWindow::getSolutionInformation()
     addSolutionToTable(solution);
     return true;
 
+}
+
+//To add new columns to this table, just add it to both functions
+//So that the column gets setup and then gets filled in.
+
+void MainWindow::setupSolutionTable()
+{
+    //These are in the order that they will appear in the table.
+    addColumnToTable(ui->solutionTable,"Field");
+    addColumnToTable(ui->solutionTable,"Time");
+    addColumnToTable(ui->solutionTable,"Internal?");
+    addColumnToTable(ui->solutionTable,"Use Pos?");
+    addColumnToTable(ui->solutionTable,"Use Scale?");
+    addColumnToTable(ui->solutionTable,"Resort?");
+    addColumnToTable(ui->solutionTable,"RA");
+    addColumnToTable(ui->solutionTable,"DEC");
+    addColumnToTable(ui->solutionTable,"Orientation");
+    addColumnToTable(ui->solutionTable,"Field Width");
+    addColumnToTable(ui->solutionTable,"Field Height");
+}
+
+void MainWindow::addSolutionToTable(Solution solution)
+{
+    QTableWidget *table = ui->solutionTable;
+    table->insertRow(table->rowCount());
+
+    double elapsed = solverTimer.elapsed() / 1000.0;
+    setItemInColumn(table, "Field", fileToSolve);
+    setItemInColumn(table, "Time", QString::number(elapsed));
+    setItemInColumn(table, "Use Pos?", QVariant(use_position).toString());
+    setItemInColumn(table, "Use Scale?", QVariant(use_scale).toString());
+    setItemInColumn(table, "Resort?", QVariant(resort).toString());
+    setItemInColumn(table, "RA", solution.rastr);
+    setItemInColumn(table, "DEC", solution.decstr);
+    setItemInColumn(table, "Orientation", QString::number(solution.orientation));
+    setItemInColumn(table, "Field Width", QString::number(solution.fieldWidth));
+    setItemInColumn(table, "Field Height", QString::number(solution.fieldHeight));
 }
 
 
