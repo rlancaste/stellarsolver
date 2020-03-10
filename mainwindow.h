@@ -188,7 +188,7 @@ public slots:
     void sortStars();
     void starClickedInTable();
     void updateStarTableFromList();
-    bool getSextractorTable();
+    bool getSextractorTable(QList<Star> *stars);
 
     void mouseOverStar(QPoint location);
     void mouseClickedOnStar(QPoint location);

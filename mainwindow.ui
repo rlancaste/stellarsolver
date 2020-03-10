@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>567</width>
-    <height>403</height>
+    <width>604</width>
+    <height>660</height>
    </rect>
   </property>
   <property name="font">
@@ -93,15 +93,15 @@
       </property>
       <widget class="QToolBox" name="optionsBox">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="Basic">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>179</width>
-          <height>188</height>
+          <width>197</width>
+          <height>371</height>
          </rect>
         </property>
         <attribute name="label">
@@ -170,21 +170,171 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>179</width>
-          <height>188</height>
+          <width>197</width>
+          <height>371</height>
          </rect>
         </property>
         <attribute name="label">
          <string>Sextractor</string>
         </attribute>
+        <layout class="QGridLayout" name="gridLayout_8">
+         <item row="0" column="2">
+          <widget class="QScrollArea" name="scrollArea_4">
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents_4">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>185</width>
+              <height>345</height>
+             </rect>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_9">
+             <item row="12" column="1">
+              <widget class="QComboBox" name="star_shape">
+               <item>
+                <property name="text">
+                 <string>Auto</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Circle</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Ellipse</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="r_min_3"/>
+             </item>
+             <item row="16" column="1">
+              <widget class="QLineEdit" name="r_min"/>
+             </item>
+             <item row="16" column="0">
+              <widget class="QLabel" name="label_13">
+               <property name="text">
+                <string>r_min</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_20">
+               <property name="text">
+                <string>Deblend</string>
+               </property>
+              </widget>
+             </item>
+             <item row="17" column="0">
+              <widget class="QLabel" name="label_15">
+               <property name="text">
+                <string>magzero</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_21">
+               <property name="text">
+                <string>Min Area</string>
+               </property>
+              </widget>
+             </item>
+             <item row="17" column="1">
+              <widget class="QLineEdit" name="r_min_2"/>
+             </item>
+             <item row="9" column="0">
+              <widget class="QLabel" name="label_14">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Photometry</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="label_19">
+               <property name="text">
+                <string>Min Contrast</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="label_18">
+               <property name="text">
+                <string>N_Thresh</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="1">
+              <widget class="QLineEdit" name="r_min_4"/>
+             </item>
+             <item row="12" column="0">
+              <widget class="QLabel" name="label_12">
+               <property name="text">
+                <string>Shape</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_17">
+               <property name="text">
+                <string>Threshhold</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="r_min_7"/>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_16">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Extraction</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="1">
+              <widget class="QLineEdit" name="r_min_6"/>
+             </item>
+             <item row="3" column="0">
+              <widget class="QCheckBox" name="checkBox">
+               <property name="text">
+                <string>Clean?</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="r_min_5"/>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+        </layout>
        </widget>
        <widget class="QWidget" name="Astrometry">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>179</width>
-          <height>188</height>
+          <width>197</width>
+          <height>371</height>
          </rect>
         </property>
         <attribute name="label">
@@ -216,8 +366,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>178</width>
-              <height>262</height>
+              <width>195</width>
+              <height>369</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_5">
@@ -370,8 +520,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>187</width>
-              <height>72</height>
+              <width>197</width>
+              <height>114</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -421,8 +571,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>189</width>
-           <height>189</height>
+           <width>199</width>
+           <height>330</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -561,7 +711,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>567</width>
+     <width>604</width>
      <height>22</height>
     </rect>
    </property>

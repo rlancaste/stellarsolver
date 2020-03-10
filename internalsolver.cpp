@@ -1,4 +1,5 @@
 #include "internalsolver.h"
+#include "qmath.h"
 
 InternalSolver::InternalSolver(QString file, QString sextractorFile, Statistic imagestats, uint8_t *imageBuffer, bool sextractOnly, QObject *parent) : QThread(parent)
 {
@@ -29,7 +30,7 @@ void InternalSolver::run()
 //These are some utility functions that can be used in all the code below
 
 //I had to create this method because i was having some difficulty turning a QString into a char* that would persist long enough to be used in the program.
-char* InternalSolver::charQStr(QString in) {
+char* charQStr(QString in) {
     std::string fname = QString(in).toStdString();
     char* cstr;
     cstr = new char [fname.size()+1];
@@ -125,32 +126,33 @@ bool InternalSolver::runInnerSextractor()
 
         float xPos = catalog->x[i];
         float yPos = catalog->y[i];
-        //float a = catalog->cxx[i];
-        //float b = catalog->cxy[i];
-        //float theta = catalog->cyy[i];
+        float a = catalog->a[i];
+        float b = catalog->b[i];
+        float theta = catalog->theta[i];
 
         short inflags;
         double sum;
         double sumerr;
         double area;
 
-       // sep_kron_radius(&im, xPos, yPos, a, b, theta, r, &kronrad, &flag);
+        sep_kron_radius(&im, xPos, yPos, a, b, theta, r, &kronrad, &flag);
 
-        //bool use_circle = kronrad * sqrt(a * b) < r_min;
+        bool use_circle = kronrad * sqrt(a * b) < r_min;
 
-        //if(use_circle)
-        //{
+        if(use_circle)
+        {
             sep_sum_circle(&im, xPos, yPos, r_min, subpix, inflags, &sum, &sumerr, &area, &flag);
-        //}
-        //else
-        //{
-            //sep_sum_ellipse(&im, xPos, yPos, a, b, theta, kron_fact*kronrad, subpix, inflags, &sum, &sumerr, &area, &flag);
-        //}
+        }
+        else
+        {
+            sep_sum_ellipse(&im, xPos, yPos, a, b, theta, kron_fact*kronrad, subpix, inflags, &sum, &sumerr, &area, &flag);
+        }
 
         float magzero = 20;
         float mag = magzero - 2.5 * log10(sum);
 
-        Star star = {xPos, yPos, mag, (float)sum};
+        //WHY THE HECK ARE THE X and Y POSITIONS OFF A LITTLE?? MIGHT BE 1 pixel?
+        Star star = {xPos , yPos , mag, (float)sum, a, b, qRadiansToDegrees(theta)};
 
         stars.append(star);
 
@@ -306,7 +308,7 @@ void augment_xylist_free_contents(augment_xylist_t* axy) {
 //This method was copied and pasted from augment-xylist.c in astrometry.net
 void augment_xylist_init(augment_xylist_t* axy) {
     memset(axy, 0, sizeof(augment_xylist_t));
-    axy->tempdir = "/tmp";
+    axy->tempdir = charQStr(QDir::temp().path());
     axy->tweak = TRUE;
     axy->tweakorder = 2;
     axy->depths = il_new(4);

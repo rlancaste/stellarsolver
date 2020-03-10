@@ -912,10 +912,12 @@ void MainWindow::autoScale()
 
 QRect MainWindow::getStarInImage(Star star)
 {
-    int starx = static_cast<int>(round(star.x * currentWidth / stats.width)) ;
-    int stary = static_cast<int>(round(star.y * currentHeight / stats.height)) ;
-    int r = 10 * currentWidth / stats.width ;
-    return QRect(starx - r, stary - r , r*2, r*2);
+    double starx = star.x * currentWidth / stats.width ;
+    double stary = star.y * currentHeight / stats.height;
+    double starw = 2 * star.a * currentHeight / stats.height;
+    double starh = 2 * star.b * currentHeight / stats.height;
+    //int r = 10 * currentWidth / stats.width ;
+    return QRect(starx - starw, stary - starh , starw*2, starh*2);
 }
 
 //This method is very loosely based on updateFrame in Fitsview in Kstars
@@ -937,7 +939,12 @@ void MainWindow::updateImage()
         QPainter p(&renderedImage);
         for(int starnum = 0 ; starnum < stars.size() ; starnum++)
         {
-            QRect starInImage = getStarInImage(stars.at(starnum));
+            Star star = stars.at(starnum);
+            QRect starInImage = getStarInImage(star);
+            p.save();
+            p.translate(starInImage.center());
+            p.rotate(star.theta);
+            p.translate(-starInImage.center());
 
             if(starnum == selectedStar)
             {
@@ -953,6 +960,7 @@ void MainWindow::updateImage()
                 p.setOpacity(0.6);
                 p.drawEllipse(starInImage);
             }
+            p.restore();
         }
         p.end();
     }
@@ -1059,6 +1067,9 @@ void MainWindow::updateStarTableFromList()
     addColumnToTable(table,"X_IMAGE");
     addColumnToTable(table,"Y_IMAGE");
     addColumnToTable(table,"FLUX_AUTO");
+    addColumnToTable(table,"a");
+    addColumnToTable(table,"b");
+    addColumnToTable(table,"theta");
 
     for(int i = 0; i < stars.size(); i ++)
     {
@@ -1069,13 +1080,21 @@ void MainWindow::updateStarTableFromList()
         setItemInColumn(table, "FLUX_AUTO", QString::number(star.flux));
         setItemInColumn(table, "X_IMAGE", QString::number(star.x));
         setItemInColumn(table, "Y_IMAGE", QString::number(star.y));
+        setItemInColumn(table, "a", QString::number(star.a));
+        setItemInColumn(table, "b", QString::number(star.b));
+        setItemInColumn(table, "theta", QString::number(star.theta));
     }
 }
 
 //This method is copied and pasted and modified from tablist.c in astrometry.net
 //This is needed to load in the stars sextracted by an extrnal sextractor to get them into the table
-bool MainWindow::getSextractorTable()
+bool MainWindow::getSextractorTable(QList<Star> *stars)
 {
+    if(!stars)
+    {
+        logOutput("The Star List doesn't exist");
+        return false;
+    }
      QFile sextractorFile(sextractorFilePath);
      if(!sextractorFile.exists())
      {
@@ -1113,6 +1132,7 @@ bool MainWindow::getSextractorTable()
         fits_get_hdu_type(new_fptr, &hdutype, &status); /* Get the HDU type */
 
     if (!(hdutype == ASCII_TBL || hdutype == BINARY_TBL)) {
+        logOutput("Wrong type of file");
         return false;
     }
 
@@ -1168,7 +1188,7 @@ bool MainWindow::getSextractorTable()
         if (linewidth == 0)
             break;
 
-        stars.clear();
+        stars->clear();
 
 
         /* print each column, row by row (there are faster ways to do this) */
@@ -1179,6 +1199,9 @@ bool MainWindow::getSextractorTable()
             float stary = 0;
             float mag = 0;
             float flux = 0;
+            float xx = 0;
+            float yy = 0;
+            float xy = 0;
             for (ii = firstcol; ii <= lastcol; ii++)
                 {
                     kk = ((ii == firstcol) ? firstelem : 1);
@@ -1197,12 +1220,30 @@ bool MainWindow::getSextractorTable()
                                 starx = QString(value).trimmed().toFloat();
                             if(ii == 4)
                                 stary = QString(value).trimmed().toFloat();
+                            if(ii == 5)
+                                xx = QString(value).trimmed().toFloat();
+                            if(ii == 6)
+                                yy = QString(value).trimmed().toFloat();
+                            if(ii == 7)
+                                xy = QString(value).trimmed().toFloat();
                         }
                 }
 
-            Star star = {starx, stary, mag, flux};
+            //  xx  xy      or     a   b
+            //  xy  yy             b   c
+            //Note, I got this translation from these two sources which agree:
+            //https://books.google.com/books?id=JNEn23UyHuAC&pg=PA84&lpg=PA84&dq=ellipse+xx+yy+xy&source=bl&ots=ynAWge4jlb&sig=ACfU3U1pqZTkx8Teu9pBTygI9F-WcTncrg&hl=en&sa=X&ved=2ahUKEwj0s-7C3I7oAhXblnIEHacAAf0Q6AEwBHoECAUQAQ#v=onepage&q=ellipse%20xx%20yy%20xy&f=false
+            //https://cookierobotics.com/007/
+            float thing = sqrt( pow(xx - yy, 2) + 4 * pow(xy, 2) );
+            float lambda1 = (xx + yy + thing) / 2;
+            float lambda2 = (xx + yy - thing) / 2;
+            float a = sqrt(lambda1);
+            float b = sqrt(lambda2);
+            float theta = qRadiansToDegrees(atan(xy / (lambda1 - yy)));
 
-            stars.append(star);
+            Star star = {starx, stary, mag, flux, a, b, theta};
+
+            stars->append(star);
         }
 
         if (!breakout)
@@ -1211,7 +1252,7 @@ bool MainWindow::getSextractorTable()
     fits_close_file(new_fptr, &status);
 
     if (status) fits_report_error(stderr, status); /* print any error message */
-    return(status);
+    return true;
 }
 
 
@@ -1518,6 +1559,9 @@ bool MainWindow::sextract(bool justSextract)
             out << "FLUX_AUTO                Flux within a Kron-like elliptical aperture               [count]\n";
             out << "X_IMAGE                  Object position along x                                   [pixel]\n";
             out << "Y_IMAGE                  Object position along y                                   [pixel]\n";
+            out << "CXX_IMAGE                Cxx object ellipse parameter                              [pixel**(-2)]\n";
+            out << "CYY_IMAGE                Cyy object ellipse parameter                              [pixel**(-2)]\n";
+            out << "CXY_IMAGE                Cxy object ellipse parameter                              [pixel**(-2)]\n";
             paramFile.close();
         }
     }
@@ -1614,7 +1658,7 @@ bool MainWindow::externalSextractorComplete()
 {
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     logOutput(sextractorProcess->readAllStandardError().trimmed());
-    getSextractorTable();
+    getSextractorTable(&stars);
     sextractorComplete();
     return true;
 }
@@ -1641,7 +1685,12 @@ bool MainWindow::internalSolverComplete(int x)
 {
     solverComplete(x);
     getSolutionInformation();
-    setItemInColumn(ui->solutionTable, "Internal?", "false");
+    setItemInColumn(ui->solutionTable, "Int?", "false");
+    QList<Star> stars;
+    if(getSextractorTable(&stars))
+        setItemInColumn(ui->solutionTable, "Stars", QString::number(stars.size()));
+    else
+        logOutput("Can't get Sextractor Table from File");
     return true;
 }
 
@@ -1649,7 +1698,8 @@ bool MainWindow::externalSolverComplete(int x)
 {
     solverComplete(x);
     addSolutionToTable(internalSolver->solution);
-    setItemInColumn(ui->solutionTable, "Internal?", "true");
+    setItemInColumn(ui->solutionTable, "Int?", "true");
+    setItemInColumn(ui->solutionTable, "Stars", QString::number(internalSolver->getNumStarsFound()));
     return true;
 }
 
@@ -1804,17 +1854,21 @@ bool MainWindow::getSolutionInformation()
 void MainWindow::setupSolutionTable()
 {
     //These are in the order that they will appear in the table.
-    addColumnToTable(ui->solutionTable,"Field");
+
     addColumnToTable(ui->solutionTable,"Time");
-    addColumnToTable(ui->solutionTable,"Internal?");
-    addColumnToTable(ui->solutionTable,"Use Pos?");
-    addColumnToTable(ui->solutionTable,"Use Scale?");
+    addColumnToTable(ui->solutionTable,"Int?");
+    addColumnToTable(ui->solutionTable,"Pos?");
+    addColumnToTable(ui->solutionTable,"Scale?");
     addColumnToTable(ui->solutionTable,"Resort?");
+    addColumnToTable(ui->solutionTable,"Stars");
     addColumnToTable(ui->solutionTable,"RA");
     addColumnToTable(ui->solutionTable,"DEC");
     addColumnToTable(ui->solutionTable,"Orientation");
     addColumnToTable(ui->solutionTable,"Field Width");
     addColumnToTable(ui->solutionTable,"Field Height");
+    addColumnToTable(ui->solutionTable,"Field");
+
+    ui->solutionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
 void MainWindow::addSolutionToTable(Solution solution)
@@ -1823,16 +1877,17 @@ void MainWindow::addSolutionToTable(Solution solution)
     table->insertRow(table->rowCount());
 
     double elapsed = solverTimer.elapsed() / 1000.0;
-    setItemInColumn(table, "Field", fileToSolve);
+
     setItemInColumn(table, "Time", QString::number(elapsed));
-    setItemInColumn(table, "Use Pos?", QVariant(use_position).toString());
-    setItemInColumn(table, "Use Scale?", QVariant(use_scale).toString());
+    setItemInColumn(table, "Pos?", QVariant(use_position).toString());
+    setItemInColumn(table, "Scale?", QVariant(use_scale).toString());
     setItemInColumn(table, "Resort?", QVariant(resort).toString());
     setItemInColumn(table, "RA", solution.rastr);
     setItemInColumn(table, "DEC", solution.decstr);
     setItemInColumn(table, "Orientation", QString::number(solution.orientation));
     setItemInColumn(table, "Field Width", QString::number(solution.fieldWidth));
     setItemInColumn(table, "Field Height", QString::number(solution.fieldHeight));
+    setItemInColumn(table, "Field", ui->fileNameDisplay->text());
 }
 
 

@@ -28,6 +28,9 @@ typedef struct
     float y;
     float mag;
     float flux;
+    float a;
+    float b;
+    float theta;
 } Star;
 
 typedef struct

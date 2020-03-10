@@ -71,7 +71,6 @@ public:
     void run() override;
     template <typename T>
     void getFloatBuffer(float * buffer, int x, int y, int w, int h);
-    char* charQStr(QString in);
 
     //These are for the internal sextractor
     bool writeSextractorTable();
@@ -86,6 +85,8 @@ public:
     augment_xylist_t* solverParams(){return allaxy;}
 
     Solution solution;
+
+    int getNumStarsFound(){return stars.size();};
 
 
 private:
