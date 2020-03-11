@@ -22,6 +22,7 @@
 #include <QThread>
 #include <QtConcurrent>
 #include <QToolTip>
+#include <QtGlobal>
 
 void addColumnToTable(QTableWidget *table, QString heading)
 {
@@ -89,6 +90,36 @@ MainWindow::MainWindow() :
     connect(ui->imagesDefaultPath, &QLineEdit::textChanged, this, [this](){ dirPath = ui->imagesDefaultPath->text(); });
     ui->tempPath->setText(tempPath);
     connect(ui->tempPath, &QLineEdit::textChanged, this, [this](){ tempPath = ui->tempPath->text(); });
+
+    //Sextractor Settings
+
+    connect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){ apertureShape = (Shape) num; });
+    connect(ui->kron_fact, &QLineEdit::textChanged, this, [this](){ kron_fact = ui->kron_fact->text().toDouble(); });
+    connect(ui->subpix, &QLineEdit::textChanged, this, [this](){ subpix = ui->subpix->text().toDouble(); });
+    connect(ui->r_min, &QLineEdit::textChanged, this, [this](){ r_min = ui->r_min->text().toDouble(); });
+    //no inflags???;
+    connect(ui->magzero, &QLineEdit::textChanged, this, [this](){ magzero = ui->magzero->text().toDouble(); });
+    connect(ui->minarea, &QLineEdit::textChanged, this, [this](){ minarea = ui->minarea->text().toDouble(); });
+    connect(ui->deblend_thresh, &QLineEdit::textChanged, this, [this](){ deblend_thresh = ui->deblend_thresh->text().toDouble(); });
+    connect(ui->deblend_contrast, &QLineEdit::textChanged, this, [this](){ deblend_contrast = ui->deblend_contrast->text().toDouble(); });
+    //internalSolver->clean = clean;
+    //internalSolver->clean_param = clean_param;
+
+    connect(ui->fwhm, &QLineEdit::textChanged, this, [this](QString text){
+        convFilter.clear();
+        double a = 1;
+        fwhm = text.toDouble();
+        int size = abs(ceil(fwhm * 0.6));
+        for(int y = -size; y <= size; y++ )
+        {
+            for(int x = -size; x <= size; x++ )
+            {
+                double value = a * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x,2) + pow(y,2) ),2) ) / pow(fwhm,2));
+                convFilter.append(value);
+            }
+        }
+    });
+
 
     //Astrometry Settings
     ui->configFilePath->setText(confPath);
@@ -914,10 +945,18 @@ QRect MainWindow::getStarInImage(Star star)
 {
     double starx = star.x * currentWidth / stats.width ;
     double stary = star.y * currentHeight / stats.height;
-    double starw = 2 * star.a * currentHeight / stats.height;
-    double starh = 2 * star.b * currentHeight / stats.height;
-    //int r = 10 * currentWidth / stats.width ;
-    return QRect(starx - starw, stary - starh , starw*2, starh*2);
+    if(apertureShape == SHAPE_ELLIPSE || apertureShape == SHAPE_AUTO)
+    {
+        double starw = 2 * star.a * currentHeight / stats.height;
+        double starh = 2 * star.b * currentHeight / stats.height;
+        //int r = 10 * currentWidth / stats.width ;
+        return QRect(starx - starw, stary - starh , starw*2, starh*2);
+    }
+    else
+    {
+        double r = 3.5 * currentHeight / stats.height;  //This needs to be changed.
+        return QRect(starx - r, stary - r , r*2, r*2);
+    }
 }
 
 //This method is very loosely based on updateFrame in Fitsview in Kstars
@@ -1700,6 +1739,17 @@ bool MainWindow::externalSolverComplete(int x)
     addSolutionToTable(internalSolver->solution);
     setItemInColumn(ui->solutionTable, "Int?", "true");
     setItemInColumn(ui->solutionTable, "Stars", QString::number(internalSolver->getNumStarsFound()));
+    //Sextractor Parameters
+    setItemInColumn(ui->solutionTable,"Shape", QString::number(internalSolver->apertureShape));
+    setItemInColumn(ui->solutionTable,"Kron", QString::number(internalSolver->kron_fact));
+    setItemInColumn(ui->solutionTable,"Subpix", QString::number(internalSolver->subpix));
+    setItemInColumn(ui->solutionTable,"r_min", QString::number(internalSolver->r_min));
+    setItemInColumn(ui->solutionTable,"minarea", QString::number(internalSolver->minarea));
+    setItemInColumn(ui->solutionTable,"d_thresh", QString::number(internalSolver->deblend_thresh));
+    setItemInColumn(ui->solutionTable,"d_cont", QString::number(internalSolver->deblend_contrast));
+    setItemInColumn(ui->solutionTable,"clean", QString::number(internalSolver->clean));
+    setItemInColumn(ui->solutionTable,"clean param", QString::number(internalSolver->clean_param));
+    setItemInColumn(ui->solutionTable,"fwhm", QString::number(internalSolver->fwhm));
     return true;
 }
 
@@ -1718,6 +1768,22 @@ bool MainWindow::runInnerSextractor()
 {
     internalSolver.clear();
     internalSolver = new InternalSolver(fileToSolve, sextractorFilePath, stats, m_ImageBuffer, true, this);
+
+    //These are to pass the parameters to the internal sextractor
+    internalSolver->apertureShape = apertureShape;
+    internalSolver->kron_fact = kron_fact;
+    internalSolver->subpix = subpix ;
+    internalSolver->r_min = r_min;
+    internalSolver->inflags = inflags;
+    internalSolver->magzero = magzero;
+    internalSolver->minarea = minarea;
+    internalSolver->deblend_thresh = deblend_thresh;
+    internalSolver->deblend_contrast = deblend_contrast;
+    internalSolver->clean = clean;
+    internalSolver->clean_param = clean_param;
+    internalSolver->convFilter = convFilter;
+    internalSolver->fwhm = fwhm;
+
     connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
     connect(internalSolver, &InternalSolver::starsFound, this, &MainWindow::innerSextractorComplete);
     internalSolver->start();
@@ -1732,6 +1798,23 @@ bool MainWindow::runInnerSolver()
     internalSolver = new InternalSolver(fileToSolve, sextractorFilePath, stats ,m_ImageBuffer, false, this);
     connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
     connect(internalSolver, &InternalSolver::finished, this, &MainWindow::externalSolverComplete);
+
+    //Sextractor Settings
+    internalSolver->apertureShape = apertureShape;
+    internalSolver->kron_fact = kron_fact;
+    internalSolver->subpix = subpix ;
+    internalSolver->r_min = r_min;
+    internalSolver->inflags = inflags;
+    internalSolver->magzero = magzero;
+    internalSolver->minarea = minarea;
+    internalSolver->deblend_thresh = deblend_thresh;
+    internalSolver->deblend_contrast = deblend_contrast;
+    internalSolver->clean = clean;
+    internalSolver->clean_param = clean_param;
+    internalSolver->convFilter = convFilter;
+    internalSolver->fwhm = fwhm;
+
+    //Astrometry Settings
 
     augment_xylist_t* allaxy =internalSolver->solverParams();
 
@@ -1856,11 +1939,24 @@ void MainWindow::setupSolutionTable()
     //These are in the order that they will appear in the table.
 
     addColumnToTable(ui->solutionTable,"Time");
+    //Sextractor Parameters
+    addColumnToTable(ui->solutionTable,"Shape");
+    addColumnToTable(ui->solutionTable,"Kron");
+    addColumnToTable(ui->solutionTable,"Subpix");
+    addColumnToTable(ui->solutionTable,"r_min");
+    addColumnToTable(ui->solutionTable,"minarea");
+    addColumnToTable(ui->solutionTable,"d_thresh");
+    addColumnToTable(ui->solutionTable,"d_cont");
+    addColumnToTable(ui->solutionTable,"clean");
+    addColumnToTable(ui->solutionTable,"clean param");
+    addColumnToTable(ui->solutionTable,"fwhm");
+    //Astrometry Parameters
     addColumnToTable(ui->solutionTable,"Int?");
     addColumnToTable(ui->solutionTable,"Pos?");
     addColumnToTable(ui->solutionTable,"Scale?");
     addColumnToTable(ui->solutionTable,"Resort?");
     addColumnToTable(ui->solutionTable,"Stars");
+    //Results
     addColumnToTable(ui->solutionTable,"RA");
     addColumnToTable(ui->solutionTable,"DEC");
     addColumnToTable(ui->solutionTable,"Orientation");
@@ -1879,9 +1975,13 @@ void MainWindow::addSolutionToTable(Solution solution)
     double elapsed = solverTimer.elapsed() / 1000.0;
 
     setItemInColumn(table, "Time", QString::number(elapsed));
+    //Sextractor Parameters
+
+    //Astrometry Parameters
     setItemInColumn(table, "Pos?", QVariant(use_position).toString());
     setItemInColumn(table, "Scale?", QVariant(use_scale).toString());
     setItemInColumn(table, "Resort?", QVariant(resort).toString());
+    //Results
     setItemInColumn(table, "RA", solution.rastr);
     setItemInColumn(table, "DEC", solution.decstr);
     setItemInColumn(table, "Orientation", QString::number(solution.orientation));

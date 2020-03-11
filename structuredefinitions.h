@@ -45,4 +45,10 @@ typedef struct
 
 } Solution;
 
+enum Shape{
+    SHAPE_AUTO,
+    SHAPE_CIRCLE,
+    SHAPE_ELLIPSE
+};
+
 #endif // STRUCTUREDEFINITIONS_H

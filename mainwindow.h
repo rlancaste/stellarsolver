@@ -113,6 +113,24 @@ private:
     QString wcsPath = "/usr/bin/wcsinfo";
 #endif
 
+    //Parameters for sextracting
+    Shape apertureShape = SHAPE_AUTO;
+    double kron_fact = 2.5;
+    double r = 3;
+    int subpix = 5;
+    float r_min = 3.5;
+    short inflags;
+    float magzero = 20;
+    float minarea = 5;
+    int deblend_thresh = 32;
+    float deblend_contrast = 0.005;
+    int clean = 1;
+    double clean_param = 1;
+    QVector<float> convFilter = {0.260856, 0.483068, 0.260856,
+                                 0.483068, 0.894573, 0.483068,
+                                 0.260856, 0.483068, 0.260856};
+    double fwhm = 2;
+
     //Parameters for solving
     bool resort = true;
     bool use_scale = false;

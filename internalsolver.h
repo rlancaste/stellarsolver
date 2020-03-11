@@ -68,6 +68,25 @@ class InternalSolver : public QThread
 public:
     explicit InternalSolver(QString file, QString sextractorFile, Statistic imagestats,  uint8_t *imageBuffer, bool sextractOnly, QObject *parent = nullptr);
 
+    //Sextractor Extraction Parameters
+
+    //Sextractor Photometry Parameters
+    Shape apertureShape = SHAPE_AUTO;
+    double kron_fact = 2.5;
+    int subpix = 5;
+    float r_min = 3.5;
+    short inflags;
+    float magzero = 20;
+    float minarea = 5;
+    int deblend_thresh = 32;
+    float deblend_contrast = 0.005;
+    int clean = 1;
+    double clean_param = 1;
+    QVector<float> convFilter;
+    double fwhm;
+
+    //Astrometry Parameters
+
     void run() override;
     template <typename T>
     void getFloatBuffer(float * buffer, int x, int y, int w, int h);

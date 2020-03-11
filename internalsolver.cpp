@@ -44,6 +44,11 @@ char* charQStr(QString in) {
 
 bool InternalSolver::runInnerSextractor()
 {
+    if(convFilter.size() == 0)
+    {
+        emit logNeedsUpdating("No convFilter included.");
+        return false;
+    }
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Starting Internal Sextractor");
 
@@ -89,7 +94,7 @@ bool InternalSolver::runInnerSextractor()
     int status = 0;
     sep_bkg * bkg = nullptr;
     sep_catalog * catalog = nullptr;
-    float conv[] = {1, 2, 1, 2, 4, 2, 1, 2, 1};
+
 
     // #0 Create SEP Image structure
     sep_image im = {data, nullptr, nullptr, SEP_TFLOAT, 0, 0, w, h, 0.0, SEP_NOISE_NONE, 1.0, 0.0};
@@ -109,35 +114,54 @@ bool InternalSolver::runInnerSextractor()
 
     // #4 Source Extraction
     // Note that we set deblend_cont = 1.0 to turn off deblending.
-    status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, 5, conv, 3, 3, SEP_FILTER_CONV, 32, 0.005, 1, 1.0, &catalog);
+    status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, minarea, convFilter.data(), sqrt(convFilter.size()), sqrt(convFilter.size()), SEP_FILTER_CONV, deblend_thresh, deblend_contrast, clean, clean_param, &catalog);
     if (status != 0) goto exit;
 
     stars.clear();
 
     for (int i = 0; i < catalog->nobj; i++)
     {
-        double kronrad;
-        double kron_fact = 2.5;
-        double r = 3;
-        short flag;
-        int subpix = 5;
-        float r_min = 3.5;
+        //Constant values
+        double r = 6;  //The instructions say to use a fixed value of 6: https://sep.readthedocs.io/en/v1.0.x/api/sep.kron_radius.html
 
-
+        //Variables that are obtained from the catalog
         float xPos = catalog->x[i];
         float yPos = catalog->y[i];
         float a = catalog->a[i];
         float b = catalog->b[i];
         float theta = catalog->theta[i];
 
-        short inflags;
+        //Variables that will be obtained through methods
+        double kronrad;
+        short flag;
         double sum;
         double sumerr;
         double area;
 
-        sep_kron_radius(&im, xPos, yPos, a, b, theta, r, &kronrad, &flag);
+        //This will need to be done for both auto and ellipse
+        if(apertureShape != SHAPE_CIRCLE)
+        {
+            //Finding the kron radius for the sextraction
+            sep_kron_radius(&im, xPos, yPos, a, b, theta, r, &kronrad, &flag);
+        }
 
-        bool use_circle = kronrad * sqrt(a * b) < r_min;
+        bool use_circle;
+
+        switch(apertureShape)
+        {
+            case SHAPE_AUTO:
+                use_circle = kronrad * sqrt(a * b) < r_min;
+            break;
+
+            case SHAPE_CIRCLE:
+                use_circle = true;
+            break;
+
+            case SHAPE_ELLIPSE:
+                use_circle = false;
+            break;
+
+        }
 
         if(use_circle)
         {
@@ -148,7 +172,6 @@ bool InternalSolver::runInnerSextractor()
             sep_sum_ellipse(&im, xPos, yPos, a, b, theta, kron_fact*kronrad, subpix, inflags, &sum, &sumerr, &area, &flag);
         }
 
-        float magzero = 20;
         float mag = magzero - 2.5 * log10(sum);
 
         //WHY THE HECK ARE THE X and Y POSITIONS OFF A LITTLE?? MIGHT BE 1 pixel?
