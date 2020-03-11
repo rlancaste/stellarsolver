@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>814</width>
-    <height>654</height>
+    <width>859</width>
+    <height>737</height>
    </rect>
   </property>
   <property name="font">
@@ -96,14 +96,14 @@
       </property>
       <widget class="QToolBox" name="optionsBox">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="Basic">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>267</width>
+          <width>282</width>
           <height>384</height>
          </rect>
         </property>
@@ -173,7 +173,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>267</width>
+          <width>271</width>
           <height>384</height>
          </rect>
         </property>
@@ -190,8 +190,8 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-106</y>
-              <width>241</width>
+              <y>0</y>
+              <width>245</width>
               <height>464</height>
              </rect>
             </property>
@@ -422,7 +422,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>267</width>
+          <width>271</width>
           <height>384</height>
          </rect>
         </property>
@@ -455,7 +455,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>265</width>
+              <width>269</width>
               <height>382</height>
              </rect>
             </property>
@@ -609,7 +609,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>268</width>
+              <width>284</width>
               <height>118</height>
              </rect>
             </property>
@@ -660,7 +660,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>270</width>
+           <width>286</width>
            <height>339</height>
           </rect>
          </property>
@@ -800,7 +800,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>814</width>
+     <width>859</width>
      <height>22</height>
     </rect>
    </property>

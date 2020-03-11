@@ -168,6 +168,8 @@ private:
     char* charQStr(QString in);
 
     void setupSolutionTable();
+    void clearAstrometrySettings();
+    void addSextractionToTable();
 
 public slots:
 

@@ -310,6 +310,23 @@ void MainWindow::abort()
     logOutput("Solve Aborted");
 }
 
+void MainWindow::clearAstrometrySettings()
+{
+    ui->use_scale->setChecked(false);
+    ui->scale_low->setText("");
+    ui->scale_high->setText("");
+    ui->use_position->setChecked(false);
+    ui->ra->setText("");
+    ui->dec->setText("");
+
+    use_position = false;
+    ra = 0;
+    dec = 0;
+    use_scale = false;
+    fov_low = 0;
+    fov_high = 0;
+}
+
 
 
 //The following methods deal with the loading and displaying of the image
@@ -330,6 +347,8 @@ bool MainWindow::loadImage()
     QFileInfo newFileInfo(newFileURL);
     dirPath = fileInfo.absolutePath();
     fileToSolve = newFileURL;
+
+    clearAstrometrySettings();
 
     bool loadSuccess;
     if(newFileInfo.suffix()=="fits"||newFileInfo.suffix()=="fit")
@@ -481,14 +500,6 @@ bool MainWindow::loadFits()
 //I also consulted the ImageToFITS method in fitsdata in KStars
 bool MainWindow::loadOtherFormat()
 {
-    use_position = false;
-    ra = 0;
-    dec = 0;
-    use_scale = false;
-    fov_low = 0;
-    fov_high = 0;
-
-
     QImageReader fileReader(fileToSolve.toLatin1());
 
     if (QImageReader::supportedImageFormats().contains(fileReader.format()) == false)
@@ -954,7 +965,7 @@ QRect MainWindow::getStarInImage(Star star)
     }
     else
     {
-        double r = 3.5 * currentHeight / stats.height;  //This needs to be changed.
+        double r = r_min * currentHeight / stats.height;
         return QRect(starx - r, stary - r , r*2, r*2);
     }
 }
@@ -1677,7 +1688,7 @@ bool MainWindow::solveField()
     solver.clear();
     solver = new QProcess(this);
 
-    connect(solver, SIGNAL(finished(int)), this, SLOT(internalSolverComplete(int)));
+    connect(solver, SIGNAL(finished(int)), this, SLOT(externalSolverComplete(int)));
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &MainWindow::logSolver);
 
@@ -1706,6 +1717,7 @@ bool MainWindow::innerSextractorComplete()
 {
     stars = internalSolver->getStarList();
     sextractorComplete();
+    addSextractionToTable();
     return true;
 }
 
@@ -1720,7 +1732,7 @@ bool MainWindow::sextractorComplete()
     return true;
 }
 
-bool MainWindow::internalSolverComplete(int x)
+bool MainWindow::externalSolverComplete(int x)
 {
     solverComplete(x);
     getSolutionInformation();
@@ -1733,7 +1745,7 @@ bool MainWindow::internalSolverComplete(int x)
     return true;
 }
 
-bool MainWindow::externalSolverComplete(int x)
+bool MainWindow::internalSolverComplete(int x)
 {
     solverComplete(x);
     addSolutionToTable(internalSolver->solution);
@@ -1797,7 +1809,7 @@ bool MainWindow::runInnerSolver()
     internalSolver.clear();
     internalSolver = new InternalSolver(fileToSolve, sextractorFilePath, stats ,m_ImageBuffer, false, this);
     connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
-    connect(internalSolver, &InternalSolver::finished, this, &MainWindow::externalSolverComplete);
+    connect(internalSolver, &InternalSolver::finished, this, &MainWindow::internalSolverComplete);
 
     //Sextractor Settings
     internalSolver->apertureShape = apertureShape;
@@ -1939,6 +1951,8 @@ void MainWindow::setupSolutionTable()
     //These are in the order that they will appear in the table.
 
     addColumnToTable(ui->solutionTable,"Time");
+    addColumnToTable(ui->solutionTable,"Int?");
+    addColumnToTable(ui->solutionTable,"Stars");
     //Sextractor Parameters
     addColumnToTable(ui->solutionTable,"Shape");
     addColumnToTable(ui->solutionTable,"Kron");
@@ -1951,11 +1965,9 @@ void MainWindow::setupSolutionTable()
     addColumnToTable(ui->solutionTable,"clean param");
     addColumnToTable(ui->solutionTable,"fwhm");
     //Astrometry Parameters
-    addColumnToTable(ui->solutionTable,"Int?");
     addColumnToTable(ui->solutionTable,"Pos?");
     addColumnToTable(ui->solutionTable,"Scale?");
     addColumnToTable(ui->solutionTable,"Resort?");
-    addColumnToTable(ui->solutionTable,"Stars");
     //Results
     addColumnToTable(ui->solutionTable,"RA");
     addColumnToTable(ui->solutionTable,"DEC");
@@ -1965,6 +1977,47 @@ void MainWindow::setupSolutionTable()
     addColumnToTable(ui->solutionTable,"Field");
 
     ui->solutionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+}
+
+void MainWindow::addSextractionToTable()
+{
+    QTableWidget *table = ui->solutionTable;
+    table->insertRow(table->rowCount());
+
+    double elapsed = solverTimer.elapsed() / 1000.0;
+
+    setItemInColumn(table, "Time", QString::number(elapsed));
+    setItemInColumn(ui->solutionTable, "Int?", "true");
+    setItemInColumn(ui->solutionTable, "Stars", QString::number(internalSolver->getNumStarsFound()));
+    //Sextractor Parameters
+    QString shapeName="Circle";
+    switch(internalSolver->apertureShape)
+    {
+        case SHAPE_AUTO:
+            shapeName = "Auto";
+        break;
+
+        case SHAPE_CIRCLE:
+           shapeName = "Circle";
+        break;
+
+        case SHAPE_ELLIPSE:
+            shapeName = "Ellipse";
+        break;
+    }
+
+    setItemInColumn(ui->solutionTable,"Shape", shapeName);
+    setItemInColumn(ui->solutionTable,"Kron", QString::number(internalSolver->kron_fact));
+    setItemInColumn(ui->solutionTable,"Subpix", QString::number(internalSolver->subpix));
+    setItemInColumn(ui->solutionTable,"r_min", QString::number(internalSolver->r_min));
+    setItemInColumn(ui->solutionTable,"minarea", QString::number(internalSolver->minarea));
+    setItemInColumn(ui->solutionTable,"d_thresh", QString::number(internalSolver->deblend_thresh));
+    setItemInColumn(ui->solutionTable,"d_cont", QString::number(internalSolver->deblend_contrast));
+    setItemInColumn(ui->solutionTable,"clean", QString::number(internalSolver->clean));
+    setItemInColumn(ui->solutionTable,"clean param", QString::number(internalSolver->clean_param));
+    setItemInColumn(ui->solutionTable,"fwhm", QString::number(internalSolver->fwhm));
+    setItemInColumn(ui->solutionTable, "Field", ui->fileNameDisplay->text());
+
 }
 
 void MainWindow::addSolutionToTable(Solution solution)
