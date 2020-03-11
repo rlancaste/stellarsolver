@@ -125,8 +125,9 @@ bool InternalSolver::runInnerSextractor()
         double r = 6;  //The instructions say to use a fixed value of 6: https://sep.readthedocs.io/en/v1.0.x/api/sep.kron_radius.html
 
         //Variables that are obtained from the catalog
-        float xPos = catalog->x[i];
-        float yPos = catalog->y[i];
+        //FOR SOME REASON, I FOUND THAT THE POSITIONS WERE OFF BY 1 PIXEL??
+        float xPos = catalog->x[i] + 1.0;
+        float yPos = catalog->y[i] + 1.0;
         float a = catalog->a[i];
         float b = catalog->b[i];
         float theta = catalog->theta[i];
@@ -174,7 +175,6 @@ bool InternalSolver::runInnerSextractor()
 
         float mag = magzero - 2.5 * log10(sum);
 
-        //WHY THE HECK ARE THE X and Y POSITIONS OFF A LITTLE?? MIGHT BE 1 pixel?
         Star star = {xPos , yPos , mag, (float)sum, a, b, qRadiansToDegrees(theta)};
 
         stars.append(star);
