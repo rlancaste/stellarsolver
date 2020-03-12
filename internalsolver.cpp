@@ -126,8 +126,8 @@ bool InternalSolver::runInnerSextractor()
 
         //Variables that are obtained from the catalog
         //FOR SOME REASON, I FOUND THAT THE POSITIONS WERE OFF BY 1 PIXEL??
-        float xPos = catalog->x[i] + 1.0;
-        float yPos = catalog->y[i] + 1.0;
+        float xPos = catalog->x[i] + 1.5;
+        float yPos = catalog->y[i] + 1.5;
         float a = catalog->a[i];
         float b = catalog->b[i];
         float theta = catalog->theta[i];

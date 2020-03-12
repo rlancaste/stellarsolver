@@ -941,8 +941,8 @@ void MainWindow::autoScale()
     int w = (stats.width + sampling - 1) / sampling;
     int h = (stats.height + sampling - 1) / sampling;
 
-    double width = ui->scrollArea->rect().width();
-    double height = ui->scrollArea->rect().height() - 30; //The minus 30 is due to the image filepath label
+    double width = ui->imageScrollArea->rect().width();
+    double height = ui->imageScrollArea->rect().height() - 30; //The minus 30 is due to the image filepath label
 
     // Find the zoom level which will enclose the current FITS in the current window size
     double zoomX                  = ( width / w);
@@ -1053,7 +1053,7 @@ void MainWindow::mouseOverStar(QPoint location)
         QRect starInImage = getStarInImage(star);
         if(starInImage.contains(location))
         {
-            QString text = QString("Star: %1, x: %2, y: %3, mag: %4").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag);
+            QString text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux);
             QToolTip::showText(QCursor::pos(), text, ui->Image);
             selectedStar = i;
             starFound = true;
@@ -1072,7 +1072,6 @@ void MainWindow::mouseClickedOnStar(QPoint location)
         QRect starInImage = getStarInImage(stars.at(i));
         if(starInImage.contains(location))
             ui->starList->selectRow(i);
-
     }
 }
 
@@ -1086,7 +1085,11 @@ void MainWindow::starClickedInTable()
     {
         QTableWidgetItem *currentItem = ui->starList->selectedItems().first();
         selectedStar = ui->starList->row(currentItem);
+        Star star = stars.at(selectedStar);
+        double starx = star.x * currentWidth / stats.width ;
+        double stary = star.y * currentHeight / stats.height;
         updateImage();
+        ui->imageScrollArea->ensureVisible(starx,stary);
     }
 }
 

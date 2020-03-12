@@ -103,8 +103,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>282</width>
-          <height>384</height>
+          <width>248</width>
+          <height>217</height>
          </rect>
         </property>
         <attribute name="label">
@@ -173,8 +173,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>271</width>
-          <height>384</height>
+          <width>248</width>
+          <height>217</height>
          </rect>
         </property>
         <attribute name="label">
@@ -191,7 +191,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>245</width>
+              <width>222</width>
               <height>464</height>
              </rect>
             </property>
@@ -422,8 +422,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>271</width>
-          <height>384</height>
+          <width>248</width>
+          <height>217</height>
          </rect>
         </property>
         <attribute name="label">
@@ -455,8 +455,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>269</width>
-              <height>382</height>
+              <width>246</width>
+              <height>262</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_5">
@@ -597,7 +597,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QScrollArea" name="scrollArea">
+          <widget class="QScrollArea" name="imageScrollArea">
            <property name="widgetResizable">
             <bool>true</bool>
            </property>
@@ -609,8 +609,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>284</width>
-              <height>118</height>
+              <width>301</width>
+              <height>72</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -660,8 +660,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>286</width>
-           <height>339</height>
+           <width>303</width>
+           <height>218</height>
           </rect>
          </property>
          <property name="sizePolicy">
