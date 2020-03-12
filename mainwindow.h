@@ -116,7 +116,6 @@ private:
     //Parameters for sextracting
     Shape apertureShape = SHAPE_AUTO;
     double kron_fact = 2.5;
-    double r = 3;
     int subpix = 5;
     float r_min = 3.5;
     short inflags;

@@ -77,16 +77,6 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QCheckBox" name="showStars">
-        <property name="text">
-         <string>ShowStars</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
     <item>
@@ -108,7 +98,7 @@
          </rect>
         </property>
         <attribute name="label">
-         <string>Basic</string>
+         <string>Basic Options</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_3">
          <property name="leftMargin">
@@ -144,7 +134,11 @@
           <widget class="QLineEdit" name="solverPath"/>
          </item>
          <item row="1" column="1">
-          <widget class="QLineEdit" name="sextractorPath"/>
+          <widget class="QLineEdit" name="sextractorPath">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
          </item>
          <item row="4" column="1">
           <widget class="QLineEdit" name="imagesDefaultPath"/>
@@ -165,6 +159,16 @@
          </item>
          <item row="5" column="1">
           <widget class="QLineEdit" name="tempPath"/>
+         </item>
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="showStars">
+           <property name="text">
+            <string>ShowStars</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -361,7 +365,7 @@
               </widget>
              </item>
              <item row="5" column="0">
-              <widget class="QCheckBox" name="checkBox">
+              <widget class="QCheckBox" name="cleanCheckBox">
                <property name="text">
                 <string>Clean?</string>
                </property>

@@ -102,9 +102,15 @@ MainWindow::MainWindow() :
     connect(ui->minarea, &QLineEdit::textChanged, this, [this](){ minarea = ui->minarea->text().toDouble(); });
     connect(ui->deblend_thresh, &QLineEdit::textChanged, this, [this](){ deblend_thresh = ui->deblend_thresh->text().toDouble(); });
     connect(ui->deblend_contrast, &QLineEdit::textChanged, this, [this](){ deblend_contrast = ui->deblend_contrast->text().toDouble(); });
-    //internalSolver->clean = clean;
-    //internalSolver->clean_param = clean_param;
+    connect(ui->cleanCheckBox,&QCheckBox::stateChanged,this,[this](){
+        if(ui->cleanCheckBox->isChecked())
+            clean = 1;
+        else
+            clean = 0;
+    });
+    connect(ui->clean_param, &QLineEdit::textChanged, this, [this](){ clean_param = ui->clean_param->text().toDouble(); });
 
+    //This generates an array that can be used as a convFilter based on the desired FWHM
     connect(ui->fwhm, &QLineEdit::textChanged, this, [this](QString text){
         convFilter.clear();
         double a = 1;
