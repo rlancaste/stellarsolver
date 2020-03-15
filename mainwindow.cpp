@@ -88,7 +88,7 @@ MainWindow::MainWindow() :
     //Linux Default Location
     indexFilePaths.append("/usr/share/astrometry/");
     //Linux Local KStars Location
-    QString localAstroPath = QDir::homePath() + "./local/share/kstars/astrometry/";
+    QString localAstroPath = QDir::homePath() + "/.local/share/kstars/astrometry/";
     if(QFileInfo(localAstroPath).exists())
         indexFilePaths.append(localAstroPath);
 #endif
