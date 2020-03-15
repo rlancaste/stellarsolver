@@ -38,6 +38,20 @@ char* charQStr(QString in) {
     return cstr;
 }
 
+//I created this method because I wanted to remove some temp files and display the output and the code was getting repetitive.
+void InternalSolver::removeTempFile(char * fileName)
+{
+
+    if(QFile(fileName).exists())
+    {
+        QFile(fileName).remove();
+        if(QFile(fileName).exists())
+            emit logNeedsUpdating(QString("Error: %1 was NOT removed").arg(fileName));
+        else
+            emit logNeedsUpdating(QString("%1 was removed").arg(fileName));
+    }
+}
+
 //The code in this section is my attempt at running an internal sextractor program based on SEP
 //I used KStars and the SEP website as a guide for creating these functions
 //It saves the output to SextractorList.xyls in the temp directory.
@@ -387,6 +401,30 @@ static void add_sip_coeffs(qfits_header* hdr, const char* prefix, const sip_t* s
     }
 }
 
+void InternalSolver::setSearchScale(double fov_low, double fov_high, QString units)
+{
+    use_scale = true;
+    //L
+    scalelo = fov_low;
+    //H
+    scalehi = fov_high;
+    //u
+    if(units == "app")
+        scaleunit = SCALE_UNITS_ARCSEC_PER_PIX;
+    if(units =="aw")
+         scaleunit = SCALE_UNITS_ARCMIN_WIDTH;
+}
+
+void InternalSolver::setSearchPosition(double ra, double dec, double rad)
+{
+    use_position = true;
+    //3
+    ra_center = ra * 15.0;
+    //4
+    dec_center = dec;
+    //5
+    search_radius = rad;
+}
 
 //This method was adapted from a combination of the main method in augment-xylist-main.c and the method augment_xylist in augment-xylist.c in astrometry.net
 bool InternalSolver::augmentXYList()
@@ -400,6 +438,44 @@ bool InternalSolver::augmentXYList()
     allaxy->xylsfn = charQStr(sextractorFilePath);
 
 
+    QString basedir = basePath + QDir::separator() + "SextractorList";
+
+    allaxy->axyfn    = charQStr(QString("%1.axy").arg(basedir));
+    allaxy->matchfn  = charQStr(QString("%1.match").arg(basedir));
+    allaxy->rdlsfn   = charQStr(QString("%1.rdls").arg(basedir));
+    allaxy->solvedfn = charQStr(QString("%1.solved").arg(basedir));
+    allaxy->wcsfn    = charQStr(QString("%1.wcs").arg(basedir));
+    allaxy->corrfn   = charQStr(QString("%1.corr").arg(basedir));
+
+    emit logNeedsUpdating("Deleting Temp files");
+    removeTempFile(allaxy->axyfn);
+    removeTempFile(allaxy->matchfn);
+    removeTempFile(allaxy->rdlsfn);
+    removeTempFile(allaxy->solvedfn);
+    removeTempFile(allaxy->wcsfn);
+    removeTempFile(allaxy->corrfn);
+
+    allaxy->resort = resort;
+    allaxy->sort_ascending = sort_ascending;
+    allaxy->xcol = xcol;
+    allaxy->ycol = ycol;
+    allaxy->sortcol = sortcol;
+    allaxy->W = stats.width;
+    allaxy->H = stats.height;
+
+    if(use_scale)
+    {
+        allaxy->scalehi = scalehi;
+        allaxy->scalelo = scalelo;
+        allaxy->scaleunit = scaleunit;
+    }
+
+    if(use_position)
+    {
+        allaxy->ra_center = ra_center;
+        allaxy->dec_center = dec_center;
+        allaxy->search_radius = search_radius;
+    }
 
     // tempfiles to delete when we finish
     sl* tempfiles;

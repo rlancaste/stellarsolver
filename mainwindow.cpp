@@ -184,32 +184,6 @@ void MainWindow::logOutput(QString text)
      ui->logDisplay->show();
 }
 
-
-//These are some utility functions that can be used in all the code below
-
-//I had to create this method because i was having some difficulty turning a QString into a char* that would persist long enough to be used in the program.
-char* MainWindow::charQStr(QString in) {
-    std::string fname = QString(in).toStdString();
-    char* cstr;
-    cstr = new char [fname.size()+1];
-    strcpy( cstr, fname.c_str() );
-    return cstr;
-}
-
-//I created this method because I wanted to remove some temp files and display the output and the code was getting repetitive.
-void MainWindow::removeTempFile(char * fileName)
-{
-
-    if(QFile(fileName).exists())
-    {
-        QFile(fileName).remove();
-        if(QFile(fileName).exists())
-            logOutput(QString("Error: %1 was NOT removed").arg(fileName));
-        else
-            logOutput(QString("%1 was removed").arg(fileName));
-    }
-}
-
 //I wrote this method because we really want to do this before all 4 processes
 //It was getting repetitive.
 bool MainWindow::prepareForProcesses()
@@ -1837,58 +1811,11 @@ bool MainWindow::runInnerSolver()
 
     //Astrometry Settings
 
-    augment_xylist_t* allaxy =internalSolver->solverParams();
-
-    // default output filename patterns.
-
-    QString basedir = tempPath + QDir::separator() + "SextractorList";
-
-    allaxy->axyfn    = charQStr(QString("%1.axy").arg(basedir));
-    allaxy->matchfn  = charQStr(QString("%1.match").arg(basedir));
-    allaxy->rdlsfn   = charQStr(QString("%1.rdls").arg(basedir));
-    allaxy->solvedfn = charQStr(QString("%1.solved").arg(basedir));
-    allaxy->wcsfn    = charQStr(QString("%1.wcs").arg(basedir));
-    allaxy->corrfn   = charQStr(QString("%1.corr").arg(basedir));
-
-    logOutput("Deleting Temp files");
-    removeTempFile(allaxy->axyfn);
-    removeTempFile(allaxy->matchfn);
-    removeTempFile(allaxy->rdlsfn);
-    removeTempFile(allaxy->solvedfn);
-    removeTempFile(allaxy->wcsfn);
-    removeTempFile(allaxy->corrfn);
-
-    allaxy->resort=TRUE;
-    allaxy->sort_ascending = TRUE;
-    allaxy->xcol=strdup("X_IMAGE");
-    allaxy->ycol=strdup("Y_IMAGE");
-    allaxy->sortcol=strdup("MAG_AUTO");
-    allaxy->W=stats.width;
-    allaxy->H=stats.height;
-
     if(use_scale)
-    {
-        //L
-        allaxy->scalelo = fov_low;
-        //H
-        allaxy->scalehi = fov_high;
-        //u
-        if(units == "app")
-            allaxy->scaleunit = SCALE_UNITS_ARCSEC_PER_PIX;
-        if(units =="aw")
-             allaxy->scaleunit = SCALE_UNITS_ARCMIN_WIDTH;
-    }
+        internalSolver->setSearchScale(fov_low, fov_high, units);
 
     if(use_position)
-    {
-        //3
-        allaxy->ra_center = ra * 15.0;
-        //4
-        allaxy->dec_center = dec;
-        //5
-        allaxy->search_radius = radius;
-    }
-
+        internalSolver->setSearchPosition(ra, dec, radius);
 
     internalSolver->start();
     return true;

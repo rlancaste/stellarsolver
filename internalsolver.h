@@ -68,6 +68,13 @@ class InternalSolver : public QThread
 public:
     explicit InternalSolver(QString file, QString sextractorFile, Statistic imagestats,  uint8_t *imageBuffer, bool sextractOnly, QObject *parent = nullptr);
 
+
+    //These are the parameters used by the Internal Sextractor and Internal Astrometry Solver
+    //These parameters are public so that they can be changed by the program using the solver
+    //The values here are the defaults unless they get changed.
+
+    QString basePath = QDir::tempPath();
+
     //Sextractor Extraction Parameters
 
     //Sextractor Photometry Parameters
@@ -82,10 +89,30 @@ public:
     float deblend_contrast = 0.005;
     int clean = 1;
     double clean_param = 1;
-    QVector<float> convFilter;
-    double fwhm;
+    QVector<float> convFilter= {0.260856, 0.483068, 0.260856,
+                                0.483068, 0.894573, 0.483068,
+                                0.260856, 0.483068, 0.260856};
+    double fwhm = 2;
 
     //Astrometry Parameters
+    bool inParallel = false;
+    int solverTimeLimit = 300;
+    anbool resort=TRUE;
+    anbool sort_ascending = TRUE;
+    char* xcol=strdup("X_IMAGE");
+    char* ycol=strdup("Y_IMAGE");
+    char* sortcol=strdup("MAG_AUTO");
+    bool use_scale = false;
+    double scalelo = 0;
+    double scalehi = 0;
+    int scaleunit = 0;
+    bool use_position = false;
+    double ra_center = HUGE_VAL;
+    double dec_center = HUGE_VAL;
+    double search_radius = 15;
+
+    void setSearchScale(double fov_low, double fov_high, QString units);
+    void setSearchPosition(double ra, double dec, double rad);
 
     void run() override;
     template <typename T>
@@ -106,6 +133,8 @@ public:
     Solution solution;
 
     int getNumStarsFound(){return stars.size();};
+
+    void removeTempFile(char * fileName);
 
 
 private:

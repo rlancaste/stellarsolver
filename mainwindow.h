@@ -163,8 +163,6 @@ private:
     bool checkDebayer();
 
     QTime solverTimer;
-    void removeTempFile(char * fileName);
-    char* charQStr(QString in);
 
     void setupSolutionTable();
     void clearAstrometrySettings();

@@ -244,7 +244,7 @@ add_library(sep ${sep_SRCS})
 target_link_libraries(sep ${CFITSIO_LIBRARIES})
 #install(TARGETS sep LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set(astrosex_SRCS
+set(SexySolver_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/imagelabel.cpp
@@ -254,16 +254,21 @@ set(astrosex_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/bayer.c
    )
 
-qt5_wrap_ui(astrosexui_SRCS
+qt5_wrap_ui(SexySolverui_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.ui
     )
 
+#If(APPLE)
+set(MACOSX_BUNDLE_ICON_FILE SexySolverIcon.icns)
+set(SexySolverApp_ICON SexySolverIcon.icns)
+set_source_files_properties(${SexySolverApp_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+#endif(APPLE)
 
-add_executable(sexysolver ${astrosex_SRCS} ${astrosexui_SRCS} )
+add_executable(SexySolver ${SexySolver_SRCS} ${SexySolverui_SRCS} ${SexySolverApp_ICON})
 
-target_link_libraries(sexysolver sep astrometry)
+target_link_libraries(SexySolver sep astrometry)
 
-target_link_libraries(sexysolver
+target_link_libraries(SexySolver
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
 
@@ -273,6 +278,11 @@ target_link_libraries(sexysolver
     Qt5::Concurrent
     )
 
-install(TARGETS sexysolver RUNTIME DESTINATION bin)
+SET_TARGET_PROPERTIES(SexySolver PROPERTIES MACOSX_BUNDLE TRUE)
+set(MACOSX_BUNDLE_ICON_FILE SexySolverIcon.icns)
+
+
+
+install(TARGETS SexySolver RUNTIME DESTINATION bin)
 
 
