@@ -82,12 +82,17 @@ MainWindow::MainWindow() :
     tempPath=QDir::tempPath();
 
     //Mac Default location
+#if defined(Q_OS_OSX)
     indexFilePaths.append(QDir::homePath() + "/Library/Application Support/Astrometry");
+#elif defined(Q_OS_LINUX)
     //Linux Default Location
     indexFilePaths.append("/usr/share/astrometry/");
-    QString localAstroPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, "astrometry");
-    if(localAstroPath != "")
+    //Linux Local KStars Location
+    QString localAstroPath = QDir::homePath() + "./local/share/kstars/astrometry/";
+    if(QFileInfo(localAstroPath).exists())
         indexFilePaths.append(localAstroPath);
+#endif
+
 
 
     //Basic Settings
