@@ -426,6 +426,19 @@ void InternalSolver::setSearchPosition(double ra, double dec, double rad)
     search_radius = rad;
 }
 
+void InternalSolver::setIndexFolderPaths(QStringList paths)
+{
+    indexFolderPaths = paths;
+}
+void InternalSolver::clearIndexFolderPaths()
+{
+    indexFolderPaths.clear();
+}
+void InternalSolver::addIndexFolderPath(QString pathToAdd)
+{
+    indexFolderPaths.append(pathToAdd);
+}
+
 //This method was adapted from a combination of the main method in augment-xylist-main.c and the method augment_xylist in augment-xylist.c in astrometry.net
 bool InternalSolver::augmentXYList()
 {
@@ -930,49 +943,26 @@ int InternalSolver::runAstrometryEngine()
 
     engine = engine_new();
 
+    engine->inparallel = inParallel ? TRUE : FALSE;
+    engine->cpulimit = solverTimeLimit;
+    engine->minwidth = minwidth;
+    engine->maxwidth = maxwidth;
+
     //log_to(stderr);
     //log_init(LOG_MSG);
-
-#if defined(Q_OS_OSX)
-        configfn = charQStr("/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg");
-#elif defined(Q_OS_LINUX)
-        configfn = charQStr(QString("%1/.local/share/kstars/astrometry/astrometry.cfg").arg(QDir::homePath()));
-#endif
 
     basedir = charQStr(QDir::tempPath());
 
     gslutils_use_error_system();
 
-
-    if (!streq(configfn, "none")) {
-        if (engine_parse_config_file(engine, configfn)) {
-            emit logNeedsUpdating(QString("Failed to parse (or encountered an error while interpreting) config file \"%1\"\n").arg( configfn));
-            return -1;
-        }
+    foreach(QString path, indexFolderPaths)
+    {
+        engine_add_search_path(engine,charQStr(path));
     }
 
-    //Removed because of a windows issue with glob, not sure if this is needed or not.
-/**
-    if (sl_size(inds)) {
-        // Expand globs.
-        for (i=0; i<sl_size(inds); i++) {
-            char* s = sl_get(inds, i);
-            glob_t myglob;
-            int flags = GLOB_TILDE | GLOB_BRACE;
-            if (glob(s, flags, nullptr, &myglob)) {
-               emit logNeedsUpdating(QString("Failed to expand wildcards in index-file path \"%1").arg(s));
-                return -1;
-            }
-            for (c=0; c<myglob.gl_pathc; c++) {
-                if (engine_add_index(engine, myglob.gl_pathv[c])) {
-                    emit logNeedsUpdating(QString("Failed to add index \"%1\"").arg( myglob.gl_pathv[c]));
-                    return -1;
-                }
-            }
-            globfree(&myglob);
-        }
-    }
-**/
+    engine_autoindex_search_paths(engine);
+
+
     if (!pl_size(engine->indexes)) {
         emit logNeedsUpdating(QString("\n\n"
                "---------------------------------------------------------------------\n"
@@ -982,8 +972,6 @@ int InternalSolver::runAstrometryEngine()
                "\n").arg( configfn));
         return -1;
     }
-
-
 
     if (engine->minwidth <= 0.0 || engine->maxwidth <= 0.0) {
         emit logNeedsUpdating(QString("\"minwidth\" and \"maxwidth\" in the config file %1 must be positive!\n").arg( configfn));

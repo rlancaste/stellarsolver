@@ -89,6 +89,7 @@ private:
     //System File Paths
     QString dirPath;
     QString tempPath;
+    QStringList indexFilePaths;
 #if defined(Q_OS_OSX)
     QString sextractorBinaryPath = "/usr/local/bin/sex";
 #elif defined(Q_OS_LINUX)
@@ -114,7 +115,7 @@ private:
 #endif
 
     //Parameters for sextracting
-    Shape apertureShape = SHAPE_AUTO;
+    Shape apertureShape = SHAPE_CIRCLE;
     double kron_fact = 2.5;
     int subpix = 5;
     float r_min = 3.5;
@@ -122,7 +123,7 @@ private:
     float magzero = 20;
     float minarea = 5;
     int deblend_thresh = 32;
-    float deblend_contrast = 0.005;
+    float deblend_contrast = 1;
     int clean = 1;
     double clean_param = 1;
     QVector<float> convFilter = {0.260856, 0.483068, 0.260856,
@@ -139,6 +140,11 @@ private:
     double ra;
     double dec;
     double radius;
+
+    bool inParallel = true;
+    int solverTimeLimit = 600;
+    double minwidth = 0.1;
+    double maxwidth = 180;
 
     //Data about the image
     bool imageLoaded = false;

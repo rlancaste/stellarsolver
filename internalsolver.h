@@ -78,7 +78,7 @@ public:
     //Sextractor Extraction Parameters
 
     //Sextractor Photometry Parameters
-    Shape apertureShape = SHAPE_AUTO;
+    Shape apertureShape = SHAPE_CIRCLE;
     double kron_fact = 2.5;
     int subpix = 5;
     float r_min = 3.5;
@@ -86,7 +86,7 @@ public:
     float magzero = 20;
     float minarea = 5;
     int deblend_thresh = 32;
-    float deblend_contrast = 0.005;
+    float deblend_contrast = 1;
     int clean = 1;
     double clean_param = 1;
     QVector<float> convFilter= {0.260856, 0.483068, 0.260856,
@@ -94,9 +94,13 @@ public:
                                 0.260856, 0.483068, 0.260856};
     double fwhm = 2;
 
-    //Astrometry Parameters
-    bool inParallel = false;
-    int solverTimeLimit = 300;
+    //Astrometry Config/Engine Parameters
+    QStringList indexFolderPaths;
+    bool inParallel = true;
+    int solverTimeLimit = 600;
+    double minwidth = 0.1;
+    double maxwidth = 180;
+
     anbool resort=TRUE;
     anbool sort_ascending = TRUE;
     char* xcol=strdup("X_IMAGE");
@@ -113,6 +117,9 @@ public:
 
     void setSearchScale(double fov_low, double fov_high, QString units);
     void setSearchPosition(double ra, double dec, double rad);
+    void setIndexFolderPaths(QStringList paths);
+    void clearIndexFolderPaths();
+    void addIndexFolderPath(QString pathToAdd);
 
     void run() override;
     template <typename T>

@@ -81,6 +81,15 @@ MainWindow::MainWindow() :
     dirPath=QDir::homePath();
     tempPath=QDir::tempPath();
 
+    //Mac Default location
+    indexFilePaths.append(QDir::homePath() + "/Library/Application Support/Astrometry");
+    //Linux Default Location
+    indexFilePaths.append("/usr/share/astrometry/");
+    QString localAstroPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, "astrometry");
+    if(localAstroPath != "")
+        indexFilePaths.append(localAstroPath);
+
+
     //Basic Settings
     ui->sextractorPath->setText(sextractorBinaryPath);
     connect(ui->sextractorPath, &QLineEdit::textChanged, this, [this](){ sextractorBinaryPath = ui->sextractorPath->text(); });
@@ -130,14 +139,40 @@ MainWindow::MainWindow() :
     //Astrometry Settings
     ui->configFilePath->setText(confPath);
     connect(ui->configFilePath, &QLineEdit::textChanged, this, [this](){ confPath = ui->configFilePath->text(); });
+
+    foreach(QString pathName, indexFilePaths)
+    {
+        QListWidgetItem *item = new QListWidgetItem(pathName);
+        item->setFlags(item->flags () | Qt::ItemIsEditable);
+        ui->indexPaths->addItem(item);
+    }
+    connect(ui->indexPaths, &QListWidget::itemChanged, this, [this](QListWidgetItem * item){
+        int row = ui->indexPaths->row(item);
+        indexFilePaths.removeAt(row);
+        indexFilePaths.insert(row,item->text());
+    });
+    connect(ui->addIndexPath, &QPushButton::clicked, this, [this](){
+        QListWidgetItem *item = new QListWidgetItem("type path here");
+        item->setFlags(item->flags () | Qt::ItemIsEditable);
+        ui->indexPaths->addItem(item);
+        indexFilePaths.append("");
+    });
+
+    connect(ui->inParallel, &QCheckBox::stateChanged, this, [this](){ inParallel = ui->inParallel->isChecked(); });
+    connect(ui->solverTimeLimit, &QLineEdit::textChanged, this, [this](){ solverTimeLimit = ui->solverTimeLimit->text().toInt(); });
+    connect(ui->minWidth, &QLineEdit::textChanged, this, [this](){ minwidth = ui->minWidth->text().toDouble(); });
+    connect(ui->maxWidth, &QLineEdit::textChanged, this, [this](){ maxwidth = ui->maxWidth->text().toDouble(); });
+
     connect(ui->use_scale, &QCheckBox::stateChanged, this, [this](){ use_scale = ui->use_scale->isChecked(); });
     connect(ui->scale_low, &QLineEdit::textChanged, this, [this](){ fov_low = ui->scale_low->text().toDouble(); });
     connect(ui->scale_high, &QLineEdit::textChanged, this, [this](){ fov_high = ui->scale_high->text().toDouble(); });
+    connect(ui->units, &QComboBox::currentTextChanged, this, [this](QString text){ units = text; });
+
     connect(ui->use_position, &QCheckBox::stateChanged, this, [this](){ use_position= ui->use_position->isChecked(); });
     connect(ui->ra, &QLineEdit::textChanged, this, [this](){ ra = ui->ra->text().toDouble(); });
     connect(ui->dec, &QLineEdit::textChanged, this, [this](){ dec = ui->dec->text().toDouble(); });
     connect(ui->radius, &QLineEdit::textChanged, this, [this](){ radius = ui->radius->text().toDouble(); });
-    connect(ui->units, &QComboBox::currentTextChanged, this, [this](QString text){ units = text; });
+
 
     setupSolutionTable();
 
@@ -1810,6 +1845,12 @@ bool MainWindow::runInnerSolver()
     internalSolver->fwhm = fwhm;
 
     //Astrometry Settings
+
+    internalSolver->setIndexFolderPaths(indexFilePaths);
+    internalSolver->maxwidth = maxwidth;
+    internalSolver->minwidth = minwidth;
+    internalSolver->inParallel = inParallel;
+    internalSolver->solverTimeLimit = solverTimeLimit;
 
     if(use_scale)
         internalSolver->setSearchScale(fov_low, fov_high, units);

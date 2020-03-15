@@ -93,7 +93,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>248</width>
+          <width>250</width>
           <height>217</height>
          </rect>
         </property>
@@ -177,8 +177,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>248</width>
-          <height>217</height>
+          <width>250</width>
+          <height>384</height>
          </rect>
         </property>
         <attribute name="label">
@@ -195,13 +195,16 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>222</width>
+              <width>224</width>
               <height>464</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_9">
              <item row="20" column="1">
               <widget class="QComboBox" name="apertureShape">
+               <property name="currentIndex">
+                <number>1</number>
+               </property>
                <item>
                 <property name="text">
                  <string>Auto</string>
@@ -256,7 +259,7 @@
              <item row="14" column="1">
               <widget class="QLineEdit" name="deblend_contrast">
                <property name="text">
-                <string>0.005</string>
+                <string>1</string>
                </property>
               </widget>
              </item>
@@ -426,8 +429,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>248</width>
-          <height>217</height>
+          <width>250</width>
+          <height>384</height>
          </rect>
         </property>
         <attribute name="label">
@@ -459,8 +462,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>246</width>
-              <height>262</height>
+              <width>272</width>
+              <height>640</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_5">
@@ -479,61 +482,154 @@
              <property name="spacing">
               <number>-1</number>
              </property>
-             <item row="0" column="2">
-              <widget class="QLineEdit" name="configFilePath"/>
-             </item>
-             <item row="11" column="0">
-              <widget class="QLabel" name="label_7">
-               <property name="text">
-                <string>RA</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="2">
+             <item row="5" column="2">
               <widget class="QCheckBox" name="use_scale">
                <property name="text">
                 <string>Use Scale</string>
                </property>
               </widget>
              </item>
-             <item row="13" column="0">
-              <widget class="QLabel" name="label_9">
+             <item row="22" column="2">
+              <widget class="QLineEdit" name="minWidth">
                <property name="text">
-                <string>Radius</string>
+                <string>0.1</string>
                </property>
               </widget>
              </item>
-             <item row="2" column="2">
-              <widget class="QLineEdit" name="scale_low"/>
-             </item>
-             <item row="10" column="2">
-              <widget class="QCheckBox" name="use_position">
+             <item row="8" column="0">
+              <widget class="QLabel" name="label_5">
                <property name="text">
-                <string>Use Position</string>
+                <string>High</string>
                </property>
               </widget>
              </item>
-             <item row="2" column="0">
+             <item row="0" column="2">
+              <widget class="QLineEdit" name="configFilePath"/>
+             </item>
+             <item row="8" column="2">
+              <widget class="QLineEdit" name="scale_high"/>
+             </item>
+             <item row="17" column="2">
+              <widget class="QLineEdit" name="radius"/>
+             </item>
+             <item row="16" column="2">
+              <widget class="QLineEdit" name="dec"/>
+             </item>
+             <item row="23" column="0">
+              <widget class="QLabel" name="label_28">
+               <property name="text">
+                <string>maxwidth</string>
+               </property>
+              </widget>
+             </item>
+             <item row="22" column="0">
+              <widget class="QLabel" name="label_27">
+               <property name="text">
+                <string>minwidth</string>
+               </property>
+              </widget>
+             </item>
+             <item row="25" column="2">
+              <widget class="QListWidget" name="indexPaths"/>
+             </item>
+             <item row="6" column="0">
               <widget class="QLabel" name="label_4">
                <property name="text">
                 <string>Low</string>
                </property>
               </widget>
              </item>
-             <item row="8" column="0">
+             <item row="18" column="2">
+              <widget class="QLabel" name="label_30">
+               <property name="text">
+                <string>Internal Solver Only Options</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>Config File</string>
+               </property>
+              </widget>
+             </item>
+             <item row="12" column="0">
               <widget class="QLabel" name="label_6">
                <property name="text">
                 <string>Units</string>
                </property>
               </widget>
              </item>
-             <item row="11" column="2">
+             <item row="23" column="2">
+              <widget class="QLineEdit" name="maxWidth">
+               <property name="text">
+                <string>180</string>
+               </property>
+              </widget>
+             </item>
+             <item row="25" column="0">
+              <widget class="QLabel" name="label_26">
+               <property name="text">
+                <string>Index File Folder Paths</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="16" column="0">
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>DEC</string>
+               </property>
+              </widget>
+             </item>
+             <item row="20" column="0">
+              <widget class="QLabel" name="label_29">
+               <property name="text">
+                <string>Time Limit</string>
+               </property>
+              </widget>
+             </item>
+             <item row="15" column="0">
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>RA</string>
+               </property>
+              </widget>
+             </item>
+             <item row="15" column="2">
               <widget class="QLineEdit" name="ra"/>
              </item>
-             <item row="13" column="2">
-              <widget class="QLineEdit" name="radius"/>
+             <item row="20" column="2">
+              <widget class="QLineEdit" name="solverTimeLimit">
+               <property name="text">
+                <string>600</string>
+               </property>
+              </widget>
              </item>
-             <item row="8" column="2">
+             <item row="24" column="2">
+              <widget class="QPushButton" name="addIndexPath">
+               <property name="text">
+                <string>Add Indexfile Folder Path</string>
+               </property>
+              </widget>
+             </item>
+             <item row="17" column="0">
+              <widget class="QLabel" name="label_9">
+               <property name="text">
+                <string>Radius</string>
+               </property>
+              </widget>
+             </item>
+             <item row="14" column="2">
+              <widget class="QCheckBox" name="use_position">
+               <property name="text">
+                <string>Use Position</string>
+               </property>
+              </widget>
+             </item>
+             <item row="12" column="2">
               <widget class="QComboBox" name="units">
                <item>
                 <property name="text">
@@ -547,32 +643,18 @@
                </item>
               </widget>
              </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_3">
+             <item row="6" column="2">
+              <widget class="QLineEdit" name="scale_low"/>
+             </item>
+             <item row="19" column="2">
+              <widget class="QCheckBox" name="inParallel">
                <property name="text">
-                <string>Config File</string>
+                <string>InParallel</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
                </property>
               </widget>
-             </item>
-             <item row="12" column="0">
-              <widget class="QLabel" name="label_8">
-               <property name="text">
-                <string>DEC</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="2">
-              <widget class="QLineEdit" name="scale_high"/>
-             </item>
-             <item row="4" column="0">
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>High</string>
-               </property>
-              </widget>
-             </item>
-             <item row="12" column="2">
-              <widget class="QLineEdit" name="dec"/>
              </item>
             </layout>
            </widget>
@@ -613,7 +695,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>301</width>
+              <width>300</width>
               <height>72</height>
              </rect>
             </property>
@@ -664,7 +746,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>303</width>
+           <width>302</width>
            <height>218</height>
           </rect>
          </property>
