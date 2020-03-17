@@ -130,13 +130,10 @@ public:
     bool runInnerSextractor();
 
     //These are for the internal solver
-    bool augmentXYList();
     int runAstrometryEngine();
     bool prepare_job();
 
     QList<Star> getStarList(){return stars;}
-
-    augment_xylist_t* solverParams(){return allaxy;}
 
     Solution solution;
 
@@ -156,11 +153,11 @@ private:
 
     // Generic data image buffer
     uint8_t *m_ImageBuffer { nullptr };
-    //The solving arguments list
-    augment_xylist_t theallaxy;
-    augment_xylist_t* allaxy = &theallaxy;
+
     job_t thejob;
     job_t* job = &thejob;
+
+    char* wcsfn;
 
 signals:
     void starsFound();
