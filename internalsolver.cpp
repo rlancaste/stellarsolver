@@ -458,12 +458,12 @@ bool InternalSolver::prepare_job() {
 
     //I need to get these right!  Right now this does not solve
 
-    bp->logratio_tosolve = 100;
+    bp->logratio_tosolve = log(default_odds_tosolve);
     emit logNeedsUpdating(QString("Set odds ratio to solve to %1 (log = %2)\n").arg( exp(bp->logratio_tosolve)).arg( bp->logratio_tosolve));
    // sp->logratio_toprint = default_odds_toprint;
-    sp->logratio_tokeep = 20;
-    sp->logratio_totune = 50;
-    //sp->logratio_bail_threshold = 0;
+    sp->logratio_tokeep = log(default_odds_tokeep);
+    sp->logratio_totune = log(default_odds_totune);
+    sp->logratio_bail_threshold = log(DEFAULT_BAIL_THRESHOLD);
 
     bp->best_hit_only = TRUE;
 
