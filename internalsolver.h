@@ -132,6 +132,7 @@ public:
     //These are for the internal solver
     bool augmentXYList();
     int runAstrometryEngine();
+    bool prepare_job();
 
     QList<Star> getStarList(){return stars;}
 
@@ -158,6 +159,8 @@ private:
     //The solving arguments list
     augment_xylist_t theallaxy;
     augment_xylist_t* allaxy = &theallaxy;
+    job_t thejob;
+    job_t* job = &thejob;
 
 signals:
     void starsFound();

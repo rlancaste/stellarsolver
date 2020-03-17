@@ -197,6 +197,16 @@ bool InternalSolver::runInnerSextractor()
 
     }
 
+    if(stars.size() > 1)
+    {
+        //Note that a star is dimmer when the mag is greater!
+        //We want to sort in decreasing order though!
+        std::sort(stars.begin(), stars.end(), [](const Star &s1, const Star &s2)
+        {
+            return s1.mag < s2.mag;
+        });
+    }
+
     emit starsFound();
     return true;
 
@@ -799,9 +809,10 @@ bool InternalSolver::augmentXYList()
             fits_header_add_int(hdr, key, hi, "field range: high");
         }
     }
-
+emit logNeedsUpdating("Hello, here it is:");
     I = 0;
     for (i=0; i<sl_size(allaxy->verifywcs); i++) {
+        emit logNeedsUpdating("nope it isn't");
         sip_t sip;
         const char* fn;
         int ext;
@@ -836,6 +847,7 @@ bool InternalSolver::augmentXYList()
     }
 
     if (allaxy->predistort) {
+        emit logNeedsUpdating("yes it is");
         fits_header_add_double(hdr, "ANDPIX0", allaxy->predistort->wcstan.crpix[0], "Pre-distortion ref pix x");
         fits_header_add_double(hdr, "ANDPIX1", allaxy->predistort->wcstan.crpix[1], "Pre-distortion ref pix y");
         add_sip_coeffs(hdr, "AND", allaxy->predistort);
@@ -912,6 +924,273 @@ cleanup:
 
 }
 
+
+bool InternalSolver::prepare_job() {
+    blind_t* bp = &(job->bp);
+    solver_t* sp = &(bp->solver);
+
+    job->scales = dl_new(8);
+    job->depths = il_new(8);
+    job->ra_center = ra_center;
+    job->dec_center = dec_center;
+    job->search_radius = search_radius;
+    job->use_radec_center = use_position ? TRUE : FALSE;
+
+    double dnil = -HUGE_VAL;
+    char *pstr;
+    int n;
+    anbool run;
+
+    anbool default_tweak = TRUE;
+    int default_tweakorder = 2;
+    double default_odds_toprint = 1e6;
+    double default_odds_tokeep = 1e9;
+    double default_odds_tosolve = 1e9;
+    double default_odds_totune = 1e6;
+    //double default_image_fraction = 1.0;
+    char* fn;
+    double val;
+    char pretty[FITS_LINESZ+1];
+
+    blind_init(bp);
+    // must be in this order because init_parameters handily zeros out sp
+    solver_set_default_values(sp);
+
+    // Here we assume that the field's pixel coordinataes go from zero to IMAGEW,H.
+
+    sp->field_maxx = stats.width;
+    sp->field_maxy = stats.height;
+
+    sp->verify_uniformize = allaxy->verify_uniformize;
+    sp->verify_dedup = allaxy->verify_dedup;
+
+    sp->verify_pix = allaxy->pixelerr;
+   // sp->codetol = allaxy->codetol;  //Causes it to not solve????
+    //sp->distractor_ratio
+
+
+    blind_set_solvedout_file  (bp, allaxy->solvedfn);
+    blind_set_match_file   (bp, allaxy->matchfn);
+    blind_set_rdls_file    (bp, allaxy->rdlsfn);
+    blind_set_wcs_file     (bp, allaxy->wcsfn);
+    blind_set_corr_file    (bp, allaxy->corrfn);
+    blind_set_cancel_file  (bp, allaxy->cancelfn);
+    blind_set_xcol(bp, allaxy->xcol);
+    blind_set_ycol(bp, allaxy->ycol);
+
+    //bp->timelimit    Is this needed?
+    bp->cpulimit = solverTimeLimit;
+
+
+    //I need to get these right!  Right now this does not solve
+/**
+    bp->logratio_tosolve = default_odds_tosolve;
+    emit logNeedsUpdating(QString("Set odds ratio to solve to %1 (log = %2)\n").arg( exp(bp->logratio_tosolve)).arg( bp->logratio_tosolve));
+    sp->logratio_toprint = default_odds_toprint;
+    sp->logratio_tokeep = default_odds_tokeep;
+    sp->logratio_totune = allaxy->odds_to_tune_up;
+    sp->logratio_bail_threshold = allaxy->odds_to_bail;
+
+
+    val = 0.5;
+    if (val > 0.0)
+        sp->logratio_stoplooking = log(val);
+
+    bp->best_hit_only = TRUE;
+
+    // gotta keep it to solve it!
+    sp->logratio_tokeep = MIN(sp->logratio_tokeep, bp->logratio_tosolve);
+    // gotta print it to keep it (so what if that doesn't make sense)!
+    sp->logratio_toprint = MIN(sp->logratio_toprint, sp->logratio_tokeep);
+ **/
+
+    // job->image_fraction    This was commented out in the original code?
+    job->include_default_scales = 0;
+
+    sp->parity = allaxy->parity;
+
+    sp->set_crpix = allaxy->set_crpix;
+    if (sp->set_crpix) {
+        if (allaxy->set_crpix_center) {
+            sp->set_crpix_center = allaxy->set_crpix_center;
+        } else {
+            sp->crpix[0] = allaxy->crpix[0];
+            sp->crpix[1] = allaxy->crpix[1];
+        }
+    }
+
+    sp->do_tweak = allaxy->tweak;
+    if(sp->do_tweak == TRUE)
+    {
+        sp->do_tweak = allaxy->tweak;
+        sp->tweak_aborder = allaxy->tweakorder;
+        sp->tweak_abporder = allaxy->tweakorder;
+    }
+    else
+    {
+        sp->tweak_aborder = sp->tweak_abporder = 1;
+    }
+
+/**
+    val = qfits_header_getdouble(hdr, "ANQSFMIN", 0.0);
+    if (val > 0.0)
+        bp->quad_size_fraction_lo = val;
+    val = qfits_header_getdouble(hdr, "ANQSFMAX", 0.0);
+    if (val > 0.0)
+        bp->quad_size_fraction_hi = val;
+**/
+    // tag-along columns
+
+    /**
+    bp->rdls_tagalong_all = qfits_header_getboolean(hdr, "ANTAGALL", FALSE);
+    if (!bp->rdls_tagalong_all) {
+        n = 1;
+        while (1) {
+            char key[64];
+            char* val;
+            sprintf(key, "ANTAG%i", n);
+            val = fits_get_dupstring(hdr, key);
+            if (!val)
+                break;
+            if (!bp->rdls_tagalong)
+                bp->rdls_tagalong = sl_new(16);
+            sl_append_nocopy(bp->rdls_tagalong, val);
+            n++;
+        }
+    }
+    **/
+
+    // sort RDLS column
+    bp->sort_rdls = allaxy->sort_rdls;
+
+    if ((allaxy->scalelo > 0.0) || (allaxy->scalehi > 0.0)) {
+        double appu, appl;
+        switch (allaxy->scaleunit) {
+        case SCALE_UNITS_DEG_WIDTH:
+            emit logNeedsUpdating(QString("Scale range: %1 to %1 degrees wide\n").arg( allaxy->scalelo).arg( allaxy->scalehi));
+            appl = deg2arcsec(allaxy->scalelo) / (double)allaxy->W;
+            appu = deg2arcsec(allaxy->scalehi) / (double)allaxy->W;
+            emit logNeedsUpdating(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg( allaxy->W).arg (appl).arg( appu));
+            break;
+        case SCALE_UNITS_ARCMIN_WIDTH:
+            emit logNeedsUpdating(QString("Scale range: %1 to %2 arcmin wide\n").arg (allaxy->scalelo).arg( allaxy->scalehi));
+            appl = arcmin2arcsec(allaxy->scalelo) / (double)allaxy->W;
+            appu = arcmin2arcsec(allaxy->scalehi) / (double)allaxy->W;
+            emit logNeedsUpdating(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg (allaxy->W).arg( appl).arg (appu));
+            break;
+        case SCALE_UNITS_ARCSEC_PER_PIX:
+            emit logNeedsUpdating(QString("Scale range: %1 to %2 arcsec/pixel\n").arg (allaxy->scalelo).arg (allaxy->scalehi));
+            appl = allaxy->scalelo;
+            appu = allaxy->scalehi;
+            break;
+        case SCALE_UNITS_FOCAL_MM:
+            emit logNeedsUpdating(QString("Scale range: %1 to %2 mm focal length\n").arg (allaxy->scalelo).arg (allaxy->scalehi));
+            // "35 mm" film is 36 mm wide.
+            appu = rad2arcsec(atan(36. / (2. * allaxy->scalelo))) / (double)allaxy->W;
+            appl = rad2arcsec(atan(36. / (2. * allaxy->scalehi))) / (double)allaxy->W;
+            emit logNeedsUpdating(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg (allaxy->W).arg (appl).arg (appu));
+            break;
+        default:
+            emit logNeedsUpdating(QString("Unknown scale unit code %1\n").arg (allaxy->scaleunit));
+            return -1;
+        }
+        dl_append(job->scales, appl);
+        dl_append(job->scales, appu);
+        blind_add_field_range(bp, appl, appu);
+    }
+
+
+    //Depths?
+/**
+    n = 1;
+    while (1) {
+        char key[64];
+        int dlo, dhi;
+        sprintf(key, "ANDPL%i", n);
+        dlo = qfits_header_getint(hdr, key, 0);
+        sprintf(key, "ANDPU%i", n);
+        dhi = qfits_header_getint(hdr, key, 0);
+        if (dlo == 0 && dhi == 0)
+            break;
+        if ((dlo < 1) || (dlo > dhi)) {
+            logerr("Depth range %i to %i is invalid: min must be >= 1, max must be >= min.\n", dlo, dhi);
+            goto bailout;
+        }
+        il_append(job->depths, dlo);
+        il_append(job->depths, dhi);
+        n++;
+    }
+**/
+
+/**
+
+    n = 1;
+    while (1) {
+        char key[64];
+        sip_t wcs;
+        char* keys[] = { "ANW%iPIX1", "ANW%iPIX2", "ANW%iVAL1", "ANW%iVAL2",
+                         "ANW%iCD11", "ANW%iCD12", "ANW%iCD21", "ANW%iCD22" };
+        double* vals[] = { &(wcs.wcstan. crval[0]), &(wcs.wcstan.crval[1]),
+                           &(wcs.wcstan.crpix[0]), &(wcs.wcstan.crpix[1]),
+                           &(wcs.wcstan.cd[0][0]), &(wcs.wcstan.cd[0][1]),
+                           &(wcs.wcstan.cd[1][0]), &(wcs.wcstan.cd[1][1]) };
+        int j;
+        int bail = 0;
+        memset(&wcs, 0, sizeof(wcs));
+        for (j = 0; j < 8; j++) {
+            sprintf(key, keys[j], n);
+            *(vals[j]) = qfits_header_getdouble(hdr, key, dnil);
+            if (*(vals[j]) == dnil) {
+                bail = 1;
+                break;
+            }
+        }
+        if (bail)
+            break;
+
+        // SIP terms
+        sprintf(key, "ANW%i", n);
+        parse_sip_coeffs(hdr, key, &wcs);
+
+        sip_ensure_inverse_polynomials(&wcs);
+
+        blind_add_verify_wcs(bp, &wcs);
+        n++;
+    }
+    **/
+    if(allaxy->predistort)
+    {
+        do {
+            sip_t dsip = *allaxy->predistort;
+            double p0, p1;
+            memset(&dsip, 0, sizeof(sip_t));
+            p0 = allaxy->predistort->wcstan.crpix[0];
+            if (p0 == dnil)
+                break;
+            p1 =allaxy->predistort->wcstan.crpix[1];
+            if (p1 == dnil)
+                break;
+            dsip.wcstan.crpix[0] = p0;
+            dsip.wcstan.crpix[1] = p1;
+            if ((dsip.a_order > 1 && dsip.b_order > 1) ||
+                (dsip.ap_order > 1 && dsip.bp_order > 1)) {
+                sp->predistort = (sip_t*)malloc(sizeof(sip_t));
+                memcpy(sp->predistort, &dsip, sizeof(sip_t));
+            }
+        } while (0);
+}
+
+    // Default: solve first field.
+
+        blind_add_field(bp, 1);
+
+
+    return true;
+
+ bailout:
+    return false;
+}
+
 //This method was adapted from the main method in engine-main.c in astrometry.net
 int InternalSolver::runAstrometryEngine()
 {
@@ -925,9 +1204,6 @@ int InternalSolver::runAstrometryEngine()
     }
 
     augmentXYList();
-
-    char* theAXYFile =  charQStr(QDir::tempPath() + "/SextractorList.axy");
-
 
     int c;
     char* configfn = nullptr;
@@ -948,8 +1224,8 @@ int InternalSolver::runAstrometryEngine()
     engine->minwidth = minwidth;
     engine->maxwidth = maxwidth;
 
-    //log_to(stderr);
-    //log_init(LOG_MSG);
+  //  log_to(stderr);
+  //  log_init(LOG_ALL);
 
     basedir = charQStr(QDir::tempPath());
 
@@ -988,20 +1264,43 @@ int InternalSolver::runAstrometryEngine()
     engine->solvedfn = solvedfn;
 
     i = optind;
-    char* jobfn;
-    job_t* job;
     struct timeval tv1, tv2;
 
-    jobfn = theAXYFile;
-
     gettimeofday(&tv1, nullptr);
-    emit logNeedsUpdating(QString("Reading file \"%1\"...\n").arg( jobfn));
 
-    job = engine_read_job_file(engine, jobfn);
-    if (!job) {
-        emit logNeedsUpdating(QString("Failed to read job file \"%1\"").arg( jobfn));
-        return -1;
-    }
+     prepare_job();
+
+     blind_t* bp = &(job->bp);
+
+     blind_set_field_file(bp, charQStr(sextractorFilePath));
+       // blind_set_field_file(bp, charQStr(theAXYFile));
+
+        if (il_size(job->depths) == 0) {
+            if (engine->inparallel) {
+                // no limit.
+                il_append(job->depths, 0);
+                il_append(job->depths, 0);
+            } else
+                il_append_list(job->depths, engine->default_depths);
+        }
+
+        if (!dl_size(job->scales) || job->include_default_scales) {
+            double arcsecperpix;
+            arcsecperpix = deg2arcsec(engine->minwidth) / stats.width;
+            dl_append(job->scales, arcsecperpix);
+            arcsecperpix = deg2arcsec(engine->maxwidth) / stats.height;
+            dl_append(job->scales, arcsecperpix);
+        }
+        // The job can only decrease the CPU limit.
+            if ((bp->cpulimit == 0.0) || bp->cpulimit > engine->cpulimit) {
+                emit logNeedsUpdating(QString("Decreasing CPU time limit to the engine's limit of %1 seconds\n").arg(engine->cpulimit));
+                bp->cpulimit = engine->cpulimit;
+            }
+            // If not running inparallel, set total limits = limits.
+            if (!engine->inparallel) {
+                bp->total_timelimit = bp->timelimit;
+                bp->total_cpulimit  = bp->cpulimit ;
+            }
 
     if (basedir) {
             emit logNeedsUpdating(QString("Setting job's output base directory to %1\n").arg( basedir));
@@ -1052,7 +1351,7 @@ int InternalSolver::runAstrometryEngine()
             emit logNeedsUpdating("Did not solve (or no WCS file was written).\n");
         }
 
-    job_free(job);
+   // job_free(job);
     gettimeofday(&tv2, nullptr);
     //emit logNeedsUpdating(QString("Spent %1 seconds on this field.\n").arg(millis_between(&tv1, &tv2)/1000.0));
 
