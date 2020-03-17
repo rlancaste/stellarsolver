@@ -326,7 +326,7 @@ void MainWindow::abort()
     if(!sextractorProcess.isNull())
         sextractorProcess->kill();
     if(!internalSolver.isNull())
-        internalSolver->terminate();
+        internalSolver->abort();
     logOutput("Solve Aborted");
 }
 

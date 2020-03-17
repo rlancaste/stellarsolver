@@ -25,6 +25,18 @@ void InternalSolver::run()
     }
 }
 
+void InternalSolver::abort()
+{
+    QFile file(cancelfn);
+    if(QFileInfo(file).dir().exists())
+    {
+        file.open(QIODevice::WriteOnly);
+        file.write("Cancel");
+        file.close();
+    }
+    quit();
+}
+
 //These are some utility functions that can be used in all the code below
 
 //I had to create this method because i was having some difficulty turning a QString into a char* that would persist long enough to be used in the program.
@@ -415,21 +427,27 @@ bool InternalSolver::prepare_job() {
     char* matchfn  = charQStr(QString("%1.match").arg(basedir));
     char* rdlsfn   = charQStr(QString("%1.rdls").arg(basedir));
     char* solvedfn = charQStr(QString("%1.solved").arg(basedir));
-    wcsfn    = charQStr(QString("%1.wcs").arg(basedir));
     char* corrfn   = charQStr(QString("%1.corr").arg(basedir));
+
+    wcsfn          = charQStr(QString("%1.wcs").arg(basedir));
+    cancelfn       = charQStr(QString("%1.cancel").arg(basedir));
 
     removeTempFile(axyfn);
     removeTempFile(matchfn);
     removeTempFile(rdlsfn);
     removeTempFile(solvedfn);
-    removeTempFile(wcsfn);
     removeTempFile(corrfn);
+
+    removeTempFile(wcsfn);
+    removeTempFile(cancelfn);
 
     blind_set_solvedout_file  (bp, solvedfn);
     blind_set_match_file   (bp, matchfn);
     blind_set_rdls_file    (bp, rdlsfn);
-    blind_set_wcs_file     (bp, wcsfn);
     blind_set_corr_file    (bp, corrfn);
+
+    blind_set_wcs_file     (bp, wcsfn);
+    blind_set_cancel_file(bp, cancelfn);
 
     blind_set_xcol(bp, xcol);
     blind_set_ycol(bp, ycol);
@@ -439,26 +457,21 @@ bool InternalSolver::prepare_job() {
 
 
     //I need to get these right!  Right now this does not solve
-/**
-    bp->logratio_tosolve = default_odds_tosolve;
+
+    bp->logratio_tosolve = 100;
     emit logNeedsUpdating(QString("Set odds ratio to solve to %1 (log = %2)\n").arg( exp(bp->logratio_tosolve)).arg( bp->logratio_tosolve));
-    sp->logratio_toprint = default_odds_toprint;
-    sp->logratio_tokeep = default_odds_tokeep;
-    sp->logratio_totune = allaxy->odds_to_tune_up;
-    sp->logratio_bail_threshold = allaxy->odds_to_bail;
-
-
-    val = 0.5;
-    if (val > 0.0)
-        sp->logratio_stoplooking = log(val);
+   // sp->logratio_toprint = default_odds_toprint;
+    sp->logratio_tokeep = 20;
+    sp->logratio_totune = 50;
+    //sp->logratio_bail_threshold = 0;
 
     bp->best_hit_only = TRUE;
 
     // gotta keep it to solve it!
-    sp->logratio_tokeep = MIN(sp->logratio_tokeep, bp->logratio_tosolve);
+    //sp->logratio_tokeep = MIN(sp->logratio_tokeep, bp->logratio_tosolve);
     // gotta print it to keep it (so what if that doesn't make sense)!
-    sp->logratio_toprint = MIN(sp->logratio_toprint, sp->logratio_tokeep);
- **/
+    //sp->logratio_toprint = MIN(sp->logratio_toprint, sp->logratio_tokeep);
+
 
     job->include_default_scales = 0;
     sp->parity = PARITY_BOTH;

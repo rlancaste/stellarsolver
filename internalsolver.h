@@ -132,6 +132,7 @@ public:
     //These are for the internal solver
     int runAstrometryEngine();
     bool prepare_job();
+    void abort();
 
     QList<Star> getStarList(){return stars;}
 
@@ -158,6 +159,7 @@ private:
     job_t* job = &thejob;
 
     char* wcsfn;
+    char* cancelfn;
 
 signals:
     void starsFound();
