@@ -126,9 +126,6 @@ private:
     float deblend_contrast = 1;
     int clean = 1;
     double clean_param = 1;
-    QVector<float> convFilter = {0.260856, 0.483068, 0.260856,
-                                 0.483068, 0.894573, 0.483068,
-                                 0.260856, 0.483068, 0.260856};
     double fwhm = 2;
 
     //Star Filter Parameters

@@ -1,16 +1,15 @@
 #include "internalsolver.h"
 #include "qmath.h"
 
-InternalSolver::InternalSolver(QString file, QString sextractorFile, Statistic imagestats, uint8_t *imageBuffer, bool sextractOnly, QObject *parent) : QThread(parent)
+InternalSolver::InternalSolver(Statistic imagestats, uint8_t *imageBuffer, bool sextractOnly, QObject *parent) : QThread(parent)
 {
  stats=imagestats;
  m_ImageBuffer=imageBuffer;
  justSextract=sextractOnly;
- fileToSolve=file;
 
- sextractorFilePath = sextractorFile;
 }
 
+//This is the method that runs the solver or sextractor.  Do not call it, use start() instead, so that it can start a new thread.
 void InternalSolver::run()
 {
     if(justSextract)
@@ -26,6 +25,7 @@ void InternalSolver::run()
     }
 }
 
+//This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
 void InternalSolver::abort()
 {
     QFile file(cancelfn);
@@ -38,15 +38,31 @@ void InternalSolver::abort()
     quit();
 }
 
-//These are some utility functions that can be used in all the code below
-
 //I had to create this method because i was having some difficulty turning a QString into a char* that would persist long enough to be used in the program.
+//There might be a better way to do this with better memory management, but this is the best I came up with for now.
 char* charQStr(QString in) {
     std::string fname = QString(in).toStdString();
     char* cstr;
     cstr = new char [fname.size()+1];
     strcpy( cstr, fname.c_str() );
     return cstr;
+}
+
+//This method uses a fwhm value to generate the conv filter the sextractor will use.
+void InternalSolver::createConvFilterFromFWHM(double fwhm)
+{
+    this->fwhm = fwhm;
+    convFilter.clear();
+    double a = 1;
+    int size = abs(ceil(fwhm * 0.6));
+    for(int y = -size; y <= size; y++ )
+    {
+        for(int x = -size; x <= size; x++ )
+        {
+            double value = a * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x,2) + pow(y,2) ),2) ) / pow(fwhm,2));
+            convFilter.append(value);
+        }
+    }
 }
 
 //The code in this section is my attempt at running an internal sextractor program based on SEP
@@ -314,26 +330,24 @@ bool InternalSolver::writeSextractorTable()
         return false;
     }
 
-    int tfields=3;
+    int tfields=2;
     int nrows=stars.size();
     QString extname="Sextractor_File";
-    //Columns: MAG_AUTO, mag, X_IMAGE, pixels, Y_IMAGE, pixels
-    char* ttype[] = { "MAG_AUTO", "X_IMAGE", "Y_IMAGE" };
-    char* tform[] = { "1E", "1E", "1E" };
-    char* tunit[] = { "mag", "pixels", "pixels" };
+
+    //Columns: X_IMAGE, double, pixels, Y_IMAGE, double, pixels
+    char* ttype[] = { xcol, ycol };
+    char* tform[] = { colFormat, colFormat };
+    char* tunit[] = { colUnits, colUnits };
     char* extfile = charQStr("Sextractor_File");
 
-    float magArray[stars.size()];
     float xArray[stars.size()];
     float yArray[stars.size()];
 
     for (int i = 0; i < stars.size(); i++)
     {
-        magArray[i] = stars.at(i).mag; //THIS NEEDS TO BE MAGs
         xArray[i] = stars.at(i).x;
         yArray[i] = stars.at(i).y;
     }
-
 
     if(fits_create_tbl(new_fptr, BINARY_TBL, nrows, tfields,
         ttype, tform, tunit, extfile, &status))
@@ -346,19 +360,13 @@ bool InternalSolver::writeSextractorTable()
     int firstelem = 1;
     int column = 1;
 
-    if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, magArray, &status))
-    {
-        emit logNeedsUpdating(QString("Could not write mag in binary table."));
-        return false;
-    }
-    column = 2;
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, xArray, &status))
     {
         emit logNeedsUpdating(QString("Could not write x pixels in binary table."));
         return false;
     }
 
-    column = 3;
+    column = 2;
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, yArray, &status))
     {
         emit logNeedsUpdating(QString("Could not write y pixels in binary table."));
@@ -397,9 +405,9 @@ void InternalSolver::setSearchPosition(double ra, double dec, double rad)
 {
     use_position = true;
     //3
-    ra_center = ra * 15.0;
+    search_ra = ra * 15.0;
     //4
-    dec_center = dec;
+    search_dec = dec;
     //5
     search_radius = rad;
 }
@@ -430,35 +438,28 @@ bool InternalSolver::prepare_job() {
     job->use_radec_center = use_position ? TRUE : FALSE;
     if(use_position)
     {
-        job->ra_center = ra_center;
-        job->dec_center = dec_center;
+        job->ra_center = search_ra;
+        job->dec_center = search_dec;
         job->search_radius = search_radius;
     }
 
+    //These initialize the blind and solver objects, and they MUST be in this order according to astrometry.net
     blind_init(bp);
-    // must be in this order because init_parameters handily zeros out sp
     solver_set_default_values(sp);
 
-    // Here we assume that the field's pixel coordinataes go from zero to IMAGEW,H.
+    //These set the width and the height of the image in the solver
     sp->field_maxx = stats.width;
     sp->field_maxy = stats.height;
-
-    //sp->verify_uniformize =
-    //sp->verify_dedup =
-
-    //sp->verify_pix=
-   // sp->codetol =   //Causes it to not solve????
-    //sp->distractor_ratio
 
     QString basedir = basePath + QDir::separator() + "AstrometrySolver";
     cancelfn       = charQStr(QString("%1.cancel").arg(basedir));
     QFile(cancelfn).remove();
     blind_set_cancel_file(bp, cancelfn);
 
+    //This sets the x and y columns to read from the xyls file
     blind_set_xcol(bp, xcol);
     blind_set_ycol(bp, ycol);
 
-    //bp->timelimit    Is this needed?
     bp->cpulimit = solverTimeLimit;
 
     //Logratios for Solving
@@ -476,6 +477,7 @@ bool InternalSolver::prepare_job() {
     job->include_default_scales = 0;
     sp->parity = PARITY_BOTH;
 
+    //These set the default tweak settings
     sp->do_tweak = TRUE;
     sp->tweak_aborder = 2;
     sp->tweak_abporder = 2;
@@ -527,22 +529,22 @@ int InternalSolver::runAstrometryEngine()
 {
     emit logNeedsUpdating("++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Configuring Internal Solver");
-    sextractorFilePath = QDir::tempPath() + "/SextractorList.xyls";
+
     QFile sextractorFile(sextractorFilePath);
     if(!sextractorFile.exists())
     {
         emit logNeedsUpdating("Please Sextract the image first");
     }
 
-    engine_t* engine;
+    //This creates and sets up the engine
+    engine_t* engine = engine_new();
 
-    engine = engine_new();
-
+    //This sets some basic engine settings
     engine->inparallel = inParallel ? TRUE : FALSE;
-    engine->cpulimit = solverTimeLimit;
     engine->minwidth = minwidth;
     engine->maxwidth = maxwidth;
 
+    //This sets the logging level and log file based on the user's preferences.
     if(logToFile)
     {
         if(QFile(logFile).exists())
@@ -555,16 +557,18 @@ int InternalSolver::runAstrometryEngine()
         }
     }
 
-    gslutils_use_error_system();
+    //gslutils_use_error_system();
 
+    //These set the folders in which Astrometry.net will look for index files, based on the folers set before the solver was started.
     foreach(QString path, indexFolderPaths)
     {
         engine_add_search_path(engine,charQStr(path));
     }
 
+    //This actually adds the index files in the directories above.
     engine_autoindex_search_paths(engine);
 
-
+    //This checks to see that index files were found in the paths above, if not, it prints this warning and aborts.
     if (!pl_size(engine->indexes)) {
         emit logNeedsUpdating(QString("\n\n"
                "---------------------------------------------------------------------\n"
@@ -575,17 +579,6 @@ int InternalSolver::runAstrometryEngine()
         return -1;
     }
 
-    if (engine->minwidth <= 0.0 || engine->maxwidth <= 0.0) {
-        emit logNeedsUpdating(QString("\"minwidth\" and \"maxwidth\" must be positive!\n"));
-        return -1;
-    }
-
-    if (!il_size(engine->default_depths)) {
-        parse_depth_string(engine->default_depths,
-                           "10 20 30 40 50 60 70 80 90 100 "
-                           "110 120 130 140 150 160 170 180 190 200");
-    }
-
     prepare_job();
     engine->cancelfn = cancelfn;
 
@@ -593,6 +586,12 @@ int InternalSolver::runAstrometryEngine()
 
     blind_set_field_file(bp, charQStr(sextractorFilePath));
 
+    //This sets the depths for the job.
+    if (!il_size(engine->default_depths)) {
+        parse_depth_string(engine->default_depths,
+                           "10 20 30 40 50 60 70 80 90 100 "
+                           "110 120 130 140 150 160 170 180 190 200");
+    }
     if (il_size(job->depths) == 0) {
         if (engine->inparallel) {
             // no limit.
@@ -602,31 +601,41 @@ int InternalSolver::runAstrometryEngine()
             il_append_list(job->depths, engine->default_depths);
     }
 
-    if (!dl_size(job->scales) || job->include_default_scales) {
+    //This makes sure the min and max widths for the engine make sense, aborting if not.
+    if (engine->minwidth <= 0.0 || engine->maxwidth <= 0.0 || engine->minwidth > engine->maxwidth) {
+        emit logNeedsUpdating(QString("\"minwidth\" and \"maxwidth\" must be positive and the maxwidth must be greater!\n"));
+        return -1;
+    }
+    ///This sets the scales based on the minwidth and maxwidth if the image scale isn't known
+    if (!dl_size(job->scales)) {
         double arcsecperpix;
         arcsecperpix = deg2arcsec(engine->minwidth) / stats.width;
         dl_append(job->scales, arcsecperpix);
         arcsecperpix = deg2arcsec(engine->maxwidth) / stats.height;
         dl_append(job->scales, arcsecperpix);
     }
-    // The job can only decrease the CPU limit.
-    if ((bp->cpulimit == 0.0) || bp->cpulimit > engine->cpulimit) {
-        emit logNeedsUpdating(QString("Decreasing CPU time limit to the engine's limit of %1 seconds\n").arg(engine->cpulimit));
-        bp->cpulimit = engine->cpulimit;
-    }
+
+    // These set the time limits for the solver
+    bp->cpulimit = solverTimeLimit;
+    engine->cpulimit = solverTimeLimit;
+    bp->timelimit = solverTimeLimit;
+
     // If not running inparallel, set total limits = limits.
     if (!engine->inparallel) {
         bp->total_timelimit = bp->timelimit;
         bp->total_cpulimit  = bp->cpulimit ;
     }
 
+    //This sets the directory for Astrometry.net
     job_set_output_base_dir(job, charQStr(basePath));
 
     emit logNeedsUpdating("Starting Internal Solver Engine!");
 
+    //This runs the job in the engine in the file engine.c
     if (engine_run_job(engine, job))
         emit logNeedsUpdating("Failed to run_job()\n");
 
+    //This deletes the engine object since it is no longer needed.
     engine_free(engine);
 
     //Note: I can only get these items after the solve because I made a small change to the
@@ -648,7 +657,6 @@ int InternalSolver::runAstrometryEngine()
         sip_get_field_size(wcs, &fieldw, &fieldh, &fieldunits);
         orient = sip_get_orientation(wcs);
         emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        emit logNeedsUpdating(QString("Solved Field: %1").arg(fileToSolve));
         emit logNeedsUpdating(QString("Solve Log Odds:  %1").arg(bp->solver.best_logodds));
         emit logNeedsUpdating(QString("Number of Matches:  %1").arg(match.nmatch));
         emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
@@ -666,7 +674,7 @@ int InternalSolver::runAstrometryEngine()
     else
     {
         emit logNeedsUpdating("Solver was aborted, timed out, or failed, so no solution was found");
-        emit finished(1);
-        return 1;
+        emit finished(-1);
+        return -1;
     }
 }

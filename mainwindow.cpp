@@ -125,20 +125,7 @@ MainWindow::MainWindow() :
     connect(ui->clean_param, &QLineEdit::textChanged, this, [this](){ clean_param = ui->clean_param->text().toDouble(); });
 
     //This generates an array that can be used as a convFilter based on the desired FWHM
-    connect(ui->fwhm, &QLineEdit::textChanged, this, [this](QString text){
-        convFilter.clear();
-        double a = 1;
-        fwhm = text.toDouble();
-        int size = abs(ceil(fwhm * 0.6));
-        for(int y = -size; y <= size; y++ )
-        {
-            for(int x = -size; x <= size; x++ )
-            {
-                double value = a * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x,2) + pow(y,2) ),2) ) / pow(fwhm,2));
-                convFilter.append(value);
-            }
-        }
-    });
+    connect(ui->fwhm, &QLineEdit::textChanged, this, [this](){ fwhm = ui->fwhm->text().toDouble(); });
 
     //Star Filter Settings
     connect(ui->maxEllipse, &QLineEdit::textChanged, this, [this](){ maxEllipse = ui->maxEllipse->text().toDouble(); });
@@ -1703,7 +1690,7 @@ bool MainWindow::sextract(bool justSextract)
 
 
 
-//The code for this method is copied and pasted and modified from OfflineAstroetryParser in KStars
+//The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
 bool MainWindow::solveField()
 {
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -1817,7 +1804,7 @@ bool MainWindow::solverComplete(int x)
 bool MainWindow::runInnerSextractor()
 {
     internalSolver.clear();
-    internalSolver = new InternalSolver(fileToSolve, sextractorFilePath, stats, m_ImageBuffer, true, this);
+    internalSolver = new InternalSolver(stats, m_ImageBuffer, true, this);
 
     //These are to pass the parameters to the internal sextractor
     internalSolver->apertureShape = apertureShape;
@@ -1831,8 +1818,7 @@ bool MainWindow::runInnerSextractor()
     internalSolver->deblend_contrast = deblend_contrast;
     internalSolver->clean = clean;
     internalSolver->clean_param = clean_param;
-    internalSolver->convFilter = convFilter;
-    internalSolver->fwhm = fwhm;
+    internalSolver->createConvFilterFromFWHM(fwhm);
 
     //Star Filter Settings
     internalSolver->removeBrightest = removeBrightest;
@@ -1847,10 +1833,8 @@ bool MainWindow::runInnerSextractor()
 
 bool MainWindow::runInnerSolver()
 {
-    sextractorFilePath = tempPath + QDir::separator() + "SextractorList.xyls";
-
     internalSolver.clear();
-    internalSolver = new InternalSolver(fileToSolve, sextractorFilePath, stats ,m_ImageBuffer, false, this);
+    internalSolver = new InternalSolver(stats ,m_ImageBuffer, false, this);
     connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
     connect(internalSolver, &InternalSolver::finished, this, &MainWindow::internalSolverComplete);
 
@@ -1866,8 +1850,7 @@ bool MainWindow::runInnerSolver()
     internalSolver->deblend_contrast = deblend_contrast;
     internalSolver->clean = clean;
     internalSolver->clean_param = clean_param;
-    internalSolver->convFilter = convFilter;
-    internalSolver->fwhm = fwhm;
+    internalSolver->createConvFilterFromFWHM(fwhm);
 
     //Star Filter Settings
     internalSolver->removeBrightest = removeBrightest;
