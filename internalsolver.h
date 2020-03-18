@@ -92,7 +92,14 @@ public:
     QVector<float> convFilter= {0.260856, 0.483068, 0.260856,
                                 0.483068, 0.894573, 0.483068,
                                 0.260856, 0.483068, 0.260856};
+
     double fwhm = 2;
+
+    //Star Filter Parameters
+    bool resort = true;  //NOTE: This is REQUIRED for the filters
+    double maxEllipse = 0;
+    double removeBrightest = 0;
+    double removeDimmest = 0;
 
     //Astrometry Config/Engine Parameters
     QStringList indexFolderPaths;
@@ -101,8 +108,6 @@ public:
     double minwidth = 0.1;
     double maxwidth = 180;
 
-    anbool resort=TRUE;
-    anbool sort_ascending = TRUE;
     char* xcol=strdup("X_IMAGE");
     char* ycol=strdup("Y_IMAGE");
     char* sortcol=strdup("MAG_AUTO");

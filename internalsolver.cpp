@@ -194,15 +194,60 @@ bool InternalSolver::runInnerSextractor()
 
     }
 
+    emit logNeedsUpdating(QString("Stars Found before Filtering: %1").arg(stars.size()));
+
     if(stars.size() > 1)
     {
-        //Note that a star is dimmer when the mag is greater!
-        //We want to sort in decreasing order though!
-        std::sort(stars.begin(), stars.end(), [](const Star &s1, const Star &s2)
+        if(resort)
         {
-            return s1.mag < s2.mag;
-        });
+            //Note that a star is dimmer when the mag is greater!
+            //We want to sort in decreasing order though!
+            std::sort(stars.begin(), stars.end(), [](const Star &s1, const Star &s2)
+            {
+                return s1.mag < s2.mag;
+            });
+        }
+
+        if(resort && removeBrightest > 0.0)
+        {
+            int numToRemove = stars.count() * (removeBrightest/100.0);
+            emit logNeedsUpdating(QString("Removing the %1 brightest stars").arg(numToRemove));
+            if(numToRemove > 1)
+            {
+                for(int i = 0; i<numToRemove;i++)
+                    stars.removeFirst();
+            }
+        }
+
+        if(resort && removeDimmest > 0.0)
+        {
+            int numToRemove = stars.count() * (removeDimmest/100.0);
+            emit logNeedsUpdating(QString("Removing the %1 dimmest stars").arg(numToRemove));
+            if(numToRemove > 1)
+            {
+                for(int i = 0; i<numToRemove;i++)
+                    stars.removeLast();
+            }
+        }
+
+        if(maxEllipse > 1)
+        {
+            emit logNeedsUpdating(QString("Removing the stars with a/b ratios greater than %1").arg(maxEllipse));
+            for(int i = 0; i<stars.size();i++)
+            {
+                Star star = stars.at(i);
+                double ratio = star.a/star.b;
+                if(ratio>maxEllipse)
+                {
+                    stars.removeAt(i);
+                    i--;
+                }
+            }
+        }
+
     }
+
+    emit logNeedsUpdating(QString("Stars Found after Filtering: %1").arg(stars.size()));
 
     emit starsFound();
     return true;
@@ -584,6 +629,8 @@ int InternalSolver::runAstrometryEngine()
 
     engine_free(engine);
 
+    //Note: I can only get these items after the solve because I made a small change to the
+    //Astrometry.net Code.  I made it return in solve_fields in blind.c before it ran "cleanup"
     MatchObj match =bp->solver.best_match;
     sip_t *wcs = match.sip;
 
@@ -603,6 +650,7 @@ int InternalSolver::runAstrometryEngine()
         emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         emit logNeedsUpdating(QString("Solved Field: %1").arg(fileToSolve));
         emit logNeedsUpdating(QString("Solve Log Odds:  %1").arg(bp->solver.best_logodds));
+        emit logNeedsUpdating(QString("Number of Matches:  %1").arg(match.nmatch));
         emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
         emit logNeedsUpdating(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
         emit logNeedsUpdating(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));

@@ -131,8 +131,13 @@ private:
                                  0.260856, 0.483068, 0.260856};
     double fwhm = 2;
 
+    //Star Filter Parameters
+    bool resort = true;  //NOTE: This is REQUIRED for the filters
+    double maxEllipse = 0;
+    double removeBrightest = 0;
+    double removeDimmest = 0;
+
     //Parameters for solving
-    bool resort = true;
     bool use_scale = false;
     double fov_low, fov_high;
     QString units;
@@ -149,6 +154,11 @@ private:
     bool logToFile = false;
     QString logFile = QDir::tempPath() + "/AstrometryLog.txt";
     int logLevel = 0;
+
+    //LogOdds Settings
+    double logratio_tosolve = log(1e9);
+    double logratio_tokeep  = log(1e9);
+    double logratio_totune  = log(1e6);
 
     //Data about the image
     bool imageLoaded = false;

@@ -140,6 +140,10 @@ MainWindow::MainWindow() :
         }
     });
 
+    //Star Filter Settings
+    connect(ui->maxEllipse, &QLineEdit::textChanged, this, [this](){ maxEllipse = ui->maxEllipse->text().toDouble(); });
+    connect(ui->brightestPercent, &QLineEdit::textChanged, this, [this](){ removeBrightest = ui->brightestPercent->text().toDouble(); });
+    connect(ui->dimmestPercent, &QLineEdit::textChanged, this, [this](){ removeDimmest = ui->dimmestPercent->text().toDouble(); });
 
     //Astrometry Settings
     ui->configFilePath->setText(confPath);
@@ -159,6 +163,13 @@ MainWindow::MainWindow() :
     connect(ui->ra, &QLineEdit::textChanged, this, [this](){ ra = ui->ra->text().toDouble(); });
     connect(ui->dec, &QLineEdit::textChanged, this, [this](){ dec = ui->dec->text().toDouble(); });
     connect(ui->radius, &QLineEdit::textChanged, this, [this](){ radius = ui->radius->text().toDouble(); });
+
+    ui->oddsToKeep->setText(QString::number(logratio_tokeep));
+    ui->oddsToSolve->setText(QString::number(logratio_tosolve));
+    ui->oddsToTune->setText(QString::number(logratio_totune));
+    connect(ui->oddsToKeep, &QLineEdit::textChanged, this, [this](){ logratio_tokeep = ui->oddsToKeep->text().toDouble(); });
+    connect(ui->oddsToSolve, &QLineEdit::textChanged, this, [this](){ logratio_tosolve = ui->oddsToSolve->text().toDouble(); });
+    connect(ui->oddsToTune, &QLineEdit::textChanged, this, [this](){ logratio_totune = ui->oddsToTune->text().toDouble(); });
 
     ui->logFile->setText(logFile);
     connect(ui->logToFile, &QCheckBox::stateChanged, this, [this](){ logToFile = ui->logToFile->isChecked(); });
@@ -1823,6 +1834,11 @@ bool MainWindow::runInnerSextractor()
     internalSolver->convFilter = convFilter;
     internalSolver->fwhm = fwhm;
 
+    //Star Filter Settings
+    internalSolver->removeBrightest = removeBrightest;
+    internalSolver->removeDimmest = removeDimmest;
+    internalSolver->maxEllipse = maxEllipse;
+
     connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
     connect(internalSolver, &InternalSolver::starsFound, this, &MainWindow::innerSextractorComplete);
     internalSolver->start();
@@ -1853,6 +1869,11 @@ bool MainWindow::runInnerSolver()
     internalSolver->convFilter = convFilter;
     internalSolver->fwhm = fwhm;
 
+    //Star Filter Settings
+    internalSolver->removeBrightest = removeBrightest;
+    internalSolver->removeDimmest = removeDimmest;
+    internalSolver->maxEllipse = maxEllipse;
+
     //Astrometry Settings
 
     internalSolver->setIndexFolderPaths(indexFilePaths);
@@ -1866,6 +1887,10 @@ bool MainWindow::runInnerSolver()
 
     if(use_position)
         internalSolver->setSearchPosition(ra, dec, radius);
+
+    internalSolver->logratio_tokeep = logratio_tokeep;
+    internalSolver->logratio_totune = logratio_totune;
+    internalSolver->logratio_tosolve = logratio_tosolve;
 
     internalSolver->logToFile = logToFile;
     internalSolver->logFile = logFile;
