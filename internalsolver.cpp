@@ -522,6 +522,8 @@ int InternalSolver::runAstrometryEngine()
 
     if(logToFile)
     {
+        if(QFile(logFile).exists())
+            QFile(logFile).remove();
         FILE *log = fopen(charQStr(logFile),"wb");
         if(log)
         {
@@ -611,8 +613,6 @@ int InternalSolver::runAstrometryEngine()
 
     if (engine_run_job(engine, job))
         emit logNeedsUpdating("Failed to run_job()\n");
-
-    emit logNeedsUpdating(QString("Logodds: %1").arg(job->bp.solver.best_logodds));
 
     sip_t wcs;
         double ra, dec, fieldw, fieldh;
