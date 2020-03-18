@@ -4,63 +4,32 @@
 //Includes for this project
 #include "structuredefinitions.h"
 
-//system includes
-#include "math.h"
-#include <sys/mman.h>
-
 //QT Includes
-#include <QMainWindow>
-#include <QObject>
-#include <QWidget>
 #include <QDir>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QTextStream>
-#include <QProcess>
-#include <QPointer>
-#include <QScrollBar>
-#include <QTime>
 #include <QThread>
 
 //CFitsio Includes
-#include "longnam.h"
 #include "fitsio.h"
 
 //KStars related includes
 #include "stretch.h"
-#include "math.h"
-#include "dms.h"
-#include "bayer.h"
 
 //Sextractor Includes
 #include "sep/sep.h"
 
 //Astrometry.net includes
 extern "C"{
-#include "tic.h"
-#include "os-features.h"
-#include "fileutils.h"
-#include "ioutils.h"
-#include "bl.h"
-#include "an-bool.h"
-#include "solver.h"
-#include "fitsioutils.h"
 #include "blindutils.h"
-#include "astrometry/blind.h"
 #include "log.h"
 #include "engine.h"
-#include "an-opts.h"
-#include "gslutils.h"
-#include "augment-xylist.h"
-#include "anqfits.h"
-#include "ioutils.h"
-#include "fitsioutils.h"
-#include "permutedsort.h"
-#include "fitstable.h"
-#include "sip_qfits.h"
 #include "sip-utils.h"
-#include "tabsort.h"
 }
+
+//These are from augment xylist and are needed for the scale calculation
+#define SCALE_UNITS_DEG_WIDTH 0
+#define SCALE_UNITS_ARCMIN_WIDTH 1
+#define SCALE_UNITS_ARCSEC_PER_PIX 2
+#define SCALE_UNITS_FOCAL_MM 3
 
 class InternalSolver : public QThread
 {
