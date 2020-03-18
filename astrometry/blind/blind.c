@@ -1048,7 +1048,7 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
         last_utime = utime;
         last_stime = stime;
         last_wtime = wtime;
-
+    return;
     cleanup:
         solver_cleanup_field(sp);
     }

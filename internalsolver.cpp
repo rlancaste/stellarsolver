@@ -19,6 +19,7 @@ void InternalSolver::run()
     {
         if(runInnerSextractor())
         {
+            emit logNeedsUpdating(QString("Found %1 stars").arg(stars.size()));
             if(writeSextractorTable())
                 runAstrometryEngine();
         }
@@ -389,14 +390,6 @@ bool InternalSolver::prepare_job() {
         job->search_radius = search_radius;
     }
 
-    anbool default_tweak = TRUE;
-    int default_tweakorder = 2;
-    double default_odds_toprint = 1e6;
-    double default_odds_tokeep = 1e9;
-    double default_odds_tosolve = 1e9;
-    double default_odds_totune = 1e6;
-    //double default_image_fraction = 1.0;
-
     blind_init(bp);
     // must be in this order because init_parameters handily zeros out sp
     solver_set_default_values(sp);
@@ -412,17 +405,9 @@ bool InternalSolver::prepare_job() {
    // sp->codetol =   //Causes it to not solve????
     //sp->distractor_ratio
 
-    QString basedir = basePath + QDir::separator() + "SextractorList";
-
-    //Files that we will need later
-    solvedfn       = charQStr(QString("%1.solved").arg(basedir));
-    wcsfn          = charQStr(QString("%1.wcs").arg(basedir));
+    QString basedir = basePath + QDir::separator() + "AstrometrySolver";
     cancelfn       = charQStr(QString("%1.cancel").arg(basedir));
-    QFile(solvedfn).remove();
-    QFile(wcsfn).remove();
     QFile(cancelfn).remove();
-    blind_set_solvedout_file  (bp, solvedfn);
-    blind_set_wcs_file     (bp, wcsfn);
     blind_set_cancel_file(bp, cancelfn);
 
     blind_set_xcol(bp, xcol);
@@ -432,10 +417,10 @@ bool InternalSolver::prepare_job() {
     bp->cpulimit = solverTimeLimit;
 
     //Logratios for Solving
-    bp->logratio_tosolve = log(default_odds_tosolve);
+    bp->logratio_tosolve = logratio_tosolve;
     emit logNeedsUpdating(QString("Set odds ratio to solve to %1 (log = %2)\n").arg( exp(bp->logratio_tosolve)).arg( bp->logratio_tosolve));
-    sp->logratio_tokeep = log(default_odds_tokeep);
-    sp->logratio_totune = log(default_odds_totune);
+    sp->logratio_tokeep = logratio_tokeep;
+    sp->logratio_totune = logratio_totune;
     sp->logratio_bail_threshold = log(DEFAULT_BAIL_THRESHOLD);
 
     bp->best_hit_only = TRUE;
@@ -486,7 +471,7 @@ bool InternalSolver::prepare_job() {
         blind_add_field_range(bp, appl, appu);
     }
 
-        blind_add_field(bp, 1);
+    blind_add_field(bp, 1);
 
 
     return true;
@@ -504,14 +489,7 @@ int InternalSolver::runAstrometryEngine()
         emit logNeedsUpdating("Please Sextract the image first");
     }
 
-   // augmentXYList();
-
-    int i;
     engine_t* engine;
-    char* basedir = nullptr;
-    sl* strings = sl_new(4);
-
-    sl* inds = sl_new(4);
 
     engine = engine_new();
 
@@ -531,8 +509,6 @@ int InternalSolver::runAstrometryEngine()
             log_to(log);
         }
     }
-
-    basedir = charQStr(QDir::tempPath());
 
     gslutils_use_error_system();
 
@@ -565,97 +541,84 @@ int InternalSolver::runAstrometryEngine()
                            "110 120 130 140 150 160 170 180 190 200");
     }
 
+    prepare_job();
     engine->cancelfn = cancelfn;
-    engine->solvedfn = solvedfn;
 
-    i = optind;
-    struct timeval tv1, tv2;
+    blind_t* bp = &(job->bp);
 
-    gettimeofday(&tv1, nullptr);
+    blind_set_field_file(bp, charQStr(sextractorFilePath));
 
-     prepare_job();
+    if (il_size(job->depths) == 0) {
+        if (engine->inparallel) {
+            // no limit.
+            il_append(job->depths, 0);
+            il_append(job->depths, 0);
+        } else
+            il_append_list(job->depths, engine->default_depths);
+    }
 
-     blind_t* bp = &(job->bp);
+    if (!dl_size(job->scales) || job->include_default_scales) {
+        double arcsecperpix;
+        arcsecperpix = deg2arcsec(engine->minwidth) / stats.width;
+        dl_append(job->scales, arcsecperpix);
+        arcsecperpix = deg2arcsec(engine->maxwidth) / stats.height;
+        dl_append(job->scales, arcsecperpix);
+    }
+    // The job can only decrease the CPU limit.
+    if ((bp->cpulimit == 0.0) || bp->cpulimit > engine->cpulimit) {
+        emit logNeedsUpdating(QString("Decreasing CPU time limit to the engine's limit of %1 seconds\n").arg(engine->cpulimit));
+        bp->cpulimit = engine->cpulimit;
+    }
+    // If not running inparallel, set total limits = limits.
+    if (!engine->inparallel) {
+        bp->total_timelimit = bp->timelimit;
+        bp->total_cpulimit  = bp->cpulimit ;
+    }
 
-     blind_set_field_file(bp, charQStr(sextractorFilePath));
-
-     if (il_size(job->depths) == 0) {
-         if (engine->inparallel) {
-             // no limit.
-             il_append(job->depths, 0);
-             il_append(job->depths, 0);
-         } else
-             il_append_list(job->depths, engine->default_depths);
-     }
-
-     if (!dl_size(job->scales) || job->include_default_scales) {
-         double arcsecperpix;
-         arcsecperpix = deg2arcsec(engine->minwidth) / stats.width;
-         dl_append(job->scales, arcsecperpix);
-         arcsecperpix = deg2arcsec(engine->maxwidth) / stats.height;
-         dl_append(job->scales, arcsecperpix);
-     }
-     // The job can only decrease the CPU limit.
-     if ((bp->cpulimit == 0.0) || bp->cpulimit > engine->cpulimit) {
-         emit logNeedsUpdating(QString("Decreasing CPU time limit to the engine's limit of %1 seconds\n").arg(engine->cpulimit));
-         bp->cpulimit = engine->cpulimit;
-     }
-     // If not running inparallel, set total limits = limits.
-     if (!engine->inparallel) {
-         bp->total_timelimit = bp->timelimit;
-         bp->total_cpulimit  = bp->cpulimit ;
-     }
-
-    if (basedir)
-            job_set_output_base_dir(job, basedir);
+    job_set_output_base_dir(job, charQStr(basePath));
 
     emit logNeedsUpdating("Starting Internal Solver Engine!");
 
     if (engine_run_job(engine, job))
         emit logNeedsUpdating("Failed to run_job()\n");
 
-    sip_t wcs;
+    engine_free(engine);
+
+    MatchObj match =bp->solver.best_match;
+    sip_t *wcs = match.sip;
+
+    if(wcs)
+    {
         double ra, dec, fieldw, fieldh;
         char rastr[32], decstr[32];
         char* fieldunits;
 
+        // print info about the field.
 
-    // print info about the field.
+        double orient;
+        sip_get_radec_center(wcs, &ra, &dec);
+        sip_get_radec_center_hms_string(wcs, rastr, decstr);
+        sip_get_field_size(wcs, &fieldw, &fieldh, &fieldunits);
+        orient = sip_get_orientation(wcs);
+        emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         emit logNeedsUpdating(QString("Solved Field: %1").arg(fileToSolve));
-        if (file_exists (wcsfn)) {
-            double orient;
-            if (!sip_read_header_file (wcsfn, &wcs)) {
-                emit logNeedsUpdating(QString("Failed to read WCS header from file %1").arg(wcsfn));
-                return false;
-            }
-            sip_get_radec_center(&wcs, &ra, &dec);
-            sip_get_radec_center_hms_string(&wcs, rastr, decstr);
-            sip_get_field_size(&wcs, &fieldw, &fieldh, &fieldunits);
-            orient = sip_get_orientation(&wcs);
-            emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
-            emit logNeedsUpdating(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
-            emit logNeedsUpdating(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));
-            emit logNeedsUpdating(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
-            // Note, negative determinant = positive parity.
-            double det = sip_det_cd(&wcs);
-            emit logNeedsUpdating(QString("Field parity: %1\n").arg( (det < 0 ? "pos" : "neg")));
+        emit logNeedsUpdating(QString("Solve Log Odds:  %1").arg(bp->solver.best_logodds));
+        emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
+        emit logNeedsUpdating(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
+        emit logNeedsUpdating(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));
+        emit logNeedsUpdating(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
+        // Note, negative determinant = positive parity.
+        double det = sip_det_cd(wcs);
+        emit logNeedsUpdating(QString("Field parity: %1\n").arg( (det < 0 ? "pos" : "neg")));
 
-            solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient};
-
-        } else {
-            emit logNeedsUpdating("Did not solve (or no WCS file was written).\n");
-        }
-
-   // job_free(job);
-    gettimeofday(&tv2, nullptr);
-    //emit logNeedsUpdating(QString("Spent %1 seconds on this field.\n").arg(millis_between(&tv1, &tv2)/1000.0));
-
-    engine_free(engine);
-    sl_free2(strings);
-    sl_free2(inds);
-
-    emit finished(0);
-
-    return 0;
+        solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient};
+        emit finished(0);
+        return 0;
+    }
+    else
+    {
+        emit logNeedsUpdating("Solver was aborted, timed out, or failed, so no solution was found");
+        emit finished(1);
+        return 1;
+    }
 }

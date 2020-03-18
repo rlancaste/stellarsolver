@@ -119,6 +119,11 @@ public:
     QString logFile = QDir::tempPath() + "/AstrometryLog.txt";
     int logLevel = 0;
 
+    //LogOdds Settings
+    double logratio_tosolve = log(1e9);
+    double logratio_tokeep  = log(1e9);
+    double logratio_totune  = log(1e6);
+
     void setSearchScale(double fov_low, double fov_high, QString units);
     void setSearchPosition(double ra, double dec, double rad);
     void setIndexFolderPaths(QStringList paths);
@@ -162,8 +167,6 @@ private:
     job_t thejob;
     job_t* job = &thejob;
 
-    char* solvedfn;
-    char* wcsfn;
     char* cancelfn;
 
 signals:
