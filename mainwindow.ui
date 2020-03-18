@@ -86,7 +86,7 @@
       </property>
       <widget class="QToolBox" name="optionsBox">
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="Basic">
         <property name="geometry">
@@ -94,7 +94,7 @@
           <x>0</x>
           <y>0</y>
           <width>250</width>
-          <height>217</height>
+          <height>384</height>
          </rect>
         </property>
         <attribute name="label">
@@ -461,9 +461,9 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>0</y>
+              <y>-256</y>
               <width>272</width>
-              <height>640</height>
+              <height>760</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_5">
@@ -482,43 +482,10 @@
              <property name="spacing">
               <number>-1</number>
              </property>
-             <item row="5" column="2">
-              <widget class="QCheckBox" name="use_scale">
+             <item row="26" column="2">
+              <widget class="QLineEdit" name="logFile">
                <property name="text">
-                <string>Use Scale</string>
-               </property>
-              </widget>
-             </item>
-             <item row="22" column="2">
-              <widget class="QLineEdit" name="minWidth">
-               <property name="text">
-                <string>0.1</string>
-               </property>
-              </widget>
-             </item>
-             <item row="8" column="0">
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>High</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <widget class="QLineEdit" name="configFilePath"/>
-             </item>
-             <item row="8" column="2">
-              <widget class="QLineEdit" name="scale_high"/>
-             </item>
-             <item row="17" column="2">
-              <widget class="QLineEdit" name="radius"/>
-             </item>
-             <item row="16" column="2">
-              <widget class="QLineEdit" name="dec"/>
-             </item>
-             <item row="23" column="0">
-              <widget class="QLabel" name="label_28">
-               <property name="text">
-                <string>maxwidth</string>
+                <string/>
                </property>
               </widget>
              </item>
@@ -529,13 +496,20 @@
                </property>
               </widget>
              </item>
-             <item row="25" column="2">
-              <widget class="QListWidget" name="indexPaths"/>
-             </item>
-             <item row="6" column="0">
-              <widget class="QLabel" name="label_4">
+             <item row="26" column="0">
+              <widget class="QLabel" name="label_32">
                <property name="text">
-                <string>Low</string>
+                <string>LogFile</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="2">
+              <widget class="QLineEdit" name="scale_low"/>
+             </item>
+             <item row="22" column="2">
+              <widget class="QLineEdit" name="minWidth">
+               <property name="text">
+                <string>0.1</string>
                </property>
               </widget>
              </item>
@@ -546,72 +520,16 @@
                </property>
               </widget>
              </item>
+             <item row="0" column="2">
+              <widget class="QLineEdit" name="configFilePath"/>
+             </item>
+             <item row="16" column="2">
+              <widget class="QLineEdit" name="dec"/>
+             </item>
              <item row="0" column="0">
               <widget class="QLabel" name="label_3">
                <property name="text">
                 <string>Config File</string>
-               </property>
-              </widget>
-             </item>
-             <item row="12" column="0">
-              <widget class="QLabel" name="label_6">
-               <property name="text">
-                <string>Units</string>
-               </property>
-              </widget>
-             </item>
-             <item row="23" column="2">
-              <widget class="QLineEdit" name="maxWidth">
-               <property name="text">
-                <string>180</string>
-               </property>
-              </widget>
-             </item>
-             <item row="25" column="0">
-              <widget class="QLabel" name="label_26">
-               <property name="text">
-                <string>Index File Folder Paths</string>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="16" column="0">
-              <widget class="QLabel" name="label_8">
-               <property name="text">
-                <string>DEC</string>
-               </property>
-              </widget>
-             </item>
-             <item row="20" column="0">
-              <widget class="QLabel" name="label_29">
-               <property name="text">
-                <string>Time Limit</string>
-               </property>
-              </widget>
-             </item>
-             <item row="15" column="0">
-              <widget class="QLabel" name="label_7">
-               <property name="text">
-                <string>RA</string>
-               </property>
-              </widget>
-             </item>
-             <item row="15" column="2">
-              <widget class="QLineEdit" name="ra"/>
-             </item>
-             <item row="20" column="2">
-              <widget class="QLineEdit" name="solverTimeLimit">
-               <property name="text">
-                <string>600</string>
-               </property>
-              </widget>
-             </item>
-             <item row="24" column="2">
-              <widget class="QPushButton" name="addIndexPath">
-               <property name="text">
-                <string>Add Indexfile Folder Path</string>
                </property>
               </widget>
              </item>
@@ -629,6 +547,69 @@
                </property>
               </widget>
              </item>
+             <item row="27" column="2">
+              <widget class="QComboBox" name="logLevel">
+               <item>
+                <property name="text">
+                 <string>LOG_NONE</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>LOG_ERROR</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>LOG_MSG</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>LOG_VERB</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>LOG_ALL</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="15" column="2">
+              <widget class="QLineEdit" name="ra"/>
+             </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="label_4">
+               <property name="text">
+                <string>Low</string>
+               </property>
+              </widget>
+             </item>
+             <item row="17" column="2">
+              <widget class="QLineEdit" name="radius"/>
+             </item>
+             <item row="27" column="0">
+              <widget class="QLabel" name="label_33">
+               <property name="text">
+                <string>LogLevel</string>
+               </property>
+              </widget>
+             </item>
+             <item row="28" column="2">
+              <widget class="QPushButton" name="addIndexPath">
+               <property name="text">
+                <string>Add Indexfile Folder Path</string>
+               </property>
+              </widget>
+             </item>
+             <item row="20" column="0">
+              <widget class="QLabel" name="label_29">
+               <property name="text">
+                <string>Time Limit</string>
+               </property>
+              </widget>
+             </item>
              <item row="12" column="2">
               <widget class="QComboBox" name="units">
                <item>
@@ -643,8 +624,29 @@
                </item>
               </widget>
              </item>
-             <item row="6" column="2">
-              <widget class="QLineEdit" name="scale_low"/>
+             <item row="29" column="0">
+              <widget class="QLabel" name="label_26">
+               <property name="text">
+                <string>Index File Folder Paths</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="20" column="2">
+              <widget class="QLineEdit" name="solverTimeLimit">
+               <property name="text">
+                <string>600</string>
+               </property>
+              </widget>
+             </item>
+             <item row="16" column="0">
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>DEC</string>
+               </property>
+              </widget>
              </item>
              <item row="19" column="2">
               <widget class="QCheckBox" name="inParallel">
@@ -653,6 +655,68 @@
                </property>
                <property name="checked">
                 <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="2">
+              <widget class="QCheckBox" name="use_scale">
+               <property name="text">
+                <string>Use Scale</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="0">
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>High</string>
+               </property>
+              </widget>
+             </item>
+             <item row="24" column="2">
+              <widget class="QLabel" name="label_31">
+               <property name="text">
+                <string>Logging</string>
+               </property>
+              </widget>
+             </item>
+             <item row="23" column="2">
+              <widget class="QLineEdit" name="maxWidth">
+               <property name="text">
+                <string>180</string>
+               </property>
+              </widget>
+             </item>
+             <item row="29" column="2">
+              <widget class="QListWidget" name="indexPaths"/>
+             </item>
+             <item row="23" column="0">
+              <widget class="QLabel" name="label_28">
+               <property name="text">
+                <string>maxwidth</string>
+               </property>
+              </widget>
+             </item>
+             <item row="12" column="0">
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>Units</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="2">
+              <widget class="QLineEdit" name="scale_high"/>
+             </item>
+             <item row="15" column="0">
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>RA</string>
+               </property>
+              </widget>
+             </item>
+             <item row="25" column="2">
+              <widget class="QCheckBox" name="logToFile">
+               <property name="text">
+                <string>Log to File</string>
                </property>
               </widget>
              </item>
@@ -696,7 +760,7 @@
               <x>0</x>
               <y>0</y>
               <width>300</width>
-              <height>72</height>
+              <height>118</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -747,7 +811,7 @@
            <x>0</x>
            <y>0</y>
            <width>302</width>
-           <height>218</height>
+           <height>339</height>
           </rect>
          </property>
          <property name="sizePolicy">

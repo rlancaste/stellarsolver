@@ -145,6 +145,26 @@ MainWindow::MainWindow() :
     ui->configFilePath->setText(confPath);
     connect(ui->configFilePath, &QLineEdit::textChanged, this, [this](){ confPath = ui->configFilePath->text(); });
 
+    connect(ui->inParallel, &QCheckBox::stateChanged, this, [this](){ inParallel = ui->inParallel->isChecked(); });
+    connect(ui->solverTimeLimit, &QLineEdit::textChanged, this, [this](){ solverTimeLimit = ui->solverTimeLimit->text().toInt(); });
+    connect(ui->minWidth, &QLineEdit::textChanged, this, [this](){ minwidth = ui->minWidth->text().toDouble(); });
+    connect(ui->maxWidth, &QLineEdit::textChanged, this, [this](){ maxwidth = ui->maxWidth->text().toDouble(); });
+
+    connect(ui->use_scale, &QCheckBox::stateChanged, this, [this](){ use_scale = ui->use_scale->isChecked(); });
+    connect(ui->scale_low, &QLineEdit::textChanged, this, [this](){ fov_low = ui->scale_low->text().toDouble(); });
+    connect(ui->scale_high, &QLineEdit::textChanged, this, [this](){ fov_high = ui->scale_high->text().toDouble(); });
+    connect(ui->units, &QComboBox::currentTextChanged, this, [this](QString text){ units = text; });
+
+    connect(ui->use_position, &QCheckBox::stateChanged, this, [this](){ use_position= ui->use_position->isChecked(); });
+    connect(ui->ra, &QLineEdit::textChanged, this, [this](){ ra = ui->ra->text().toDouble(); });
+    connect(ui->dec, &QLineEdit::textChanged, this, [this](){ dec = ui->dec->text().toDouble(); });
+    connect(ui->radius, &QLineEdit::textChanged, this, [this](){ radius = ui->radius->text().toDouble(); });
+
+    ui->logFile->setText(logFile);
+    connect(ui->logToFile, &QCheckBox::stateChanged, this, [this](){ logToFile = ui->logToFile->isChecked(); });
+    connect(ui->logFile, &QLineEdit::textChanged, this, [this](){ logFile = ui->logFile->text(); });
+    connect(ui->logLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index){ logLevel = index; });
+
     foreach(QString pathName, indexFilePaths)
     {
         QListWidgetItem *item = new QListWidgetItem(pathName);
@@ -162,22 +182,6 @@ MainWindow::MainWindow() :
         ui->indexPaths->addItem(item);
         indexFilePaths.append("");
     });
-
-    connect(ui->inParallel, &QCheckBox::stateChanged, this, [this](){ inParallel = ui->inParallel->isChecked(); });
-    connect(ui->solverTimeLimit, &QLineEdit::textChanged, this, [this](){ solverTimeLimit = ui->solverTimeLimit->text().toInt(); });
-    connect(ui->minWidth, &QLineEdit::textChanged, this, [this](){ minwidth = ui->minWidth->text().toDouble(); });
-    connect(ui->maxWidth, &QLineEdit::textChanged, this, [this](){ maxwidth = ui->maxWidth->text().toDouble(); });
-
-    connect(ui->use_scale, &QCheckBox::stateChanged, this, [this](){ use_scale = ui->use_scale->isChecked(); });
-    connect(ui->scale_low, &QLineEdit::textChanged, this, [this](){ fov_low = ui->scale_low->text().toDouble(); });
-    connect(ui->scale_high, &QLineEdit::textChanged, this, [this](){ fov_high = ui->scale_high->text().toDouble(); });
-    connect(ui->units, &QComboBox::currentTextChanged, this, [this](QString text){ units = text; });
-
-    connect(ui->use_position, &QCheckBox::stateChanged, this, [this](){ use_position= ui->use_position->isChecked(); });
-    connect(ui->ra, &QLineEdit::textChanged, this, [this](){ ra = ui->ra->text().toDouble(); });
-    connect(ui->dec, &QLineEdit::textChanged, this, [this](){ dec = ui->dec->text().toDouble(); });
-    connect(ui->radius, &QLineEdit::textChanged, this, [this](){ radius = ui->radius->text().toDouble(); });
-
 
     setupSolutionTable();
 
@@ -1862,6 +1866,10 @@ bool MainWindow::runInnerSolver()
 
     if(use_position)
         internalSolver->setSearchPosition(ra, dec, radius);
+
+    internalSolver->logToFile = logToFile;
+    internalSolver->logFile = logFile;
+    internalSolver->logLevel = logLevel;
 
     internalSolver->start();
     return true;

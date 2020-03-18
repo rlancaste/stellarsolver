@@ -48,13 +48,6 @@ char* charQStr(QString in) {
     return cstr;
 }
 
-//I created this method because I wanted to remove some temp files and display the output and the code was getting repetitive.
-void InternalSolver::removeTempFile(char * fileName)
-{
-    if(QFile(fileName).exists())
-        QFile(fileName).remove();
-}
-
 //The code in this section is my attempt at running an internal sextractor program based on SEP
 //I used KStars and the SEP website as a guide for creating these functions
 //It saves the output to SextractorList.xyls in the temp directory.
@@ -336,11 +329,6 @@ bool InternalSolver::writeSextractorTable()
 }
 
 
-
-
-
-
-
 //All the code below is my attempt to implement astrometry.net code in such a way that it could run internally in a program instead of requiring
 //external method calls.  This would be critical for running astrometry.net on windows and it might make the code more efficient on Linux and mac since it
 //would not have to prepare command line options and parse them all the time.
@@ -383,6 +371,9 @@ void InternalSolver::addIndexFolderPath(QString pathToAdd)
     indexFolderPaths.append(pathToAdd);
 }
 
+//This method prepares the job file.  It is based upon the methods parse_job_from_qfits_header and engine_read_job_file in engine.c of astrometry.net
+//as well as the part of the method augment_xylist in augment_xylist.c where it handles xyls files
+
 bool InternalSolver::prepare_job() {
     blind_t* bp = &(job->bp);
     solver_t* sp = &(bp->solver);
@@ -423,29 +414,14 @@ bool InternalSolver::prepare_job() {
 
     QString basedir = basePath + QDir::separator() + "SextractorList";
 
-    char* axyfn    = charQStr(QString("%1.axy").arg(basedir));
-    char* matchfn  = charQStr(QString("%1.match").arg(basedir));
-    char* rdlsfn   = charQStr(QString("%1.rdls").arg(basedir));
-    char* solvedfn = charQStr(QString("%1.solved").arg(basedir));
-    char* corrfn   = charQStr(QString("%1.corr").arg(basedir));
-
+    //Files that we will need later
+    solvedfn       = charQStr(QString("%1.solved").arg(basedir));
     wcsfn          = charQStr(QString("%1.wcs").arg(basedir));
     cancelfn       = charQStr(QString("%1.cancel").arg(basedir));
-
-    removeTempFile(axyfn);
-    removeTempFile(matchfn);
-    removeTempFile(rdlsfn);
-    removeTempFile(solvedfn);
-    removeTempFile(corrfn);
-
-    removeTempFile(wcsfn);
-    removeTempFile(cancelfn);
-
+    QFile(solvedfn).remove();
+    QFile(wcsfn).remove();
+    QFile(cancelfn).remove();
     blind_set_solvedout_file  (bp, solvedfn);
-    blind_set_match_file   (bp, matchfn);
-    blind_set_rdls_file    (bp, rdlsfn);
-    blind_set_corr_file    (bp, corrfn);
-
     blind_set_wcs_file     (bp, wcsfn);
     blind_set_cancel_file(bp, cancelfn);
 
@@ -455,12 +431,9 @@ bool InternalSolver::prepare_job() {
     //bp->timelimit    Is this needed?
     bp->cpulimit = solverTimeLimit;
 
-
-    //I need to get these right!  Right now this does not solve
-
+    //Logratios for Solving
     bp->logratio_tosolve = log(default_odds_tosolve);
     emit logNeedsUpdating(QString("Set odds ratio to solve to %1 (log = %2)\n").arg( exp(bp->logratio_tosolve)).arg( bp->logratio_tosolve));
-   // sp->logratio_toprint = default_odds_toprint;
     sp->logratio_tokeep = log(default_odds_tokeep);
     sp->logratio_totune = log(default_odds_totune);
     sp->logratio_bail_threshold = log(DEFAULT_BAIL_THRESHOLD);
@@ -468,10 +441,7 @@ bool InternalSolver::prepare_job() {
     bp->best_hit_only = TRUE;
 
     // gotta keep it to solve it!
-    //sp->logratio_tokeep = MIN(sp->logratio_tokeep, bp->logratio_tosolve);
-    // gotta print it to keep it (so what if that doesn't make sense)!
-    //sp->logratio_toprint = MIN(sp->logratio_toprint, sp->logratio_tokeep);
-
+    sp->logratio_tokeep = MIN(sp->logratio_tokeep, bp->logratio_tosolve);
 
     job->include_default_scales = 0;
     sp->parity = PARITY_BOTH;
@@ -536,15 +506,10 @@ int InternalSolver::runAstrometryEngine()
 
    // augmentXYList();
 
-    int c;
-    char* configfn = nullptr;
     int i;
     engine_t* engine;
     char* basedir = nullptr;
     sl* strings = sl_new(4);
-    char* cancelfn = nullptr;
-    char* solvedfn = nullptr;
-    FILE* fin = nullptr;
 
     sl* inds = sl_new(4);
 
@@ -555,8 +520,15 @@ int InternalSolver::runAstrometryEngine()
     engine->minwidth = minwidth;
     engine->maxwidth = maxwidth;
 
-  //  log_to(stderr);
-  //  log_init(LOG_ALL);
+    if(logToFile)
+    {
+        FILE *log = fopen(charQStr(logFile),"wb");
+        if(log)
+        {
+            log_init((log_level)logLevel);
+            log_to(log);
+        }
+    }
 
     basedir = charQStr(QDir::tempPath());
 
@@ -573,15 +545,15 @@ int InternalSolver::runAstrometryEngine()
     if (!pl_size(engine->indexes)) {
         emit logNeedsUpdating(QString("\n\n"
                "---------------------------------------------------------------------\n"
-               "You must list at least one index in the config file (%1)\n\n"
+               "You must include at least one index file in the index file directories\n\n"
                "See http://astrometry.net/use.html about how to get some index files.\n"
                "---------------------------------------------------------------------\n"
-               "\n").arg( configfn));
+               "\n"));
         return -1;
     }
 
     if (engine->minwidth <= 0.0 || engine->maxwidth <= 0.0) {
-        emit logNeedsUpdating(QString("\"minwidth\" and \"maxwidth\" in the config file %1 must be positive!\n").arg( configfn));
+        emit logNeedsUpdating(QString("\"minwidth\" and \"maxwidth\" must be positive!\n"));
         return -1;
     }
 
@@ -604,7 +576,6 @@ int InternalSolver::runAstrometryEngine()
      blind_t* bp = &(job->bp);
 
      blind_set_field_file(bp, charQStr(sextractorFilePath));
-       // blind_set_field_file(bp, charQStr(theAXYFile));
 
      if (il_size(job->depths) == 0) {
          if (engine->inparallel) {
@@ -633,15 +604,15 @@ int InternalSolver::runAstrometryEngine()
          bp->total_cpulimit  = bp->cpulimit ;
      }
 
-    if (basedir) {
-            emit logNeedsUpdating(QString("Setting job's output base directory to %1\n").arg( basedir));
+    if (basedir)
             job_set_output_base_dir(job, basedir);
-    }
 
     emit logNeedsUpdating("Starting Internal Solver Engine!");
 
     if (engine_run_job(engine, job))
         emit logNeedsUpdating("Failed to run_job()\n");
+
+    emit logNeedsUpdating(QString("Logodds: %1").arg(job->bp.solver.best_logodds));
 
     sip_t wcs;
         double ra, dec, fieldw, fieldh;
@@ -683,9 +654,6 @@ int InternalSolver::runAstrometryEngine()
     engine_free(engine);
     sl_free2(strings);
     sl_free2(inds);
-
-    if (fin)
-        fclose(fin);
 
     emit finished(0);
 

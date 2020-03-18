@@ -146,6 +146,10 @@ private:
     double minwidth = 0.1;
     double maxwidth = 180;
 
+    bool logToFile = false;
+    QString logFile = QDir::tempPath() + "/AstrometryLog.txt";
+    int logLevel = 0;
+
     //Data about the image
     bool imageLoaded = false;
     Statistic stats;

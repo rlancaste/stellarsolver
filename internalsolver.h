@@ -115,6 +115,10 @@ public:
     double dec_center = HUGE_VAL;
     double search_radius = 15;
 
+    bool logToFile = false;
+    QString logFile = QDir::tempPath() + "/AstrometryLog.txt";
+    int logLevel = 0;
+
     void setSearchScale(double fov_low, double fov_high, QString units);
     void setSearchPosition(double ra, double dec, double rad);
     void setIndexFolderPaths(QStringList paths);
@@ -158,6 +162,7 @@ private:
     job_t thejob;
     job_t* job = &thejob;
 
+    char* solvedfn;
     char* wcsfn;
     char* cancelfn;
 
