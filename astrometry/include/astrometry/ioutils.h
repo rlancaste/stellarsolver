@@ -9,6 +9,14 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <sys/types.h>
+
+#ifdef __WIN32
+//These types are not included on windows
+typedef unsigned long int ulong;
+typedef unsigned short int ushort;
+typedef unsigned int uint;
+#endif
+
 #include <time.h>
 
 #include "astrometry/an-bool.h"

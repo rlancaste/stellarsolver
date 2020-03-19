@@ -16,7 +16,7 @@
 #include "solvedfile.h"
 #include "errors.h"
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined (__WIN32__)
 // MacOS 10.3 with gcc 3.3 doesn't have O_SYNC.
 #if !defined(O_SYNC)
 #define O_SYNC 0
