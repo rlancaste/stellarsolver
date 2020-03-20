@@ -1339,7 +1339,7 @@ static void qfits_memory_init(void)
     atexit(qfits_memory_cleanup);
         
     /* Increase number of descriptors to maximum */
-    #ifndef _WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+    #ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
     getrlimit(RLIMIT_NOFILE, &rlim);
     qfits_mem_debug(
         fprintf(stderr, "qfits_mem: increasing from %ld to %ld file handles\n",
