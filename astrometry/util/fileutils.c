@@ -25,7 +25,8 @@ char* resolve_path(const char* filename, const char* basedir) {
     free(path);
     return rtn;
 }
-
+//# Modified by Robert Lancaster for the SexySolver Internal Library
+/**
 char* find_executable(const char* progname, const char* sibling) {
     char* sib;
     char* sibdir;
@@ -87,6 +88,7 @@ char* find_executable(const char* progname, const char* sibling) {
     // Not found.
     return NULL;
 }
+**/
 
 char* an_canonicalize_file_name(const char* fn) {
     sl* dirs;
