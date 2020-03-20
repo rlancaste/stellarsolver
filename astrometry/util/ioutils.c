@@ -608,7 +608,11 @@ int mkdir_p(const char* dirpath) {
     free(path);
     while (sl_size(tomake)) {
         char* path = sl_pop(tomake);
+#ifndef __WIN32__
         if (mkdir(path, 0777)) {
+#else
+        if (mkdir(path)) {
+#endif
             SYSERROR("Failed to mkdir(%s)", path);
             sl_free2(tomake);
             free(path);
