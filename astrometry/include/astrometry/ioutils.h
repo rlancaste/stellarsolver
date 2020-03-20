@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+//# Modified by Robert Lancaster for the SexySolver Internal Library
 #ifdef __WIN32
 //These types are not included on windows
 typedef unsigned long int ulong;
@@ -73,7 +74,8 @@ void
 ATTRIB_FORMAT(printf,2,3)
     asprintf_safe(char** strp, const char* format, ...);
 
-int run_command_get_outputs(const char* cmd, sl** outlines, sl** errlines);
+//# Modified by Robert Lancaster for the SexySolver Internal Library
+//int run_command_get_outputs(const char* cmd, sl** outlines, sl** errlines);
 
 void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* mapsize, int* pgap);
 

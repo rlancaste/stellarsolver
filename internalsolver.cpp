@@ -38,16 +38,6 @@ void InternalSolver::abort()
     quit();
 }
 
-//I had to create this method because i was having some difficulty turning a QString into a char* that would persist long enough to be used in the program.
-//There might be a better way to do this with better memory management, but this is the best I came up with for now.
-char* charQStr(QString in) {
-    std::string fname = QString(in).toStdString();
-    char* cstr;
-    cstr = new char [fname.size()+1];
-    strcpy( cstr, fname.c_str() );
-    return cstr;
-}
-
 //This method uses a fwhm value to generate the conv filter the sextractor will use.
 void InternalSolver::createConvFilterFromFWHM(double fwhm)
 {
@@ -338,7 +328,7 @@ bool InternalSolver::writeSextractorTable()
     char* ttype[] = { xcol, ycol };
     char* tform[] = { colFormat, colFormat };
     char* tunit[] = { colUnits, colUnits };
-    char* extfile = charQStr("Sextractor_File");
+    const char* extfile = "Sextractor_File";
 
     float xArray[stars.size()];
     float yArray[stars.size()];
@@ -452,15 +442,13 @@ bool InternalSolver::prepare_job() {
     sp->field_maxy = stats.height;
 
     QString basedir = basePath + QDir::separator() + "AstrometrySolver";
-    cancelfn       = charQStr(QString("%1.cancel").arg(basedir));
+    cancelfn       = QString("%1.cancel").arg(basedir);
     QFile(cancelfn).remove();
-    blind_set_cancel_file(bp, cancelfn);
+    blind_set_cancel_file(bp, cancelfn.toLatin1().constData());
 
     //This sets the x and y columns to read from the xyls file
     blind_set_xcol(bp, xcol);
     blind_set_ycol(bp, ycol);
-
-    bp->cpulimit = solverTimeLimit;
 
     //Logratios for Solving
     bp->logratio_tosolve = logratio_tosolve;
@@ -549,7 +537,7 @@ int InternalSolver::runAstrometryEngine()
     {
         if(QFile(logFile).exists())
             QFile(logFile).remove();
-        FILE *log = fopen(charQStr(logFile),"wb");
+        FILE *log = fopen(logFile.toLatin1().constData(),"wb");
         if(log)
         {
             log_init((log_level)logLevel);
@@ -562,7 +550,7 @@ int InternalSolver::runAstrometryEngine()
     //These set the folders in which Astrometry.net will look for index files, based on the folers set before the solver was started.
     foreach(QString path, indexFolderPaths)
     {
-        engine_add_search_path(engine,charQStr(path));
+        engine_add_search_path(engine,path.toLatin1().constData());
     }
 
     //This actually adds the index files in the directories above.
@@ -580,11 +568,11 @@ int InternalSolver::runAstrometryEngine()
     }
 
     prepare_job();
-    engine->cancelfn = cancelfn;
+    engine->cancelfn = cancelfn.toLatin1().data();
 
     blind_t* bp = &(job->bp);
 
-    blind_set_field_file(bp, charQStr(sextractorFilePath));
+    blind_set_field_file(bp, sextractorFilePath.toLatin1().constData());
 
     //This sets the depths for the job.
     if (!il_size(engine->default_depths)) {
@@ -616,9 +604,10 @@ int InternalSolver::runAstrometryEngine()
     }
 
     // These set the time limits for the solver
-    bp->cpulimit = solverTimeLimit;
-    engine->cpulimit = solverTimeLimit;
     bp->timelimit = solverTimeLimit;
+#ifndef __WIN32__
+    bp->cpulimit = solverTimeLimit;
+#endif
 
     // If not running inparallel, set total limits = limits.
     if (!engine->inparallel) {
@@ -627,7 +616,7 @@ int InternalSolver::runAstrometryEngine()
     }
 
     //This sets the directory for Astrometry.net
-    job_set_output_base_dir(job, charQStr(basePath));
+    job_set_output_base_dir(job, basePath.toLatin1().constData());
 
     emit logNeedsUpdating("Starting Internal Solver Engine!");
 

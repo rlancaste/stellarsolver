@@ -388,7 +388,9 @@ static int readfd(int fd, char* buf, int NB, char** pcursor,
     *pcursor = cursor;
     return 0;
 }
-
+//# Modified by Robert Lancaster for the SexySolver Internal Library
+//Removing this function since it won't be needed and will cause problems on windows
+/**
 int run_command_get_outputs(const char* cmd, sl** outlines, sl** errlines) {
     int outpipe[2];
     int errpipe[2];
@@ -581,7 +583,7 @@ int run_command_get_outputs(const char* cmd, sl** outlines, sl** errlines) {
     
     return 0;
 }
-
+**/
 int mkdir_p(const char* dirpath) {
     sl* tomake = sl_new(4);
     char* path = strdup(dirpath);

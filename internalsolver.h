@@ -133,7 +133,7 @@ public:
 private:
 
     // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
-    char* cancelfn;
+    QString cancelfn;
     // This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
     QList<Star> stars;
     // This is information about the image

@@ -1048,7 +1048,8 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
         last_utime = utime;
         last_stime = stime;
         last_wtime = wtime;
-    return;
+    return;  //# Modified by Robert Lancaster for the SexySolver Internal Library
+        //We want to return here so that the sp object is preserved so we don't have to read the information from a wcs file
     cleanup:
         solver_cleanup_field(sp);
     }
