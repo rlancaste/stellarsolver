@@ -91,6 +91,11 @@ MainWindow::MainWindow() :
     QString localAstroPath = QDir::homePath() + "/.local/share/kstars/astrometry/";
     if(QFileInfo(localAstroPath).exists())
         indexFilePaths.append(localAstroPath);
+#elif defined(_WIN32)
+    //A Windows Location
+    QString localAstroPath = "C:/Astrometry";
+    if(QFileInfo(localAstroPath).exists())
+        indexFilePaths.append(localAstroPath);
 #endif
 
 
