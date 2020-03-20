@@ -30,12 +30,12 @@ char* canonicalize_file_name(const char* fn) {
     return path;
 }
 #endif
-#endif
 
 #if NEED_FDATASYNC
 int fdatasync(int fd) {
     return fsync(fd);
 }
+#endif
 #endif
 
 #if NEED_QSORT_R
