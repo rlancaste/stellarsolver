@@ -1322,7 +1322,7 @@ static unsigned qfits_memory_hash(const char * key)
 /*----------------------------------------------------------------------------*/
 static void qfits_memory_init(void)
 {
-#ifndef _WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
     struct rlimit rlim;
 #endif
 
