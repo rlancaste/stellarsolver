@@ -227,7 +227,7 @@ char* find_file_in_dirs(const char** dirs, int ndirs, const char* filename, anbo
     }
     return NULL;
 }
-#ifndef __win32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
 float get_cpu_usage() {
     struct rusage r;
     float sofar;
