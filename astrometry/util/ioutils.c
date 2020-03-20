@@ -9,13 +9,12 @@
 #include <stdint.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/wait.h>
+
 #include <sys/time.h>
-#include <sys/resource.h>
-#include <sys/select.h>
+
+
 #include <fcntl.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+
 #include <stdlib.h>
 #include <signal.h>
 #include <assert.h>
@@ -24,6 +23,16 @@
 #include <libgen.h>
 #include <dirent.h>
 #include <time.h>
+
+#ifdef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#include <winsock2.h>
+#else
+#include <sys/wait.h>
+#include <sys/resource.h>
+#include <sys/select.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#endif
 
 #include "os-features.h"
 #include "ioutils.h"
@@ -218,7 +227,7 @@ char* find_file_in_dirs(const char** dirs, int ndirs, const char* filename, anbo
     }
     return NULL;
 }
-
+#ifndef __win32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
 float get_cpu_usage() {
     struct rusage r;
     float sofar;
@@ -230,6 +239,7 @@ float get_cpu_usage() {
         (1e-6 * (r.ru_utime.tv_usec + r.ru_stime.tv_usec));
     return sofar;
 }
+#endif
 
 anbool streq(const char* s1, const char* s2) {
     if (s1 == NULL || s2 == NULL)
@@ -280,7 +290,7 @@ void asprintf_safe(char** strp, const char* format, ...) {
     }
     va_end(lst);
 }
-
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
 sl* dir_get_contents(const char* path, sl* list, anbool filesonly, anbool recurse) {
     DIR* dir = opendir(path);
     if (!dir) {
@@ -332,6 +342,7 @@ sl* dir_get_contents(const char* path, sl* list, anbool filesonly, anbool recurs
     closedir(dir);
     return list;
 }
+#endif
 
 static int readfd(int fd, char* buf, int NB, char** pcursor,
                   sl* lines, anbool* pdone) {
@@ -664,6 +675,7 @@ char* create_temp_file(const char* fn, const char* dir) {
     return tempfile;
 }
 
+/** //# Modified by Robert Lancaster for the SexySolver Internal Library
 char* create_temp_dir(const char* name, const char* dir) {
     char* tempdir;
     if (!dir) {
@@ -686,6 +698,7 @@ char* create_temp_dir(const char* name, const char* dir) {
 #endif
     return tempdir;
 }
+**/
 
 sl* file_get_lines(const char* fn, anbool include_newlines) {
     FILE* fid;
@@ -808,7 +821,7 @@ time_t file_get_last_modified_time(const char* fn) {
     }
     return st.st_mtime;
 }
-
+/** //# Modified by Robert Lancaster for the SexySolver Internal Library
 int file_get_last_modified_string(const char* fn, const char* timeformat,
                                   anbool utc, char* output, size_t outsize) {
     struct tm tym;
@@ -832,7 +845,7 @@ int file_get_last_modified_string(const char* fn, const char* timeformat,
     strftime(output, outsize, timeformat, &tym);
     return 0;
 }
-
+**/
 anbool file_exists(const char* fn) {
     return fn && (access(fn, F_OK) == 0);
 }
@@ -883,6 +896,7 @@ char* strdup_safe(const char* str) {
     return rtn;
 }
 
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
 static int oldsigbus_valid = 0;
 static struct sigaction oldsigbus;
 static void sigbus_handler(int sig) {
@@ -914,6 +928,7 @@ void reset_sigbus_mmap_warning() {
         }
     }
 }
+#endif
 
 int is_word(const char* cmdline, const char* keyword, char** cptr) {
     int len = strlen(keyword);

@@ -5,7 +5,9 @@
 
 #include <time.h>
 #include <sys/time.h>
+#ifndef __WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/resource.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -44,6 +46,8 @@ void tic() {
 }
 
 int get_resource_stats(double* p_usertime, double* p_systime, long* p_maxrss) {
+#ifndef __WIN32   //# Modified by Robert Lancaster for the SexySolver Internal Library
+    //Getting the rusage would be much more difficult on windows
     struct rusage usage;
     if (getrusage(RUSAGE_SELF, &usage)) {
         SYSERROR("Failed to get resource stats (getrusage)");
@@ -59,6 +63,9 @@ int get_resource_stats(double* p_usertime, double* p_systime, long* p_maxrss) {
         *p_maxrss = usage.ru_maxrss;
     }
     return 0;
+#else  //# Modified by Robert Lancaster for the SexySolver Internal Library
+   return 1;
+#endif
 }
 
 void toc() {

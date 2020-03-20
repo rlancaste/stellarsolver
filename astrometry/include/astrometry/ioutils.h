@@ -43,7 +43,9 @@ Malloc
 char* dirname_safe(const char* path);
 
 // Returns (system + user) CPU time, in seconds.
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
 float get_cpu_usage(void);
+#endif
 
 //int log_resource_usage(int loglevel);
 
@@ -83,7 +85,8 @@ void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* mapsize, 
 char* create_temp_file(const char* fn, const char* dir);
 
 // If "dir" is NULL, create temp file in $TMP, or /tmp if not set.
-char* create_temp_dir(const char* name, const char* dir);
+//# Modified by Robert Lancaster for the SexySolver Internal Library
+//char* create_temp_dir(const char* name, const char* dir);
 
 char* shell_escape(const char* str);
 
@@ -110,10 +113,12 @@ sl* file_get_lines(const char* fn, anbool include_newlines);
 
 sl* fid_get_lines(FILE* fid, anbool include_newlines);
 
-sl* dir_get_contents(const char* path, sl* result, anbool filesonly, anbool recursive);
+//# Modified by Robert Lancaster for the SexySolver Internal Library
+//sl* dir_get_contents(const char* path, sl* result, anbool filesonly, anbool recursive);
 
-int file_get_last_modified_string(const char* fn, const char* timeformat,
-                                  anbool utc, char* output, size_t outsize);
+//# Modified by Robert Lancaster for the SexySolver Internal Library
+//int file_get_last_modified_string(const char* fn, const char* timeformat,
+//                                  anbool utc, char* output, size_t outsize);
 
 /**
  Splits the given "str" into words, so that the first line is at most
@@ -140,8 +145,10 @@ int ends_with(const char* str, const char* prefix);
 
 char* strdup_safe(const char* str);
 
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
 void add_sigbus_mmap_warning(void);
 void reset_sigbus_mmap_warning(void);
+#endif
 
 int write_u8(FILE* fout, unsigned char val);
 int write_u16(FILE* fout, unsigned int val);

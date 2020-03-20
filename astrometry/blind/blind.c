@@ -12,7 +12,9 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/resource.h>
+#endif
 #include <libgen.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -44,6 +46,10 @@
 #include "scamp-catalog.h"
 #include "permutedsort.h"
 #include "bl-sort.h"
+
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#include <sys/resource.h>
+#endif
 
 static anbool record_match_callback(MatchObj* mo, void* userdata);
 static time_t timer_callback(void* user_data);
@@ -306,6 +312,7 @@ static void check_time_limits(blind_t* bp) {
             bp->hit_timelimit = TRUE;
         }
     }
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
     if (bp->total_cpulimit || bp->cpulimit) {
         float now = get_cpu_usage();
         if ((bp->total_cpulimit > 0.0) &&
@@ -319,6 +326,7 @@ static void check_time_limits(blind_t* bp) {
             bp->hit_cpulimit = TRUE;
         }
     }
+#endif
     if (bp->hit_total_timelimit ||
         bp->hit_total_cpulimit ||
         bp->hit_timelimit ||
@@ -335,7 +343,9 @@ void blind_run(blind_t* bp) {
     bp->time_total_start = timenow();
 
     // Record current CPU usage for total cpu-usage limit.
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
     bp->cpu_total_start = get_cpu_usage();
+#endif
 
     get_fields_from_solvedserver(bp, sp);
 
@@ -443,7 +453,9 @@ void blind_run(blind_t* bp) {
         }
 
         // Record current CPU usage.
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
         bp->cpu_start = get_cpu_usage();
+#endif
         // Record current wall-clock time.
         bp->time_start = time(NULL);
 
@@ -475,7 +487,9 @@ void blind_run(blind_t* bp) {
             logverb("Trying index %s...\n", index->indexname);
 
             // Record current CPU usage.
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
             bp->cpu_start = get_cpu_usage();
+#endif
             // Record current wall-clock time.
             bp->time_start = time(NULL);
 
@@ -697,6 +711,7 @@ void blind_cleanup(blind_t* bp) {
     free(bp->sort_rdls);
 }
 
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
 static int sort_rdls(MatchObj* mymo, blind_t* bp) {
     const solver_t* sp = &(bp->solver);
     anbool asc = TRUE;
@@ -744,6 +759,7 @@ static int sort_rdls(MatchObj* mymo, blind_t* bp) {
     free(perm);
     return 0;
 }
+#endif
 
 static anbool record_match_callback(MatchObj* mo, void* userdata) {
     blind_t* bp = userdata;
@@ -775,11 +791,13 @@ static anbool record_match_callback(MatchObj* mo, void* userdata) {
 
         // This must happen first, because it reorders the "ref" arrays,
         // and we want that to be done before more data are integrated.
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
         if (bp->sort_rdls) {
             if (sort_rdls(mymo, bp)) {
                 ERROR("Failed to sort RDLS file by column \"%s\"", bp->sort_rdls);
             }
         }
+#endif
 
         logdebug("Converting %i reference stars from xyz to radec\n", mymo->nindex);
         mymo->refradec = malloc(mymo->nindex * 2 * sizeof(double));

@@ -39,7 +39,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+#ifdef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#include <boost/regex.h>
+#else
 #include <regex.h>
+#endif
 
 #include "qfits_config.h"
 #include "qfits_tools.h"

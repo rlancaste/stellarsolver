@@ -8,7 +8,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <sys/types.h>
+
+//# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef __WIN32__
+#include <boost/regex.h>
+#else
 #include <regex.h>
+#endif
 
 #include "os-features.h"
 #include "keywords.h"

@@ -19,6 +19,7 @@ char* an_canonicalize_file_name(const char* fn);
 
 char* resolve_path(const char* filename, const char* basedir);
 
-char* find_executable(const char* progname, const char* sibling);
+//# Modified by Robert Lancaster for the SexySolver Internal Library
+//char* find_executable(const char* progname, const char* sibling);
 
 #endif

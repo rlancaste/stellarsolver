@@ -15,6 +15,8 @@
 #define NEED_FDATASYNC 1
 #endif
 
+//# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef __Win32__
 #if NEED_CANONICALIZE_FILE_NAME
 char* canonicalize_file_name(const char* fn) {
     char* path = malloc(1024);
@@ -27,6 +29,7 @@ char* canonicalize_file_name(const char* fn) {
     path = realloc(path, strlen(path) + 1);
     return path;
 }
+#endif
 #endif
 
 #if NEED_FDATASYNC

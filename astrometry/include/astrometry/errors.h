@@ -9,7 +9,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <sys/types.h>
+
+#ifdef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#include <boost/regex.h>
+#else
 #include <regex.h>
+#endif
 
 #include "astrometry/an-bool.h"
 #include "astrometry/bl.h"

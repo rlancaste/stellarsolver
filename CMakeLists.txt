@@ -28,8 +28,12 @@ set(config_FN
     )
 
 file(REMOVE "${config_FN}")
-
-
+if (WIN32)
+    file(APPEND "${config_FN}" "#define NEED_CANONICALIZE_FILE_NAME 0\n")
+    file(APPEND "${config_FN}" "#define NEED_DECLARE_QSORT_R 1\n")
+    file(APPEND "${config_FN}" "#define NEED_QSORT_R 1\n")
+    file(APPEND "${config_FN}" "#define NEED_SWAP_QSORT_R 0\n")
+else(WIN32)
 try_run(RUN_RESULT_1 COMPILE_SUCCESS_1 ${CMAKE_CURRENT_BINARY_DIR} ${config_SRCS} COMPILE_DEFINITIONS -DTEST_CANONICALIZE_FILE_NAME=ON)
 if(COMPILE_SUCCESS_1 AND (RUN_RESULT_1 EQUAL 0))
     SET(VAR_1 0)
@@ -61,6 +65,8 @@ else()
     SET(VAR_4 0)
 endif()
 file(APPEND "${config_FN}" "#define NEED_SWAP_QSORT_R ${VAR_4}\n")
+
+endif(WIN32)
 
 # We aren't using netpbm in this program, so set this to 0 no matter what
 file(APPEND "${config_FN}" "#define HAVE_NETPBM 0")
@@ -107,7 +113,10 @@ set(qfits_SRCS
 
 add_library(qfits ${qfits_SRCS})
 #install(TARGETS qfits LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
+if(WIN32)
+    #This is not very portable, I will work on it
+target_link_libraries(qfits C:/CraftRoot/lib/libboost_regex-mgw81-mt-x64-1_69.dll C:/CraftRoot/lib/libmman.dll.a)
+endif(WIN32)
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd")
 set(kd_SRCS
     #Internals
@@ -227,6 +236,9 @@ set(engine_SRCS
     )
 add_library(astrometry ${engine_SRCS})
 target_link_libraries(astrometry anbase anutils anfiles)
+if(WIN32)
+target_link_libraries(astrometry wsock32)
+endif(WIN32)
 #install(TARGETS astrometry LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set (sep_SRCS

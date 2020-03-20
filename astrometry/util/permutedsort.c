@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdint.h> //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>

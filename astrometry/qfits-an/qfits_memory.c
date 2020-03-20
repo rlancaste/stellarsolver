@@ -40,7 +40,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/resource.h>
+#endif
 #include <errno.h>
 #include <assert.h>
 
@@ -1320,7 +1322,9 @@ static unsigned qfits_memory_hash(const char * key)
 /*----------------------------------------------------------------------------*/
 static void qfits_memory_init(void)
 {
+#ifndef _WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
     struct rlimit rlim;
+#endif
 
     qfits_mem_debug(
         fprintf(stderr,
@@ -1335,6 +1339,7 @@ static void qfits_memory_init(void)
     atexit(qfits_memory_cleanup);
         
     /* Increase number of descriptors to maximum */
+    #ifndef _WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
     getrlimit(RLIMIT_NOFILE, &rlim);
     qfits_mem_debug(
         fprintf(stderr, "qfits_mem: increasing from %ld to %ld file handles\n",
@@ -1343,6 +1348,7 @@ static void qfits_memory_init(void)
     );
     rlim.rlim_cur = rlim.rlim_max;
     setrlimit(RLIMIT_NOFILE, &rlim);
+    #endif
 
 #ifdef __linux__
     /* Get RLIMIT_DATA on Linux */

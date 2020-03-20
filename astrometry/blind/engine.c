@@ -15,7 +15,9 @@
 #include <ctype.h>
 #include <errno.h>
 #include <sys/types.h>
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/wait.h>
+#endif
 #include <libgen.h>
 #include <getopt.h>
 #include <dirent.h>

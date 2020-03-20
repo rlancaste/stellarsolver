@@ -33,7 +33,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <pwd.h>
+#endif
 #include <unistd.h>
 #include <sys/time.h>
 
