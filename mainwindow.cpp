@@ -1816,7 +1816,7 @@ bool MainWindow::solverComplete(int x)
 bool MainWindow::runInnerSextractor()
 {
     internalSolver.clear();
-    internalSolver = new InternalSolver(stats, m_ImageBuffer, true, this);
+    internalSolver = new SexySolver(stats, m_ImageBuffer, true, this);
 
     //These are to pass the parameters to the internal sextractor
     internalSolver->apertureShape = apertureShape;
@@ -1837,8 +1837,8 @@ bool MainWindow::runInnerSextractor()
     internalSolver->removeDimmest = removeDimmest;
     internalSolver->maxEllipse = maxEllipse;
 
-    connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
-    connect(internalSolver, &InternalSolver::starsFound, this, &MainWindow::innerSextractorComplete);
+    connect(internalSolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
+    connect(internalSolver, &SexySolver::starsFound, this, &MainWindow::innerSextractorComplete);
     internalSolver->start();
     return true;
 }
@@ -1846,9 +1846,9 @@ bool MainWindow::runInnerSextractor()
 bool MainWindow::runInnerSolver()
 {
     internalSolver.clear();
-    internalSolver = new InternalSolver(stats ,m_ImageBuffer, false, this);
-    connect(internalSolver, &InternalSolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
-    connect(internalSolver, &InternalSolver::finished, this, &MainWindow::internalSolverComplete);
+    internalSolver = new SexySolver(stats ,m_ImageBuffer, false, this);
+    connect(internalSolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
+    connect(internalSolver, &SexySolver::finished, this, &MainWindow::internalSolverComplete);
 
     //Sextractor Settings
     internalSolver->apertureShape = apertureShape;

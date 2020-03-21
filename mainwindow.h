@@ -3,7 +3,7 @@
 
 //Includes for this project
 #include "structuredefinitions.h"
-#include "internalsolver.h"
+#include "sexysolver.h"
 
 //system includes
 #include "math.h"
@@ -79,7 +79,7 @@ private:
     Ui::MainWindow *ui;
 
     QPointer<QProcess> solver;
-    QPointer<InternalSolver> internalSolver;
+    QPointer<SexySolver> internalSolver;
     QPointer<QProcess> sextractorProcess;
     QString fileToSolve;
     QString sextractorFilePath;
