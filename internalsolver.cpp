@@ -18,9 +18,7 @@ void InternalSolver::run()
     {
         if(runInnerSextractor())
         {
-            emit logNeedsUpdating(QString("Found %1 stars").arg(stars.size()));
-            if(writeSextractorTable())
-                runAstrometryEngine();
+            runAstrometryEngine();
         }
     }
 }
@@ -254,6 +252,8 @@ bool InternalSolver::runInnerSextractor()
     }
 
     emit logNeedsUpdating(QString("Stars Found after Filtering: %1").arg(stars.size()));
+
+    writeSextractorTable();
 
     emit starsFound();
     return true;
