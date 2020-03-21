@@ -95,7 +95,7 @@ private:
 #elif defined(Q_OS_LINUX)
     QString sextractorBinaryPath = "/usr/bin/sextractor";
 #else
-    QString sextractorBinaryPath = "";
+     QString sextractorBinaryPath = "C:/cygwin64/bin/sextractor";
 #endif
 
 #if defined(Q_OS_OSX)
@@ -103,7 +103,7 @@ private:
 #elif defined(Q_OS_LINUX)
     QString confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
 #else
-    QString confPath = "";
+    QString confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
 #endif
 
 #if defined(Q_OS_OSX)
@@ -111,7 +111,7 @@ private:
 #elif defined(Q_OS_LINUX)
     QString solverPath = "/usr/bin/solve-field";
 #else
-    QString solverPath = "";
+    QString solverPath = "C:/cygwin64/bin/solve-field";
 #endif
 
 #if defined(Q_OS_OSX)
@@ -119,7 +119,7 @@ private:
 #elif defined(Q_OS_LINUX)
     QString wcsPath = "/usr/bin/wcsinfo";
 #else
-    QString wcsPath = "";
+    QString wcsPath = "C:/cygwin64/bin/wcsinfo";
 #endif
 
     //Parameters for sextracting

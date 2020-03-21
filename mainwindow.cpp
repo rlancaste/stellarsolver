@@ -289,13 +289,18 @@ bool MainWindow::solveImage()
 
     solverTimer.start();
 
-
+#ifndef __WIN32__ //This is because the sextractor program is VERY difficult to install,
     if(sextract(false))
     {
+#else
+    solveInternally();  //This will actually fail right now, but it will save the file the solver needs!
+#endif
         if(solveField())
             return true;
         return false;
+#ifndef __WIN32__
     }
+#endif
     return false;
 }
 
