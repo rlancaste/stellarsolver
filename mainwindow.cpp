@@ -292,8 +292,6 @@ bool MainWindow::solveImage()
 #ifndef __WIN32__ //This is because the sextractor program is VERY difficult to install,
     if(sextract(false))
     {
-#else
-    solveInternally();  //This will actually fail right now, but it will save the file the solver needs!
 #endif
         if(solveField())
             return true;
@@ -1574,7 +1572,9 @@ QStringList MainWindow::getSolverArgsList()
 
     // Now go over boolean options
     solverArgs << "--no-verify";
+#ifndef __WIN32__  //For Windows it is already sorted.
     solverArgs << "--resort";
+#endif
 
     // downsample
     solverArgs << "--downsample" << QString::number(2);
@@ -1584,8 +1584,10 @@ QStringList MainWindow::getSolverArgsList()
     solverArgs << "--height" << QString::number(stats.height);
     solverArgs << "--x-column" << "X_IMAGE";
     solverArgs << "--y-column" << "Y_IMAGE";
+#ifndef __WIN32__ //For Windows it is already sorted.
     solverArgs << "--sort-column" << "MAG_AUTO";
     solverArgs << "--sort-ascending";
+#endif
 
                 //Note This set of items is NOT NEEDED for Sextractor, it is needed to avoid python usage
                 //This may need to be changed later, but since the goal for using sextractor is to avoid python, this is placed here.
