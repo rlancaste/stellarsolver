@@ -71,12 +71,6 @@ endif(WIN32)
 # We aren't using netpbm in this program, so set this to 0 no matter what
 file(APPEND "${config_FN}" "#define HAVE_NETPBM 0")
 
-set(CMAKE_CXX_FLAGS "-g -std=c++0x ${CMAKE_CXX_FLAGS}")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations" )
-SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wno-deprecated-declarations")
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations" )
-SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wno-deprecated-declarations")
-
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
 find_package(Qt5 5.4 REQUIRED COMPONENTS Gui Widgets Core Concurrent)
