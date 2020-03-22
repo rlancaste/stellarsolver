@@ -235,7 +235,7 @@ if(WIN32)
 target_link_libraries(astrometry wsock32)
 endif(WIN32)
 #install(TARGETS astrometry LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endif(NOT WIN32)
+endif(NOT MSVC)
 
 set (sep_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/sep/analyse.c
@@ -276,9 +276,9 @@ add_executable(SexySolver ${SexySolver_SRCS} ${SexySolverui_SRCS} ${SexySolverAp
 
 if(MSVC) #For now, due to Windows compilation issues
 target_link_libraries(SexySolver sep)
-else(WIN32)
+else(MSVC)
 target_link_libraries(SexySolver sep astrometry)
-endif(WIN32)
+endif(MSVC)
 
 target_link_libraries(SexySolver
     ${CFITSIO_LIBRARIES}
