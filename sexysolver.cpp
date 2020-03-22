@@ -18,7 +18,9 @@ void SexySolver::run()
     {
         if(runInnerSextractor())
         {
+#ifndef _WIN32 //For now due to compilation issues in windows
             runAstrometryEngine();
+#endif
         }
     }
 }
