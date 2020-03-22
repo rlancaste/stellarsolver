@@ -106,7 +106,7 @@ private:
     QString confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
 #else
     //QString confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
-    QString confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg"
+    QString confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg";
 #endif
 
 #if defined(Q_OS_OSX)

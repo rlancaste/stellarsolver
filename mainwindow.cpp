@@ -1902,9 +1902,11 @@ bool MainWindow::runInnerSolver()
     internalSolver->logratio_totune = logratio_totune;
     internalSolver->logratio_tosolve = logratio_tosolve;
 
+#ifndef _WIN32 //For now due to compilation issues in windows
     internalSolver->logToFile = logToFile;
     internalSolver->logFile = logFile;
     internalSolver->logLevel = logLevel;
+#endif
 
     internalSolver->start();
     return true;
