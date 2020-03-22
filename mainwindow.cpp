@@ -12,11 +12,15 @@
 #include <ctype.h>
 #include <sys/types.h>
 
+#ifndef _WIN32 //For now due to compilation issues in windows
 #include <sys/time.h>
-#include <time.h>
 #include <libgen.h>
 #include <getopt.h>
 #include <dirent.h>
+#endif
+
+#include <time.h>
+
 #include <assert.h>
 
 #include <QThread>
@@ -289,14 +293,14 @@ bool MainWindow::solveImage()
 
     solverTimer.start();
 
-#ifndef __WIN32__ //This is because the sextractor program is VERY difficult to install,
+#ifndef _WIN32 //This is because the sextractor program is VERY difficult to install,
     if(sextract(false))
     {
 #endif
         if(solveField())
             return true;
         return false;
-#ifndef __WIN32__
+#ifndef _WIN32
     }
 #endif
     return false;
@@ -1572,7 +1576,7 @@ QStringList MainWindow::getSolverArgsList()
 
     // Now go over boolean options
     solverArgs << "--no-verify";
-#ifndef __WIN32__  //For Windows it is already sorted.
+#ifndef _WIN32  //For Windows it is already sorted.
     solverArgs << "--resort";
 #endif
 
@@ -1584,7 +1588,7 @@ QStringList MainWindow::getSolverArgsList()
     solverArgs << "--height" << QString::number(stats.height);
     solverArgs << "--x-column" << "X_IMAGE";
     solverArgs << "--y-column" << "Y_IMAGE";
-#ifndef __WIN32__ //For Windows it is already sorted.
+#ifndef _WIN32 //For Windows it is already sorted.
     solverArgs << "--sort-column" << "MAG_AUTO";
     solverArgs << "--sort-ascending";
 #endif
@@ -1728,6 +1732,17 @@ bool MainWindow::solveField()
     connect(solver, SIGNAL(finished(int)), this, SLOT(externalSolverComplete(int)));
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &MainWindow::logSolver);
+
+#ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work
+        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+        QString path            = env.value("Path", "");
+        QString ansvrPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/";
+        QString pathsToInsert =ansvrPath + "bin;";
+        pathsToInsert += ansvrPath + "lib/lapack;";
+        pathsToInsert += ansvrPath + "lib/astrometry/bin;";
+        env.insert("Path", pathsToInsert + path);
+        solver->setProcessEnvironment(env);
+#endif
 
     solver->start(solverPath, solverArgs);
 
@@ -1905,6 +1920,18 @@ bool MainWindow::getSolutionInformation()
         return false;
     }
     QProcess wcsProcess;
+
+#ifdef _WIN32 //This will set up the environment so that the ANSVR internal wcsinfo will work
+        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+        QString path            = env.value("Path", "");
+        QString ansvrPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/";
+        QString pathsToInsert = ansvrPath + "bin;";
+        pathsToInsert += ansvrPath + "lib/lapack;";
+        pathsToInsert += ansvrPath + "lib/astrometry/bin;";
+        env.insert("Path", pathsToInsert + path);
+        wcsProcess.setProcessEnvironment(env);
+#endif
+
     wcsProcess.start(wcsPath, QStringList(solutionFile));
     wcsProcess.waitForFinished();
     QString wcsinfo_stdout = wcsProcess.readAllStandardOutput();

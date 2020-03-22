@@ -24,7 +24,7 @@
 #include <dirent.h>
 #include <time.h>
 
-#ifdef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <winsock2.h>
 #else
 #include <sys/wait.h>
@@ -227,7 +227,7 @@ char* find_file_in_dirs(const char** dirs, int ndirs, const char* filename, anbo
     }
     return NULL;
 }
-#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 float get_cpu_usage() {
     struct rusage r;
     float sofar;
@@ -290,7 +290,7 @@ void asprintf_safe(char** strp, const char* format, ...) {
     }
     va_end(lst);
 }
-#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 sl* dir_get_contents(const char* path, sl* list, anbool filesonly, anbool recurse) {
     DIR* dir = opendir(path);
     if (!dir) {
@@ -608,7 +608,7 @@ int mkdir_p(const char* dirpath) {
     free(path);
     while (sl_size(tomake)) {
         char* path = sl_pop(tomake);
-#ifndef __WIN32__
+#ifndef _WIN32
         if (mkdir(path, 0777)) {
 #else
         if (mkdir(path)) {
@@ -900,7 +900,7 @@ char* strdup_safe(const char* str) {
     return rtn;
 }
 
-#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 static int oldsigbus_valid = 0;
 static struct sigaction oldsigbus;
 static void sigbus_handler(int sig) {

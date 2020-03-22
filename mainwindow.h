@@ -34,6 +34,7 @@
 #include "dms.h"
 #include "bayer.h"
 
+#ifndef _WIN32 //Commented out for now on Windows due to compilation issues.
 //Astrometry.net includes
 extern "C"{
 #include "tic.h"
@@ -60,6 +61,7 @@ extern "C"{
 #include "sip-utils.h"
 #include "tabsort.h"
 }
+#endif
 
 namespace Ui {
 
@@ -103,7 +105,8 @@ private:
 #elif defined(Q_OS_LINUX)
     QString confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
 #else
-    QString confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
+    //QString confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
+    QString confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg"
 #endif
 
 #if defined(Q_OS_OSX)
@@ -111,7 +114,8 @@ private:
 #elif defined(Q_OS_LINUX)
     QString solverPath = "/usr/bin/solve-field";
 #else
-    QString solverPath = "C:/cygwin64/bin/solve-field";
+    //QString solverPath = "C:/cygwin64/bin/solve-field";
+    QString solverPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe";
 #endif
 
 #if defined(Q_OS_OSX)
@@ -119,7 +123,8 @@ private:
 #elif defined(Q_OS_LINUX)
     QString wcsPath = "/usr/bin/wcsinfo";
 #else
-    QString wcsPath = "C:/cygwin64/bin/wcsinfo";
+    //QString wcsPath = "C:/cygwin64/bin/wcsinfo";
+    QString wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
 #endif
 
     //Parameters for sextracting

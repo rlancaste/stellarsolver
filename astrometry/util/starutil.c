@@ -10,7 +10,7 @@
 #include <sys/types.h>
 
 //# Modified by Robert Lancaster for the SexySolver Internal Library
-#ifdef __WIN32__
+#ifdef _WIN32
 #include <boost/regex.h>
 #else
 #include <regex.h>

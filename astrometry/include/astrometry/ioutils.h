@@ -11,7 +11,7 @@
 #include <sys/types.h>
 
 //# Modified by Robert Lancaster for the SexySolver Internal Library
-#ifdef __WIN32
+#ifdef _WIN32
 //These types are not included on windows
 typedef unsigned long int ulong;
 typedef unsigned short int ushort;
@@ -43,7 +43,7 @@ Malloc
 char* dirname_safe(const char* path);
 
 // Returns (system + user) CPU time, in seconds.
-#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 float get_cpu_usage(void);
 #endif
 
@@ -145,7 +145,7 @@ int ends_with(const char* str, const char* prefix);
 
 char* strdup_safe(const char* str);
 
-#ifndef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 void add_sigbus_mmap_warning(void);
 void reset_sigbus_mmap_warning(void);
 #endif

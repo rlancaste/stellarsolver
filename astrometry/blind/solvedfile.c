@@ -17,7 +17,7 @@
 #include "errors.h"
 
 //# Modified by Robert Lancaster for the SexySolver Internal Library
-#if defined(__APPLE__) || defined (__WIN32__)
+#if defined(__APPLE__) || defined (_WIN32)
 // MacOS 10.3 with gcc 3.3 doesn't have O_SYNC.
 #if !defined(O_SYNC)
 #define O_SYNC 0

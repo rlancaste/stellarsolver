@@ -16,7 +16,7 @@
 #endif
 
 //# Modified by Robert Lancaster for the SexySolver Internal Library
-#ifndef __WIN32__
+#ifndef _WIN32
 #if NEED_CANONICALIZE_FILE_NAME
 char* canonicalize_file_name(const char* fn) {
     char* path = malloc(1024);

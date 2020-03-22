@@ -87,6 +87,7 @@ if (GSL_FOUND)
   include_directories(${GSL_INCLUDE_DIR})
 endif (GSL_FOUND)
 
+if(NOT WIN32) #For now, due to windows compilation issues
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an")
 set(qfits_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/anqfits.c
@@ -234,6 +235,7 @@ if(WIN32)
 target_link_libraries(astrometry wsock32)
 endif(WIN32)
 #install(TARGETS astrometry LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif(NOT WIN32)
 
 set (sep_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/sep/analyse.c
@@ -264,15 +266,19 @@ qt5_wrap_ui(SexySolverui_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.ui
     )
 
-#If(APPLE)
+If(APPLE)
 set(MACOSX_BUNDLE_ICON_FILE SexySolverIcon.icns)
 set(SexySolverApp_ICON SexySolverIcon.icns)
 set_source_files_properties(${SexySolverApp_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-#endif(APPLE)
+endif(APPLE)
 
 add_executable(SexySolver ${SexySolver_SRCS} ${SexySolverui_SRCS} ${SexySolverApp_ICON})
 
+if(WIN32) #For now, due to Windows compilation issues
+target_link_libraries(SexySolver sep)
+else(WIN32)
 target_link_libraries(SexySolver sep astrometry)
+endif(WIN32)
 
 target_link_libraries(SexySolver
     ${CFITSIO_LIBRARIES}

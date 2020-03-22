@@ -10,7 +10,7 @@
 #include <string.h>
 #include <sys/types.h>
 
-#ifdef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <winsock2.h>
 #include <string.h>
 #else
@@ -44,7 +44,7 @@ int solvedclient_set_server(char* addr) {
     }
     if (!addr)
         return -1;
-#ifdef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
     ind = strstr(addr, ":");
 #else
     ind = index(addr, ':');
@@ -58,7 +58,7 @@ int solvedclient_set_server(char* addr) {
     buf[len] = '\0';
     he = gethostbyname(buf);
     if (!he) {
-#ifdef __WIN32__ //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
         fprintf(stderr, "Solved server \"%s\" not found.\n", buf);
 #else
         fprintf(stderr, "Solved server \"%s\" not found: %s.\n", buf, hstrerror(h_errno));

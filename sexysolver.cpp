@@ -428,6 +428,7 @@ void SexySolver::addIndexFolderPath(QString pathToAdd)
     indexFolderPaths.append(pathToAdd);
 }
 
+#ifndef _WIN32 //Commented out for now on Windows due to compilation issues.
 //This method prepares the job file.  It is based upon the methods parse_job_from_qfits_header and engine_read_job_file in engine.c of astrometry.net
 //as well as the part of the method augment_xylist in augment_xylist.c where it handles xyls files
 
@@ -618,7 +619,7 @@ int SexySolver::runAstrometryEngine()
 
     // These set the time limits for the solver
     bp->timelimit = solverTimeLimit;
-#ifndef __WIN32__
+#ifndef _WIN32
     bp->cpulimit = solverTimeLimit;
 #endif
 
@@ -680,3 +681,4 @@ int SexySolver::runAstrometryEngine()
         return -1;
     }
 }
+#endif
