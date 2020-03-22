@@ -110,6 +110,8 @@ add_library(qfits ${qfits_SRCS})
 #install(TARGETS qfits LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 if(WIN32)
     #This is not very portable, I will work on it
+    #For right now until we determine if these libraries actually work for us on Windows
+    #You need to edit this line to link to the appropriate paths on Windows.
 #MinGW Versions
 #target_link_libraries(qfits C:/CraftRoot/lib/libboost_regex-mgw81-mt-x64-1_69.dll C:/CraftRoot/lib/libmman.dll.a)
 target_link_libraries(qfits C:/CraftRootMinGW/lib/libboost_regex-mgw81-mt-x64-1_69.dll C:/CraftRootMinGW/lib/libmman.dll.a)
