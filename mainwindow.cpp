@@ -1807,8 +1807,24 @@ bool MainWindow::internalSolverComplete(int x)
     addSolutionToTable(internalSolver->solution);
     setItemInColumn(ui->solutionTable, "Int?", "true");
     setItemInColumn(ui->solutionTable, "Stars", QString::number(internalSolver->getNumStarsFound()));
+
     //Sextractor Parameters
-    setItemInColumn(ui->solutionTable,"Shape", QString::number(internalSolver->apertureShape));
+    QString shapeName="Circle";
+    switch(internalSolver->apertureShape)
+    {
+        case SHAPE_AUTO:
+            shapeName = "Auto";
+        break;
+
+        case SHAPE_CIRCLE:
+           shapeName = "Circle";
+        break;
+
+        case SHAPE_ELLIPSE:
+            shapeName = "Ellipse";
+        break;
+    }
+    setItemInColumn(ui->solutionTable,"Shape", shapeName);
     setItemInColumn(ui->solutionTable,"Kron", QString::number(internalSolver->kron_fact));
     setItemInColumn(ui->solutionTable,"Subpix", QString::number(internalSolver->subpix));
     setItemInColumn(ui->solutionTable,"r_min", QString::number(internalSolver->r_min));

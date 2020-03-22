@@ -20,6 +20,8 @@ void SexySolver::run()
         {
 #ifndef _WIN32 //For now due to compilation issues in windows
             runAstrometryEngine();
+#else
+            emit logNeedsUpdating("Sextraction done, but for now on Windows, the internal solver is disabled due to compilation issues");
 #endif
         }
     }
