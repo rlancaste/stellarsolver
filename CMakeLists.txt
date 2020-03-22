@@ -87,7 +87,7 @@ if (GSL_FOUND)
   include_directories(${GSL_INCLUDE_DIR})
 endif (GSL_FOUND)
 
-if(NOT WIN32) #For now, due to windows compilation issues
+if(NOT MSVC) #For now, due to windows compilation issues
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an")
 set(qfits_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/anqfits.c
@@ -274,7 +274,7 @@ endif(APPLE)
 
 add_executable(SexySolver ${SexySolver_SRCS} ${SexySolverui_SRCS} ${SexySolverApp_ICON})
 
-if(WIN32) #For now, due to Windows compilation issues
+if(MSVC) #For now, due to Windows compilation issues
 target_link_libraries(SexySolver sep)
 else(WIN32)
 target_link_libraries(SexySolver sep astrometry)

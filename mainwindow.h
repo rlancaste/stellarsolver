@@ -34,7 +34,7 @@
 #include "dms.h"
 #include "bayer.h"
 
-#ifndef _WIN32 //Commented out for now on Windows due to compilation issues.
+#ifndef Q_CC_MSVC //Commented out for now on Windows due to compilation issues.
 //Astrometry.net includes
 extern "C"{
 #include "tic.h"

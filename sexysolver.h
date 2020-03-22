@@ -17,7 +17,7 @@
 //Sextractor Includes
 #include "sep/sep.h"
 
-#ifndef _WIN32 //Commented out for now on Windows due to compilation issues.
+#ifndef Q_CC_MSVC //Commented out for now on Windows due to compilation issues.
 //Astrometry.net includes
 extern "C"{
 #include "blindutils.h"
@@ -100,7 +100,7 @@ public:
     double search_dec = HUGE_VAL; //DEC of field center for search, format: decimal degrees
     double search_radius = 15; //Only search in indexes within 'radius' of the field center given by RA and DEC
 
-#ifndef _WIN32 //Commented out for now on Windows due to compilation issues.
+#ifndef Q_CC_MSVC //Commented out for now on Windows due to compilation issues.
     int search_parity = PARITY_BOTH; //Only check for matches with positive/negative parity (default: try both)
 
 
@@ -152,7 +152,7 @@ private:
     uint8_t *m_ImageBuffer { nullptr };
 
     //This is the job file that will be created for astrometry.net to solve
-#ifndef _WIN32 //Commented out for now on Windows due to compilation issues.
+#ifndef Q_CC_MSVC //Commented out for now on Windows due to compilation issues.
     job_t thejob;
     job_t* job = &thejob;
 #endif
@@ -161,7 +161,7 @@ private:
     bool writeSextractorTable();
     bool runInnerSextractor();
 
-#ifndef _WIN32 //Commented out for now on Windows due to compilation issues.
+#ifndef Q_CC_MSVC //Commented out for now on Windows due to compilation issues.
     //These are for the internal SexySolver solver
     int runAstrometryEngine();
     bool prepare_job();
