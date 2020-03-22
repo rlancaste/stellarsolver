@@ -1719,7 +1719,7 @@ bool MainWindow::solveField()
 
     QStringList solverArgs=getSolverArgsList();
 
-    solverArgs << "--config" << confPath;
+    solverArgs << "--backend-config" << confPath;
 
     QString solutionFile = tempPath + QDir::separator() + "SextractorList.wcs";
     solverArgs << "-W" << solutionFile;
