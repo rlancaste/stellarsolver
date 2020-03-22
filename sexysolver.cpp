@@ -330,8 +330,8 @@ bool SexySolver::writeSextractorTable()
     char* tunit[] = { colUnits, colUnits };
     const char* extfile = "Sextractor_File";
 
-    float xArray[stars.size()];
-    float yArray[stars.size()];
+    float *xArray = new float[stars.size()];
+    float *yArray = new float[stars.size()];
 
     for (int i = 0; i < stars.size(); i++)
     {
@@ -368,6 +368,9 @@ bool SexySolver::writeSextractorTable()
         emit logNeedsUpdating(QString("Error closing file."));
         return false;
     }
+
+    free(xArray);
+    free(yArray);
 
     return true;
 }
