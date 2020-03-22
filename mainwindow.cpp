@@ -274,6 +274,10 @@ void MainWindow::displayTable()
 //It then will load the results into a table to the right of the image
 bool MainWindow::sextractImage()
 {
+    #ifdef _WIN32
+    logOutput("Sextractor is not easily installed on Windows, try the Internal Sextractor please.");
+    return false;
+    #endif
     if(!prepareForProcesses())
         return false;
 
