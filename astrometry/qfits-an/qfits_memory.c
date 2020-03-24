@@ -469,6 +469,17 @@ static void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* ma
 	*pgap = gap;
 }
 
+#ifdef _WIN32
+static char* mmap_file(int fildes, off_t maplen)
+{
+    HANDLE fm, h;
+    h = (HANDLE)_get_osfhandle(fildes);
+    fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0,0, NULL);
+    return MapViewOfFile(fm, FILE_MAP_READ, 0, 0, maplen);
+}
+#endif
+
+
 void qfits_memory_fdealloc2(
         void        *   ptr, 
 		size_t len,
@@ -522,9 +533,13 @@ void* qfits_memory_falloc2(
 
 	/* Memory-map input file */
 	// mmap requires page-aligned offsets.
+#ifdef _WIN32
+    ptr = mmap_file(fd, size + offs);
+#else
 	get_mmap_size(offs, size, &mapstart, &maplen, &mapoff);
 	ptr = (char*)mmap(0, maplen, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd,
 					  mapstart);
+#endif
 	eno = errno;
         
 	/* Close file */
@@ -541,7 +556,11 @@ void* qfits_memory_falloc2(
 	if (freesize) {
 		*freesize = maplen;
 	}
+#ifdef _WIN32
+    return ptr + offs;
+#else
 	return ptr + mapoff;
+#endif
 }
 
 
