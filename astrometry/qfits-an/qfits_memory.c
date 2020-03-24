@@ -42,6 +42,8 @@
 #include <sys/mman.h>
 #ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/resource.h>
+#else
+#include "windows.h"
 #endif
 #include <errno.h>
 #include <assert.h>
@@ -452,7 +454,14 @@ void * qfits_memory_calloc(
 // copied from ioutils.c
 
 static void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* mapsize, int* pgap) {
-	int ps = getpagesize();
+#ifdef _WIN32
+    SYSTEM_INFO system_info;
+    GetSystemInfo (&system_info);
+    int ps = system_info.dwPageSize;
+#else
+    int ps = getpagesize();
+#endif
+
 	int gap = start % ps;
 	// start must be a multiple of pagesize.
 	*mapstart = start - gap;

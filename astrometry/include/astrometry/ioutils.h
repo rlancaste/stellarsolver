@@ -81,6 +81,10 @@ ATTRIB_FORMAT(printf,2,3)
 
 void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* mapsize, int* pgap);
 
+#ifdef _WIN32
+char* mmap_file(int fildes, off_t mapsize);
+#endif
+
 // If "dir" is NULL, create temp file in $TMP, or /tmp if not set.
 char* create_temp_file(const char* fn, const char* dir);
 
