@@ -508,8 +508,12 @@ static int read_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
         get_mmap_size(tabstart, tabsize, &mapstart, &(chunk->mapsize), &mapoffset);
         mode = PROT_READ;
         flags = MAP_SHARED;
+#ifdef _WIN32
+        chunk->map = mmap_file(fileno(fb->fid), mapstart);
+#else
         chunk->map = mmap(0, chunk->mapsize, mode, flags, fileno(fb->fid), mapstart);
-        if (chunk->map == MAP_FAILED) {
+#endif
+        if (chunk->map == MAP_FAILED || chunk->map == NULL) {
             SYSERROR("Couldn't mmap file \"%s\"", fb->filename);
             chunk->map = NULL;
             return -1;
