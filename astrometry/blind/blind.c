@@ -512,6 +512,9 @@ void blind_run(blind_t* bp) {
     if (write_solutions(bp))
         exit(-1);
 
+    return;  //# Modified by Robert Lancaster for the SexySolver Internal Library
+            //We want to return here so that the match object is preserved so we don't have to read the information from a wcs file
+
     for (i=0; i<bl_size(bp->solutions); i++) {
         MatchObj* mo = bl_access(bp->solutions, i);
         verify_free_matchobj(mo);
