@@ -19,6 +19,11 @@
 
 #include "astrometry/keywords.h"
 
+//# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32
+int vasprintf(char **strp, const char *fmt, va_list ap);
+#endif
+
 struct bl_node {
     // number of elements filled.
     int N;
