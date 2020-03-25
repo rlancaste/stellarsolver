@@ -962,7 +962,7 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
         // Get the FIELDID string from the xyls FITS header.
         if (xylist_open_field(bp->xyls, fieldnum)) {
             logerr("Failed to open extension %i in xylist.\n", fieldnum);
-            goto cleanup;
+            return; //# Modified by Robert Lancaster for the SexySolver Internal Library
         }
         fieldhdr = xylist_get_header(bp->xyls);
         if (fieldhdr) {
@@ -973,14 +973,16 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
         }
 
         // Has the field already been solved?
-        if (is_field_solved(bp, fieldnum))
-            goto cleanup;
+        //# Modified by Robert Lancaster for the SexySolver Internal Library
+        //This is unnecessary since we solve one field at a time.
+        //if (is_field_solved(bp, fieldnum))
+           // goto cleanup;
 
         // Get the field.
         solver_set_field(sp, xylist_read_field(bp->xyls, NULL));
         if (!sp->fieldxy) {
             logerr("Failed to read xylist field.\n");
-            goto cleanup;
+            return; //# Modified by Robert Lancaster for the SexySolver Internal Library
         }
 
         sp->numtries = 0;
@@ -1068,8 +1070,6 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
         last_wtime = wtime;
     return;  //# Modified by Robert Lancaster for the SexySolver Internal Library
         //We want to return here so that the sp object is preserved so we don't have to read the information from a wcs file
-    cleanup:
-        solver_cleanup_field(sp);
     }
 }
 
