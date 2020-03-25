@@ -505,12 +505,13 @@ static int read_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
                   (int)(tabsize / (off_t)FITS_BLOCK_SIZE));
             return -1;
         }
+
+#ifdef _WIN32
+        chunk->map = mmap_file(fileno(fb->fid), chunk->mapsize);
+#else
         get_mmap_size(tabstart, tabsize, &mapstart, &(chunk->mapsize), &mapoffset);
         mode = PROT_READ;
         flags = MAP_SHARED;
-#ifdef _WIN32
-        chunk->map = mmap_file(fileno(fb->fid), mapstart);
-#else
         chunk->map = mmap(0, chunk->mapsize, mode, flags, fileno(fb->fid), mapstart);
 #endif
         if (chunk->map == MAP_FAILED || chunk->map == NULL) {
@@ -518,7 +519,13 @@ static int read_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
             chunk->map = NULL;
             return -1;
         }
+
+#ifdef _WIN32
+        chunk->data = chunk->map + tabstart;
+#else
         chunk->data = chunk->map + mapoffset;
+#endif
+
     }
     return 0;
 }

@@ -470,12 +470,12 @@ static void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* ma
 }
 
 #ifdef _WIN32
-static char* mmap_file(int fildes, off_t maplen)
+static char* mmap_file(int fildes, off_t mapsize)
 {
     HANDLE fm, h;
     h = (HANDLE)_get_osfhandle(fildes);
-    fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0,0, NULL);
-    return MapViewOfFile(fm, FILE_MAP_READ, 0, 0, maplen);
+    fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0, mapsize, NULL);
+    return MapViewOfFile(fm, FILE_MAP_READ, 0, 0, mapsize);
 }
 #endif
 

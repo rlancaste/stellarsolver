@@ -211,7 +211,7 @@ set(anfiles_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/quadfile.c
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/scamp.c
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/scamp-catalog.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/tabsort.c
+   # ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/tabsort.c
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/wcs-xy2rd.c
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/wcs-rd2xy.c
         )

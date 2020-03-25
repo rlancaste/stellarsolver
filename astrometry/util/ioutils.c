@@ -829,7 +829,7 @@ char* mmap_file(int fildes, off_t mapsize)
 {
     HANDLE fm, h;
     h = (HANDLE)_get_osfhandle(fildes);
-    fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0, 0, NULL);
+    fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0, mapsize, NULL);
     return MapViewOfFile(fm, FILE_MAP_READ, 0, 0, mapsize);
 }
 #endif
