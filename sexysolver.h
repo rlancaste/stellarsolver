@@ -47,7 +47,8 @@ public:
     QString basePath = QDir::tempPath();
 
     // This is the xyls file path that sextractor will be saving for Astrometry.net
-    QString sextractorFilePath = basePath + QDir::separator() + "SextractorList.xyls";
+    // If it is not set, it will be set to a random temporary file
+    QString sextractorFilePath;
 
     //Sextractor Photometry Parameters
     Shape apertureShape = SHAPE_CIRCLE;

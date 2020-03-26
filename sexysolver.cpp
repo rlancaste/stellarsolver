@@ -1,5 +1,6 @@
 #include "sexysolver.h"
 #include "qmath.h"
+#include <QRandomGenerator>
 
 SexySolver::SexySolver(Statistic imagestats, uint8_t *imageBuffer, bool sextractOnly, QObject *parent) : QThread(parent)
 {
@@ -59,7 +60,7 @@ void SexySolver::createConvFilterFromFWHM(double fwhm)
 
 //The code in this section is my attempt at running an internal sextractor program based on SEP
 //I used KStars and the SEP website as a guide for creating these functions
-//It saves the output to SextractorList.xyls in the temp directory.
+//It saves the output to a file in the temp directory.
 
 bool SexySolver::runInnerSextractor()
 {
@@ -310,6 +311,10 @@ void SexySolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
 //https://heasarc.gsfc.nasa.gov/docs/software/fitsio/cookbook/node16.html
 bool SexySolver::writeSextractorTable()
 {
+
+    if(sextractorFilePath == "")
+        sextractorFilePath = basePath + QDir::separator() + "sexySolver_" + QString::number(QRandomGenerator::global()->bounded(1, 1000)) + ".xyls";
+
     QFile sextractorFile(sextractorFilePath);
     if(sextractorFile.exists())
         sextractorFile.remove();
