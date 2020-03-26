@@ -77,6 +77,7 @@ int solvedfile_get(char* fn, int fieldnum) {
     return val;
 }
 
+#ifndef _WIN32
 // lastfield = 0 for no limit.
 static il* solvedfile_getall_val(char* fn, int firstfield, int lastfield, int maxfields, int val) {
     FILE* f;
@@ -156,6 +157,7 @@ il* solvedfile_getall(char* fn, int firstfield, int lastfield, int maxfields) {
 il* solvedfile_getall_solved(char* fn, int firstfield, int lastfield, int maxfields) {
     return solvedfile_getall_val(fn, firstfield, lastfield, maxfields, 1);
 }
+#endif
 
 int solvedfile_setsize(char* fn, int sz) {
     int f;

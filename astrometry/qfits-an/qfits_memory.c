@@ -631,7 +631,11 @@ char * qfits_memory_falloc(
         }
 
         /* Memory-map input file */
+#ifdef _WIN32
+        ptr = mmap_file(fd,sta.st_size);
+#else
         ptr = (char*)mmap(0, sta.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+#endif
 		eno = errno;
         
         /* Close file */
@@ -738,7 +742,11 @@ char * qfits_memory_falloc(
     }
 
     /* Memory-map input file */
+#ifdef _WIN32
+    ptr = mmap_file(fd,sta.st_size);
+#else
     ptr = (char*)mmap(0, sta.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE,fd,0);
+#endif
     
     /* Close file */
     close(fd);

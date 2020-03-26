@@ -1076,6 +1076,7 @@ tfits_type anqfits_ptype_to_ttype(int ptype) {
     return -1;
 }
 
+#ifndef _WIN32
 void* anqfits_readpix(const anqfits_t* qf, int ext,
                       int x0, int x1, int y0, int y1,
                       /** The plane you want, from 0 to planes-1 */
@@ -1280,7 +1281,7 @@ void* anqfits_readpix(const anqfits_t* qf, int ext,
     }
     return NULL;
 }
-
+#endif
 
 
 

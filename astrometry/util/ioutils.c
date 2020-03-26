@@ -832,6 +832,13 @@ char* mmap_file(int fildes, off_t mapsize)
     fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0, mapsize, NULL);
     return MapViewOfFile(fm, FILE_MAP_READ, 0, 0, mapsize);
 }
+int munmap(void *addr, size_t len)
+{
+    if (UnmapViewOfFile(addr))
+        return 0;
+
+    return -1;
+}
 #endif
 
 time_t file_get_last_modified_time(const char* fn) {

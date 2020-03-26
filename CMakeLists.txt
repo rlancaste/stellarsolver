@@ -113,10 +113,10 @@ if(WIN32)
     #For right now until we determine if these libraries actually work for us on Windows
     #You need to edit this line to link to the appropriate paths on Windows.
 #MinGW Versions
-#target_link_libraries(qfits C:/CraftRoot/lib/libboost_regex-mgw81-mt-x64-1_69.dll C:/CraftRoot/lib/libmman.dll.a)
-target_link_libraries(qfits C:/CraftRootMinGW/lib/libboost_regex-mgw81-mt-x64-1_69.dll C:/CraftRootMinGW/lib/libmman.dll.a)
+#target_link_libraries(qfits C:/CraftRoot/lib/libboost_regex-mgw81-mt-x64-1_69.dll)
+target_link_libraries(qfits C:/CraftRootMinGW/lib/libboost_regex-mgw81-mt-x64-1_69.dll)
 #MSVC Versions
-#target_link_libraries(qfits C:/CraftRoot/lib/boost_regex-vc141-mt-x64-1_69.dll C:/CraftRootMinGW/lib/mman.lib)
+#target_link_libraries(qfits C:/CraftRoot/lib/boost_regex-vc141-mt-x64-1_69.dll)
 endif(WIN32)
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd")
 set(kd_SRCS
