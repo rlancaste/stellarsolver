@@ -1,8 +1,31 @@
-# astrometry-sextractor-tester
+# SexySolver
+## The Cross Platform Sextractor and Astrometry.net-Based Internal Astrometric Solver
 
-This project is meant to provide a stripped down version of KStars' image loading, sextracting, 
-fits parameter loading, image rendering, and astrometry solving algorithms.
+ - An Astrometric Plate Solver for Mac, Linux, and hopefully Windows
+ - Python is not required
+ - Netpbm is not required
+ - Internal Library, so external method calls not required
+ - No Astrometry.cfg file is needed
 
-The goal is to try to incorporate sextractor and astrometry libraries into this testing ground to get plate solving to
-work independently of the command line programs and python3 to make it faster, more reliable, and possibly best of all cross-platform
-with Windows.
+## The History
+Astrometry.net is a fantastic astrometric plate solver, but it is command line only and has many dependencies such as python, netpbm, libjpeg, cfitsio, and many other things.  It is fairly easy to install on Linux and works incredibly well in that evironment.  With the correct recipes in homebrew, craft, macports, or other package managers, it can be installed and run from the command line on Mac OS X as well.  On Windows, however, it must be run within a compatibility layer such as Microsoft Subsystem for Linux, Cygwin, or Ansvr.  None of these things will stop the program from running, but it does make it more difficult to set up and use and all of the files and dependencies and configuration files must be setup properly in order to get it to work.
+
+I have been working for the last several years with the Open Source KStars and INDI projects and we have been calling on astrometry.net as an external program using QProcess on Linux for a number of years.  When I and a couple of others ported KStars to Mac OS X a couple of years ago, I spent a lot of time getting astrometry.net built and set up within the app bundle along with its dependencies so that users would have a much easier time getting KStars working and wouldn't have to spend lots of time trying to install Homebrew and dependencies to get it all working.  Unfortunately, we have had some issues over the years with certain Macs running the code and also with python configurations on some people's computers.  It worked for the majority of users, but there were some issues.  In February of 2020, in response to those issues, I came up with another plan based on information on Astrometry.net's website that if Sextractor was used on the data first, we could avoid using python and netpbm.  This worked very well and in fact, the process of using Sextractor first and then Astrometry.net second seemed to give us a boost in speed.  
+
+## Goal 1: Test and Perfect Settings in Astrometry and Sextractor to make it more efficient.
+After we released the new version KStars and many people reported that it sped up plate solving and the people who were having problems said that it fixed their problems, I decided that it might be a good idea to setup a separate program as a playground to see if I could perfect some of the parameters for Sextractor and Astrometry to make them more efficient and speed it up even more.  So that is why I created this repository.  I copied in code from KStars to support loading images, display images, and sextracting images since that work was already done.  Then I worked to make as many of the parameters adjustable as possible and made it display the results along with the parameters and the times in a table.  This way we should be able to perfect all of the settings.
+
+## Goal 2: Access Astrometry.net and Sextractor as an internal library rather than external processes.
+Another goal that I had in mind when I created this repository was that we could test my idea of accessing astrometry.net using it as a library rather than the external programs being called like it works in KStars now.  At first, I was planning to use the dynamic libraries that get built with astrometry.net, which ended up working pretty well, but then I abanonded that idea because then the project would depend on having the development version of the libastrometry package installed.  Plus, building the program internally would allow me to leave out parts that we don't need and to fix any issues with running it on other operating systems.
+
+## Goal 3: Making the Internal Solver Library work on Windows
+Another thought I had in the back of my mind was that there were a copule of reasons that astrometry.net has trouble on windows.  The first is the fact that it is commmand line.  The second is all of the linux dependencies and POSIX requirements.  I was thinking that since we already have an internal library version of Sextractor that works on windows and since we would be running this as a library rather than on the command line, possibly I would be able to remove a number of the parts of astrometry.net that prevent it from running on windows and that I would be able to port the rest of the requirements to make it work.
+
+## Results:
+ - Goal 1 was partially completed when I got the program set up and ready for testing in February 2020.  Now testing should continue so that we can see what parameters are needed, what makes it more efficient, and how to make it better.
+ - Goal 2 was completed in March 2020, but some changes might yet be made.  Astrometry and Sextractor are now fully integraded for Linux and Mac Computers and no external configuration files are needed anymore.  Netpbm and Python are not required either.
+ - Goal 3 is ongoing.  by the end of March 2020, I do have it compiling on Windows at least with the MinGW compiler.  And on Windows it is solving images successfully as long as you specify the scale and a starting RA/Dec for the search.
+ 
+## Setting up the program for testing.
+
+This will be revised shortly.
