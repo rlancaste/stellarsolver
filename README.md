@@ -7,6 +7,7 @@
  - Internal Library, so external method calls not required
  - No Astrometry.cfg file is needed
  - The Index Files are still required for solving images, but the program or the user can specify the folder locations rather than putting them in the config file.
+ - Note: The SexySolver executable created by MainWindow is only meant for testing purposes.  It is for developing and improving SexySolver.cpp and the included libraries in the astrometry and sep folders
 
 ![SexySolver In Action](/SexySolverInAction.png "SexySolver running the same solve on different platforms.")
 
@@ -56,8 +57,8 @@ Once you set up craft, just copy the SexySolver recipe in the craft-blueprint fo
 and it will install
 
 ## Windows
-The Windows build is still very much experimental.  On Windows, right now you have to use craft, and you have to use 
-the MingGW compiler.  It won't build yet using MSVC and Visual Studio.
+The Windows build is still very much experimental.  On Windows, right now you have to use craft to get gsl, cfitsio, QT,
+and everything else all set up, and you have to use the MingGW compiler.  It won't build yet using MSVC and Visual Studio.
 You can set it up using:
  [Windows Craft Installation Instructions](https://community.kde.org/Guidelines_and_HOWTOs/Build_from_source/Windows)
 Once you set up craft, just copy the SexySolver recipe in the craft-blueprint folder of this repo into the folder
@@ -65,4 +66,5 @@ Once you set up craft, just copy the SexySolver recipe in the craft-blueprint fo
 
 	craft -v -i SexySolver
 
-and it will install
+and it will install.  If there is a build problem due to boost-regex, please edit the CMakelists.txt file to point to the boost-regex 
+library.  There are instructions in the file.  I will fix this in the future.
