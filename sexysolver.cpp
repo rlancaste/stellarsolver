@@ -1,6 +1,5 @@
 #include "sexysolver.h"
 #include "qmath.h"
-#include <QRandomGenerator>
 
 SexySolver::SexySolver(Statistic imagestats, uint8_t *imageBuffer, bool sextractOnly, QObject *parent) : QThread(parent)
 {
@@ -313,7 +312,10 @@ bool SexySolver::writeSextractorTable()
 {
 
     if(sextractorFilePath == "")
-        sextractorFilePath = basePath + QDir::separator() + "sexySolver_" + QString::number(QRandomGenerator::global()->bounded(1, 1000)) + ".xyls";
+    {
+        srand(time(NULL));
+        sextractorFilePath = basePath + QDir::separator() + "sexySolver_" + QString::number(rand()) + ".xyls";
+    }
 
     QFile sextractorFile(sextractorFilePath);
     if(sextractorFile.exists())
