@@ -8,6 +8,8 @@
  - No Astrometry.cfg file is needed
  - The Index Files are still required for solving images, but the program or the user can specify the folder locations rather than putting them in the config file.
 
+![SexySolver In Action](/SexySolverInAction.png "SexySolver running the same solve on different platforms.")
+
 ## The History
 Astrometry.net is a fantastic astrometric plate solver, but it is command line only and has many dependencies such as python, netpbm, libjpeg, cfitsio, and many other things.  It is fairly easy to install on Linux and works incredibly well in that evironment.  With the correct recipes in homebrew, craft, macports, or other package managers, it can be installed and run from the command line on Mac OS X as well.  On Windows, however, it must be run within a compatibility layer such as Microsoft Subsystem for Linux, Cygwin, or Ansvr.  None of these things will stop the program from running, but it does make it more difficult to set up and use and all of the files and dependencies and configuration files must be setup properly in order to get it to work.
 
