@@ -30,15 +30,15 @@ Another thought I had in the back of my mind was that there were a copule of rea
 
 ## Linux
 You can follow this set of steps on ubuntu to get the program SexySolver set up to run.
-'''
-sudo apt -y install git cmake qt5-default libcfitsio-dev libgsl-dev
-git clone https://github.com/rlancaste/sexysolver-tester.git
-mkdir build
-cd build
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ../sexysolver-tester/
-make -j $(expr $(nproc) + 2)
-make install
-'''
+
+	sudo apt -y install git cmake qt5-default libcfitsio-dev libgsl-dev
+	git clone https://github.com/rlancaste/sexysolver-tester.git
+	mkdir build
+	cd build
+	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ../sexysolver-tester/
+	make -j $(expr $(nproc) + 2)
+	make install
+
 
 ## Mac
 You should probably use craft to get it set up on Mac.  You don't need to do so, but it would be easiest
@@ -47,9 +47,9 @@ You can set it up using:
  [Mac Craft Installation Instructions](https://community.kde.org/Guidelines_and_HOWTOs/Build_from_source/Mac#Installation_using_Craft)
 Once you set up craft, just copy the SexySolver recipe in the craft-blueprint folder of this repo into the folder
 /etc/blueprints/locations/craft-blueprints-kde/libs of your root craft directory.  Then just type:
-'''
-craft -v -i SexySolver
-'''
+
+	craft -v -i SexySolver
+
 and it will install
 
 ## Windows
@@ -59,7 +59,7 @@ You can set it up using:
  [Windows Craft Installation Instructions](https://community.kde.org/Guidelines_and_HOWTOs/Build_from_source/Windows)
 Once you set up craft, just copy the SexySolver recipe in the craft-blueprint folder of this repo into the folder
 /etc/blueprints/locations/craft-blueprints-kde/libs of your root craft directory.  Then just type:
-'''
-craft -v -i SexySolver
-'''
+
+	craft -v -i SexySolver
+
 and it will install
