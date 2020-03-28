@@ -10,7 +10,13 @@
  - Note: The SexySolver executable created by MainWindow is only meant for testing purposes.  It is for developing and improving SexySolver.cpp and the included libraries in the astrometry and sep folders
 
 ![SexySolver In Action](/SexySolverInAction.png "SexySolver running the same solve on different platforms.")
-
+## Based on:
+ - Astrometry.net [Astrometry README](http://astrometry.net/doc/readme.html)
+ - Sextractor [Sextractor Documentation](https://sextractor.readthedocs.io/en/latest/)
+ - SEP (Sextractor) [SEP Documentation](https://sep.readthedocs.io/en/v1.0.x/api/sep.extract.html)
+## Designed for:
+ - KStars [KStars Documentation](https://edu.kde.org/kstars/)
+ - Any other Cross Platform Astronomical Program based on C++ and QT
 ## The History
 Astrometry.net is a fantastic astrometric plate solver, but it is command line only and has many dependencies such as python, netpbm, libjpeg, cfitsio, and many other things.  It is fairly easy to install on Linux and works incredibly well in that evironment.  With the correct recipes in homebrew, craft, macports, or other package managers, it can be installed and run from the command line on Mac OS X as well.  On Windows, however, it must be run within a compatibility layer such as Microsoft Subsystem for Linux, Cygwin, or Ansvr.  None of these things will stop the program from running, but it does make it more difficult to set up and use and all of the files and dependencies and configuration files must be setup properly in order to get it to work.
 
