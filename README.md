@@ -26,6 +26,40 @@ Another thought I had in the back of my mind was that there were a copule of rea
  - Goal 2 was completed in March 2020, but some changes might yet be made.  Astrometry and Sextractor are now fully integraded for Linux and Mac Computers and no external configuration files are needed anymore.  Netpbm and Python are not required either.
  - Goal 3 is ongoing.  by the end of March 2020, I do have it compiling on Windows at least with the MinGW compiler.  And on Windows it is solving images successfully as long as you specify the scale and a starting RA/Dec for the search.
  
-## Setting up the program for testing.
+# Setting up the program for testing.
 
-This will be revised shortly.
+## Linux
+You can follow this set of steps on ubuntu to get the program SexySolver set up to run.
+'''
+sudo apt -y install git cmake qt5-default libcfitsio-dev libgsl-dev
+git clone https://github.com/rlancaste/sexysolver-tester.git
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ../sexysolver-tester/
+make -j $(expr $(nproc) + 2)
+make install
+'''
+
+## Mac
+You should probably use craft to get it set up on Mac.  You don't need to do so, but it would be easiest
+since there are dependencies like cfitsio which are more challenging to install without using craft.
+You can set it up using:
+ [Mac Craft Installation Instructions](https://community.kde.org/Guidelines_and_HOWTOs/Build_from_source/Mac#Installation_using_Craft)
+Once you set up craft, just copy the SexySolver recipe in the craft-blueprint folder of this repo into the folder
+/etc/blueprints/locations/craft-blueprints-kde/libs of your root craft directory.  Then just type:
+'''
+craft -v -i SexySolver
+'''
+and it will install
+
+## Windows
+The Windows build is still very much experimental.  On Windows, right now you have to use craft, and you have to use 
+the MingGW compiler.  It won't build yet using MSVC and Visual Studio.
+You can set it up using:
+ [Windows Craft Installation Instructions](https://community.kde.org/Guidelines_and_HOWTOs/Build_from_source/Windows)
+Once you set up craft, just copy the SexySolver recipe in the craft-blueprint folder of this repo into the folder
+/etc/blueprints/locations/craft-blueprints-kde/libs of your root craft directory.  Then just type:
+'''
+craft -v -i SexySolver
+'''
+and it will install
