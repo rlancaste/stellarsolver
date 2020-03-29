@@ -9,19 +9,19 @@
 #include "astrometry/os-features-config.h"
 #endif
 
+//# Modified by Robert Lancaster for the SexySolver Internal Library
 // Features we use that aren't standard across all supported platforms
-
-#if defined(NEED_CANONICALIZE_FILE_NAME) && (NEED_CANONICALIZE_FILE_NAME == 0)
+//#if defined(NEED_CANONICALIZE_FILE_NAME) && (NEED_CANONICALIZE_FILE_NAME == 0)
 // don't redeclare it!
-#else
-char* canonicalize_file_name(const char* fn);
-#endif
+//#else
+//char* canonicalize_file_name(const char* fn);
+//#endif
 
-// This is actually in POSIX1b but may or may not be available.
-int fdatasync(int fd);
+//// This is actually in POSIX1b but may or may not be available.
+//int fdatasync(int fd);
 
 // Not POSIX; doesn't exist in Solaris 10
-#include <sys/param.h>
+//#include <sys/param.h>
 #ifndef MIN
 #define	MIN(a,b) (((a)<(b))?(a):(b))
 #endif
