@@ -21,7 +21,7 @@
 //int fdatasync(int fd);
 
 // Not POSIX; doesn't exist in Solaris 10
-//#include <sys/param.h>
+#include <sys/param.h>
 #ifndef MIN
 #define	MIN(a,b) (((a)<(b))?(a):(b))
 #endif
