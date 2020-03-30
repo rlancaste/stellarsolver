@@ -84,7 +84,6 @@ private:
     QPointer<SexySolver> internalSolver;
     QPointer<QProcess> sextractorProcess;
     QString fileToSolve;
-    QString sextractorFilePath;
     QList<Star> stars;
     int selectedStar;
 
@@ -198,6 +197,17 @@ private:
     void clearAstrometrySettings();
     void addSextractionToTable();
 
+    // This is the xyls file path that sextractor will be saving for Astrometry.net
+    // If it is not set, it will be set to a random temporary file
+    QString sextractorFilePath;
+    QString basePath = QDir::tempPath();
+
+    //These are used for reading and writing the sextractor file
+    char* xcol=strdup("X_IMAGE"); //This is the column for the x-coordinates
+    char* ycol=strdup("Y_IMAGE"); //This is the column for the y-coordinates
+    char* colFormat=strdup("1E"); //This Format means a decimal number
+    char* colUnits=strdup("pixels"); //This is the unit for the columns in the file
+
 public slots:
 
     bool prepareForProcesses();
@@ -250,6 +260,7 @@ public slots:
     bool solveField();
     bool externalSextractorComplete();
     bool internalSolverComplete(int x);
+    bool writeSextractorTable();
 
     //These functions are for the internal sextractor and solver
     bool runInnerSextractor();

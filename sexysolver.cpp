@@ -14,6 +14,12 @@ void SexySolver::run()
 {
     if(justSextract)
         runInnerSextractor();
+
+    //This way if they want to use the local astrometry.net, they can.
+    #ifdef _WIN32
+        writeSextractorTable();
+    #endif
+
     else
     {
         if(runInnerSextractor())
@@ -257,8 +263,6 @@ bool SexySolver::runInnerSextractor()
 
     emit logNeedsUpdating(QString("Stars Found after Filtering: %1").arg(stars.size()));
 
-    writeSextractorTable();
-
     emit starsFound();
     return true;
 
@@ -302,88 +306,6 @@ void SexySolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
             *floatPtr++ = rawBuffer[offset + x1];
         }
     }
-}
-
-//This method writes the table to the file
-//I had to create it from the examples on NASA's website
-//https://heasarc.gsfc.nasa.gov/docs/software/fitsio/quick/node10.html
-//https://heasarc.gsfc.nasa.gov/docs/software/fitsio/cookbook/node16.html
-bool SexySolver::writeSextractorTable()
-{
-
-    if(sextractorFilePath == "")
-    {
-        srand(time(NULL));
-        sextractorFilePath = basePath + QDir::separator() + "sexySolver_" + QString::number(rand()) + ".xyls";
-    }
-
-    QFile sextractorFile(sextractorFilePath);
-    if(sextractorFile.exists())
-        sextractorFile.remove();
-
-    int status = 0;
-    fitsfile * new_fptr;
-
-
-    if (fits_create_file(&new_fptr, sextractorFilePath.toLatin1(), &status))
-    {
-        fits_report_error(stderr, status);
-        return false;
-    }
-
-    int tfields=2;
-    int nrows=stars.size();
-    QString extname="Sextractor_File";
-
-    //Columns: X_IMAGE, double, pixels, Y_IMAGE, double, pixels
-    char* ttype[] = { xcol, ycol };
-    char* tform[] = { colFormat, colFormat };
-    char* tunit[] = { colUnits, colUnits };
-    const char* extfile = "Sextractor_File";
-
-    float *xArray = new float[stars.size()];
-    float *yArray = new float[stars.size()];
-
-    for (int i = 0; i < stars.size(); i++)
-    {
-        xArray[i] = stars.at(i).x;
-        yArray[i] = stars.at(i).y;
-    }
-
-    if(fits_create_tbl(new_fptr, BINARY_TBL, nrows, tfields,
-        ttype, tform, tunit, extfile, &status))
-    {
-        emit logNeedsUpdating(QString("Could not create binary table."));
-        return false;
-    }
-
-    int firstrow  = 1;  /* first row in table to write   */
-    int firstelem = 1;
-    int column = 1;
-
-    if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, xArray, &status))
-    {
-        emit logNeedsUpdating(QString("Could not write x pixels in binary table."));
-        return false;
-    }
-
-    column = 2;
-    if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, yArray, &status))
-    {
-        emit logNeedsUpdating(QString("Could not write y pixels in binary table."));
-        return false;
-    }
-
-    if(fits_close_file(new_fptr, &status))
-    {
-        emit logNeedsUpdating(QString("Error closing file."));
-        return false;
-    }
-
-    free(xArray);
-    free(yArray);
-
-    return true;
 }
 
 
@@ -466,14 +388,14 @@ bool SexySolver::prepare_job() {
     sp->field_maxx = stats.width;
     sp->field_maxy = stats.height;
 
-    QString basedir = basePath + QDir::separator() + "AstrometrySolver";
+    QString basedir = QDir::tempPath() + QDir::separator() + "AstrometrySolver";
     cancelfn       = QString("%1.cancel").arg(basedir);
     QFile(cancelfn).remove();
     blind_set_cancel_file(bp, cancelfn.toLatin1().constData());
 
     //This sets the x and y columns to read from the xyls file
-    blind_set_xcol(bp, xcol);
-    blind_set_ycol(bp, ycol);
+    //blind_set_xcol(bp, xcol);
+    //blind_set_ycol(bp, ycol);
 
     //Logratios for Solving
     bp->logratio_tosolve = logratio_tosolve;
@@ -543,12 +465,6 @@ int SexySolver::runAstrometryEngine()
     emit logNeedsUpdating("++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Configuring SexySolver");
 
-    QFile sextractorFile(sextractorFilePath);
-    if(!sextractorFile.exists())
-    {
-        emit logNeedsUpdating("Please Sextract the image first");
-    }
-
     //This creates and sets up the engine
     engine_t* engine = engine_new();
 
@@ -597,7 +513,23 @@ int SexySolver::runAstrometryEngine()
 
     blind_t* bp = &(job->bp);
 
-    blind_set_field_file(bp, sextractorFilePath.toLatin1().constData());
+    //This will set up the field file to solve as an xylist
+    double *xArray = new double[stars.size()];
+    double *yArray = new double[stars.size()];
+
+    for (int i = 0; i < stars.size(); i++)
+    {
+        xArray[i] = stars.at(i).x;
+        yArray[i] = stars.at(i).y;
+    }
+
+    starxy_t* fieldToSolve = (starxy_t*)calloc(1, sizeof(starxy_t));
+    fieldToSolve->x = xArray;
+    fieldToSolve->y = yArray;
+    fieldToSolve->N = stars.size();
+    fieldToSolve->flux = nullptr;
+    fieldToSolve->background = nullptr;
+    bp->solver.fieldxy = fieldToSolve;
 
     //This sets the depths for the job.
     if (!il_size(engine->default_depths)) {
@@ -641,7 +573,7 @@ int SexySolver::runAstrometryEngine()
     }
 
     //This sets the directory for Astrometry.net
-    job_set_output_base_dir(job, basePath.toLatin1().constData());
+    job_set_output_base_dir(job, QDir::tempPath().toLatin1().constData());
 
     emit logNeedsUpdating("Starting SexySolver Astrometry.net Engine!");
 

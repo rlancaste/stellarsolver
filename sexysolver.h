@@ -44,12 +44,6 @@ public:
     //These parameters are public so that they can be changed by the program using the solver
     //The values here are the defaults unless they get changed.
 
-    QString basePath = QDir::tempPath();
-
-    // This is the xyls file path that sextractor will be saving for Astrometry.net
-    // If it is not set, it will be set to a random temporary file
-    QString sextractorFilePath;
-
     //Sextractor Photometry Parameters
     Shape apertureShape = SHAPE_CIRCLE;
     double kron_fact = 2.5;
@@ -82,12 +76,6 @@ public:
     int solverTimeLimit = 600; //Give up solving after the specified number of seconds of CPU time
     double minwidth = 0.1; //If no scale estimate is given, this is the limit on the minimum field width in degrees.
     double maxwidth = 180; //If no scale estimate is given, this is the limit on the maximum field width in degrees.
-
-    //These are used for reading and writing the sextractor file
-    char* xcol=strdup("X_IMAGE"); //This is the column for the x-coordinates
-    char* ycol=strdup("Y_IMAGE"); //This is the column for the y-coordinates
-    char* colFormat=strdup("1E"); //This Format means a decimal number
-    char* colUnits=strdup("pixels"); //This is the unit for the columns in the file
 
     //Astrometry Scale Parameters, you can use the convenience methods to set these
     bool use_scale = false; //Whether or not to use the image scale parameters
@@ -159,7 +147,6 @@ private:
 #endif
 
     //These are for the internal SexySolver sextractor
-    bool writeSextractorTable();
     bool runInnerSextractor();
 
 #ifndef Q_CC_MSVC //Commented out for now on Windows due to compilation issues.

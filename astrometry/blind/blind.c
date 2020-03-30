@@ -347,6 +347,8 @@ void blind_run(blind_t* bp) {
     bp->cpu_total_start = get_cpu_usage();
 #endif
 
+    //# Modified by Robert Lancaster for the SexySolver Internal Library
+    /**
     get_fields_from_solvedserver(bp, sp);
 
     // Parse WCS files submitted for verification.
@@ -366,6 +368,7 @@ void blind_run(blind_t* bp) {
     logverb("found %u fields.\n", xylist_n_fields(bp->xyls));
 
     remove_invalid_fields(bp->fieldlist, xylist_n_fields(bp->xyls));
+   **/
 
     Nindexes = n_indexes(bp);
 
@@ -504,7 +507,7 @@ void blind_run(blind_t* bp) {
 
  cleanup:
     // Clean up.
-    xylist_close(bp->xyls);
+    //xylist_close(bp->xyls); //# Modified by Robert Lancaster for the SexySolver Internal Library
 
     if (bp->solvedserver)
         solvedclient_set_server(NULL);
@@ -961,7 +964,7 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
         memset(&template, 0, sizeof(MatchObj));
         template.fieldnum = fieldnum;
         template.fieldfile = bp->fieldid;
-
+/**
         // Get the FIELDID string from the xyls FITS header.
         if (xylist_open_field(bp->xyls, fieldnum)) {
             logerr("Failed to open extension %i in xylist.\n", fieldnum);
@@ -983,6 +986,7 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
 
         // Get the field.
         solver_set_field(sp, xylist_read_field(bp->xyls, NULL));
+        **/
         if (!sp->fieldxy) {
             logerr("Failed to read xylist field.\n");
             return; //# Modified by Robert Lancaster for the SexySolver Internal Library
