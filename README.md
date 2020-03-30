@@ -6,6 +6,8 @@
  - Netpbm is not required
  - Internal Library, so external method calls not required
  - No Astrometry.cfg file is needed
+ - Directly loads the star xy-list internally from Sextractor into astrometry.net, so there is no need to save any files.
+ - No temporary files need to be created for solving and no WCS file needs to be created to read the solved information.
  - The Index Files are still required for solving images, but the program or the user can specify the folder locations rather than putting them in the config file.
  - Note: The SexySolver executable created by MainWindow is only meant for testing purposes.  It is for developing and improving SexySolver.cpp and the included libraries in the astrometry and sep folders
 
