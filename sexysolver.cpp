@@ -14,12 +14,6 @@ void SexySolver::run()
 {
     if(justSextract)
         runInnerSextractor();
-
-    //This way if they want to use the local astrometry.net, they can.
-    #ifdef _WIN32
-        writeSextractorTable();
-    #endif
-
     else
     {
         if(runInnerSextractor())
