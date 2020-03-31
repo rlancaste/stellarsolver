@@ -9,7 +9,7 @@
 #define ASTROMETRY_KEYWORDS_H
 
 
-#ifdef Q_CC_MSVC
+#ifdef _MSC_VER
 #define ATTRIB_FORMAT(style,fmt,start)
 #define InlineDeclare
 #define InlineDefineH
