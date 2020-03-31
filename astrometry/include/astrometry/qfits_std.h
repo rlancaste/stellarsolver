@@ -36,7 +36,7 @@
 int qfits_is_platform_big_endian(void);
 
 // Not POSIX; doesn't exist in Solaris 10 or MSVC
-#ifndef Q_CC_MSVC
+#ifndef _MSC_VER
 #include <sys/param.h>
 #endif
 #ifndef MIN
