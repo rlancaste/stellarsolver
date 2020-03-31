@@ -85,7 +85,7 @@ void log_free(log_t* logger);
 
 #define LOG_TEMPLATE(name)
 #ifdef _MSC_VER
-void log_##name(const char* file, int line, const char* func, const char* format, ...);
+void log_name(const char* file, int line, const char* func, const char* format, ...);
 #else
     void log_name(const char* file, int line, const char* func, const char* format, ...) \
          __attribute__ ((format (printf, 4, 5)));
