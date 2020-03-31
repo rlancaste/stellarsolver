@@ -580,7 +580,11 @@ static void kdtree_nn_bb(const kdtree_t* kd, const etype* query,
     anbool use_tquery = FALSE;
     anbool use_tmath = FALSE;
     anbool use_bigtmath = FALSE;
-    ttype tquery[D];
+#ifndef _MSC_VER
+        ttype tquery[D];
+#else
+        ttype *tquery = (ttype*) malloc(sizeof(ttype)*D);
+#endif
     double bestd2 = *p_bestd2;
     int ibest = *p_ibest;
     ttype tl2 = 0;
@@ -913,7 +917,12 @@ void MANGLE(kdtree_nn)(const kdtree_t* kd, const void* vquery,
 
     // Integers.
     if (TTYPE_INTEGER) {
+
+#ifndef _MSC_VER
         ttype tquery[D];
+#else
+        ttype *tquery = (ttype*) malloc(sizeof(ttype)*D);
+#endif
         if (ttype_query(kd, query, tquery)) {
             kdtree_nn_int_split(kd, query, tquery, p_bestd2, p_ibest);
             return;
@@ -1057,7 +1066,12 @@ kdtree_qres_t* MANGLE(kdtree_rangesearch_options)
     const etype* query = vquery;
 
     //dtype dquery[D];
-    ttype tquery[D];
+
+#ifndef _MSC_VER
+        ttype tquery[D];
+#else
+        ttype *tquery = (ttype*) malloc(sizeof(ttype)*D);
+#endif
 
     if (!kd || !query)
         return NULL;
@@ -1284,7 +1298,13 @@ kdtree_qres_t* MANGLE(kdtree_rangesearch_options)
                 wholenode = do_wholenode_check &&
                     !bb_point_maxdist2_exceeds_bigttype(tlo, thi, tquery, D, bigtl2);
             } else {
-                etype bblo[D], bbhi[D];
+
+#ifndef _MSC_VER
+        etype bblo[D], bbhi[D];
+#else
+        etype *bblo = (etype*) malloc(sizeof(etype)*D);
+        etype *bbhi = (etype*) malloc(sizeof(etype)*D);
+#endif
                 int d;
                 for (d=0; d<D; d++) {
                     bblo[d] = POINT_TE(kd, d, tlo[d]);
@@ -1568,7 +1588,11 @@ static void kdtree_quickselect_partition(dtype *arr, unsigned int *parr,
         int middle;
         int nless, nequal;
         // temp storage for ELEM_SWAP and ELEM_ROT macros.
+#ifndef _MSC_VER
         dtype tmpdata[D];
+#else
+        dtype *tmpdata = (dtype*) malloc(sizeof(dtype)*D);
+#endif
         int tmpperm;
 
         if (high == low)
@@ -2130,10 +2154,21 @@ kdtree_t* MANGLE(kdtree_build_2)
     int xx;
     int lnext, level;
     int maxlevel;
-    dtype hi[D], lo[D];
+
+#ifndef _MSC_VER
+        dtype hi[D], lo[D];
+#else
+        dtype *hi = (dtype*) malloc(sizeof(dtype)*D);
+        dtype *lo = (dtype*) malloc(sizeof(dtype)*D);
+#endif
     dtype* data = NULL;
 
-    dtype nullbb[D];
+#ifndef _MSC_VER
+        dtype nullbb[D];
+#else
+        dtype *nullbb = (dtype*) malloc(sizeof(dtype)*D);
+#endif
+
     for (i=0; i<D; i++)
         nullbb[i] = 0;
 
@@ -2511,7 +2546,13 @@ void MANGLE(kdtree_fix_bounding_boxes)(kdtree_t* kd) {
     assert(kd->bb.any);
     for (i=0; i<kd->nnodes; i++) {
         unsigned int left, right;
+
+#ifndef _MSC_VER
         dtype hi[D], lo[D];
+#else
+        dtype *hi = (dtype*) malloc(sizeof(dtype)*D);
+        dtype *lo = (dtype*) malloc(sizeof(dtype)*D);
+#endif
         left = kdtree_left(kd, i);
         right = kdtree_right(kd, i);
         compute_bb(KD_DATA(kd, D, left), D, right - left + 1, lo, hi);
@@ -2858,7 +2899,13 @@ void MANGLE(kdtree_nodes_contained)
       void* cb_extra) {
     int D = kd->ndim;
     int d;
-    ttype qlo[D], qhi[D];
+
+#ifndef _MSC_VER
+        ttype qlo[D], qhi[D];
+#else
+        dtype *qhi = (dtype*) malloc(sizeof(dtype)*D);
+        dtype *qlo = (dtype*) malloc(sizeof(dtype)*D);
+#endif
     const etype* querylow = vquerylow;
     const etype* queryhi = vqueryhi;
 

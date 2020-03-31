@@ -11,6 +11,10 @@
 #include <math.h>
 #include <assert.h>
 
+#ifdef _MSC_VER
+#include <sys/types.h>
+#endif
+
 #include "permutedsort.h"
 #include "os-features.h" // for qsort_r
 

@@ -28,7 +28,7 @@
  */
 
 // from https://groups.google.com/forum/#!topic/astrometry/quGEbY1CgR8
-#if __sun
+#if __sun || _WIN32
 # include <stdio.h>
 #else
 # include <sys/cdefs.h>

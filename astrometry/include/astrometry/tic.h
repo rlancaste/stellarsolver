@@ -7,7 +7,10 @@
 #define TIC_H
 
 #include <time.h>
+
+#ifndef _MSC_VER
 #include <sys/time.h>
+#endif
 
 void tic();
 int get_resource_stats(double* p_usertime, double* p_systime, long* p_maxrss);

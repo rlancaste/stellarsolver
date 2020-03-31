@@ -113,7 +113,6 @@ else(MSVC)
 endif(MSVC)
 endif(WIN32)
 
-if(NOT MSVC) #For now, due to windows compilation issues
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd")
 set(kd_SRCS
     #Internals
@@ -139,6 +138,7 @@ add_library(kd ${kd_SRCS})
 target_link_libraries(kd ${CFITSIO_LIBRARIES})
 #install(TARGETS ld LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
+if(NOT MSVC) #For now, due to windows compilation issues
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util")
 set(anbase_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/starutil.c
@@ -155,7 +155,7 @@ set(anbase_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/os-features.c
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/an-endian.c
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/errors.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/an-opts.c
+    #${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/an-opts.c
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/tic.c
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/log.c
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/datalog.c

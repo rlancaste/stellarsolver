@@ -18,6 +18,10 @@
 #include "astrometry/qfits_tools.h"
 #include "astrometry/qfits_time.h"
 
+#ifdef _MSC_VER
+#include "sys/types.h"
+#endif
+
 
 int fits_get_atom_size(tfits_type type);
 

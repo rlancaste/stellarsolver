@@ -156,7 +156,13 @@ static void rs_handle_result(void* vparams,
     yr = kdtree_right(ytree, ynode);
 
     for (y=yl; y<=yr; y++) {
+
+#ifndef _MSC_VER
         double py[D];
+#else
+        double *py = (double*) malloc(sizeof(double)*D);
+#endif
+
         kdtree_copy_data_double(ytree, y, 1, py);
         // check if we can eliminate the whole box for this point...
         // HACK - can only do this if leaf nodes have bounding-boxes!
@@ -172,7 +178,13 @@ static void rs_handle_result(void* vparams,
         }
         for (x=xl; x<=xr; x++) {
             double d2;
-            double px[D];
+
+#ifndef _MSC_VER
+        double px[D];
+#else
+        double *px = (double*) malloc(sizeof(double)*D);
+#endif
+
             if (p->notself && x == y)
                 continue;
             kdtree_copy_data_double(xtree, x, 1, px);

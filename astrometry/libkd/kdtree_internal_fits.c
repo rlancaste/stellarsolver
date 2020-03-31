@@ -312,7 +312,12 @@ int MANGLE(kdtree_write_fits)(kdtree_fits_t* io, const kdtree_t* kd,
         fitsbin_chunk_reset(&chunk);
     }
     if (kd->minval && kd->maxval) {
+
+#ifndef _MSC_VER
         double tempranges[kd->ndim * 2 + 1];
+#else
+        double *tempranges = (double*) malloc(sizeof(double)*kd->ndim * 2 + 1);
+#endif
         int d;
         memcpy(tempranges, kd->minval, kd->ndim * sizeof(double));
         memcpy(tempranges + kd->ndim, kd->maxval, kd->ndim * sizeof(double));

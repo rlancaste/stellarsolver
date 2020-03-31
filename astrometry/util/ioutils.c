@@ -10,8 +10,11 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#ifndef _MSC_VER
 #include <sys/time.h>
-
+#include <libgen.h>
+#include <dirent.h>
+#endif
 
 #include <fcntl.h>
 
@@ -20,8 +23,8 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdarg.h>
-#include <libgen.h>
-#include <dirent.h>
+
+
 #include <time.h>
 
 #ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
@@ -875,15 +878,32 @@ int file_get_last_modified_string(const char* fn, const char* timeformat,
 }
 **/
 anbool file_exists(const char* fn) {
+#ifndef _MSC_VER
     return fn && (access(fn, F_OK) == 0);
+#else
+    DWORD dwAttrib = GetFileAttributes(fn);
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
+                !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+#endif
 }
 
 anbool file_readable(const char* fn) {
+#ifndef _MSC_VER
     return fn && (access(fn, R_OK) == 0);
+#else
+    //NOTE: THIS NEEDS TO BE CHANGED, IT JUST DETERMINES THAT THE FILE EXISTS!
+    DWORD dwAttrib = GetFileAttributes(fn);
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
+                !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+#endif
 }
 
 anbool file_executable(const char* fn) {
+#ifndef _MSC_VER
     return fn && (access(fn, X_OK) == 0);
+#else
+    return FALSE; //We shouldn't be executing anything anyway
+#endif
 }
 
 anbool path_is_dir(const char* path) {

@@ -39,6 +39,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#ifdef _MSC_VER
+#include <sys/types.h>
+#endif
     
 #include "astrometry/qfits_header.h"
 

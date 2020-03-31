@@ -359,7 +359,12 @@ anbool bt_insert2(bt* tree, void* data, anbool unique, compare_func_2 compare, v
     int nancestors = 0;
     unsigned char da[AVL_MAX_HEIGHT]; /* Cached comparison results. */
     int k = 0;              /* Number of cached results. */
-    unsigned char overflow[tree->datasize];
+
+#ifndef _MSC_VER
+        unsigned char overflow[tree->datasize];
+#else
+        unsigned char *overflow = (unsigned char*) malloc(sizeof(unsigned char)*tree->datasize);
+#endif
     anbool rtn;
     anbool willfit;
     int cmp;

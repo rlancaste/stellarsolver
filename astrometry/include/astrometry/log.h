@@ -83,17 +83,24 @@ log_t* log_create(const enum log_level level);
  */
 void log_free(log_t* logger);
 
-#define LOG_TEMPLATE(name)                                              \
-    void log_##name(const char* file, int line, const char* func, const char* format, ...) \
+#define LOG_TEMPLATE(name)
+#ifdef _MSC_VER
+void log_##name(const char* file, int line, const char* func, const char* format, ...);
+#else
+    void log_name(const char* file, int line, const char* func, const char* format, ...) \
          __attribute__ ((format (printf, 4, 5)));
+#endif
 LOG_TEMPLATE(logmsg);
 LOG_TEMPLATE(logerr);
 LOG_TEMPLATE(logverb);
 LOG_TEMPLATE(logdebug);
 
+#ifdef _MSC_VER
+void log_loglevel(enum log_level level, const char* file, int line, const char* func, const char* format, ...);
+#else
 void log_loglevel(enum log_level level, const char* file, int line, const char* func, const char* format, ...)
     __attribute__ ((format (printf, 5, 6)));
-
+#endif
 
 /**
  * Log a message:
