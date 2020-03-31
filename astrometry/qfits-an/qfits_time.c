@@ -35,6 +35,8 @@
 #include <time.h>
 #ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <pwd.h>
+#else
+#include <winsock.h>
 #endif
 #include <unistd.h>
 #include <sys/time.h>

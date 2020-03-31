@@ -81,7 +81,6 @@ if (GSL_FOUND)
   include_directories(${GSL_INCLUDE_DIR})
 endif (GSL_FOUND)
 
-if(NOT MSVC) #For now, due to windows compilation issues
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an")
 set(qfits_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/anqfits.c
@@ -102,16 +101,19 @@ set(qfits_SRCS
 
 add_library(qfits ${qfits_SRCS})
 #install(TARGETS qfits LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
 if(WIN32)
     #This is not very portable, I will work on it
     #For right now until we determine if these libraries actually work for us on Windows
     #You need to edit this line to link to the appropriate paths on Windows.
-#MinGW Versions
-#target_link_libraries(qfits C:/CraftRoot/lib/libboost_regex-mgw81-mt-x64-1_69.dll)
-target_link_libraries(qfits C:/CraftRootMinGW/lib/libboost_regex-mgw81-mt-x64-1_69.dll)
-#MSVC Versions
-#target_link_libraries(qfits C:/CraftRoot/lib/boost_regex-vc141-mt-x64-1_69.dll)
+if(MSVC)
+    target_link_libraries(qfits C:/CraftRoot/lib/boost_regex-vc141-mt-x64-1_69.dll)
+else(MSVC)
+    target_link_libraries(qfits C:/CraftRootMinGW/lib/libboost_regex-mgw81-mt-x64-1_69.dll)
+endif(MSVC)
 endif(WIN32)
+
+if(NOT MSVC) #For now, due to windows compilation issues
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd")
 set(kd_SRCS
     #Internals

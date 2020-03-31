@@ -20,8 +20,10 @@
 //// This is actually in POSIX1b but may or may not be available.
 //int fdatasync(int fd);
 
-// Not POSIX; doesn't exist in Solaris 10
+// Not POSIX; doesn't exist in Solaris 10 or MSVC
+#ifndef Q_CC_MSVC
 #include <sys/param.h>
+#endif
 #ifndef MIN
 #define	MIN(a,b) (((a)<(b))?(a):(b))
 #endif

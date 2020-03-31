@@ -8,7 +8,16 @@
 #ifndef ASTROMETRY_KEYWORDS_H
 #define ASTROMETRY_KEYWORDS_H
 
+
+#ifdef Q_CC_MSVC
+#define ATTRIB_FORMAT(style,fmt,start)
+#define InlineDeclare
+#define InlineDefineH
+#define InlineDefineC
+#define ATTRIB_FORMAT(style,fmt,start)
+#else
 #define ATTRIB_FORMAT(style,fmt,start) __attribute__ ((format(style,fmt,start)))
+#endif
 
 // this snippet borrowed from GNU libc features.h:
 #if defined __GNUC__

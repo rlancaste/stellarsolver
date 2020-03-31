@@ -32,8 +32,7 @@
 #include "ioutils.h"
 #include "errors.h"
 
-#if 0
-//#if 1
+#ifdef Q_CC_MSVC
 #define qdebug( code ) { code }
 #define debug printf
 #else

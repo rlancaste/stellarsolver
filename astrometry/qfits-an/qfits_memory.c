@@ -323,7 +323,10 @@ void * qfits_memory_malloc(
             fprintf(stderr, "qfits_mem: cannot create swap file\n");
             exit(-1);
         }
+
+#ifndef _WIN32
         fchmod(swapfd, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
+#endif
 
         /* Compute number of passes to insert buffer */
         nbufs = size / MEMPAGESZ;
