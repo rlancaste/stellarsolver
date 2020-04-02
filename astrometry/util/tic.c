@@ -24,7 +24,9 @@ static time_t starttime;
 static double starttime2;
 static double startutime, startstime;
 
-#ifdef _MSC_VER
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+//Source: https://stackoverflow.com/questions/10905892/equivalent-of-gettimeday-for-windows
+//Marked as a "Free Implementation by the author of the post.
 int gettimeofday(struct timeval * tp, struct timezone * tzp)
 {
     // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's

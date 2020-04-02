@@ -40,7 +40,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#ifdef _MSC_VER
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/types.h>
 #endif
     

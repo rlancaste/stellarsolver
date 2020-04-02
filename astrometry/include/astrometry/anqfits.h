@@ -18,7 +18,7 @@
 #include "astrometry/qfits_tools.h"
 #include "astrometry/qfits_time.h"
 
-#ifdef _MSC_VER
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include "sys/types.h"
 #endif
 

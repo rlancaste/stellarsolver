@@ -912,7 +912,7 @@ int file_get_last_modified_string(const char* fn, const char* timeformat,
 }
 **/
 anbool file_exists(const char* fn) {
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
     return fn && (access(fn, F_OK) == 0);
 #else
     DWORD dwAttrib = GetFileAttributes(fn);
@@ -922,7 +922,7 @@ anbool file_exists(const char* fn) {
 }
 
 anbool file_readable(const char* fn) {
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
     return fn && (access(fn, R_OK) == 0);
 #else
     //NOTE: THIS NEEDS TO BE CHANGED, IT JUST DETERMINES THAT THE FILE EXISTS!
@@ -933,7 +933,7 @@ anbool file_readable(const char* fn) {
 }
 
 anbool file_executable(const char* fn) {
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
     return fn && (access(fn, X_OK) == 0);
 #else
     return FALSE; //We shouldn't be executing anything anyway

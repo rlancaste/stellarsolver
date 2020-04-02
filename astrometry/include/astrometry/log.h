@@ -84,7 +84,7 @@ log_t* log_create(const enum log_level level);
 void log_free(log_t* logger);
 
 #define LOG_TEMPLATE(name)
-#ifdef _MSC_VER
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 void log_name(const char* file, int line, const char* func, const char* format, ...);
 #else
     void log_name(const char* file, int line, const char* func, const char* format, ...) \
@@ -95,7 +95,7 @@ LOG_TEMPLATE(logerr);
 LOG_TEMPLATE(logverb);
 LOG_TEMPLATE(logdebug);
 
-#ifdef _MSC_VER
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 void log_loglevel(enum log_level level, const char* file, int line, const char* func, const char* format, ...);
 #else
 void log_loglevel(enum log_level level, const char* file, int line, const char* func, const char* format, ...)

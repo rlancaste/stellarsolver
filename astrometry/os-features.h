@@ -21,7 +21,7 @@
 //int fdatasync(int fd);
 
 // Not POSIX; doesn't exist in Solaris 10 or MSVC
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/param.h>
 #endif
 #ifndef MIN

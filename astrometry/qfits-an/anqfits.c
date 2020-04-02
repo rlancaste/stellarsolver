@@ -32,7 +32,7 @@
 #include "ioutils.h"
 #include "errors.h"
 
-#ifdef _MSC_VER
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 #define qdebug( code ) { code }
 #define debug printf
 #else
