@@ -8,6 +8,10 @@
 
 #include <stdio.h>
 
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#include "sys/types.h"
+#endif
+
 #include "astrometry/qfits_header.h"
 
 int fitsfile_pad_with(FILE* fid, char pad);

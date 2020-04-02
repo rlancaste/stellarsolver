@@ -27,8 +27,8 @@ int vasprintf(char **strp, const char *fmt, va_list ap);
 #ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
-long long ftello(FILE *stream);
-long long fseeko(FILE *stream, long long off, int origin);
+#define ftello _ftelli64
+#define fseeko _fseeki64
 #endif
 
 struct bl_node {

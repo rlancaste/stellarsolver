@@ -17,8 +17,6 @@
 #include <libgen.h>
 #include <getopt.h>
 #include <dirent.h>
-#else
-#include "windirent.h"
 #endif
 
 #include <time.h>
