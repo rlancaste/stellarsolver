@@ -2,14 +2,15 @@
 ## The Cross Platform Sextractor and Astrometry.net-Based Internal Astrometric Solver
 
  - An Astrometric Plate Solver for Mac, Linux, and hopefully Windows
- - Python is not required
- - Netpbm is not required
- - Internal Library, so external method calls not required
- - No Astrometry.cfg file is needed
+ - Meant to be an internal library for use in a program like KStars for internal plate solving on Mac, Windows, and Linux
+ - Python is not required for the library
+ - Netpbm is not required for the library
+ - Internal Library, so calls to external programs are not required
+ - No Astrometry.cfg file is needed, the settings are internal to the program
  - Directly loads the star xy-list internally from Sextractor into astrometry.net, so there is no need to save any files.
  - No temporary files need to be created for solving and no WCS file needs to be created to read the solved information.
  - The Index Files are still required for solving images, but the program or the user can specify the folder locations rather than putting them in the config file.
- - Note: The SexySolver executable created by MainWindow is only meant for testing purposes.  It is for developing and improving SexySolver.cpp and the included libraries in the astrometry and sep folders
+ - Note: The executable created by MainWindow is only meant for testing purposes.  It is for developing and improving SexySolver.cpp and the included libraries in the astrometry and sep folders.  It can be used to compare the library to an existing installation of astrometry.net on the computer to perfect the settings.
 
 ![SexySolver In Action](/SexySolverInAction.png "SexySolver running the same solve on different platforms.")
 ## Based on:
@@ -36,7 +37,7 @@ Another thought I had in the back of my mind was that there were a copule of rea
 ## Results:
  - Goal 1 was partially completed when I got the program set up and ready for testing in February 2020.  Now testing should continue so that we can see what parameters are needed, what makes it more efficient, and how to make it better.
  - Goal 2 was completed in March 2020, but some changes might yet be made.  Astrometry and Sextractor are now fully integraded for Linux and Mac Computers and no external configuration files are needed anymore.  Netpbm and Python are not required either.
- - Goal 3 is ongoing.  by the end of March 2020, I do have it compiling on Windows at least with the MinGW compiler.  And on Windows it is solving images successfully as long as you specify the scale and a starting RA/Dec for the search.
+ - Goal 3 is ongoing.  by the end of March 2020, I had it compiling on Windows at least with the MinGW compiler.  As of April 2nd, I have it compiling in the MSVC compiler.  And on Windows it is solving images successfully just like on Mac and Linux.
  
 # Setting up the program for testing.
 
