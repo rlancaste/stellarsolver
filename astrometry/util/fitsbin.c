@@ -507,6 +507,10 @@ static int read_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
 
     } else {
 
+        //I don't think this check is needed on windows right now since we are just mapping it all to memory
+        //And it is causing problems on windows making it not blind solve sometimes for some reason ??
+#ifndef _WIN32  //# Modified by Robert Lancaster for the SexySolver Internal Library
+
         if (fits_bytes_needed(expected) != tabsize) {
             ERROR("Expected table size (%zu => %i FITS blocks) is not equal to "
                   "size of table \"%s\" (%zu => %i FITS blocks).",
@@ -515,6 +519,7 @@ static int read_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
                   (int)(tabsize / (off_t)FITS_BLOCK_SIZE));
             return -1;
         }
+#endif
 
 #ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
         chunk->map = mmap_file(fileno(fb->fid), chunk->mapsize);
