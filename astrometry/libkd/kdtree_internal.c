@@ -2966,6 +2966,8 @@ cleanup:
 #ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
     free(qhi);
     free(qlo);
+#else
+    return;
 #endif
 }
 
