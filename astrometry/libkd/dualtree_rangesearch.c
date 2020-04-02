@@ -194,8 +194,14 @@ static void rs_handle_result(void* vparams,
                 continue;
             if ((p->usemin) && (d2 < p->mindistsq))
                 continue;
-            p->user_callback(p->user_callback_param, x, y, d2);
+            p->user_callback(p->user_callback_param, x, y, d2);   
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+            free(px);
+#endif
         }
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+        free(py);
+#endif
     }
 }
 

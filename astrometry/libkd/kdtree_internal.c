@@ -753,6 +753,10 @@ static void kdtree_nn_bb(const kdtree_t* kd, const etype* query,
     }
     *p_bestd2 = bestd2;
     *p_ibest = ibest;
+
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+    free(tquery);
+#endif
 }
 
 static void kdtree_nn_int_split(const kdtree_t* kd, const etype* query,
@@ -927,6 +931,9 @@ void MANGLE(kdtree_nn)(const kdtree_t* kd, const void* vquery,
             kdtree_nn_int_split(kd, query, tquery, p_bestd2, p_ibest);
             return;
         }
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+        free(tquery);
+#endif
     }
 
     // We got splitting planes, and the splits are either doubles, or ints
@@ -1314,6 +1321,11 @@ kdtree_qres_t* MANGLE(kdtree_rangesearch_options)
                     continue;
                 wholenode = do_wholenode_check &&
                     !bb_point_maxdist2_exceeds(bblo, bbhi, query, D, maxd2);
+
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+                free(bblo);
+                free(bbhi);
+#endif
             }
 
             if (wholenode) {
@@ -1424,6 +1436,10 @@ kdtree_qres_t* MANGLE(kdtree_rangesearch_options)
             print_results(res, D);
         }
     }
+
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+    free(tquery);
+#endif
 
     return res;
 }
@@ -1757,6 +1773,10 @@ static void kdtree_quickselect_partition(dtype *arr, unsigned int *parr,
         else
             /* median is in the ">" partition.  high is unchanged. */
             low = igreater;
+
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+        free(tmpdata);
+#endif
     }
 
     /* check that it worked. */
@@ -2534,6 +2554,12 @@ kdtree_t* MANGLE(kdtree_build_2)
     // set function table pointers.
     MANGLE(kdtree_update_funcs)(kd);
 
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+    free(hi);
+    free(lo);
+    free(nullbb);
+#endif
+
     return kd;
 }
 
@@ -2557,6 +2583,11 @@ void MANGLE(kdtree_fix_bounding_boxes)(kdtree_t* kd) {
         right = kdtree_right(kd, i);
         compute_bb(KD_DATA(kd, D, left), D, right - left + 1, lo, hi);
         save_bb(kd, i, lo, hi);
+
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+    free(hi);
+    free(lo);
+#endif
     }
 }
 
@@ -2917,7 +2948,7 @@ void MANGLE(kdtree_nodes_contained)
             qlo[d] = TTYPE_MIN;
         } else if (q > TTYPE_MAX) {
             // query's low position is more than the tree's max: no overlap is possible.
-            return;
+            goto cleanup; //# Modified by Robert Lancaster for the SexySolver Internal Library
         }
         qhi[d] = q = POINT_ET(kd, d, queryhi [d], ceil );
         if (q > TTYPE_MAX) {
@@ -2925,11 +2956,17 @@ void MANGLE(kdtree_nodes_contained)
             qhi[d] = TTYPE_MAX;
         } else if (q < TTYPE_MIN) {
             // query's high position is less than the tree's min: no overlap is possible.
-            return;
+            goto cleanup; //# Modified by Robert Lancaster for the SexySolver Internal Library
         }
     }
 
     nodes_contained_rec(kd, 0, qlo, qhi, cb_contained, cb_overlap, cb_extra);
+
+cleanup:
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+    free(qhi);
+    free(qlo);
+#endif
 }
 
 int MANGLE(kdtree_get_bboxes)(const kdtree_t* kd, int node,

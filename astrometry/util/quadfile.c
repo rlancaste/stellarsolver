@@ -297,6 +297,9 @@ int quadfile_write_quad(quadfile_t* qf, unsigned int* stars) {
         for (i=0; i<qf->dimquads; i++)
             ustars[i] = stars[i];
     }
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+        free(ustars);
+#endif
     if (fitsbin_write_item(qf->fb, chunk, data)) {
         ERROR("Failed to write a quad");
         return -1;

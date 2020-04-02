@@ -285,6 +285,9 @@ static int write_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk, int flipped) {
             // write it...
             fitsbin_write_item(fb, chunk, tempdata);
         }
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+        free(tempdata);
+#endif
     }
     chunk->nrows -= N;
     if (fitsbin_fix_chunk_header(fb, chunk)) {

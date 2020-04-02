@@ -351,6 +351,10 @@ int MANGLE(kdtree_write_fits)(kdtree_fits_t* io, const kdtree_t* kd,
         free(chunk.tablename);
         WRITE_CHUNK();
         fitsbin_chunk_reset(&chunk);
+
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+        free(tempranges);
+#endif
     }
     if (kd->data.any) {
         chunk.tablename = get_table_name(kd->name, KD_STR_DATA);

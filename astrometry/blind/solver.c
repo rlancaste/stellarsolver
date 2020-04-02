@@ -1011,6 +1011,11 @@ void solver_run(solver_t* solver) {
             free(pq->xy);
         }
         free(pquads);
+
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+        free(minAB2s);
+        free(maxAB2s);
+#endif
     }
 }
 
@@ -1341,8 +1346,21 @@ static void resolve_matches(kdtree_qres_t* krez, const double *field,
             solver->quit_now = TRUE;
 
         if (unlikely(solver->quit_now))
+        {
+            #ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+             free(starxyz);
+             free(star);
+            #endif
             return;
+        }
+
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+        free(starxyz);
+#endif
     }
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+        free(star);
+#endif
 }
 
 void solver_inject_match(solver_t* solver, MatchObj* mo, sip_t* sip) {
