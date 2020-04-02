@@ -1110,10 +1110,12 @@ static anbool is_field_solved(blind_t* bp, int fieldnum) {
 static void solved_field(blind_t* bp, int fieldnum) {
     // Record in solved file, or send to solved server.
     if (bp->solved_out) {
+#ifndef _MSC_VER
         logmsg("Field %i solved: writing to file %s to indicate this.\n", fieldnum, bp->solved_out);
         if (solvedfile_set(bp->solved_out, fieldnum)) {
             logerr("Failed to write solvedfile %s.\n", bp->solved_out);
         }
+#endif
     }
     if (bp->solvedserver) {
         solvedclient_set(bp->fieldid, fieldnum);
