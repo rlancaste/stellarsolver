@@ -32,12 +32,12 @@
 #include "ioutils.h"
 #include "errors.h"
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#if 0
 #define qdebug( code ) { code }
 #define debug printf
 #else
 #define qdebug( code ) {}
-#define debug(args...)
+#define debug(args, ...) //# Modified by Robert Lancaster for the SexySolver Internal Library
 #endif
 
 int fits_get_atom_size(tfits_type type) {
