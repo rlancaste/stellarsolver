@@ -1208,7 +1208,7 @@ char* sl_appendf(sl* list, const char* format, ...) {
     return str;
 }
 
-#ifdef _WIN32
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 //From http://asprintf.insanecoding.org
 #define insane_free(ptr) { free(ptr); ptr = 0; }
 #include <stdio.h>

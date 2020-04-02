@@ -516,7 +516,7 @@ static int read_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
             return -1;
         }
 
-#ifdef _WIN32
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
         chunk->map = mmap_file(fileno(fb->fid), chunk->mapsize);
 #else
         get_mmap_size(tabstart, tabsize, &mapstart, &(chunk->mapsize), &mapoffset);
@@ -530,7 +530,7 @@ static int read_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
             return -1;
         }
 
-#ifdef _WIN32
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
         chunk->data = chunk->map + tabstart;
 #else
         chunk->data = chunk->map + mapoffset;

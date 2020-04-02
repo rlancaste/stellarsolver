@@ -77,7 +77,7 @@ int solvedfile_get(char* fn, int fieldnum) {
     return val;
 }
 
-#ifndef _WIN32
+#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 // lastfield = 0 for no limit.
 static il* solvedfile_getall_val(char* fn, int firstfield, int lastfield, int maxfields, int val) {
     FILE* f;
@@ -296,4 +296,4 @@ int solvedfile_set(char* fn, int fieldnum) {
     }
     return 0;
 }
-#endif
+#endif //# Modified by Robert Lancaster for the SexySolver Internal Library

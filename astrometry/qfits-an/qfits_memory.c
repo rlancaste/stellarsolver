@@ -335,7 +335,7 @@ void * qfits_memory_malloc(
             exit(-1);
         }
 
-#ifndef _WIN32
+#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
         fchmod(swapfd, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
 #endif
 
@@ -472,7 +472,7 @@ void * qfits_memory_calloc(
 // copied from ioutils.c
 
 static void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* mapsize, int* pgap) {
-#ifdef _WIN32
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
     SYSTEM_INFO system_info;
     GetSystemInfo (&system_info);
     int ps = system_info.dwPageSize;
@@ -540,7 +540,7 @@ void* qfits_memory_falloc2(
 
 	/* Memory-map input file */
 	// mmap requires page-aligned offsets.
-#ifdef _WIN32
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
     ptr = mmap_file(fd, size + offs);
 #else
 	get_mmap_size(offs, size, &mapstart, &maplen, &mapoff);
@@ -563,7 +563,7 @@ void* qfits_memory_falloc2(
 	if (freesize) {
 		*freesize = maplen;
 	}
-#ifdef _WIN32
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
     return ptr + offs;
 #else
 	return ptr + mapoff;
@@ -638,7 +638,7 @@ char * qfits_memory_falloc(
         }
 
         /* Memory-map input file */
-#ifdef _WIN32
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
         ptr = mmap_file(fd,sta.st_size);
 #else
         ptr = (char*)mmap(0, sta.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
@@ -749,7 +749,7 @@ char * qfits_memory_falloc(
     }
 
     /* Memory-map input file */
-#ifdef _WIN32
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
     ptr = mmap_file(fd,sta.st_size);
 #else
     ptr = (char*)mmap(0, sta.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE,fd,0);

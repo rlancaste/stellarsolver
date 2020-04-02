@@ -970,7 +970,7 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
         memset(&template, 0, sizeof(MatchObj));
         template.fieldnum = fieldnum;
         template.fieldfile = bp->fieldid;
-/**
+/** //# Modified by Robert Lancaster for the SexySolver Internal Library
         // Get the FIELDID string from the xyls FITS header.
         if (xylist_open_field(bp->xyls, fieldnum)) {
             logerr("Failed to open extension %i in xylist.\n", fieldnum);
@@ -988,7 +988,7 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
         //# Modified by Robert Lancaster for the SexySolver Internal Library
         //This is unnecessary since we solve one field at a time.
         //if (is_field_solved(bp, fieldnum))
-           // goto cleanup;
+           // goto cleanup; //# Modified by Robert Lancaster for the SexySolver Internal Library
 
         // Get the field.
         solver_set_field(sp, xylist_read_field(bp->xyls, NULL));

@@ -17,11 +17,11 @@
 //char* canonicalize_file_name(const char* fn);
 //#endif
 
-//// This is actually in POSIX1b but may or may not be available.
-//int fdatasync(int fd);
+// This is actually in POSIX1b but may or may not be available.
+//int fdatasync(int fd); //# Modified by Robert Lancaster for the SexySolver Internal Library
 
 // Not POSIX; doesn't exist in Solaris 10 or MSVC
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/param.h>
 #endif
 #ifndef MIN

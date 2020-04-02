@@ -313,7 +313,7 @@ int MANGLE(kdtree_write_fits)(kdtree_fits_t* io, const kdtree_t* kd,
     }
     if (kd->minval && kd->maxval) {
 
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         double tempranges[kd->ndim * 2 + 1];
 #else
         double *tempranges = (double*) malloc(sizeof(double)*kd->ndim * 2 + 1);

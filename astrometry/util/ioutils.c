@@ -643,7 +643,7 @@ int mkdir_p(const char* dirpath) {
     free(path);
     while (sl_size(tomake)) {
         char* path = sl_pop(tomake);
-#ifndef _WIN32
+#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
         if (mkdir(path, 0777)) {
 #else
         if (mkdir(path)) {
@@ -846,7 +846,7 @@ void* file_get_contents(const char* fn, size_t* len, anbool addzero) {
     return buf;
 }
 void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* mapsize, int* pgap) {
-#ifdef _WIN32
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
     SYSTEM_INFO system_info;
     GetSystemInfo (&system_info);
     int ps = system_info.dwPageSize;

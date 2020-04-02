@@ -580,7 +580,7 @@ static void kdtree_nn_bb(const kdtree_t* kd, const etype* query,
     anbool use_tquery = FALSE;
     anbool use_tmath = FALSE;
     anbool use_bigtmath = FALSE;
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         ttype tquery[D];
 #else
         ttype *tquery = (ttype*) malloc(sizeof(ttype)*D);
@@ -918,7 +918,7 @@ void MANGLE(kdtree_nn)(const kdtree_t* kd, const void* vquery,
     // Integers.
     if (TTYPE_INTEGER) {
 
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         ttype tquery[D];
 #else
         ttype *tquery = (ttype*) malloc(sizeof(ttype)*D);
@@ -1067,7 +1067,7 @@ kdtree_qres_t* MANGLE(kdtree_rangesearch_options)
 
     //dtype dquery[D];
 
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         ttype tquery[D];
 #else
         ttype *tquery = (ttype*) malloc(sizeof(ttype)*D);
@@ -1299,7 +1299,7 @@ kdtree_qres_t* MANGLE(kdtree_rangesearch_options)
                     !bb_point_maxdist2_exceeds_bigttype(tlo, thi, tquery, D, bigtl2);
             } else {
 
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         etype bblo[D], bbhi[D];
 #else
         etype *bblo = (etype*) malloc(sizeof(etype)*D);
@@ -1588,7 +1588,7 @@ static void kdtree_quickselect_partition(dtype *arr, unsigned int *parr,
         int middle;
         int nless, nequal;
         // temp storage for ELEM_SWAP and ELEM_ROT macros.
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         dtype tmpdata[D];
 #else
         dtype *tmpdata = (dtype*) malloc(sizeof(dtype)*D);
@@ -2155,7 +2155,7 @@ kdtree_t* MANGLE(kdtree_build_2)
     int lnext, level;
     int maxlevel;
 
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         dtype hi[D], lo[D];
 #else
         dtype *hi = (dtype*) malloc(sizeof(dtype)*D);
@@ -2163,7 +2163,7 @@ kdtree_t* MANGLE(kdtree_build_2)
 #endif
     dtype* data = NULL;
 
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         dtype nullbb[D];
 #else
         dtype *nullbb = (dtype*) malloc(sizeof(dtype)*D);
@@ -2547,7 +2547,7 @@ void MANGLE(kdtree_fix_bounding_boxes)(kdtree_t* kd) {
     for (i=0; i<kd->nnodes; i++) {
         unsigned int left, right;
 
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         dtype hi[D], lo[D];
 #else
         dtype *hi = (dtype*) malloc(sizeof(dtype)*D);
@@ -2900,7 +2900,7 @@ void MANGLE(kdtree_nodes_contained)
     int D = kd->ndim;
     int d;
 
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         ttype qlo[D], qhi[D];
 #else
         dtype *qhi = (dtype*) malloc(sizeof(dtype)*D);
