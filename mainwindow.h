@@ -7,7 +7,10 @@
 
 //system includes
 #include "math.h"
+
+#ifndef _MSC_VER
 #include <sys/mman.h>
+#endif
 
 //QT Includes
 #include <QMainWindow>
@@ -34,7 +37,6 @@
 #include "dms.h"
 #include "bayer.h"
 
-#ifndef Q_CC_MSVC //Commented out for now on Windows due to compilation issues.
 //Astrometry.net includes
 extern "C"{
 #include "tic.h"
@@ -49,7 +51,6 @@ extern "C"{
 #include "astrometry/blind.h"
 #include "log.h"
 #include "engine.h"
-#include "an-opts.h"
 #include "gslutils.h"
 #include "augment-xylist.h"
 #include "anqfits.h"
@@ -61,7 +62,6 @@ extern "C"{
 #include "sip-utils.h"
 #include "tabsort.h"
 }
-#endif
 
 namespace Ui {
 
@@ -179,7 +179,7 @@ private:
     int currentHeight;
     double currentZoom;
     int sampling = 2;
-    /// FITS image data type (TBYTE, TUSHORT, TINT, TFLOAT, TLONG, TDOUBLE)
+    /// FITS image data type (SEP_TBYTE, TUSHORT, TINT, TFLOAT, TLONG, TDOUBLE)
     uint32_t m_DataType { 0 };
     /// Number of channels
     uint8_t m_Channels { 1 };
@@ -224,7 +224,7 @@ public slots:
     void abort();
 
     //These functions are for loading and displaying the image
-    bool loadImage();
+    bool imageLoad();
     bool loadFits();
     bool loadOtherFormat();
     bool saveAsFITS();

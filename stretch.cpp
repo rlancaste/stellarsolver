@@ -11,6 +11,7 @@
 #include <fitsio.h>
 #include <math.h>
 #include <QtConcurrent>
+#include "sep/sep.h"
 
 namespace {
 
@@ -286,7 +287,7 @@ int getRange(int data_type)
 {
     switch (data_type)
     {
-        case TBYTE:
+        case SEP_TBYTE:
             return 256;
         case TSHORT:
             return 64*1024;
@@ -324,7 +325,7 @@ void Stretch::run(uint8_t *input, QImage *outputImage, int sampling)
 
     switch (dataType)
     {
-        case TBYTE:
+        case SEP_TBYTE:
             stretchChannels(reinterpret_cast<uint8_t*>(input), outputImage, params,
                             input_range, image_height, image_width, image_channels, sampling);
             break;
@@ -383,7 +384,7 @@ StretchParams Stretch::computeParams(uint8_t *input)
       (channel == 1 ? &result.green : &result.blue);
     switch (dataType)
     {
-        case TBYTE:
+        case SEP_TBYTE:
         {
             auto buffer = reinterpret_cast<uint8_t*>(input);
             computeParamsOneChannel(buffer + offset, params, input_range,

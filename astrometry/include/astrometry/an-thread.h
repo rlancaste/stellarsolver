@@ -34,8 +34,9 @@
 
  */
 
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include "astrometry/an-thread-pthreads.h"
-
+#endif
 
 
 #endif

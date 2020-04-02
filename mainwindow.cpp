@@ -12,11 +12,13 @@
 #include <ctype.h>
 #include <sys/types.h>
 
-#ifndef Q_CC_MSVC //For now due to compilation issues in windows
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/time.h>
 #include <libgen.h>
 #include <getopt.h>
 #include <dirent.h>
+#else
+#include "windirent.h"
 #endif
 
 #include <time.h>
@@ -60,7 +62,7 @@ MainWindow::MainWindow() :
 
     ui->starList->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    connect(ui->LoadImage,&QAbstractButton::clicked, this, &MainWindow::loadImage );
+    connect(ui->ImageLoad,&QAbstractButton::clicked, this, &MainWindow::imageLoad );
 
     connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractImage );
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveImage );
@@ -371,7 +373,7 @@ void MainWindow::clearAstrometrySettings()
 
 
 //I wrote this method to select the file name for the image and call the load methods below to load it
-bool MainWindow::loadImage()
+bool MainWindow::imageLoad()
 {
     QString fileURL = QFileDialog::getOpenFileName(nullptr, "Load Image", dirPath,
                                                "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.tif *.tiff)");
@@ -449,7 +451,7 @@ bool MainWindow::loadFits()
     switch (stats.bitpix)
     {
         case BYTE_IMG:
-            m_DataType           = TBYTE;
+            m_DataType           = SEP_TBYTE;
             stats.bytesPerPixel = sizeof(uint8_t);
             break;
         case SHORT_IMG:
@@ -560,7 +562,7 @@ bool MainWindow::loadOtherFormat()
     switch (stats.bitpix)
         {
             case BYTE_IMG:
-                m_DataType           = TBYTE;
+                m_DataType           = SEP_TBYTE;
                 stats.bytesPerPixel = sizeof(uint8_t);
                 break;
             case SHORT_IMG:
@@ -843,7 +845,7 @@ bool MainWindow::debayer()
 {
     switch (m_DataType)
     {
-        case TBYTE:
+        case SEP_TBYTE:
             return debayer_8bit();
 
         case TUSHORT:
@@ -2005,11 +2007,9 @@ bool MainWindow::runInnerSolver()
     internalSolver->logratio_totune = logratio_totune;
     internalSolver->logratio_tosolve = logratio_tosolve;
 
-#ifndef Q_CC_MSVC //For now due to compilation issues in windows
     internalSolver->logToFile = logToFile;
     internalSolver->logFile = logFile;
     internalSolver->logLevel = logLevel;
-#endif
 
     internalSolver->start();
     return true;

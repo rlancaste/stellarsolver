@@ -10,7 +10,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#include <windirent.h>
+#else
+#include <dirent.h>
 #include <sys/time.h>
 #include <libgen.h>
 #include <dirent.h>
@@ -28,7 +31,7 @@
 #include <time.h>
 
 #ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
-#include <winsock2.h>
+#include <winsock.h>
 #else
 #include <sys/wait.h>
 #include <sys/resource.h>
@@ -42,6 +45,35 @@
 //#include "os-features.h"
 #include "errors.h"
 #include "log.h"
+
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+
+#ifndef S_ISDIR
+ #define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
+ #endif
+
+char* dirname(const char* path) {
+       char drive[_MAX_DRIVE];
+       char* dir = malloc(_MAX_DIR);
+       char fname[_MAX_FNAME];
+       char ext[_MAX_EXT];
+       errno_t err;
+       err = _splitpath_s( path, drive, _MAX_DRIVE, dir, _MAX_DIR, fname,
+                              _MAX_FNAME, ext, _MAX_EXT );
+       return dir;
+}
+
+char* basename(const char* path) {
+       char drive[_MAX_DRIVE];
+       char dir[_MAX_DIR];
+       char* fname = malloc(_MAX_FNAME);
+       char ext[_MAX_EXT];
+       errno_t err;
+       err = _splitpath_s( path, drive, _MAX_DRIVE, dir, _MAX_DIR, fname,
+                              _MAX_FNAME, ext, _MAX_EXT );
+       return fname;
+}
+#endif
 
 uint32_t ENDIAN_DETECTOR = 0x01020304;
 
@@ -656,6 +688,7 @@ char* shell_escape(const char* str) {
     return result;
 }
 
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 static char* get_temp_dir() {
     char* dir = getenv("TMP");
     if (!dir) {
@@ -681,6 +714,7 @@ char* create_temp_file(const char* fn, const char* dir) {
     //printf("Created temp file %s\n", tempfile);
     return tempfile;
 }
+#endif
 
 /** //# Modified by Robert Lancaster for the SexySolver Internal Library
 char* create_temp_dir(const char* name, const char* dir) {

@@ -2,9 +2,12 @@
  # This file is part of the Astrometry.net suite.
  # Licensed under a 3-clause BSD style license - see LICENSE
  */
+
+//# Modified by Robert Lancaster for the SexySolver Internal Library
 #ifdef _MSC_VER
 #define _USE_MATH_DEFINES
 #endif
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

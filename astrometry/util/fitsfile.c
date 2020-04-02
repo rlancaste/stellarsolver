@@ -10,6 +10,10 @@
 #include "fitsioutils.h"
 #include "errors.h"
 
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#include "sys/types.h"
+#endif
+
 int fitsfile_pad_with(FILE* fid, char pad) {
     return fits_pad_file_with(fid, pad);
 }

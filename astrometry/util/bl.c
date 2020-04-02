@@ -1209,6 +1209,14 @@ char* sl_appendf(sl* list, const char* format, ...) {
 }
 
 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER
+long long ftello(FILE *stream){
+    return _fseeki64(stream);
+}
+long long fseeko(FILE *stream, off, origin){
+    return _fseeki64(stream, off, origin);
+}
+#endif
 #ifdef _WIN32
 //From http://asprintf.insanecoding.org
 #define insane_free(ptr) { free(ptr); ptr = 0; }

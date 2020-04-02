@@ -44,6 +44,7 @@
 #include <sys/resource.h>
 #else
 #include "windows.h"
+#include "io.h"
 #endif
 #include <errno.h>
 #include <assert.h>
@@ -210,6 +211,16 @@ static char * qfits_memory_tmpfilename(int);
 static char * strdup_(const char * str);
 void qfits_memory_status_(const char *, int);
 
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+static char* mmap_file(int fildes, off_t mapsize)
+{
+    HANDLE fm, h;
+    h = (HANDLE)_get_osfhandle(fildes);
+    fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0, mapsize, NULL);
+    return MapViewOfFile(fm, FILE_MAP_READ, 0, 0, mapsize);
+}
+#endif
+
 /*----------------------------------------------------------------------------*/
 /**
  * @defgroup    qfits_memory     POSIX-compatible extended memory handling
@@ -346,12 +357,16 @@ void * qfits_memory_malloc(
         }
 
         /* mmap() the swap file */
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+        ptr = mmap_file(swapfd, nbufs * MEMPAGESZ);
+#else
         ptr = (void*)mmap(0,
                           nbufs * MEMPAGESZ,
                           PROT_READ | PROT_WRITE,
                           MAP_PRIVATE,
                           swapfd,
                           0);
+#endif
         if ((char*)ptr == (char*)-1) {
             perror("mmap");
             fprintf(stderr,
@@ -471,17 +486,6 @@ static void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* ma
 	*mapsize  = size  + gap;
 	*pgap = gap;
 }
-
-#ifdef _WIN32
-static char* mmap_file(int fildes, off_t mapsize)
-{
-    HANDLE fm, h;
-    h = (HANDLE)_get_osfhandle(fildes);
-    fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0, mapsize, NULL);
-    return MapViewOfFile(fm, FILE_MAP_READ, 0, 0, mapsize);
-}
-#endif
-
 
 void qfits_memory_fdealloc2(
         void        *   ptr, 

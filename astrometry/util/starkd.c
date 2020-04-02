@@ -19,6 +19,13 @@
 #include "ioutils.h"
 #include "fitsioutils.h"
 
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+struct timeval {
+    long	tv_sec;		/* seconds */
+    long	tv_usec;	/* and microseconds */
+};
+#endif
+
 static startree_t* startree_alloc() {
     startree_t* s = calloc(1, sizeof(startree_t));
     if (!s) {

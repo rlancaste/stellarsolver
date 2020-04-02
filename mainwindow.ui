@@ -50,7 +50,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QPushButton" name="LoadImage">
+       <widget class="QPushButton" name="ImageLoad">
         <property name="text">
          <string>Load Image</string>
         </property>
@@ -177,8 +177,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
-          <height>384</height>
+          <width>98</width>
+          <height>98</height>
          </rect>
         </property>
         <attribute name="label">
@@ -484,8 +484,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
-          <height>384</height>
+          <width>98</width>
+          <height>74</height>
          </rect>
         </property>
         <attribute name="label">

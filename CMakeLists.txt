@@ -107,7 +107,7 @@ if(WIN32)
     #For right now until we determine if these libraries actually work for us on Windows
     #You need to edit this line to link to the appropriate paths on Windows.
 if(MSVC)
-    target_link_libraries(qfits C:/CraftRoot/lib/boost_regex-vc141-mt-x64-1_69.dll)
+    target_link_libraries(qfits C:/CraftRoot/lib/boost_regex-vc141-mt-x64-1_69.lib)
 else(MSVC)
     target_link_libraries(qfits C:/CraftRootMinGW/lib/libboost_regex-mgw81-mt-x64-1_69.dll)
 endif(MSVC)
@@ -138,7 +138,6 @@ add_library(kd ${kd_SRCS})
 target_link_libraries(kd ${CFITSIO_LIBRARIES})
 #install(TARGETS ld LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-if(NOT MSVC) #For now, due to windows compilation issues
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util")
 set(anbase_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/starutil.c
@@ -169,7 +168,10 @@ set(anbase_SRCS
     )
 
 add_library(anbase ${anbase_SRCS})
+
+if(NOT MSVC)
 target_link_libraries(anbase -lpthread)
+endif(NOT MSVC)
 #install(TARGETS anbase LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set(anutils_SRCS
@@ -237,7 +239,6 @@ if(WIN32)
 target_link_libraries(astrometry wsock32)
 endif(WIN32)
 #install(TARGETS astrometry LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endif(NOT MSVC)
 
 set (sep_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/sep/analyse.c
@@ -276,11 +277,7 @@ endif(APPLE)
 
 add_executable(SexySolver ${SexySolver_SRCS} ${SexySolverui_SRCS} ${SexySolverApp_ICON})
 
-if(MSVC) #For now, due to Windows compilation issues
-target_link_libraries(SexySolver sep)
-else(MSVC)
 target_link_libraries(SexySolver sep astrometry)
-endif(MSVC)
 
 target_link_libraries(SexySolver
     ${CFITSIO_LIBRARIES}

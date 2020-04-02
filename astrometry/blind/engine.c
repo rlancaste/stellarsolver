@@ -18,9 +18,15 @@
 #ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/wait.h>
 #endif
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#include <windirent.h>
+#include <windows.h>
+#else
+#include <dirent.h>
 #include <libgen.h>
 #include <getopt.h>
-#include <dirent.h>
+#endif
+
 #include <assert.h>
 
 #include "ioutils.h"

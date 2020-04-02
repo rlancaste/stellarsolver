@@ -81,7 +81,11 @@ qfits_table* fits_copy_table(qfits_table* tbl) {
 
 int fits_pixdump(const qfitsdumper * qd) {
     FILE* f_out;
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
     const void* vbuf;
+#else
+    const char* vbuf;
+#endif
     anbool tostdout;
     int i;
     int isize;

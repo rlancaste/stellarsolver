@@ -280,7 +280,13 @@ int quadfile_write_header_to(quadfile_t* qf, FILE* fid) {
 
 int quadfile_write_quad(quadfile_t* qf, unsigned int* stars) {
     uint32_t* data;
-    uint32_t ustars[qf->dimquads];
+
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+        uint32_t ustars[qf->dimquads];
+#else
+        uint32_t* ustars = (uint32_t*)malloc(sizeof(uint32_t)*qf->dimquads);
+#endif
+
     int i;
     fitsbin_chunk_t* chunk = quads_chunk(qf);
 

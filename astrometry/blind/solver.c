@@ -3,6 +3,11 @@
  # Licensed under a 3-clause BSD style license - see LICENSE
  */
 
+//# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER
+#define _USE_MATH_DEFINES
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -757,8 +762,13 @@ void solver_run(solver_t* solver) {
 
     num_indexes = pl_size(solver->indexes);
     {
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         double minAB2s[num_indexes];
         double maxAB2s[num_indexes];
+#else
+        double* minAB2s = (double*)malloc(sizeof(double)*num_indexes);
+        double* maxAB2s = (double*)malloc(sizeof(double)*num_indexes);
+#endif
         solver->minminAB2 = HUGE_VAL;
         solver->maxmaxAB2 = -HUGE_VAL;
         for (i = 0; i < num_indexes; i++) {
@@ -1229,12 +1239,23 @@ static void resolve_matches(kdtree_qres_t* krez, const double *field,
                             solver_t* solver, anbool current_parity) {
     int jj, thisquadno;
     MatchObj mo;
-    unsigned int star[dimquads];
+
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+        unsigned int star[dimquads];
+#else
+        unsigned int* star = (unsigned int*)malloc(sizeof(unsigned int)*dimquads);
+#endif
 
     assert(krez);
 
     for (jj = 0; jj < krez->nres; jj++) {
+
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         double starxyz[dimquads*3];
+#else
+        double* starxyz = (double*)malloc(sizeof(double)*dimquads*3);
+#endif
+
         double scale;
         double arcsecperpix;
         tan_t wcs;

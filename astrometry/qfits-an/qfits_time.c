@@ -37,7 +37,7 @@
 #include <pwd.h>
 #include <sys/time.h>
 #else
-#include <winsock.h>
+#include "tic.h"
 #endif
 #include <unistd.h>
 
@@ -91,6 +91,14 @@ static long timer_to_date(time_t time_secs);
 static long timer_to_time(time_t time_secs);
 static long qfits_time_now(void);
 static long qfits_date_now (void);
+
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+struct timeval {
+    long	tv_sec;		/* seconds */
+    long	tv_usec;	/* and microseconds */
+};
+#endif
+
 
 /*----------------------------------------------------------------------------*/
 /**

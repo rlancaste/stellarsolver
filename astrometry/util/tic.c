@@ -9,7 +9,6 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 #else
-#include "WinSock2.h"
 #include <Windows.h>
 #endif
 #include <stdio.h>

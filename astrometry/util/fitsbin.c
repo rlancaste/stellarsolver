@@ -263,12 +263,22 @@ static int write_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk, int flipped) {
 
         int i, j;
         int nper = chunk->itemsize / flipped;
+
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
         char tempdata[chunk->itemsize];
+#else
+        char* tempdata = (char*)malloc(sizeof(char)*chunk->itemsize);
+#endif
+
         assert(chunk->itemsize >= flipped);
         assert(nper * flipped == chunk->itemsize);
         for (i=0; i<N; i++) {
             // copy it...
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
             memcpy(tempdata, chunk->data + i*chunk->itemsize, chunk->itemsize);
+#else
+            memcpy(tempdata, ((char *)chunk->data) + i*chunk->itemsize, chunk->itemsize);
+#endif
             // swap it...
             for (j=0; j<nper; j++)
                 endian_swap(tempdata + j*flipped, flipped);

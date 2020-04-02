@@ -4,7 +4,9 @@
  */
 
 #include <string.h>
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <libgen.h>
+#endif
 #include <ctype.h>
 #include <unistd.h>
 #include <assert.h>

@@ -698,7 +698,11 @@ static int write_one(fitstable_t* table, const void* struc, anbool flip,
         col = getcol(table, i);
         if (col->in_struct) {
             if (struc)
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+                columndata = ((char *)struc) + col->coffset;
+#else
                 columndata = struc + col->coffset;
+#endif
             else
                 columndata = NULL;
         } else {

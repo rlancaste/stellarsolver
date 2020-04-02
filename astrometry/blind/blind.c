@@ -11,10 +11,19 @@
  */
 
 #include <sys/types.h>
-#include <sys/time.h>
+
 #ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/resource.h>
 #endif
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#include <sys/time.h>
+#else
+struct timeval {
+        long    tv_sec;         /* seconds */
+        long    tv_usec;        /* and microseconds */
+};
+#endif
+
 #include <libgen.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -46,10 +55,6 @@
 #include "scamp-catalog.h"
 #include "permutedsort.h"
 #include "bl-sort.h"
-
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
-#include <sys/resource.h>
-#endif
 
 static anbool record_match_callback(MatchObj* mo, void* userdata);
 static time_t timer_callback(void* user_data);

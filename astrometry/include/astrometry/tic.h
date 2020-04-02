@@ -8,8 +8,10 @@
 
 #include <time.h>
 
-#ifndef _MSC_VER
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/time.h>
+#else
+int gettimeofday(struct timeval * tp, struct timezone * tzp)
 #endif
 
 void tic();

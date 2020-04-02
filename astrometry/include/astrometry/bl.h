@@ -24,6 +24,13 @@
 int vasprintf(char **strp, const char *fmt, va_list ap);
 #endif
 
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
+long long ftello(FILE *stream);
+long long fseeko(FILE *stream, long long off, int origin);
+#endif
+
 struct bl_node {
     // number of elements filled.
     int N;
