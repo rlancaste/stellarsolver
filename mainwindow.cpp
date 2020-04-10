@@ -12,7 +12,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER
 #include <sys/time.h>
 #include <libgen.h>
 #include <getopt.h>
@@ -168,6 +168,8 @@ MainWindow::MainWindow() :
     QDir temp(tempPath);
     temp.remove("default.param");
     temp.remove("default.conv");
+
+    setWindowTitle("SexySolver Internal Sextractor and Astrometry.net Solver");
 
 }
 

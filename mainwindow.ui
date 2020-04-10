@@ -1066,22 +1066,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>859</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuSextractor_and_Astrometry_Tester">
-    <property name="title">
-     <string>SexySolver Astrometry Tester</string>
-    </property>
-   </widget>
-   <addaction name="menuSextractor_and_Astrometry_Tester"/>
-  </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="enabled">
     <bool>true</bool>
