@@ -73,7 +73,7 @@
       <item>
        <widget class="QPushButton" name="AutoScale">
         <property name="text">
-         <string>Auto</string>
+         <string>Auto Scale</string>
         </property>
        </widget>
       </item>
@@ -88,7 +88,7 @@
        <property name="currentIndex">
         <number>1</number>
        </property>
-       <widget class="QWidget" name="Basic">
+       <widget class="QWidget" name="External">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -98,7 +98,7 @@
          </rect>
         </property>
         <attribute name="label">
-         <string>Basic Options</string>
+         <string>External Program Options</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_3">
          <property name="leftMargin">
@@ -116,22 +116,11 @@
          <property name="spacing">
           <number>0</number>
          </property>
-         <item row="7" column="0">
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>Temp Path</string>
-           </property>
-          </widget>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="configFilePath"/>
          </item>
-         <item row="6" column="1">
-          <widget class="QLineEdit" name="imagesDefaultPath"/>
-         </item>
-         <item row="8" column="1">
-          <widget class="QPushButton" name="reset">
-           <property name="text">
-            <string>Reset to Defaults</string>
-           </property>
-          </widget>
+         <item row="4" column="1">
+          <widget class="QLineEdit" name="wcsPath"/>
          </item>
          <item row="3" column="0">
           <widget class="QLabel" name="label_2">
@@ -143,13 +132,20 @@
          <item row="3" column="1">
           <widget class="QLineEdit" name="solverPath"/>
          </item>
-         <item row="7" column="1">
+         <item row="6" column="1">
           <widget class="QLineEdit" name="tempPath"/>
          </item>
          <item row="6" column="0">
-          <widget class="QLabel" name="label_10">
+          <widget class="QLabel" name="label_11">
            <property name="text">
-            <string>Images Path</string>
+            <string>Temp Path</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_42">
+           <property name="text">
+            <string>WCSInfo Path</string>
            </property>
           </widget>
          </item>
@@ -163,7 +159,7 @@
          <item row="0" column="0">
           <widget class="QLabel" name="label_3">
            <property name="text">
-            <string>Config File</string>
+            <string>Astro Config</string>
            </property>
           </widget>
          </item>
@@ -171,19 +167,6 @@
           <widget class="QLabel" name="label">
            <property name="text">
             <string>Sextractor Path</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="configFilePath"/>
-         </item>
-         <item row="4" column="1">
-          <widget class="QLineEdit" name="wcsPath"/>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_42">
-           <property name="text">
-            <string>WCSInfo Path</string>
            </property>
           </widget>
          </item>
@@ -1028,13 +1011,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="InnerSextract">
-        <property name="text">
-         <string>Sextract Internal</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="SolveImage">
         <property name="text">
          <string>Solve</string>
@@ -1042,9 +1018,29 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="InnerSolve">
+       <widget class="QCheckBox" name="useSexySolver">
         <property name="text">
-         <string>Solve Internal</string>
+         <string>Use Internal SexySolver</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="reset">
+        <property name="text">
+         <string>Reset Options</string>
         </property>
        </widget>
       </item>
@@ -1058,7 +1054,14 @@
       <item>
        <widget class="QPushButton" name="ClearLog">
         <property name="text">
-         <string>ClearLog</string>
+         <string>Clear Log</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="exportTable">
+        <property name="text">
+         <string>Export Solution Table</string>
         </property>
        </widget>
       </item>

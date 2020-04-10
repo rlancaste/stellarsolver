@@ -88,7 +88,7 @@ private:
     int selectedStar;
 
     //System File Paths
-    QString dirPath;
+    QString dirPath = QDir::homePath();
     QString tempPath;
     QStringList indexFilePaths;
     QString sextractorBinaryPath;
@@ -244,6 +244,7 @@ public slots:
     bool sextractorComplete();
     bool solverComplete(int x);
     void addSolutionToTable(Solution solution);
+    void saveSolutionTable();
 
 };
 

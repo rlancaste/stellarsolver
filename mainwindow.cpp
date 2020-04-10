@@ -58,27 +58,29 @@ MainWindow::MainWindow() :
 
    this->show();
 
-    ui->starList->setSelectionBehavior(QAbstractItemView::SelectRows);
-
+    //The Options at the top of the Window
     connect(ui->ImageLoad,&QAbstractButton::clicked, this, &MainWindow::imageLoad );
-
-    connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractImage );
-    connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveImage );
-    connect(ui->InnerSextract,&QAbstractButton::clicked, this, &MainWindow::sextractInternally);
-    connect(ui->InnerSolve,&QAbstractButton::clicked, this, &MainWindow::solveInternally );
-
-    connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
-    connect(ui->ClearLog,&QAbstractButton::clicked, this, &MainWindow::clearLog );
     connect(ui->zoomIn,&QAbstractButton::clicked, this, &MainWindow::zoomIn );
     connect(ui->zoomOut,&QAbstractButton::clicked, this, &MainWindow::zoomOut );
     connect(ui->AutoScale,&QAbstractButton::clicked, this, &MainWindow::autoScale );
-    connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
 
+    //The Options at the bottom of the Window
+    connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractImage );
+    connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveImage );
+
+    connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
+    connect(ui->ClearLog,&QAbstractButton::clicked, this, &MainWindow::clearLog );
+    connect(ui->exportTable,&QAbstractButton::clicked, this, &MainWindow::saveSolutionTable);
+
+    //Behaviors for the StarList
+    ui->starList->setSelectionBehavior(QAbstractItemView::SelectRows);
     connect(ui->starList,&QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
 
+    //Behaviors for the Image to interact with the StartList
     connect(ui->Image,&ImageLabel::mouseHovered,this, &MainWindow::mouseOverStar);
     connect(ui->Image,&ImageLabel::mouseClicked,this, &MainWindow::mouseClickedOnStar);
 
+    //Hides the panels into the sides and bottom
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
     ui->splitter_2->setSizes(QList<int>() << 0 << ui->splitter_2->width() << 0 );
 
@@ -86,14 +88,13 @@ MainWindow::MainWindow() :
     connect(ui->configFilePath, &QLineEdit::textChanged, this, [this](){ confPath = ui->configFilePath->text(); });
     connect(ui->sextractorPath, &QLineEdit::textChanged, this, [this](){ sextractorBinaryPath = ui->sextractorPath->text(); });
     connect(ui->solverPath, &QLineEdit::textChanged, this, [this](){ solverPath = ui->solverPath->text(); });
-    connect(ui->imagesDefaultPath, &QLineEdit::textChanged, this, [this](){ dirPath = ui->imagesDefaultPath->text(); });
     connect(ui->tempPath, &QLineEdit::textChanged, this, [this](){ tempPath = ui->tempPath->text(); });
     connect(ui->wcsPath, &QLineEdit::textChanged, this, [this](){ wcsPath = ui->wcsPath->text(); });
 
     connect(ui->reset, &QPushButton::clicked, this, &MainWindow::resetOptionsToDefaults);
 
     //Sextractor Settings
-
+    connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
     connect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){ apertureShape = (Shape) num; });
     connect(ui->kron_fact, &QLineEdit::textChanged, this, [this](){ kron_fact = ui->kron_fact->text().toDouble(); });
     connect(ui->subpix, &QLineEdit::textChanged, this, [this](){ subpix = ui->subpix->text().toDouble(); });
@@ -169,7 +170,7 @@ MainWindow::MainWindow() :
     temp.remove("default.param");
     temp.remove("default.conv");
 
-    setWindowTitle("SexySolver Internal Sextractor and Astrometry.net Solver");
+    setWindowTitle("SexySolver Internal Sextractor and Astrometry.net Based Solver");
 
 }
 
@@ -218,11 +219,9 @@ void MainWindow::resetOptionsToDefaults()
     SexySolver temp(stats, m_ImageBuffer, true, this);
 
     //Basic Settings
-    dirPath = QDir::homePath();
     tempPath = QDir::tempPath();
 
         ui->showStars->setChecked(true);
-        ui->imagesDefaultPath->setText(dirPath);
         ui->tempPath->setText(tempPath);
 
     //Sextractor Settings
@@ -395,12 +394,17 @@ void MainWindow::displayTable()
 //It then will load the results into a table to the right of the image
 bool MainWindow::sextractImage()
 {
+    if(!prepareForProcesses())
+        return false;
+
+    //If the Use SexySolver CheckBox is checked, use the internal method instead.
+    if(ui->useSexySolver->isChecked())
+        return sextractInternally();
+
     #ifdef _WIN32
     logOutput("Sextractor is not easily installed on Windows, try the Internal Sextractor please.");
     return false;
     #endif
-    if(!prepareForProcesses())
-        return false;
 
     solverTimer.start();
 
@@ -415,6 +419,10 @@ bool MainWindow::solveImage()
 {
     if(!prepareForProcesses())
         return false;
+
+    //If the Use SexySolver CheckBox is checked, use the internal method instead.
+    if(ui->useSexySolver->isChecked())
+        return solveInternally();
 
     solverTimer.start();
 
@@ -435,9 +443,6 @@ bool MainWindow::solveImage()
 //It then will load the results into a table to the right of the image
 bool MainWindow::sextractInternally()
 {
-    if(!prepareForProcesses())
-        return false;
-
     solverTimer.start();
     runInnerSextractor();
     return true;
@@ -448,9 +453,6 @@ bool MainWindow::sextractInternally()
 //It times the entire process and prints out how long it took
 bool MainWindow::solveInternally()
 {
-    if(!prepareForProcesses())
-        return false;
-
       solverTimer.start();
       runInnerSolver();
       return true;
@@ -1976,6 +1978,10 @@ bool MainWindow::externalSolverComplete(int x)
         setItemInColumn(ui->solutionTable, "Stars", QString::number(stars.size()));
     else
         logOutput("Can't get Sextractor Table from File");
+
+
+
+
     return true;
 }
 
@@ -2002,6 +2008,7 @@ bool MainWindow::internalSolverComplete(int x)
             shapeName = "Ellipse";
         break;
     }
+    //Sextractor Parameters
     setItemInColumn(ui->solutionTable,"Shape", shapeName);
     setItemInColumn(ui->solutionTable,"Kron", QString::number(internalSolver->kron_fact));
     setItemInColumn(ui->solutionTable,"Subpix", QString::number(internalSolver->subpix));
@@ -2012,6 +2019,11 @@ bool MainWindow::internalSolverComplete(int x)
     setItemInColumn(ui->solutionTable,"clean", QString::number(internalSolver->clean));
     setItemInColumn(ui->solutionTable,"clean param", QString::number(internalSolver->clean_param));
     setItemInColumn(ui->solutionTable,"fwhm", QString::number(internalSolver->fwhm));
+
+    //Astrometry Parameters
+    setItemInColumn(ui->solutionTable, "Pos?", QVariant(internalSolver->use_position).toString());
+    setItemInColumn(ui->solutionTable, "Scale?", QVariant(internalSolver->use_scale).toString());
+    setItemInColumn(ui->solutionTable, "Resort?", QVariant(internalSolver->resort).toString());
     return true;
 }
 
@@ -2263,12 +2275,7 @@ void MainWindow::addSolutionToTable(Solution solution)
     double elapsed = solverTimer.elapsed() / 1000.0;
 
     setItemInColumn(table, "Time", QString::number(elapsed));
-    //Sextractor Parameters
 
-    //Astrometry Parameters
-    setItemInColumn(table, "Pos?", QVariant(use_position).toString());
-    setItemInColumn(table, "Scale?", QVariant(use_scale).toString());
-    setItemInColumn(table, "Resort?", QVariant(resort).toString());
     //Results
     setItemInColumn(table, "RA", solution.rastr);
     setItemInColumn(table, "DEC", solution.decstr);
@@ -2277,6 +2284,71 @@ void MainWindow::addSolutionToTable(Solution solution)
     setItemInColumn(table, "Field Height", QString::number(solution.fieldHeight));
     setItemInColumn(table, "Field", ui->fileNameDisplay->text());
 }
+
+void MainWindow::saveSolutionTable()
+{
+    if (ui->solutionTable->rowCount() == 0)
+        return;
+
+    QUrl exportFile = QFileDialog::getSaveFileUrl(this, "Export Solution Table", dirPath,
+                      "CSV File (*.csv)");
+    if (exportFile.isEmpty()) // if user presses cancel
+        return;
+    if (exportFile.toLocalFile().endsWith(QLatin1String(".csv")) == false)
+        exportFile.setPath(exportFile.toLocalFile() + ".csv");
+
+    QString path = exportFile.toLocalFile();
+
+    if (QFile::exists(path))
+    {
+        int r = QMessageBox::question(this,
+                QString("A file named \"%1\" already exists. ").arg("Overwrite File?"),
+                     "Overwrite it?",
+                     exportFile.fileName());
+        if (r == QMessageBox::No)
+            return;
+    }
+
+    if (!exportFile.isValid())
+    {
+        QString message = QString("Invalid URL: %1").arg(exportFile.url());
+        QMessageBox::warning(this, "Invalid URL", message);
+        return;
+    }
+
+    QFile file;
+    file.setFileName(path);
+    if (!file.open(QIODevice::WriteOnly))
+    {
+        QString message = QString("Unable to write to file %1").arg(path);
+        QMessageBox::warning(this, "Could Not Open File", message);
+        return;
+    }
+
+    QTextStream outstream(&file);
+
+    for (int c = 0; c < ui->solutionTable->columnCount(); c++)
+    {
+        outstream << ui->solutionTable->horizontalHeaderItem(c)->text() << ',';
+    }
+    outstream << endl;
+
+    for (int r = 0; r < ui->solutionTable->rowCount(); r++)
+    {
+        for (int c = 0; c < ui->solutionTable->columnCount(); c++)
+        {
+            QTableWidgetItem *cell = ui->solutionTable->item(r, c);
+
+            if (cell)
+                outstream << cell->text() << ',';
+        }
+        outstream << endl;
+    }
+    QMessageBox::information(this, "Message", QString("Solution Points Saved as: %1").arg(path));
+    file.close();
+}
+
+
 
 
 
