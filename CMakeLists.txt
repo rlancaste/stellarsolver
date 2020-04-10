@@ -5,6 +5,10 @@ cmake_policy(SET CMP0003 NEW)
 
 set(CMAKE_AUTOMOC ON)
 
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.12)
+endif(APPLE)
+
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/")
 include(GNUInstallDirs)
 
@@ -292,8 +296,40 @@ target_link_libraries(SexySolver
 SET_TARGET_PROPERTIES(SexySolver PROPERTIES MACOSX_BUNDLE TRUE)
 set(MACOSX_BUNDLE_ICON_FILE SexySolverIcon.icns)
 
+if(APPLE)
+set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
+#Gets the path to QMake
+get_target_property(QMAKE_EXE Qt5::qmake IMPORTED_LOCATION)
+#Uses that to get the Directory QMake is in, assuming that is the QT Binaries Directory
+get_filename_component(QT_BINDIR "${QMAKE_EXE}" DIRECTORY)
+#Uses the QT bin Directory to get the lib Directory
+get_filename_component(QT_LIBDIR "${QT_BINDIR}/../lib" ABSOLUTE)
+#Searches for macdeployqt in that directory
+find_program(MACDEPLOYQT_EXE macdeployqt HINTS "${QT_BINDIR}")
+#Runs MacDeployQt after the build
+add_custom_command(TARGET SexySolver POST_BUILD
+    COMMAND "${MACDEPLOYQT_EXE}"
+        "$<TARGET_FILE_DIR:SexySolver>/../.."
+        -always-overwrite
+    COMMENT "Running macdeployqt..."
+)
+#This adds an rpath to the SexySolver executable because macdeployqt had an error when it tried to remove it and it did not exist.
+#It does seem silly to add a path that will just get removed later, but it gets rid of the error.
+add_custom_command(TARGET SexySolver POST_BUILD
+    COMMAND "${CMAKE_INSTALL_NAME_TOOL}"
+        -add_rpath "${QT_LIBDIR}" "$<TARGET_FILE_DIR:SexySolver>/SexySolver"
+    COMMENT "Adding Missing RPath to avoid an error..."
+)
+#This sets the install directory for Macs
+install(TARGETS SexySolver
+    BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
+    )
+else(APPLE)
+    install(TARGETS SexySolver RUNTIME DESTINATION bin)
+endif(APPLE)
 
 
-install(TARGETS SexySolver RUNTIME DESTINATION bin)
+
 
 
