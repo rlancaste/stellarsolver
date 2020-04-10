@@ -82,37 +82,13 @@ MainWindow::MainWindow() :
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
     ui->splitter_2->setSizes(QList<int>() << 0 << ui->splitter_2->width() << 0 );
 
-    dirPath=QDir::homePath();
-    tempPath=QDir::tempPath();
-
-    //Mac Default location
-#if defined(Q_OS_OSX)
-    indexFilePaths.append(QDir::homePath() + "/Library/Application Support/Astrometry");
-#elif defined(Q_OS_LINUX)
-    //Linux Default Location
-    indexFilePaths.append("/usr/share/astrometry/");
-    //Linux Local KStars Location
-    QString localAstroPath = QDir::homePath() + "/.local/share/kstars/astrometry/";
-    if(QFileInfo(localAstroPath).exists())
-        indexFilePaths.append(localAstroPath);
-#elif defined(_WIN32)
-    //A Windows Location
-    QString localAstroPath = "C:/Astrometry";
-    if(QFileInfo(localAstroPath).exists())
-        indexFilePaths.append(localAstroPath);
-#endif
-
-
-
     //Basic Settings
-    ui->sextractorPath->setText(sextractorBinaryPath);
     connect(ui->sextractorPath, &QLineEdit::textChanged, this, [this](){ sextractorBinaryPath = ui->sextractorPath->text(); });
-    ui->solverPath->setText(solverPath);
     connect(ui->solverPath, &QLineEdit::textChanged, this, [this](){ solverPath = ui->solverPath->text(); });
-    ui->imagesDefaultPath->setText(dirPath);
     connect(ui->imagesDefaultPath, &QLineEdit::textChanged, this, [this](){ dirPath = ui->imagesDefaultPath->text(); });
-    ui->tempPath->setText(tempPath);
     connect(ui->tempPath, &QLineEdit::textChanged, this, [this](){ tempPath = ui->tempPath->text(); });
+
+    connect(ui->reset, &QPushButton::clicked, this, &MainWindow::resetOptionsToDefaults);
 
     //Sextractor Settings
 
@@ -142,7 +118,6 @@ MainWindow::MainWindow() :
     connect(ui->dimmestPercent, &QLineEdit::textChanged, this, [this](){ removeDimmest = ui->dimmestPercent->text().toDouble(); });
 
     //Astrometry Settings
-    ui->configFilePath->setText(confPath);
     connect(ui->configFilePath, &QLineEdit::textChanged, this, [this](){ confPath = ui->configFilePath->text(); });
 
     connect(ui->inParallel, &QCheckBox::stateChanged, this, [this](){ inParallel = ui->inParallel->isChecked(); });
@@ -160,24 +135,14 @@ MainWindow::MainWindow() :
     connect(ui->dec, &QLineEdit::textChanged, this, [this](){ dec = ui->dec->text().toDouble(); });
     connect(ui->radius, &QLineEdit::textChanged, this, [this](){ radius = ui->radius->text().toDouble(); });
 
-    ui->oddsToKeep->setText(QString::number(logratio_tokeep));
-    ui->oddsToSolve->setText(QString::number(logratio_tosolve));
-    ui->oddsToTune->setText(QString::number(logratio_totune));
     connect(ui->oddsToKeep, &QLineEdit::textChanged, this, [this](){ logratio_tokeep = ui->oddsToKeep->text().toDouble(); });
     connect(ui->oddsToSolve, &QLineEdit::textChanged, this, [this](){ logratio_tosolve = ui->oddsToSolve->text().toDouble(); });
     connect(ui->oddsToTune, &QLineEdit::textChanged, this, [this](){ logratio_totune = ui->oddsToTune->text().toDouble(); });
 
-    ui->logFile->setText(logFile);
     connect(ui->logToFile, &QCheckBox::stateChanged, this, [this](){ logToFile = ui->logToFile->isChecked(); });
     connect(ui->logFile, &QLineEdit::textChanged, this, [this](){ logFile = ui->logFile->text(); });
     connect(ui->logLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index){ logLevel = index; });
 
-    foreach(QString pathName, indexFilePaths)
-    {
-        QListWidgetItem *item = new QListWidgetItem(pathName);
-        item->setFlags(item->flags () | Qt::ItemIsEditable);
-        ui->indexPaths->addItem(item);
-    }
     connect(ui->indexPaths, &QListWidget::itemChanged, this, [this](QListWidgetItem * item){
         int row = ui->indexPaths->row(item);
         indexFilePaths.removeAt(row);
@@ -190,6 +155,8 @@ MainWindow::MainWindow() :
         indexFilePaths.append("");
     });
 
+    resetOptionsToDefaults();
+
     setupSolutionTable();
 
     debayerParams.method  = DC1394_BAYER_METHOD_NEAREST;
@@ -201,6 +168,157 @@ MainWindow::MainWindow() :
     QDir temp(tempPath);
     temp.remove("default.param");
     temp.remove("default.conv");
+
+}
+
+void MainWindow::resetOptionsToDefaults()
+{
+
+#if defined(Q_OS_OSX)
+    sextractorBinaryPath = "/usr/local/bin/sex";
+#elif defined(Q_OS_LINUX)
+    sextractorBinaryPath = "/usr/bin/sextractor";
+#else //Windows
+     sextractorBinaryPath = "C:/cygwin64/bin/sextractor";
+#endif
+    ui->sextractorPath->setText(sextractorBinaryPath);
+
+#if defined(Q_OS_OSX)
+    confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
+#elif defined(Q_OS_LINUX)
+    confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
+#else //Windows
+    //confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
+    confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg";
+#endif
+    ui->configFilePath->setText(confPath);
+
+#if defined(Q_OS_OSX)
+    solverPath = "/usr/local/bin/solve-field";
+#elif defined(Q_OS_LINUX)
+    solverPath = "/usr/bin/solve-field";
+#else //Windows
+    //solverPath = "C:/cygwin64/bin/solve-field";
+    solverPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe";
+#endif
+    ui->solverPath->setText(solverPath);
+
+#if defined(Q_OS_OSX)
+    wcsPath = "/usr/local/bin/wcsinfo";
+#elif defined(Q_OS_LINUX)
+    wcsPath = "/usr/bin/wcsinfo";
+#else //Windows
+    //wcsPath = "C:/cygwin64/bin/wcsinfo";
+    wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
+#endif
+
+    SexySolver temp(stats, m_ImageBuffer, true, this);
+
+    //Basic Settings
+    dirPath = QDir::homePath();
+    tempPath = QDir::tempPath();
+
+        ui->showStars->setChecked(true);
+        ui->imagesDefaultPath->setText(dirPath);
+        ui->tempPath->setText(tempPath);
+
+    //Sextractor Settings
+    apertureShape = temp.apertureShape;
+    kron_fact = temp.kron_fact;
+    subpix = temp.subpix;
+    r_min = temp.r_min;
+
+        ui->apertureShape->setCurrentIndex(apertureShape);
+        ui->kron_fact->setText(QString::number(kron_fact));
+        ui->subpix->setText(QString::number(subpix));
+        ui->r_min->setText(QString::number(r_min));
+
+    magzero = temp.magzero;
+    minarea = temp.minarea;
+    deblend_thresh = temp.deblend_thresh;
+    deblend_contrast = temp.deblend_contrast;
+    clean = temp.clean;
+    clean_param = temp.clean_param;
+    fwhm = temp.fwhm;
+
+        ui->magzero->setText(QString::number(magzero));
+        ui->minarea->setText(QString::number(minarea));
+        ui->deblend_thresh->setText(QString::number(deblend_thresh));
+        ui->deblend_contrast->setText(QString::number(deblend_contrast));
+        ui->cleanCheckBox->setChecked(clean == 1);
+        ui->clean_param->setText(QString::number(clean_param));
+        ui->fwhm->setText(QString::number(fwhm));
+
+    //Star Filter Settings
+    maxEllipse = temp.maxEllipse;
+    removeBrightest = temp.removeBrightest;
+    removeDimmest = temp.removeDimmest;
+
+        ui->maxEllipse->setText(QString::number(maxEllipse));
+        ui->brightestPercent->setText(QString::number(removeBrightest));
+        ui->dimmestPercent->setText(QString::number(removeDimmest));
+
+    //Astrometry Settings
+    inParallel = temp.inParallel;
+    solverTimeLimit = temp.solverTimeLimit;
+    minwidth = temp.minwidth;
+    maxwidth = temp.maxwidth;
+    radius = temp.search_radius;
+
+        ui->inParallel->setChecked(inParallel);
+        ui->solverTimeLimit->setText(QString::number(solverTimeLimit));
+        ui->minWidth->setText(QString::number(minwidth));
+        ui->maxWidth->setText(QString::number(maxwidth));
+        ui->radius->setText(QString::number(radius));
+
+    clearAstrometrySettings(); //Resets the Position and Scale settings
+
+    //Astrometry Log Ratio Settings
+    logratio_tokeep = temp.logratio_tokeep;
+    logratio_tosolve = temp.logratio_tosolve;
+    logratio_totune = temp.logratio_totune;
+
+        ui->oddsToKeep->setText(QString::number(logratio_tokeep));
+        ui->oddsToSolve->setText(QString::number(logratio_tosolve));
+        ui->oddsToTune->setText(QString::number(logratio_totune));
+
+    //Astrometry Logging Settings
+    logFile = QDir::tempPath() + "/AstrometryLog.txt";
+    logToFile = temp.logToFile;
+    logLevel = temp.logLevel;
+
+        ui->logFile->setText(logFile);
+        ui->logToFile->setChecked(logToFile);
+        ui->logLevel->setCurrentIndex(logLevel);
+
+    //Astrometry Index File Paths to Search
+    indexFilePaths.clear();
+    ui->indexPaths->clear();
+
+
+#if defined(Q_OS_OSX)
+    //Mac Default location
+    indexFilePaths.append(QDir::homePath() + "/Library/Application Support/Astrometry");
+#elif defined(Q_OS_LINUX)
+    //Linux Default Location
+    indexFilePaths.append("/usr/share/astrometry/");
+    //Linux Local KStars Location
+    QString localAstroPath = QDir::homePath() + "/.local/share/kstars/astrometry/";
+    if(QFileInfo(localAstroPath).exists())
+        indexFilePaths.append(localAstroPath);
+#elif defined(_WIN32)
+    //A Windows Location
+    QString localAstroPath = "C:/Astrometry";
+    if(QFileInfo(localAstroPath).exists())
+        indexFilePaths.append(localAstroPath);
+#endif
+
+    foreach(QString pathName, indexFilePaths)
+    {
+        QListWidgetItem *item = new QListWidgetItem(pathName);
+        item->setFlags(item->flags () | Qt::ItemIsEditable);
+        ui->indexPaths->addItem(item);
+    }
 
 }
 
@@ -350,22 +468,14 @@ void MainWindow::abort()
 
 void MainWindow::clearAstrometrySettings()
 {
+    //Note that due to connections, it automatically sets the variable as well.
     ui->use_scale->setChecked(false);
     ui->scale_low->setText("");
     ui->scale_high->setText("");
     ui->use_position->setChecked(false);
     ui->ra->setText("");
     ui->dec->setText("");
-
-    use_position = false;
-    ra = 0;
-    dec = 0;
-    use_scale = false;
-    fov_low = 0;
-    fov_high = 0;
 }
-
-
 
 //The following methods deal with the loading and displaying of the image
 
@@ -1447,25 +1557,7 @@ bool MainWindow::getSextractorTable(QList<Star> *stars)
 //It is used by both the internal and external solver
 bool MainWindow::getSolverOptionsFromFITS()
 {
-    use_scale = false;
-    fov_low = 0;
-    fov_high= 0;
-    use_position = false;
-    ra = 0;
-    dec = 0;
-    radius = 15;
-
-    ui->use_scale->setChecked(false);
-    ui->scale_low->setText("");
-    ui->scale_high->setText("");
-    ui->use_position->setChecked(false);
-    ui->ra->setText("");
-    ui->dec->setText("");
-    ui->radius->setText("15");
-
-
-
-
+    clearAstrometrySettings();
 
     int status = 0, fits_ccd_width, fits_ccd_height, fits_binx = 1, fits_biny = 1;
     char comment[128], error_status[512];

@@ -91,60 +91,30 @@ private:
     QString dirPath;
     QString tempPath;
     QStringList indexFilePaths;
-#if defined(Q_OS_OSX)
-    QString sextractorBinaryPath = "/usr/local/bin/sex";
-#elif defined(Q_OS_LINUX)
-    QString sextractorBinaryPath = "/usr/bin/sextractor";
-#else
-     QString sextractorBinaryPath = "C:/cygwin64/bin/sextractor";
-#endif
-
-#if defined(Q_OS_OSX)
-    QString confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
-#elif defined(Q_OS_LINUX)
-    QString confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
-#else
-    //QString confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
-    QString confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg";
-#endif
-
-#if defined(Q_OS_OSX)
-    QString solverPath = "/usr/local/bin/solve-field";
-#elif defined(Q_OS_LINUX)
-    QString solverPath = "/usr/bin/solve-field";
-#else
-    //QString solverPath = "C:/cygwin64/bin/solve-field";
-    QString solverPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe";
-#endif
-
-#if defined(Q_OS_OSX)
-    QString wcsPath = "/usr/local/bin/wcsinfo";
-#elif defined(Q_OS_LINUX)
-    QString wcsPath = "/usr/bin/wcsinfo";
-#else
-    //QString wcsPath = "C:/cygwin64/bin/wcsinfo";
-    QString wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
-#endif
+    QString sextractorBinaryPath;
+    QString confPath;
+    QString solverPath;
+    QString wcsPath;
 
     //Parameters for sextracting
-    Shape apertureShape = SHAPE_CIRCLE;
-    double kron_fact = 2.5;
-    int subpix = 5;
-    float r_min = 3.5;
+    Shape apertureShape;
+    double kron_fact;
+    int subpix;
+    float r_min;
     short inflags;
-    float magzero = 20;
-    float minarea = 5;
-    int deblend_thresh = 32;
-    float deblend_contrast = 1;
-    int clean = 1;
-    double clean_param = 1;
-    double fwhm = 2;
+    float magzero;
+    float minarea;
+    int deblend_thresh;
+    float deblend_contrast;
+    int clean;
+    double clean_param;
+    double fwhm;
 
     //Star Filter Parameters
-    bool resort = true;  //NOTE: This is REQUIRED for the filters
-    double maxEllipse = 0;
-    double removeBrightest = 0;
-    double removeDimmest = 0;
+    bool resort;
+    double maxEllipse;
+    double removeBrightest;
+    double removeDimmest;
 
     //Parameters for solving
     bool use_scale = false;
@@ -155,19 +125,19 @@ private:
     double dec;
     double radius;
 
-    bool inParallel = true;
-    int solverTimeLimit = 600;
-    double minwidth = 0.1;
-    double maxwidth = 180;
+    bool inParallel;
+    int solverTimeLimit;
+    double minwidth;
+    double maxwidth;
 
-    bool logToFile = false;
-    QString logFile = QDir::tempPath() + "/AstrometryLog.txt";
-    int logLevel = 0;
+    bool logToFile;
+    QString logFile;
+    int logLevel;
 
     //LogOdds Settings
-    double logratio_tosolve = log(1e9);
-    double logratio_tokeep  = log(1e9);
-    double logratio_totune  = log(1e6);
+    double logratio_tosolve;
+    double logratio_tokeep;
+    double logratio_totune;
 
     //Data about the image
     bool imageLoaded = false;
@@ -215,6 +185,7 @@ public slots:
     void logSolver();
     void logSextractor();
     void clearLog();
+    void resetOptionsToDefaults();
 
     //These are the functions that run when the bottom buttons are clicked
     bool sextractImage();

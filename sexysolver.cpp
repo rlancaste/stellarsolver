@@ -594,6 +594,7 @@ int SexySolver::runAstrometryEngine()
         emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         emit logNeedsUpdating(QString("Solve Log Odds:  %1").arg(bp->solver.best_logodds));
         emit logNeedsUpdating(QString("Number of Matches:  %1").arg(match.nmatch));
+        emit logNeedsUpdating(QString("Solved with index:  %1").arg(match.indexid));
         emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
         emit logNeedsUpdating(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
         emit logNeedsUpdating(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));
