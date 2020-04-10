@@ -83,10 +83,12 @@ MainWindow::MainWindow() :
     ui->splitter_2->setSizes(QList<int>() << 0 << ui->splitter_2->width() << 0 );
 
     //Basic Settings
+    connect(ui->configFilePath, &QLineEdit::textChanged, this, [this](){ confPath = ui->configFilePath->text(); });
     connect(ui->sextractorPath, &QLineEdit::textChanged, this, [this](){ sextractorBinaryPath = ui->sextractorPath->text(); });
     connect(ui->solverPath, &QLineEdit::textChanged, this, [this](){ solverPath = ui->solverPath->text(); });
     connect(ui->imagesDefaultPath, &QLineEdit::textChanged, this, [this](){ dirPath = ui->imagesDefaultPath->text(); });
     connect(ui->tempPath, &QLineEdit::textChanged, this, [this](){ tempPath = ui->tempPath->text(); });
+    connect(ui->wcsPath, &QLineEdit::textChanged, this, [this](){ wcsPath = ui->wcsPath->text(); });
 
     connect(ui->reset, &QPushButton::clicked, this, &MainWindow::resetOptionsToDefaults);
 
@@ -118,8 +120,6 @@ MainWindow::MainWindow() :
     connect(ui->dimmestPercent, &QLineEdit::textChanged, this, [this](){ removeDimmest = ui->dimmestPercent->text().toDouble(); });
 
     //Astrometry Settings
-    connect(ui->configFilePath, &QLineEdit::textChanged, this, [this](){ confPath = ui->configFilePath->text(); });
-
     connect(ui->inParallel, &QCheckBox::stateChanged, this, [this](){ inParallel = ui->inParallel->isChecked(); });
     connect(ui->solverTimeLimit, &QLineEdit::textChanged, this, [this](){ solverTimeLimit = ui->solverTimeLimit->text().toInt(); });
     connect(ui->minWidth, &QLineEdit::textChanged, this, [this](){ minwidth = ui->minWidth->text().toDouble(); });
@@ -211,6 +211,7 @@ void MainWindow::resetOptionsToDefaults()
     //wcsPath = "C:/cygwin64/bin/wcsinfo";
     wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
 #endif
+    ui->wcsPath->setText(wcsPath);
 
     SexySolver temp(stats, m_ImageBuffer, true, this);
 
