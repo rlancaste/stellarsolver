@@ -225,9 +225,11 @@ public slots:
     //This function will write the sextractor table to a xyls file for the solver if desired.
     bool writeSextractorTable();
 
-    //These are for both
+    //These functions set the settings for the Sextractors and Solvers
     void setSextractorSettings();
     void setSolverSettings();
+    void setExternalSettings();
+
     bool sextractorComplete();
     bool solverComplete(int x);
     void addSolutionToTable(Solution solution);

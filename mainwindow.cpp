@@ -411,10 +411,11 @@ bool MainWindow::sextractExternally(bool justSextract)
     sexySolver = extSolver;
 
     setSextractorSettings();
-    extSolver->fileToSolve = fileToSolve;
+    setExternalSettings();
 
     connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
     connect(extSolver, &ExternalSextractorSolver::starsFound, this, &MainWindow::sextractorComplete);
+
     extSolver->sextract(justSextract);
 
     return true;
@@ -424,11 +425,14 @@ bool MainWindow::solveExternally()
 {
     extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
     sexySolver = extSolver;
+
+    setSextractorSettings();
     setSolverSettings();
-    extSolver->fileToSolve = fileToSolve;
+    setExternalSettings();
 
     connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
     connect(extSolver, &ExternalSextractorSolver::finished, this, &MainWindow::solverComplete);
+
     extSolver->runExternalSextractorAndSolver();
     return true;
 }
@@ -439,9 +443,12 @@ bool MainWindow::sextractInternally()
 {
     solverTimer.start();
     sexySolver = new SexySolver(stats, m_ImageBuffer, this);
+
+    setSextractorSettings();
+
     connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
     connect(sexySolver, &SexySolver::starsFound, this, &MainWindow::sextractorComplete);
-    setSextractorSettings();
+
     sexySolver->start();
     return true;
 }
@@ -453,9 +460,13 @@ bool MainWindow::solveInternally()
 {
       solverTimer.start();
       sexySolver = new SexySolver(stats ,m_ImageBuffer, this);
+
+      setSextractorSettings();
+      setSolverSettings();
+
       connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
       connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
-      setSolverSettings();
+
       sexySolver->start();
       return true;
 }
@@ -486,27 +497,6 @@ void MainWindow::setSextractorSettings()
 
 void MainWindow::setSolverSettings()
 {
-    sexySolver->justSextract = false;
-
-    //Sextractor Settings
-    sexySolver->apertureShape = apertureShape;
-    sexySolver->kron_fact = kron_fact;
-    sexySolver->subpix = subpix ;
-    sexySolver->r_min = r_min;
-    sexySolver->inflags = inflags;
-    sexySolver->magzero = magzero;
-    sexySolver->minarea = minarea;
-    sexySolver->deblend_thresh = deblend_thresh;
-    sexySolver->deblend_contrast = deblend_contrast;
-    sexySolver->clean = clean;
-    sexySolver->clean_param = clean_param;
-    sexySolver->createConvFilterFromFWHM(fwhm);
-
-    //Star Filter Settings
-    sexySolver->removeBrightest = removeBrightest;
-    sexySolver->removeDimmest = removeDimmest;
-    sexySolver->maxEllipse = maxEllipse;
-
     //Astrometry Settings
 
     sexySolver->setIndexFolderPaths(indexFilePaths);
@@ -528,6 +518,17 @@ void MainWindow::setSolverSettings()
     sexySolver->logToFile = logToFile;
     sexySolver->logFile = logFile;
     sexySolver->logLevel = logLevel;
+}
+
+void MainWindow::setExternalSettings()
+{
+    extSolver->fileToSolve = fileToSolve;
+    extSolver->dirPath = dirPath;
+    extSolver->tempPath = tempPath;
+    extSolver->sextractorBinaryPath = sextractorBinaryPath;
+    extSolver->confPath = confPath;
+    extSolver->solverPath = solverPath;
+    extSolver->wcsPath = wcsPath;
 }
 
 bool MainWindow::sextractorComplete()
