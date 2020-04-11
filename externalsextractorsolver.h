@@ -45,15 +45,6 @@ private:
     // This is information about the image
     Statistic stats;
 
-signals:
-    //This signals that the sextractor has found stars
-    void starsFound();
-    //This signals that there is infomation that should be printed to a log file or log window
-    void logNeedsUpdating(QString logText);
-    //This signals that the external sextractor is done.
-    void sextractorFinished(int x);
-    //This signals that astrometry.net has finished solving the image or has quit solving
-    void finished(int x);
 };
 
 #endif // EXTERNALSEXTRACTORSOLVER_H

@@ -155,11 +155,12 @@ private:
     void getFloatBuffer(float * buffer, int x, int y, int w, int h);
 
 signals:
-    //This signals that the sextractor has found stars
-    void starsFound();
+
     //This signals that there is infomation that should be printed to a log file or log window
     void logNeedsUpdating(QString logText);
-    //This signals that astrometry.net has finished solving the image or has quit solving
+
+    //This signals that the sextraction or image solving is complete, whether they were successful or not
+    //A -1 should signify failure, where a 0 should signify success.
     void finished(int x);
 
 };

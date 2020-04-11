@@ -251,7 +251,8 @@ bool SexySolver::runInnerSextractor()
 
     emit logNeedsUpdating(QString("Stars Found after Filtering: %1").arg(stars.size()));
 
-    emit starsFound();
+    if(justSextract)
+        emit finished(0);
     return true;
 
 exit:
@@ -270,6 +271,7 @@ exit:
         char errorMessage[512];
         sep_get_errmsg(status, errorMessage);
         emit logNeedsUpdating(errorMessage);
+        emit finished(-1);
         return false;
     }
 

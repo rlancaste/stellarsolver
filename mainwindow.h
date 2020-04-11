@@ -229,10 +229,14 @@ public slots:
     //These functions set the settings for the Sextractors and Solvers
     void setSextractorSettings();
     void setSolverSettings();
-    void setExternalSettings();
+    void setupExternalSextractorSolver();
+    void setupInternalSexySolver();
 
-    bool sextractorComplete();
-    bool solverComplete(int x);
+    //These functions get called when the sextractor or solver finishes
+    bool sextractorComplete(int error);
+    bool solverComplete(int error);
+
+    //These functions handle the solution table
     void addSolutionToTable(Solution solution);
     void saveSolutionTable();
 

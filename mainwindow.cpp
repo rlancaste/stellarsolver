@@ -402,72 +402,66 @@ bool MainWindow::solveImage()
     return false;
 }
 
+//I wrote this method to call the external sextractor program.
+//It then will load the results into a table to the right of the image
+//It times the entire process and prints out how long it took
 bool MainWindow::sextractExternally(bool justSextract)
 {
-    extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
-    sexySolver = extSolver;
+    setupExternalSextractorSolver();
 
     setSextractorSettings();
-    setExternalSettings();
     sexySolver->justSextract = true;
-
-    connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
-    connect(extSolver, &ExternalSextractorSolver::starsFound, this, &MainWindow::sextractorComplete);
 
     solverTimer.start();
     extSolver->sextract(justSextract);
+    connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
 
     return true;
 }
 
+//I wrote this method to call the external sextractor and solver program.
+//It times the entire process and prints out how long it took
 bool MainWindow::solveExternally()
 {
-    extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
-    sexySolver = extSolver;
+    setupExternalSextractorSolver();
 
     setSextractorSettings();
     setSolverSettings();
-    setExternalSettings();
     sexySolver->justSextract = false;
-
-    connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
-    connect(extSolver, &ExternalSextractorSolver::finished, this, &MainWindow::solverComplete);
+    connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
     solverTimer.start();
     extSolver->runExternalSextractorAndSolver();
     return true;
 }
 
-//I wrote this method to call the internal sextract method below.
+//I wrote this method to call the internal sextractor in the SexySolver.
 //It then will load the results into a table to the right of the image
+//It times the entire process and prints out how long it took
 bool MainWindow::sextractInternally()
 {
 
-    sexySolver = new SexySolver(stats, m_ImageBuffer, this);
+    setupInternalSexySolver();
 
     setSextractorSettings();
     sexySolver->justSextract = true;
-
-    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
-    connect(sexySolver, &SexySolver::starsFound, this, &MainWindow::sextractorComplete);
+    connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
 
     solverTimer.start();
     sexySolver->start();
     return true;
 }
 
-//I wrote this method to start the internal solver method below
+//I wrote this method to start the internal solver in the SexySolver.
 //It runs in a separate thread so that it is nonblocking
 //It times the entire process and prints out how long it took
 bool MainWindow::solveInternally()
 {
-      sexySolver = new SexySolver(stats ,m_ImageBuffer, this);
+      setupInternalSexySolver();
 
       setSextractorSettings();
       setSolverSettings();
       sexySolver->justSextract = false;
-
-      connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
       connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
       solverTimer.start();
@@ -475,6 +469,40 @@ bool MainWindow::solveInternally()
       return true;
 }
 
+//This sets up the External Sextractor and Solver and sets settings specific to them
+void MainWindow::setupExternalSextractorSolver()
+{
+    //Creates the External Sextractor/Solver Object
+    extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
+    sexySolver = extSolver;
+
+    //Connects the External Sextractor/Solver Object for logging
+    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput);
+
+    //Sets the file settings and other items specific to the external solver programs
+    extSolver->fileToSolve = fileToSolve;
+    extSolver->dirPath = dirPath;
+    extSolver->tempPath = tempPath;
+    extSolver->sextractorBinaryPath = sextractorBinaryPath;
+    extSolver->confPath = confPath;
+    extSolver->solverPath = solverPath;
+    extSolver->wcsPath = wcsPath;
+}
+
+//This sets up the Internal SexySolver and sets settings specific to it
+void MainWindow::setupInternalSexySolver()
+{
+    //Creates the SexySolver
+    sexySolver = new SexySolver(stats ,m_ImageBuffer, this);
+
+    //Connects the SexySolver for logging
+    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
+
+}
+
+//This sets all the settings for either the internal or external sextractor
+//based on the requested settings in the mainwindow interface.
+//If you are implementing the SexySolver Library in your progra, you may choose to change some or all of these settings or use the defaults.
 void MainWindow::setSextractorSettings()
 { 
     //These are to pass the parameters to the internal sextractor
@@ -497,6 +525,9 @@ void MainWindow::setSextractorSettings()
     sexySolver->maxEllipse = maxEllipse;
 }
 
+//This sets all the settings for either the internal or external astrometry.net solver
+//based on the requested settings in the mainwindow interface.
+//If you are implementing the SexySolver Library in your progra, you may choose to change some or all of these settings or use the defaults.
 void MainWindow::setSolverSettings()
 {
     //Settings that usually get set by the config file
@@ -525,42 +556,53 @@ void MainWindow::setSolverSettings()
     sexySolver->logLevel = logLevel;
 }
 
-void MainWindow::setExternalSettings()
+//This runs when the sextractor is complete.  It reports the time taken, prints a message, and adds the sextraction to the table.
+bool MainWindow::sextractorComplete(int error)
 {
-    extSolver->fileToSolve = fileToSolve;
-    extSolver->dirPath = dirPath;
-    extSolver->tempPath = tempPath;
-    extSolver->sextractorBinaryPath = sextractorBinaryPath;
-    extSolver->confPath = confPath;
-    extSolver->solverPath = solverPath;
-    extSolver->wcsPath = wcsPath;
+    if(error == 0)
+    {
+        elapsed = solverTimer.elapsed() / 1000.0;
+        stars = sexySolver->getStarList();
+        displayTable();
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
+        logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+        addSextractionToTable();
+        writeSextractorTable();  //Just in case they then want to solve it.
+        return true;
+    }
+    else
+    {
+        elapsed = solverTimer.elapsed() / 1000.0;
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        logOutput(QString("Sextractor failed after %1 second(s).").arg( elapsed));
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        return false;
+    }
 }
 
-bool MainWindow::sextractorComplete()
+//This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the table.
+bool MainWindow::solverComplete(int error)
 {
-    elapsed = solverTimer.elapsed() / 1000.0;
-    stars = sexySolver->getStarList();
-    displayTable();
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
-    logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-
-    addSextractionToTable();
-    writeSextractorTable();  //Just in case they then want to solve it.
-    return true;
-}
-
-
-//This was adapted from KStars' OfflineAstrometryParser
-bool MainWindow::solverComplete(int x)
-{
-    elapsed = solverTimer.elapsed() / 1000.0;
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    logOutput(QString("Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    addSolutionToTable(sexySolver->solution);
-    return true;
+    if(error == 0)
+    {
+        elapsed = solverTimer.elapsed() / 1000.0;
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        logOutput(QString("Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        addSolutionToTable(sexySolver->solution);
+        return true;
+    }
+    else
+    {
+        elapsed = solverTimer.elapsed() / 1000.0;
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        logOutput(QString("Solver failed after %1 second(s).").arg( elapsed));
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        return false;
+    }
 }
 
 //This method will abort the sextractor, sovler, and any other processes currently being run, no matter which type
@@ -1859,7 +1901,7 @@ void MainWindow::saveSolutionTable()
     {
         outstream << ui->solutionTable->horizontalHeaderItem(c)->text() << ',';
     }
-    outstream << endl;
+    outstream << "\n";
 
     for (int r = 0; r < ui->solutionTable->rowCount(); r++)
     {
