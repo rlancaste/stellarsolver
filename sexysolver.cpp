@@ -1,12 +1,10 @@
 #include "sexysolver.h"
 #include "qmath.h"
 
-SexySolver::SexySolver(Statistic imagestats, uint8_t *imageBuffer, bool sextractOnly, QObject *parent) : QThread(parent)
+SexySolver::SexySolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : QThread(parent)
 {
  stats=imagestats;
  m_ImageBuffer=imageBuffer;
- justSextract=sextractOnly;
-
 }
 
 //This is the method that runs the solver or sextractor.  Do not call it, use start() instead, so that it can start a new thread.
@@ -311,6 +309,8 @@ void SexySolver::setSearchScale(double fov_low, double fov_high, QString units)
     //H
     scalehi = fov_high;
     //u
+    this->units = units;
+
     if(units == "app" || units == "arcsecperpix")
         scaleunit = SCALE_UNITS_ARCSEC_PER_PIX;
     if(units =="aw" || units =="amw" || units =="arcminwidth")

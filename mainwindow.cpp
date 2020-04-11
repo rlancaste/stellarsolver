@@ -69,7 +69,7 @@ MainWindow::MainWindow() :
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveImage );
 
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
-    connect(ui->ClearLog,&QAbstractButton::clicked, this, &MainWindow::clearLog );
+    connect(ui->Clear,&QAbstractButton::clicked, this, &MainWindow::clearAll );
     connect(ui->exportTable,&QAbstractButton::clicked, this, &MainWindow::saveSolutionTable);
 
     //Behaviors for the StarList
@@ -177,46 +177,13 @@ MainWindow::MainWindow() :
 void MainWindow::resetOptionsToDefaults()
 {
 
-#if defined(Q_OS_OSX)
-    sextractorBinaryPath = "/usr/local/bin/sex";
-#elif defined(Q_OS_LINUX)
-    sextractorBinaryPath = "/usr/bin/sextractor";
-#else //Windows
-     sextractorBinaryPath = "C:/cygwin64/bin/sextractor";
-#endif
-    ui->sextractorPath->setText(sextractorBinaryPath);
+    ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
+    ui->sextractorPath->setText(extTemp.sextractorBinaryPath);
+    ui->configFilePath->setText(extTemp.confPath);
+    ui->solverPath->setText(extTemp.solverPath);
+    ui->wcsPath->setText(extTemp.wcsPath);
 
-#if defined(Q_OS_OSX)
-    confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
-#elif defined(Q_OS_LINUX)
-    confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
-#else //Windows
-    //confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
-    confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg";
-#endif
-    ui->configFilePath->setText(confPath);
-
-#if defined(Q_OS_OSX)
-    solverPath = "/usr/local/bin/solve-field";
-#elif defined(Q_OS_LINUX)
-    solverPath = "/usr/bin/solve-field";
-#else //Windows
-    //solverPath = "C:/cygwin64/bin/solve-field";
-    solverPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe";
-#endif
-    ui->solverPath->setText(solverPath);
-
-#if defined(Q_OS_OSX)
-    wcsPath = "/usr/local/bin/wcsinfo";
-#elif defined(Q_OS_LINUX)
-    wcsPath = "/usr/bin/wcsinfo";
-#else //Windows
-    //wcsPath = "C:/cygwin64/bin/wcsinfo";
-    wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
-#endif
-    ui->wcsPath->setText(wcsPath);
-
-    SexySolver temp(stats, m_ImageBuffer, true, this);
+    SexySolver temp(stats, m_ImageBuffer, this);
 
     //Basic Settings
     tempPath = QDir::tempPath();
@@ -333,20 +300,13 @@ MainWindow::~MainWindow()
 //These methods are for the logging of information to the textfield at the bottom of the window.
 //They are used by everything
 
-void MainWindow::logSextractor()
-{
-    QString rawText(sextractorProcess->readAll().trimmed());
-    logOutput(rawText.remove("[1M>").remove("[1A"));
-}
-
-void MainWindow::logSolver()
-{
-     logOutput(solver->readAll().trimmed());
-}
-
-void MainWindow::clearLog()
+void MainWindow::clearAll()
 {
     ui->logDisplay->clear();
+    ui->starList->clearContents();
+    ui->solutionTable->clearContents();
+    stars.clear();
+    updateImage();
 }
 
 void MainWindow::logOutput(QString text)
@@ -367,6 +327,12 @@ bool MainWindow::prepareForProcesses()
     {
         logOutput("Please Load an Image First");
         return false;
+    }
+    if(!sexySolver.isNull())
+    {
+        sexySolver->abort();
+        sexySolver.clear();
+        extSolver.clear();
     }
     return true;
 }
@@ -462,13 +428,9 @@ bool MainWindow::solveInternally()
 //It will NOT abort the solver if the internal solver is run with QT Concurrent
 void MainWindow::abort()
 {
-    if(!solver.isNull())
-        solver->kill();
-    if(!sextractorProcess.isNull())
-        sextractorProcess->kill();
-    if(!internalSolver.isNull())
-        internalSolver->abort();
-    logOutput("Solve Aborted");
+    logOutput("Aborting. . .");
+    if(!sexySolver.isNull())
+        sexySolver->abort();
 }
 
 void MainWindow::clearAstrometrySettings()
@@ -482,8 +444,14 @@ void MainWindow::clearAstrometrySettings()
     ui->dec->setText("");
 }
 
-//The following methods deal with the loading and displaying of the image
 
+
+
+
+
+
+
+//The following methods deal with the loading and displaying of the image
 
 //I wrote this method to select the file name for the image and call the load methods below to load it
 bool MainWindow::imageLoad()
@@ -1374,181 +1342,6 @@ void MainWindow::updateStarTableFromList()
     }
 }
 
-//This method is copied and pasted and modified from tablist.c in astrometry.net
-//This is needed to load in the stars sextracted by an extrnal sextractor to get them into the table
-bool MainWindow::getSextractorTable(QList<Star> *stars)
-{
-    if(!stars)
-    {
-        logOutput("The Star List doesn't exist");
-        return false;
-    }
-     QFile sextractorFile(sextractorFilePath);
-     if(!sextractorFile.exists())
-     {
-         logOutput("Can't display sextractor file since it doesn't exist.");
-         return false;
-     }
-
-    fitsfile * new_fptr;
-    char error_status[512];
-
-    /* FITS file pointer, defined in fitsio.h */
-    char *val, value[1000], nullptrstr[]="*";
-    char keyword[FLEN_KEYWORD], colname[FLEN_VALUE];
-    int status = 0;   /*  CFITSIO status value MUST be initialized to zero!  */
-    int hdunum, hdutype = ANY_HDU, ncols, ii, anynul, dispwidth[1000];
-    long nelements[1000];
-    int firstcol, lastcol = 1, linewidth;
-    int max_linewidth = 80;
-    int elem, firstelem, lastelem = 0, nelems;
-    long jj, nrows, kk;
-
-    if (fits_open_diskfile(&new_fptr, sextractorFilePath.toLatin1(), READONLY, &status))
-    {
-        fits_report_error(stderr, status);
-        fits_get_errstatus(status, error_status);
-        logOutput(QString::fromUtf8(error_status));
-        return false;
-    }
-
-    if ( fits_get_hdu_num(new_fptr, &hdunum) == 1 )
-        /* This is the primary array;  try to move to the */
-        /* first extension and see if it is a table */
-        fits_movabs_hdu(new_fptr, 2, &hdutype, &status);
-    else
-        fits_get_hdu_type(new_fptr, &hdutype, &status); /* Get the HDU type */
-
-    if (!(hdutype == ASCII_TBL || hdutype == BINARY_TBL)) {
-        logOutput("Wrong type of file");
-        return false;
-    }
-
-    fits_get_num_rows(new_fptr, &nrows, &status);
-    fits_get_num_cols(new_fptr, &ncols, &status);
-
-    for (jj=1; jj<=ncols; jj++)
-        fits_get_coltype(new_fptr, jj, nullptr, &nelements[jj], nullptr, &status);
-
-
-    /* find the number of columns that will fit within max_linewidth
-     characters */
-    for (;;) {
-        int breakout = 0;
-        linewidth = 0;
-        /* go on to the next element in the current column. */
-        /* (if such an element does not exist, the inner 'for' loop
-         does not get run and we skip to the next column.) */
-        firstcol = lastcol;
-        firstelem = lastelem + 1;
-        elem = firstelem;
-
-        for (lastcol = firstcol; lastcol <= ncols; lastcol++) {
-            int typecode;
-            fits_get_col_display_width(new_fptr, lastcol, &dispwidth[lastcol], &status);
-            fits_get_coltype(new_fptr, lastcol, &typecode, nullptr, nullptr, &status);
-            typecode = abs(typecode);
-            if (typecode == TBIT)
-                nelements[lastcol] = (nelements[lastcol] + 7)/8;
-            else if (typecode == TSTRING)
-                nelements[lastcol] = 1;
-            nelems = nelements[lastcol];
-            for (lastelem = elem; lastelem <= nelems; lastelem++) {
-                int nextwidth = linewidth + dispwidth[lastcol] + 1;
-                if (nextwidth > max_linewidth) {
-                    breakout = 1;
-                    break;
-                }
-                linewidth = nextwidth;
-            }
-            if (breakout)
-                break;
-            /* start at the first element of the next column. */
-            elem = 1;
-        }
-
-        /* if we exited the loop naturally, (not via break) then include all columns. */
-        if (!breakout) {
-            lastcol = ncols;
-            lastelem = nelements[lastcol];
-        }
-
-        if (linewidth == 0)
-            break;
-
-        stars->clear();
-
-
-        /* print each column, row by row (there are faster ways to do this) */
-        val = value;
-        for (jj = 1; jj <= nrows && !status; jj++) {
-                ui->starList->setItem(jj,0,new QTableWidgetItem(QString::number(jj)));
-            float starx = 0;
-            float stary = 0;
-            float mag = 0;
-            float flux = 0;
-            float xx = 0;
-            float yy = 0;
-            float xy = 0;
-            for (ii = firstcol; ii <= lastcol; ii++)
-                {
-                    kk = ((ii == firstcol) ? firstelem : 1);
-                    nelems = ((ii == lastcol) ? lastelem : nelements[ii]);
-                    for (; kk <= nelems; kk++)
-                        {
-                            /* read value as a string, regardless of intrinsic datatype */
-                            if (fits_read_col_str (new_fptr,ii,jj,kk, 1, nullptrstr,
-                                                   &val, &anynul, &status) )
-                                break;  /* jump out of loop on error */
-                            if(ii == 1)
-                                mag = QString(value).trimmed().toFloat();
-                            if(ii == 2)
-                                flux = QString(value).trimmed().toFloat();
-                            if(ii == 3)
-                                starx = QString(value).trimmed().toFloat();
-                            if(ii == 4)
-                                stary = QString(value).trimmed().toFloat();
-                            if(ii == 5)
-                                xx = QString(value).trimmed().toFloat();
-                            if(ii == 6)
-                                yy = QString(value).trimmed().toFloat();
-                            if(ii == 7)
-                                xy = QString(value).trimmed().toFloat();
-                        }
-                }
-
-            //  xx  xy      or     a   b
-            //  xy  yy             b   c
-            //Note, I got this translation from these two sources which agree:
-            //https://books.google.com/books?id=JNEn23UyHuAC&pg=PA84&lpg=PA84&dq=ellipse+xx+yy+xy&source=bl&ots=ynAWge4jlb&sig=ACfU3U1pqZTkx8Teu9pBTygI9F-WcTncrg&hl=en&sa=X&ved=2ahUKEwj0s-7C3I7oAhXblnIEHacAAf0Q6AEwBHoECAUQAQ#v=onepage&q=ellipse%20xx%20yy%20xy&f=false
-            //https://cookierobotics.com/007/
-            float thing = sqrt( pow(xx - yy, 2) + 4 * pow(xy, 2) );
-            float lambda1 = (xx + yy + thing) / 2;
-            float lambda2 = (xx + yy - thing) / 2;
-            float a = sqrt(lambda1);
-            float b = sqrt(lambda2);
-            float theta = qRadiansToDegrees(atan(xy / (lambda1 - yy)));
-
-            Star star = {starx, stary, mag, flux, a, b, theta};
-
-            stars->append(star);
-        }
-
-        if (!breakout)
-            break;
-    }
-    fits_close_file(new_fptr, &status);
-
-    if (status) fits_report_error(stderr, status); /* print any error message */
-    return true;
-}
-
-
-
-
-
-
-
 
 
 
@@ -1746,142 +1539,18 @@ bool MainWindow::getSolverOptionsFromFITS()
 
 
 
-//This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
-//Then it was split in two parts
-//Tnis part generates the argument list from the options for the external solver only
-QStringList MainWindow::getSolverArgsList()
-{
-    QStringList solverArgs;
-
-    // Start with always-used arguments
-    solverArgs << "-O"
-                << "--no-plots";
-
-    // Now go over boolean options
-    solverArgs << "--no-verify";
-#ifndef _WIN32  //For Windows it is already sorted.
-    solverArgs << "--resort";
-#endif
-
-    // downsample
-    solverArgs << "--downsample" << QString::number(2);
-
-
-    solverArgs << "--width" << QString::number(stats.width);
-    solverArgs << "--height" << QString::number(stats.height);
-    solverArgs << "--x-column" << "X_IMAGE";
-    solverArgs << "--y-column" << "Y_IMAGE";
-#ifndef _WIN32 //For Windows it is already sorted.
-    solverArgs << "--sort-column" << "MAG_AUTO";
-    solverArgs << "--sort-ascending";
-#endif
-
-                //Note This set of items is NOT NEEDED for Sextractor, it is needed to avoid python usage
-                //This may need to be changed later, but since the goal for using sextractor is to avoid python, this is placed here.
-    solverArgs << "--no-remove-lines";
-    solverArgs << "--uniformize" << "0";
-
-    if (use_scale)
-        solverArgs << "-L" << QString::number(fov_low) << "-H" << QString::number(fov_high) << "-u" << units;
-
-    if (use_position)
-        solverArgs << "-3" << QString::number(ra * 15.0) << "-4" << QString::number(dec) << "-5" << QString::number(radius);
-
-    return solverArgs;
-}
-
-
-
-
-
-
 //This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
 bool MainWindow::sextract(bool justSextract)
 {
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
+    sexySolver = extSolver;
 
-    sextractorFilePath = tempPath + QDir::separator() + "SextractorList.xyls";
-    QFile sextractorFile(sextractorFilePath);
-    if(sextractorFile.exists())
-        sextractorFile.remove();
+    extSolver->fileToSolve = fileToSolve;
+    connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
+    connect(extSolver, &ExternalSextractorSolver::starsFound, this, &MainWindow::sextractorComplete);
+    setSextractorSettings();
 
-    //Configuration arguments for sextractor
-    QStringList sextractorArgs;
-    //This one is not really that necessary, it will use the defaults if it can't find it
-    //We will set all of the things we need in the parameters below
-    //sextractorArgs << "-c" << "/usr/local/share/sextractor/default.sex";
-
-    sextractorArgs << "-CATALOG_NAME" << sextractorFilePath;
-    sextractorArgs << "-CATALOG_TYPE" << "FITS_1.0";
-
-    //sextractor needs a default.param file in the working directory
-    //This creates that file with the options we need for astrometry.net
-
-    QString paramPath =  tempPath + QDir::separator() + "default.param";
-    QFile paramFile(paramPath);
-    if(!paramFile.exists())
-    {
-        if (paramFile.open(QIODevice::WriteOnly) == false)
-            QMessageBox::critical(nullptr,"Message","Sextractor file write error.");
-        else
-        {
-            //Note, if you change the parameters here, make sure you delete the default.param file from your temp directory
-            //Since it will only get created if it doesn't exist.
-            //The program will try to do this at launch,but if you choose a different directory, it won't be able to.
-            QTextStream out(&paramFile);
-            out << "MAG_AUTO                 Kron-like elliptical aperture magnitude                   [mag]\n";
-            out << "FLUX_AUTO                Flux within a Kron-like elliptical aperture               [count]\n";
-            out << "X_IMAGE                  Object position along x                                   [pixel]\n";
-            out << "Y_IMAGE                  Object position along y                                   [pixel]\n";
-            out << "CXX_IMAGE                Cxx object ellipse parameter                              [pixel**(-2)]\n";
-            out << "CYY_IMAGE                Cyy object ellipse parameter                              [pixel**(-2)]\n";
-            out << "CXY_IMAGE                Cxy object ellipse parameter                              [pixel**(-2)]\n";
-            paramFile.close();
-        }
-    }
-    sextractorArgs << "-PARAMETERS_NAME" << paramPath;
-
-
-    //sextractor needs a default.conv file in the working directory
-    //This creates the default one
-
-    QString convPath =  tempPath + QDir::separator() + "default.conv";
-    QFile convFile(convPath);
-    if(!convFile.exists())
-    {
-        if (convFile.open(QIODevice::WriteOnly) == false)
-            QMessageBox::critical(nullptr,"Message","Sextractor file write error.");
-        else
-        {
-            QTextStream out(&convFile);
-            out << "CONV NORM\n";
-            out << "1 2 1\n";
-            out << "2 4 2\n";
-            out << "1 2 1\n";
-            convFile.close();
-        }
-    }
-    sextractorArgs << "-FILTER" << "Y";
-    sextractorArgs << "-FILTER_NAME" << convPath;
-    sextractorArgs << "-MAG_ZEROPOINT" << "20";
-
-
-    sextractorArgs <<  fileToSolve;
-
-    sextractorProcess.clear();
-    sextractorProcess = new QProcess(this);
-
-    sextractorProcess->setWorkingDirectory(tempPath);
-    sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
-    connect(sextractorProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(logSextractor()));
-
-    logOutput("Starting sextractor...");
-    logOutput(sextractorBinaryPath + " " + sextractorArgs.join(' '));
-    sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
-    if(justSextract)
-        connect(sextractorProcess, SIGNAL(finished(int)), this, SLOT(externalSextractorComplete()));
-    else
-        sextractorProcess->waitForFinished();
+    extSolver->sextract(justSextract);
 
     return true;
 
@@ -1892,138 +1561,30 @@ bool MainWindow::sextract(bool justSextract)
 //The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
 bool MainWindow::solveField()
 {
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    sextractorFilePath = tempPath + QDir::separator() + "SextractorList.xyls";
-    QFile sextractorFile(sextractorFilePath);
-    if(!sextractorFile.exists())
-    {
-        logOutput("Please Sextract the image first");
-    }
+    extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
+    sexySolver = extSolver;
+    setSolverSettings();
+    extSolver->fileToSolve = fileToSolve;
 
-    QStringList solverArgs=getSolverArgsList();
+    connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
+    connect(extSolver, &ExternalSextractorSolver::finished, this, &MainWindow::solverComplete);
+    extSolver->runExternalSextractorAndSolver();
 
-    solverArgs << "--backend-config" << confPath;
-
-    QString solutionFile = tempPath + QDir::separator() + "SextractorList.wcs";
-    solverArgs << "-W" << solutionFile;
-
-    solverArgs << sextractorFilePath;
-
-    solver.clear();
-    solver = new QProcess(this);
-
-    connect(solver, SIGNAL(finished(int)), this, SLOT(externalSolverComplete(int)));
-    solver->setProcessChannelMode(QProcess::MergedChannels);
-    connect(solver, &QProcess::readyReadStandardOutput, this, &MainWindow::logSolver);
-
-#ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work
-        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-        QString path            = env.value("Path", "");
-        QString ansvrPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/";
-        QString pathsToInsert =ansvrPath + "bin;";
-        pathsToInsert += ansvrPath + "lib/lapack;";
-        pathsToInsert += ansvrPath + "lib/astrometry/bin;";
-        env.insert("Path", pathsToInsert + path);
-        solver->setProcessEnvironment(env);
-#endif
-
-    solver->start(solverPath, solverArgs);
-
-    logOutput("Starting solver...");
-    logOutput("Command: " + solverPath + solverArgs.join(" "));
-
-
-    QString command = solverPath + ' ' + solverArgs.join(' ');
-
-    logOutput(command);
-    return true;
-}
-
-bool MainWindow::externalSextractorComplete()
-{
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    logOutput(sextractorProcess->readAllStandardError().trimmed());
-    getSextractorTable(&stars);
-    sextractorComplete();
-    return true;
-}
-
-bool MainWindow::innerSextractorComplete()
-{
-    stars = internalSolver->getStarList();
-    sextractorComplete();
-    addSextractionToTable();
-    writeSextractorTable();  //Just in case they then want to solve it.
     return true;
 }
 
 bool MainWindow::sextractorComplete()
 {
     double elapsed = solverTimer.elapsed() / 1000.0;
+    stars = sexySolver->getStarList();
     displayTable();
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
     logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    return true;
-}
 
-bool MainWindow::externalSolverComplete(int x)
-{
-    solverComplete(x);
-    getSolutionInformation();
-    setItemInColumn(ui->solutionTable, "Int?", "false");
-    QList<Star> stars;
-    if(getSextractorTable(&stars))
-        setItemInColumn(ui->solutionTable, "Stars", QString::number(stars.size()));
-    else
-        logOutput("Can't get Sextractor Table from File");
-
-
-
-
-    return true;
-}
-
-bool MainWindow::internalSolverComplete(int x)
-{
-    solverComplete(x);
-    addSolutionToTable(internalSolver->solution);
-    setItemInColumn(ui->solutionTable, "Int?", "true");
-    setItemInColumn(ui->solutionTable, "Stars", QString::number(internalSolver->getNumStarsFound()));
-
-    //Sextractor Parameters
-    QString shapeName="Circle";
-    switch(internalSolver->apertureShape)
-    {
-        case SHAPE_AUTO:
-            shapeName = "Auto";
-        break;
-
-        case SHAPE_CIRCLE:
-           shapeName = "Circle";
-        break;
-
-        case SHAPE_ELLIPSE:
-            shapeName = "Ellipse";
-        break;
-    }
-    //Sextractor Parameters
-    setItemInColumn(ui->solutionTable,"Shape", shapeName);
-    setItemInColumn(ui->solutionTable,"Kron", QString::number(internalSolver->kron_fact));
-    setItemInColumn(ui->solutionTable,"Subpix", QString::number(internalSolver->subpix));
-    setItemInColumn(ui->solutionTable,"r_min", QString::number(internalSolver->r_min));
-    setItemInColumn(ui->solutionTable,"minarea", QString::number(internalSolver->minarea));
-    setItemInColumn(ui->solutionTable,"d_thresh", QString::number(internalSolver->deblend_thresh));
-    setItemInColumn(ui->solutionTable,"d_cont", QString::number(internalSolver->deblend_contrast));
-    setItemInColumn(ui->solutionTable,"clean", QString::number(internalSolver->clean));
-    setItemInColumn(ui->solutionTable,"clean param", QString::number(internalSolver->clean_param));
-    setItemInColumn(ui->solutionTable,"fwhm", QString::number(internalSolver->fwhm));
-
-    //Astrometry Parameters
-    setItemInColumn(ui->solutionTable, "Pos?", QVariant(internalSolver->use_position).toString());
-    setItemInColumn(ui->solutionTable, "Scale?", QVariant(internalSolver->use_scale).toString());
-    setItemInColumn(ui->solutionTable, "Resort?", QVariant(internalSolver->resort).toString());
+    addSextractionToTable();
+    writeSextractorTable();  //Just in case they then want to solve it.
     return true;
 }
 
@@ -2035,159 +1596,101 @@ bool MainWindow::solverComplete(int x)
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     logOutput(QString("Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    addSolutionToTable(sexySolver->solution);
     return true;
 }
 
 bool MainWindow::runInnerSextractor()
 {
-    internalSolver.clear();
-    internalSolver = new SexySolver(stats, m_ImageBuffer, true, this);
+    sexySolver = new SexySolver(stats, m_ImageBuffer, this);
 
-    //These are to pass the parameters to the internal sextractor
-    internalSolver->apertureShape = apertureShape;
-    internalSolver->kron_fact = kron_fact;
-    internalSolver->subpix = subpix ;
-    internalSolver->r_min = r_min;
-    internalSolver->inflags = inflags;
-    internalSolver->magzero = magzero;
-    internalSolver->minarea = minarea;
-    internalSolver->deblend_thresh = deblend_thresh;
-    internalSolver->deblend_contrast = deblend_contrast;
-    internalSolver->clean = clean;
-    internalSolver->clean_param = clean_param;
-    internalSolver->createConvFilterFromFWHM(fwhm);
-
-    //Star Filter Settings
-    internalSolver->removeBrightest = removeBrightest;
-    internalSolver->removeDimmest = removeDimmest;
-    internalSolver->maxEllipse = maxEllipse;
-
-    connect(internalSolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
-    connect(internalSolver, &SexySolver::starsFound, this, &MainWindow::innerSextractorComplete);
-    internalSolver->start();
+    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
+    connect(sexySolver, &SexySolver::starsFound, this, &MainWindow::sextractorComplete);
+    setSextractorSettings();
+    sexySolver->start();
     return true;
 }
 
 bool MainWindow::runInnerSolver()
 {
-    internalSolver.clear();
-    internalSolver = new SexySolver(stats ,m_ImageBuffer, false, this);
-    connect(internalSolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
-    connect(internalSolver, &SexySolver::finished, this, &MainWindow::internalSolverComplete);
+    sexySolver = new SexySolver(stats ,m_ImageBuffer, this);
+    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
+    connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
-    //Sextractor Settings
-    internalSolver->apertureShape = apertureShape;
-    internalSolver->kron_fact = kron_fact;
-    internalSolver->subpix = subpix ;
-    internalSolver->r_min = r_min;
-    internalSolver->inflags = inflags;
-    internalSolver->magzero = magzero;
-    internalSolver->minarea = minarea;
-    internalSolver->deblend_thresh = deblend_thresh;
-    internalSolver->deblend_contrast = deblend_contrast;
-    internalSolver->clean = clean;
-    internalSolver->clean_param = clean_param;
-    internalSolver->createConvFilterFromFWHM(fwhm);
+    setSolverSettings();
 
-    //Star Filter Settings
-    internalSolver->removeBrightest = removeBrightest;
-    internalSolver->removeDimmest = removeDimmest;
-    internalSolver->maxEllipse = maxEllipse;
-
-    //Astrometry Settings
-
-    internalSolver->setIndexFolderPaths(indexFilePaths);
-    internalSolver->maxwidth = maxwidth;
-    internalSolver->minwidth = minwidth;
-    internalSolver->inParallel = inParallel;
-    internalSolver->solverTimeLimit = solverTimeLimit;
-
-    if(use_scale)
-        internalSolver->setSearchScale(fov_low, fov_high, units);
-
-    if(use_position)
-        internalSolver->setSearchPosition(ra, dec, radius);
-
-    internalSolver->logratio_tokeep = logratio_tokeep;
-    internalSolver->logratio_totune = logratio_totune;
-    internalSolver->logratio_tosolve = logratio_tosolve;
-
-    internalSolver->logToFile = logToFile;
-    internalSolver->logFile = logFile;
-    internalSolver->logLevel = logLevel;
-
-    internalSolver->start();
+    sexySolver->start();
     return true;
 }
 
-bool MainWindow::getSolutionInformation()
+void MainWindow::setSextractorSettings()
 {
-    QString solutionFile = tempPath + QDir::separator() + "SextractorList.wcs";
-    QFileInfo solutionInfo(solutionFile);
-    if(!solutionInfo.exists())
-    {
-        logOutput("Solution file doesn't exist");
-        return false;
-    }
-    QProcess wcsProcess;
+    sexySolver->justSextract = true;
 
-#ifdef _WIN32 //This will set up the environment so that the ANSVR internal wcsinfo will work
-        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-        QString path            = env.value("Path", "");
-        QString ansvrPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/";
-        QString pathsToInsert = ansvrPath + "bin;";
-        pathsToInsert += ansvrPath + "lib/lapack;";
-        pathsToInsert += ansvrPath + "lib/astrometry/bin;";
-        env.insert("Path", pathsToInsert + path);
-        wcsProcess.setProcessEnvironment(env);
-#endif
+    //These are to pass the parameters to the internal sextractor
+    sexySolver->apertureShape = apertureShape;
+    sexySolver->kron_fact = kron_fact;
+    sexySolver->subpix = subpix ;
+    sexySolver->r_min = r_min;
+    sexySolver->inflags = inflags;
+    sexySolver->magzero = magzero;
+    sexySolver->minarea = minarea;
+    sexySolver->deblend_thresh = deblend_thresh;
+    sexySolver->deblend_contrast = deblend_contrast;
+    sexySolver->clean = clean;
+    sexySolver->clean_param = clean_param;
+    sexySolver->createConvFilterFromFWHM(fwhm);
 
-    wcsProcess.start(wcsPath, QStringList(solutionFile));
-    wcsProcess.waitForFinished();
-    QString wcsinfo_stdout = wcsProcess.readAllStandardOutput();
+    //Star Filter Settings
+    sexySolver->removeBrightest = removeBrightest;
+    sexySolver->removeDimmest = removeDimmest;
+    sexySolver->maxEllipse = maxEllipse;
+}
 
-    //This is a quick way to find out what keys are available
-   // logOutput(wcsinfo_stdout);
+void MainWindow::setSolverSettings()
+{
+    sexySolver->justSextract = false;
 
-    QStringList wcskeys = wcsinfo_stdout.split(QRegExp("[\n]"));
+    //Sextractor Settings
+    sexySolver->apertureShape = apertureShape;
+    sexySolver->kron_fact = kron_fact;
+    sexySolver->subpix = subpix ;
+    sexySolver->r_min = r_min;
+    sexySolver->inflags = inflags;
+    sexySolver->magzero = magzero;
+    sexySolver->minarea = minarea;
+    sexySolver->deblend_thresh = deblend_thresh;
+    sexySolver->deblend_contrast = deblend_contrast;
+    sexySolver->clean = clean;
+    sexySolver->clean_param = clean_param;
+    sexySolver->createConvFilterFromFWHM(fwhm);
 
-    QStringList key_value;
+    //Star Filter Settings
+    sexySolver->removeBrightest = removeBrightest;
+    sexySolver->removeDimmest = removeDimmest;
+    sexySolver->maxEllipse = maxEllipse;
 
-    double ra = 0, dec = 0, orient = 0;
-    double fieldw = 0, fieldh = 0;
-    QString rastr, decstr;
+    //Astrometry Settings
 
-    for (auto &key : wcskeys)
-    {
-        key_value = key.split(' ');
+    sexySolver->setIndexFolderPaths(indexFilePaths);
+    sexySolver->maxwidth = maxwidth;
+    sexySolver->minwidth = minwidth;
+    sexySolver->inParallel = inParallel;
+    sexySolver->solverTimeLimit = solverTimeLimit;
 
-        if (key_value.size() > 1)
-        {
-            if (key_value[0] == "ra_center")
-                ra = key_value[1].toDouble();
-            else if (key_value[0] == "dec_center")
-                dec = key_value[1].toDouble();
-            else if (key_value[0] == "orientation_center")
-                orient = key_value[1].toDouble();
-            else if (key_value[0] == "fieldw")
-                fieldw = key_value[1].toDouble();
-            else if (key_value[0] == "fieldh")
-                fieldh = key_value[1].toDouble();
-            else if (key_value[0] == "ra_center_hms")
-                rastr = key_value[1];
-            else if (key_value[0] == "dec_center_dms")
-                decstr = key_value[1];
+    if(use_scale)
+        sexySolver->setSearchScale(fov_low, fov_high, units);
 
-            //else if (key_value[0] == "pixscale")
-                //pixscale = key_value[1].toDouble();
-            //else if (key_value[0] == "parity")
-               // parity = (key_value[1].toInt() == 0) ? "pos" : "neg";
-        }
-    }
-    Solution solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient};
-    addSolutionToTable(solution);
-    return true;
+    if(use_position)
+        sexySolver->setSearchPosition(ra, dec, radius);
 
+    sexySolver->logratio_tokeep = logratio_tokeep;
+    sexySolver->logratio_totune = logratio_totune;
+    sexySolver->logratio_tosolve = logratio_tosolve;
+
+    sexySolver->logToFile = logToFile;
+    sexySolver->logFile = logFile;
+    sexySolver->logLevel = logLevel;
 }
 
 //To add new columns to this table, just add it to both functions
@@ -2234,11 +1737,14 @@ void MainWindow::addSextractionToTable()
     double elapsed = solverTimer.elapsed() / 1000.0;
 
     setItemInColumn(table, "Time", QString::number(elapsed));
-    setItemInColumn(ui->solutionTable, "Int?", "true");
-    setItemInColumn(ui->solutionTable, "Stars", QString::number(internalSolver->getNumStarsFound()));
+    if(extSolver.isNull())
+        setItemInColumn(ui->solutionTable, "Int?", "true");
+    else
+        setItemInColumn(ui->solutionTable, "Int?", "false");
+    setItemInColumn(ui->solutionTable, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
     QString shapeName="Circle";
-    switch(internalSolver->apertureShape)
+    switch(sexySolver->apertureShape)
     {
         case SHAPE_AUTO:
             shapeName = "Auto";
@@ -2254,15 +1760,15 @@ void MainWindow::addSextractionToTable()
     }
 
     setItemInColumn(ui->solutionTable,"Shape", shapeName);
-    setItemInColumn(ui->solutionTable,"Kron", QString::number(internalSolver->kron_fact));
-    setItemInColumn(ui->solutionTable,"Subpix", QString::number(internalSolver->subpix));
-    setItemInColumn(ui->solutionTable,"r_min", QString::number(internalSolver->r_min));
-    setItemInColumn(ui->solutionTable,"minarea", QString::number(internalSolver->minarea));
-    setItemInColumn(ui->solutionTable,"d_thresh", QString::number(internalSolver->deblend_thresh));
-    setItemInColumn(ui->solutionTable,"d_cont", QString::number(internalSolver->deblend_contrast));
-    setItemInColumn(ui->solutionTable,"clean", QString::number(internalSolver->clean));
-    setItemInColumn(ui->solutionTable,"clean param", QString::number(internalSolver->clean_param));
-    setItemInColumn(ui->solutionTable,"fwhm", QString::number(internalSolver->fwhm));
+    setItemInColumn(ui->solutionTable,"Kron", QString::number(sexySolver->kron_fact));
+    setItemInColumn(ui->solutionTable,"Subpix", QString::number(sexySolver->subpix));
+    setItemInColumn(ui->solutionTable,"r_min", QString::number(sexySolver->r_min));
+    setItemInColumn(ui->solutionTable,"minarea", QString::number(sexySolver->minarea));
+    setItemInColumn(ui->solutionTable,"d_thresh", QString::number(sexySolver->deblend_thresh));
+    setItemInColumn(ui->solutionTable,"d_cont", QString::number(sexySolver->deblend_contrast));
+    setItemInColumn(ui->solutionTable,"clean", QString::number(sexySolver->clean));
+    setItemInColumn(ui->solutionTable,"clean param", QString::number(sexySolver->clean_param));
+    setItemInColumn(ui->solutionTable,"fwhm", QString::number(sexySolver->fwhm));
     setItemInColumn(ui->solutionTable, "Field", ui->fileNameDisplay->text());
 
 }
@@ -2273,8 +1779,47 @@ void MainWindow::addSolutionToTable(Solution solution)
     table->insertRow(table->rowCount());
 
     double elapsed = solverTimer.elapsed() / 1000.0;
-
     setItemInColumn(table, "Time", QString::number(elapsed));
+
+    if(extSolver.isNull())
+        setItemInColumn(ui->solutionTable, "Int?", "true");
+    else
+        setItemInColumn(ui->solutionTable, "Int?", "false");
+
+    setItemInColumn(ui->solutionTable, "Stars", QString::number(sexySolver->getNumStarsFound()));
+
+    //Sextractor Parameters
+    QString shapeName="Circle";
+    switch(sexySolver->apertureShape)
+    {
+        case SHAPE_AUTO:
+            shapeName = "Auto";
+        break;
+
+        case SHAPE_CIRCLE:
+           shapeName = "Circle";
+        break;
+
+        case SHAPE_ELLIPSE:
+            shapeName = "Ellipse";
+        break;
+    }
+    //Sextractor Parameters
+    setItemInColumn(ui->solutionTable,"Shape", shapeName);
+    setItemInColumn(ui->solutionTable,"Kron", QString::number(sexySolver->kron_fact));
+    setItemInColumn(ui->solutionTable,"Subpix", QString::number(sexySolver->subpix));
+    setItemInColumn(ui->solutionTable,"r_min", QString::number(sexySolver->r_min));
+    setItemInColumn(ui->solutionTable,"minarea", QString::number(sexySolver->minarea));
+    setItemInColumn(ui->solutionTable,"d_thresh", QString::number(sexySolver->deblend_thresh));
+    setItemInColumn(ui->solutionTable,"d_cont", QString::number(sexySolver->deblend_contrast));
+    setItemInColumn(ui->solutionTable,"clean", QString::number(sexySolver->clean));
+    setItemInColumn(ui->solutionTable,"clean param", QString::number(sexySolver->clean_param));
+    setItemInColumn(ui->solutionTable,"fwhm", QString::number(sexySolver->fwhm));
+
+    //Astrometry Parameters
+    setItemInColumn(ui->solutionTable, "Pos?", QVariant(sexySolver->use_position).toString());
+    setItemInColumn(ui->solutionTable, "Scale?", QVariant(sexySolver->use_scale).toString());
+    setItemInColumn(ui->solutionTable, "Resort?", QVariant(sexySolver->resort).toString());
 
     //Results
     setItemInColumn(table, "RA", solution.rastr);

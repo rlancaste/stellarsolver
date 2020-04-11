@@ -4,6 +4,7 @@
 //Includes for this project
 #include "structuredefinitions.h"
 #include "sexysolver.h"
+#include "externalsextractorsolver.h"
 
 //system includes
 #include "math.h"
@@ -80,9 +81,8 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    QPointer<QProcess> solver;
-    QPointer<SexySolver> internalSolver;
-    QPointer<QProcess> sextractorProcess;
+    QPointer<SexySolver> sexySolver;
+    QPointer<ExternalSextractorSolver> extSolver;
     QString fileToSolve;
     QList<Star> stars;
     int selectedStar;
@@ -182,9 +182,7 @@ public slots:
 
     bool prepareForProcesses();
     void logOutput(QString text);
-    void logSolver();
-    void logSextractor();
-    void clearLog();
+    void clearAll();
     void resetOptionsToDefaults();
 
     //These are the functions that run when the bottom buttons are clicked
@@ -216,31 +214,26 @@ public slots:
     void sortStars();
     void starClickedInTable();
     void updateStarTableFromList();
-    bool getSextractorTable(QList<Star> *stars);
 
     void mouseOverStar(QPoint location);
     void mouseClickedOnStar(QPoint location);
     QRect getStarInImage(Star star);
 
     //These functions are for loading and parsing the options
-    QStringList getSolverArgsList();
     bool getSolverOptionsFromFITS();
 
     //These functions are for the external sextractor and solver
     bool sextract(bool justSextract);
     bool solveField();
-    bool externalSextractorComplete();
-    bool internalSolverComplete(int x);
     bool writeSextractorTable();
 
     //These functions are for the internal sextractor and solver
     bool runInnerSextractor();
     bool runInnerSolver();
-    bool innerSextractorComplete();
-    bool externalSolverComplete(int x);
-    bool getSolutionInformation();
 
     //These are for both
+    void setSextractorSettings();
+    void setSolverSettings();
     bool sextractorComplete();
     bool solverComplete(int x);
     void addSolutionToTable(Solution solution);

@@ -1052,9 +1052,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="ClearLog">
+       <widget class="QPushButton" name="Clear">
         <property name="text">
-         <string>Clear Log</string>
+         <string>Clear</string>
         </property>
        </widget>
       </item>

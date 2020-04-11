@@ -263,6 +263,7 @@ set(SexySolver_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/imagelabel.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/externalsextractorsolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/stretch.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/dms.cpp

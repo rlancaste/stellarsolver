@@ -35,12 +35,15 @@ class SexySolver : public QThread
 {
     Q_OBJECT
 public:
-    explicit SexySolver(Statistic imagestats,  uint8_t *imageBuffer, bool sextractOnly, QObject *parent = nullptr);
+    explicit SexySolver(Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
 
 
     //These are the parameters used by the Internal SexySolver Sextractor and Internal SexySolver Astrometry Solver
     //These parameters are public so that they can be changed by the program using the solver
     //The values here are the defaults unless they get changed.
+
+    // This boolean determines whether the solver should proceeed to solve the image, or just sextract
+    bool justSextract = false;
 
     //Sextractor Photometry Parameters
     Shape apertureShape = SHAPE_CIRCLE;
@@ -79,6 +82,7 @@ public:
     bool use_scale = false; //Whether or not to use the image scale parameters
     double scalelo = 0; //Lower bound of image scale estimate
     double scalehi = 0; //Upper bound of image scale estimate
+    QString units; // A String Representation of the Scale units
     int scaleunit = 0; //In what units are the lower and upper bounds?
 
     //Astrometry Position Parameters, you can use the convenience methods to set these
@@ -122,16 +126,15 @@ public:
 
     int getNumStarsFound(){return stars.size();};
 
+    // This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
+    QList<Star> stars;
+
 private:
 
     // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
     QString cancelfn; //Filename whose creation signals the process to stop
-    // This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
-    QList<Star> stars;
     // This is information about the image
     Statistic stats;
-    // This boolean determines whether the solver should proceeed to solve the image, or just sextract
-    bool justSextract;
 
     // The generic data buffer containing the image data
     uint8_t *m_ImageBuffer { nullptr };
