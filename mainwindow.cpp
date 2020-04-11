@@ -412,6 +412,7 @@ bool MainWindow::sextractExternally(bool justSextract)
 
     setSextractorSettings();
     setExternalSettings();
+    sexySolver->justSextract = true;
 
     connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
     connect(extSolver, &ExternalSextractorSolver::starsFound, this, &MainWindow::sextractorComplete);
@@ -429,6 +430,7 @@ bool MainWindow::solveExternally()
     setSextractorSettings();
     setSolverSettings();
     setExternalSettings();
+    sexySolver->justSextract = false;
 
     connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
     connect(extSolver, &ExternalSextractorSolver::finished, this, &MainWindow::solverComplete);
@@ -445,6 +447,7 @@ bool MainWindow::sextractInternally()
     sexySolver = new SexySolver(stats, m_ImageBuffer, this);
 
     setSextractorSettings();
+    sexySolver->justSextract = true;
 
     connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
     connect(sexySolver, &SexySolver::starsFound, this, &MainWindow::sextractorComplete);
@@ -463,6 +466,7 @@ bool MainWindow::solveInternally()
 
       setSextractorSettings();
       setSolverSettings();
+      sexySolver->justSextract = false;
 
       connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
       connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
@@ -472,9 +476,7 @@ bool MainWindow::solveInternally()
 }
 
 void MainWindow::setSextractorSettings()
-{
-    sexySolver->justSextract = true;
-
+{ 
     //These are to pass the parameters to the internal sextractor
     sexySolver->apertureShape = apertureShape;
     sexySolver->kron_fact = kron_fact;
@@ -497,24 +499,27 @@ void MainWindow::setSextractorSettings()
 
 void MainWindow::setSolverSettings()
 {
-    //Astrometry Settings
-
+    //Settings that usually get set by the config file
     sexySolver->setIndexFolderPaths(indexFilePaths);
     sexySolver->maxwidth = maxwidth;
     sexySolver->minwidth = minwidth;
     sexySolver->inParallel = inParallel;
     sexySolver->solverTimeLimit = solverTimeLimit;
 
+    //Setting the scale settings
     if(use_scale)
         sexySolver->setSearchScale(fov_low, fov_high, units);
 
+    //Setting the initial search location settings
     if(use_position)
         sexySolver->setSearchPosition(ra, dec, radius);
 
+    //Setting the settings to know when to stop or keep searching for solutions
     sexySolver->logratio_tokeep = logratio_tokeep;
     sexySolver->logratio_totune = logratio_totune;
     sexySolver->logratio_tosolve = logratio_tosolve;
 
+    //Setting the logging settings
     sexySolver->logToFile = logToFile;
     sexySolver->logFile = logFile;
     sexySolver->logLevel = logLevel;
