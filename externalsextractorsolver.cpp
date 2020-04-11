@@ -145,7 +145,7 @@ bool ExternalSextractorSolver::sextract(bool justSextract)
     sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
     connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSextractor);
 
-    emit logNeedsUpdating("Starting sextractor...");
+    emit logNeedsUpdating("Starting external sextractor...");
     emit logNeedsUpdating(sextractorBinaryPath + " " + sextractorArgs.join(' '));
     sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
     if(justSextract)
@@ -206,7 +206,7 @@ bool ExternalSextractorSolver::solveField()
 
     solver->start(solverPath, solverArgs);
 
-    emit logNeedsUpdating("Starting solver...");
+    emit logNeedsUpdating("Starting external Astrometry.net solver...");
     emit logNeedsUpdating("Command: " + solverPath + solverArgs.join(" "));
 
 

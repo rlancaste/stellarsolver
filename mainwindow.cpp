@@ -304,6 +304,7 @@ void MainWindow::clearAll()
     ui->logDisplay->clear();
     ui->starList->clearContents();
     ui->solutionTable->clearContents();
+    ui->solutionTable->setRowCount(0);
     stars.clear();
     updateImage();
 }
@@ -371,8 +372,6 @@ bool MainWindow::sextractImage()
     return false;
     #endif
 
-    solverTimer.start();
-
     sextractExternally(true);
     return true;
 }
@@ -388,8 +387,6 @@ bool MainWindow::solveImage()
     //If the Use SexySolver CheckBox is checked, use the internal method instead.
     if(ui->useSexySolver->isChecked())
         return solveInternally();
-
-    solverTimer.start();
 
 #ifndef _WIN32 //This is because the sextractor program is VERY difficult to install,
     if(sextractExternally(false))
@@ -417,6 +414,7 @@ bool MainWindow::sextractExternally(bool justSextract)
     connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
     connect(extSolver, &ExternalSextractorSolver::starsFound, this, &MainWindow::sextractorComplete);
 
+    solverTimer.start();
     extSolver->sextract(justSextract);
 
     return true;
@@ -435,6 +433,7 @@ bool MainWindow::solveExternally()
     connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
     connect(extSolver, &ExternalSextractorSolver::finished, this, &MainWindow::solverComplete);
 
+    solverTimer.start();
     extSolver->runExternalSextractorAndSolver();
     return true;
 }
@@ -443,7 +442,7 @@ bool MainWindow::solveExternally()
 //It then will load the results into a table to the right of the image
 bool MainWindow::sextractInternally()
 {
-    solverTimer.start();
+
     sexySolver = new SexySolver(stats, m_ImageBuffer, this);
 
     setSextractorSettings();
@@ -452,6 +451,7 @@ bool MainWindow::sextractInternally()
     connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
     connect(sexySolver, &SexySolver::starsFound, this, &MainWindow::sextractorComplete);
 
+    solverTimer.start();
     sexySolver->start();
     return true;
 }
@@ -461,7 +461,6 @@ bool MainWindow::sextractInternally()
 //It times the entire process and prints out how long it took
 bool MainWindow::solveInternally()
 {
-      solverTimer.start();
       sexySolver = new SexySolver(stats ,m_ImageBuffer, this);
 
       setSextractorSettings();
@@ -471,6 +470,7 @@ bool MainWindow::solveInternally()
       connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
       connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
+      solverTimer.start();
       sexySolver->start();
       return true;
 }
@@ -538,7 +538,7 @@ void MainWindow::setExternalSettings()
 
 bool MainWindow::sextractorComplete()
 {
-    double elapsed = solverTimer.elapsed() / 1000.0;
+    elapsed = solverTimer.elapsed() / 1000.0;
     stars = sexySolver->getStarList();
     displayTable();
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -555,7 +555,7 @@ bool MainWindow::sextractorComplete()
 //This was adapted from KStars' OfflineAstrometryParser
 bool MainWindow::solverComplete(int x)
 {
-    double elapsed = solverTimer.elapsed() / 1000.0;
+    elapsed = solverTimer.elapsed() / 1000.0;
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     logOutput(QString("Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
     logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -1720,8 +1720,6 @@ void MainWindow::addSextractionToTable()
     QTableWidget *table = ui->solutionTable;
     table->insertRow(table->rowCount());
 
-    double elapsed = solverTimer.elapsed() / 1000.0;
-
     setItemInColumn(table, "Time", QString::number(elapsed));
     if(extSolver.isNull())
         setItemInColumn(ui->solutionTable, "Int?", "true");
@@ -1764,7 +1762,6 @@ void MainWindow::addSolutionToTable(Solution solution)
     QTableWidget *table = ui->solutionTable;
     table->insertRow(table->rowCount());
 
-    double elapsed = solverTimer.elapsed() / 1000.0;
     setItemInColumn(table, "Time", QString::number(elapsed));
 
     if(extSolver.isNull())

@@ -1013,7 +1013,7 @@
       <item>
        <widget class="QPushButton" name="SolveImage">
         <property name="text">
-         <string>Solve</string>
+         <string>Sextract and Solve</string>
         </property>
        </widget>
       </item>

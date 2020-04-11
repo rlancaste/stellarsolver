@@ -63,7 +63,7 @@ bool SexySolver::runInnerSextractor()
         return false;
     }
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Starting SexySolver Sextractor");
+    emit logNeedsUpdating("Starting Internal SexySolver Sextractor. . .");
 
     int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
 
@@ -564,7 +564,7 @@ int SexySolver::runAstrometryEngine()
     //This sets the directory for Astrometry.net
     job_set_output_base_dir(job, QDir::tempPath().toLatin1().constData());
 
-    emit logNeedsUpdating("Starting SexySolver Astrometry.net Engine!");
+    emit logNeedsUpdating("Starting Internal SexySolver Astrometry.net based Engine. . .");
 
     //This runs the job in the engine in the file engine.c
     if (engine_run_job(engine, job))

@@ -160,6 +160,7 @@ private:
     bool checkDebayer();
 
     QTime solverTimer;
+    double elapsed;
 
     void setupSolutionTable();
     void clearAstrometrySettings();
