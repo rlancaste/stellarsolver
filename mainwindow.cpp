@@ -176,7 +176,6 @@ MainWindow::MainWindow() :
 
 void MainWindow::resetOptionsToDefaults()
 {
-
     ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
     ui->sextractorPath->setText(extTemp.sextractorBinaryPath);
     ui->configFilePath->setText(extTemp.confPath);
@@ -374,7 +373,7 @@ bool MainWindow::sextractImage()
 
     solverTimer.start();
 
-    sextract(true);
+    sextractExternally(true);
     return true;
 }
 
@@ -393,16 +392,45 @@ bool MainWindow::solveImage()
     solverTimer.start();
 
 #ifndef _WIN32 //This is because the sextractor program is VERY difficult to install,
-    if(sextract(false))
+    if(sextractExternally(false))
     {
 #endif
-        if(solveField())
+        if(solveExternally())
             return true;
-        return false;
+        else
+            return false;
 #ifndef _WIN32
     }
 #endif
     return false;
+}
+
+bool MainWindow::sextractExternally(bool justSextract)
+{
+    extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
+    sexySolver = extSolver;
+
+    setSextractorSettings();
+    extSolver->fileToSolve = fileToSolve;
+
+    connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
+    connect(extSolver, &ExternalSextractorSolver::starsFound, this, &MainWindow::sextractorComplete);
+    extSolver->sextract(justSextract);
+
+    return true;
+}
+
+bool MainWindow::solveExternally()
+{
+    extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
+    sexySolver = extSolver;
+    setSolverSettings();
+    extSolver->fileToSolve = fileToSolve;
+
+    connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
+    connect(extSolver, &ExternalSextractorSolver::finished, this, &MainWindow::solverComplete);
+    extSolver->runExternalSextractorAndSolver();
+    return true;
 }
 
 //I wrote this method to call the internal sextract method below.
@@ -410,7 +438,11 @@ bool MainWindow::solveImage()
 bool MainWindow::sextractInternally()
 {
     solverTimer.start();
-    runInnerSextractor();
+    sexySolver = new SexySolver(stats, m_ImageBuffer, this);
+    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
+    connect(sexySolver, &SexySolver::starsFound, this, &MainWindow::sextractorComplete);
+    setSextractorSettings();
+    sexySolver->start();
     return true;
 }
 
@@ -420,8 +452,109 @@ bool MainWindow::sextractInternally()
 bool MainWindow::solveInternally()
 {
       solverTimer.start();
-      runInnerSolver();
+      sexySolver = new SexySolver(stats ,m_ImageBuffer, this);
+      connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
+      connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
+      setSolverSettings();
+      sexySolver->start();
       return true;
+}
+
+void MainWindow::setSextractorSettings()
+{
+    sexySolver->justSextract = true;
+
+    //These are to pass the parameters to the internal sextractor
+    sexySolver->apertureShape = apertureShape;
+    sexySolver->kron_fact = kron_fact;
+    sexySolver->subpix = subpix ;
+    sexySolver->r_min = r_min;
+    sexySolver->inflags = inflags;
+    sexySolver->magzero = magzero;
+    sexySolver->minarea = minarea;
+    sexySolver->deblend_thresh = deblend_thresh;
+    sexySolver->deblend_contrast = deblend_contrast;
+    sexySolver->clean = clean;
+    sexySolver->clean_param = clean_param;
+    sexySolver->createConvFilterFromFWHM(fwhm);
+
+    //Star Filter Settings
+    sexySolver->removeBrightest = removeBrightest;
+    sexySolver->removeDimmest = removeDimmest;
+    sexySolver->maxEllipse = maxEllipse;
+}
+
+void MainWindow::setSolverSettings()
+{
+    sexySolver->justSextract = false;
+
+    //Sextractor Settings
+    sexySolver->apertureShape = apertureShape;
+    sexySolver->kron_fact = kron_fact;
+    sexySolver->subpix = subpix ;
+    sexySolver->r_min = r_min;
+    sexySolver->inflags = inflags;
+    sexySolver->magzero = magzero;
+    sexySolver->minarea = minarea;
+    sexySolver->deblend_thresh = deblend_thresh;
+    sexySolver->deblend_contrast = deblend_contrast;
+    sexySolver->clean = clean;
+    sexySolver->clean_param = clean_param;
+    sexySolver->createConvFilterFromFWHM(fwhm);
+
+    //Star Filter Settings
+    sexySolver->removeBrightest = removeBrightest;
+    sexySolver->removeDimmest = removeDimmest;
+    sexySolver->maxEllipse = maxEllipse;
+
+    //Astrometry Settings
+
+    sexySolver->setIndexFolderPaths(indexFilePaths);
+    sexySolver->maxwidth = maxwidth;
+    sexySolver->minwidth = minwidth;
+    sexySolver->inParallel = inParallel;
+    sexySolver->solverTimeLimit = solverTimeLimit;
+
+    if(use_scale)
+        sexySolver->setSearchScale(fov_low, fov_high, units);
+
+    if(use_position)
+        sexySolver->setSearchPosition(ra, dec, radius);
+
+    sexySolver->logratio_tokeep = logratio_tokeep;
+    sexySolver->logratio_totune = logratio_totune;
+    sexySolver->logratio_tosolve = logratio_tosolve;
+
+    sexySolver->logToFile = logToFile;
+    sexySolver->logFile = logFile;
+    sexySolver->logLevel = logLevel;
+}
+
+bool MainWindow::sextractorComplete()
+{
+    double elapsed = solverTimer.elapsed() / 1000.0;
+    stars = sexySolver->getStarList();
+    displayTable();
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
+    logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+    addSextractionToTable();
+    writeSextractorTable();  //Just in case they then want to solve it.
+    return true;
+}
+
+
+//This was adapted from KStars' OfflineAstrometryParser
+bool MainWindow::solverComplete(int x)
+{
+    double elapsed = solverTimer.elapsed() / 1000.0;
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    logOutput(QString("Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
+    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    addSolutionToTable(sexySolver->solution);
+    return true;
 }
 
 //This method will abort the sextractor, sovler, and any other processes currently being run, no matter which type
@@ -1539,160 +1672,6 @@ bool MainWindow::getSolverOptionsFromFITS()
 }
 
 
-
-//This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
-bool MainWindow::sextract(bool justSextract)
-{
-    extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
-    sexySolver = extSolver;
-
-    extSolver->fileToSolve = fileToSolve;
-    connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
-    connect(extSolver, &ExternalSextractorSolver::starsFound, this, &MainWindow::sextractorComplete);
-    setSextractorSettings();
-
-    extSolver->sextract(justSextract);
-
-    return true;
-
-}
-
-
-
-//The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
-bool MainWindow::solveField()
-{
-    extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
-    sexySolver = extSolver;
-    setSolverSettings();
-    extSolver->fileToSolve = fileToSolve;
-
-    connect(extSolver, &ExternalSextractorSolver::logNeedsUpdating, this, &MainWindow::logOutput);
-    connect(extSolver, &ExternalSextractorSolver::finished, this, &MainWindow::solverComplete);
-    extSolver->runExternalSextractorAndSolver();
-
-    return true;
-}
-
-bool MainWindow::sextractorComplete()
-{
-    double elapsed = solverTimer.elapsed() / 1000.0;
-    stars = sexySolver->getStarList();
-    displayTable();
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
-    logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-
-    addSextractionToTable();
-    writeSextractorTable();  //Just in case they then want to solve it.
-    return true;
-}
-
-
-//This was adapted from KStars' OfflineAstrometryParser
-bool MainWindow::solverComplete(int x)
-{
-    double elapsed = solverTimer.elapsed() / 1000.0;
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    logOutput(QString("Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
-    logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    addSolutionToTable(sexySolver->solution);
-    return true;
-}
-
-bool MainWindow::runInnerSextractor()
-{
-    sexySolver = new SexySolver(stats, m_ImageBuffer, this);
-
-    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
-    connect(sexySolver, &SexySolver::starsFound, this, &MainWindow::sextractorComplete);
-    setSextractorSettings();
-    sexySolver->start();
-    return true;
-}
-
-bool MainWindow::runInnerSolver()
-{
-    sexySolver = new SexySolver(stats ,m_ImageBuffer, this);
-    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
-    connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
-
-    setSolverSettings();
-
-    sexySolver->start();
-    return true;
-}
-
-void MainWindow::setSextractorSettings()
-{
-    sexySolver->justSextract = true;
-
-    //These are to pass the parameters to the internal sextractor
-    sexySolver->apertureShape = apertureShape;
-    sexySolver->kron_fact = kron_fact;
-    sexySolver->subpix = subpix ;
-    sexySolver->r_min = r_min;
-    sexySolver->inflags = inflags;
-    sexySolver->magzero = magzero;
-    sexySolver->minarea = minarea;
-    sexySolver->deblend_thresh = deblend_thresh;
-    sexySolver->deblend_contrast = deblend_contrast;
-    sexySolver->clean = clean;
-    sexySolver->clean_param = clean_param;
-    sexySolver->createConvFilterFromFWHM(fwhm);
-
-    //Star Filter Settings
-    sexySolver->removeBrightest = removeBrightest;
-    sexySolver->removeDimmest = removeDimmest;
-    sexySolver->maxEllipse = maxEllipse;
-}
-
-void MainWindow::setSolverSettings()
-{
-    sexySolver->justSextract = false;
-
-    //Sextractor Settings
-    sexySolver->apertureShape = apertureShape;
-    sexySolver->kron_fact = kron_fact;
-    sexySolver->subpix = subpix ;
-    sexySolver->r_min = r_min;
-    sexySolver->inflags = inflags;
-    sexySolver->magzero = magzero;
-    sexySolver->minarea = minarea;
-    sexySolver->deblend_thresh = deblend_thresh;
-    sexySolver->deblend_contrast = deblend_contrast;
-    sexySolver->clean = clean;
-    sexySolver->clean_param = clean_param;
-    sexySolver->createConvFilterFromFWHM(fwhm);
-
-    //Star Filter Settings
-    sexySolver->removeBrightest = removeBrightest;
-    sexySolver->removeDimmest = removeDimmest;
-    sexySolver->maxEllipse = maxEllipse;
-
-    //Astrometry Settings
-
-    sexySolver->setIndexFolderPaths(indexFilePaths);
-    sexySolver->maxwidth = maxwidth;
-    sexySolver->minwidth = minwidth;
-    sexySolver->inParallel = inParallel;
-    sexySolver->solverTimeLimit = solverTimeLimit;
-
-    if(use_scale)
-        sexySolver->setSearchScale(fov_low, fov_high, units);
-
-    if(use_position)
-        sexySolver->setSearchPosition(ra, dec, radius);
-
-    sexySolver->logratio_tokeep = logratio_tokeep;
-    sexySolver->logratio_totune = logratio_totune;
-    sexySolver->logratio_tosolve = logratio_tosolve;
-
-    sexySolver->logToFile = logToFile;
-    sexySolver->logFile = logFile;
-    sexySolver->logLevel = logLevel;
-}
 
 //To add new columns to this table, just add it to both functions
 //So that the column gets setup and then gets filled in.

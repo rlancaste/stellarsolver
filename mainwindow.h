@@ -186,6 +186,8 @@ public slots:
     //These are the functions that run when the bottom buttons are clicked
     bool sextractImage();
     bool solveImage();
+    bool sextractExternally(bool justSextract);
+    bool solveExternally();
     bool sextractInternally();
     bool solveInternally();
     void abort();
@@ -217,17 +219,11 @@ public slots:
     void mouseClickedOnStar(QPoint location);
     QRect getStarInImage(Star star);
 
-    //These functions are for loading and parsing the options
+    //This function is for loading and parsing the options
     bool getSolverOptionsFromFITS();
 
-    //These functions are for the external sextractor and solver
-    bool sextract(bool justSextract);
-    bool solveField();
+    //This function will write the sextractor table to a xyls file for the solver if desired.
     bool writeSextractorTable();
-
-    //These functions are for the internal sextractor and solver
-    bool runInnerSextractor();
-    bool runInnerSolver();
 
     //These are for both
     void setSextractorSettings();
