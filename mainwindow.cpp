@@ -515,7 +515,8 @@ bool MainWindow::loadFits()
         return false;
     }
 
-    if (fits_get_img_param(fptr, 3, &(stats.bitpix), &(stats.ndim), naxes, &status))
+    int fitsBitPix = 0;
+    if (fits_get_img_param(fptr, 3, &fitsBitPix, &(stats.ndim), naxes, &status))
     {
         logOutput(QString("FITS file open error (fits_get_img_param)."));
         return false;
@@ -529,44 +530,44 @@ bool MainWindow::loadFits()
         return false;
     }
 
-    switch (stats.bitpix)
+    switch (fitsBitPix)
     {
         case BYTE_IMG:
-            m_DataType           = SEP_TBYTE;
+            stats.dataType      = SEP_TBYTE;
             stats.bytesPerPixel = sizeof(uint8_t);
             break;
         case SHORT_IMG:
             // Read SHORT image as USHORT
-            m_DataType           = TUSHORT;
+            stats.dataType      = TUSHORT;
             stats.bytesPerPixel = sizeof(int16_t);
             break;
         case USHORT_IMG:
-            m_DataType           = TUSHORT;
+            stats.dataType      = TUSHORT;
             stats.bytesPerPixel = sizeof(uint16_t);
             break;
         case LONG_IMG:
             // Read LONG image as ULONG
-            m_DataType           = TULONG;
+            stats.dataType      = TULONG;
             stats.bytesPerPixel = sizeof(int32_t);
             break;
         case ULONG_IMG:
-            m_DataType           = TULONG;
+            stats.dataType      = TULONG;
             stats.bytesPerPixel = sizeof(uint32_t);
             break;
         case FLOAT_IMG:
-            m_DataType           = TFLOAT;
+            stats.dataType      = TFLOAT;
             stats.bytesPerPixel = sizeof(float);
             break;
         case LONGLONG_IMG:
-            m_DataType           = TLONGLONG;
+            stats.dataType      = TLONGLONG;
             stats.bytesPerPixel = sizeof(int64_t);
             break;
         case DOUBLE_IMG:
-            m_DataType           = TDOUBLE;
+            stats.dataType      = TDOUBLE;
             stats.bytesPerPixel = sizeof(double);
             break;
         default:
-            errMessage = QString("Bit depth %1 is not supported.").arg(stats.bitpix);
+            errMessage = QString("Bit depth %1 is not supported.").arg(fitsBitPix);
             QMessageBox::critical(nullptr,"Message",errMessage);
             logOutput(errMessage);
             return false;
@@ -601,7 +602,7 @@ bool MainWindow::loadFits()
 
     long nelements = stats.samples_per_channel * m_Channels;
 
-    if (fits_read_img(fptr, static_cast<uint16_t>(m_DataType), 1, nelements, nullptr, m_ImageBuffer, &anynullptr, &status))
+    if (fits_read_img(fptr, static_cast<uint16_t>(stats.dataType), 1, nelements, nullptr, m_ImageBuffer, &anynullptr, &status))
     {
         errMessage = "Error reading image.";
         QMessageBox::critical(nullptr,"Message",errMessage);
@@ -639,45 +640,45 @@ bool MainWindow::loadOtherFormat()
 
     imageFromFile = imageFromFile.convertToFormat(QImage::Format_RGB32);
 
-    stats.bitpix = 8; //Note: This will need to be changed.  I think QT only loads 8 bpp images.  Also the depth method gives the total bits per pixel in the image not just the bits per pixel in each channel.
-    switch (stats.bitpix)
+    int fitsBitPix = 8; //Note: This will need to be changed.  I think QT only loads 8 bpp images.  Also the depth method gives the total bits per pixel in the image not just the bits per pixel in each channel.
+     switch (fitsBitPix)
         {
             case BYTE_IMG:
-                m_DataType           = SEP_TBYTE;
+                stats.dataType      = SEP_TBYTE;
                 stats.bytesPerPixel = sizeof(uint8_t);
                 break;
             case SHORT_IMG:
                 // Read SHORT image as USHORT
-                m_DataType           = TUSHORT;
+                stats.dataType      = TUSHORT;
                 stats.bytesPerPixel = sizeof(int16_t);
                 break;
             case USHORT_IMG:
-                m_DataType           = TUSHORT;
+                stats.dataType      = TUSHORT;
                 stats.bytesPerPixel = sizeof(uint16_t);
                 break;
             case LONG_IMG:
                 // Read LONG image as ULONG
-                m_DataType           = TULONG;
+                stats.dataType      = TULONG;
                 stats.bytesPerPixel = sizeof(int32_t);
                 break;
             case ULONG_IMG:
-                m_DataType           = TULONG;
+                stats.dataType      = TULONG;
                 stats.bytesPerPixel = sizeof(uint32_t);
                 break;
             case FLOAT_IMG:
-                m_DataType           = TFLOAT;
+                stats.dataType      = TFLOAT;
                 stats.bytesPerPixel = sizeof(float);
                 break;
             case LONGLONG_IMG:
-                m_DataType           = TLONGLONG;
+                stats.dataType      = TLONGLONG;
                 stats.bytesPerPixel = sizeof(int64_t);
                 break;
             case DOUBLE_IMG:
-                m_DataType           = TDOUBLE;
+                stats.dataType      = TDOUBLE;
                 stats.bytesPerPixel = sizeof(double);
                 break;
             default:
-                errMessage = QString("Bit depth %1 is not supported.").arg(stats.bitpix);
+                errMessage = QString("Bit depth %1 is not supported.").arg(fitsBitPix);
                 QMessageBox::critical(nullptr,"Message",errMessage);
                 logOutput(errMessage);
                 return false;
@@ -757,7 +758,7 @@ bool MainWindow::saveAsFITS()
     }
 
     /* Write Data */
-    if (fits_write_img(fptr, m_DataType, 1, nelements, m_ImageBuffer, &status))
+    if (fits_write_img(fptr, stats.dataType, 1, nelements, m_ImageBuffer, &status))
     {
         fits_report_error(stderr, status);
         return status;
@@ -890,7 +891,7 @@ bool MainWindow::checkDebayer()
     if (fits_read_keyword(fptr, "BAYERPAT", bayerPattern, nullptr, &status))
         return false;
 
-    if (stats.bitpix != 16 && stats.bitpix != 8)
+    if (stats.dataType != TUSHORT && stats.dataType != SEP_TBYTE)
     {
         logOutput("Only 8 and 16 bits bayered images supported.");
         return false;
@@ -924,7 +925,7 @@ bool MainWindow::checkDebayer()
 //This method was copied and pasted from Fitsdata in KStars
 bool MainWindow::debayer()
 {
-    switch (m_DataType)
+    switch (stats.dataType)
     {
         case SEP_TBYTE:
             return debayer_8bit();
@@ -1229,7 +1230,7 @@ void MainWindow::doStretch(QImage *outputImage)
         return;
     Stretch stretch(static_cast<int>(stats.width),
                     static_cast<int>(stats.height),
-                    m_Channels, static_cast<uint16_t>(m_DataType));
+                    m_Channels, static_cast<uint16_t>(stats.dataType));
 
    // Compute new auto-stretch params.
     stretchParams = stretch.computeParams(m_ImageBuffer);

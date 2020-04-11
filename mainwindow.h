@@ -149,8 +149,6 @@ private:
     int currentHeight;
     double currentZoom;
     int sampling = 2;
-    /// FITS image data type (SEP_TBYTE, TUSHORT, TINT, TFLOAT, TLONG, TDOUBLE)
-    uint32_t m_DataType { 0 };
     /// Number of channels
     uint8_t m_Channels { 1 };
     /// Generic data image buffer

@@ -13,7 +13,10 @@ typedef struct
     double stddev[3] = {0};
     double median[3] = {0};
     double SNR { 0 };
-    int bitpix { 8 };
+    // Superceded by dataType.
+    // int bitpix { 8 };
+    /// FITS image data type (SEP_TBYTE, TUSHORT, TINT, TFLOAT, TLONG, TDOUBLE)
+    uint32_t dataType { 0 };
     int bytesPerPixel { 1 };
     int ndim { 2 };
     int64_t size { 0 };

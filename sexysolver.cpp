@@ -69,31 +69,31 @@ bool SexySolver::runInnerSextractor()
 
     auto * data = new float[w * h];
 
-    switch (stats.bitpix)
+    switch (stats.dataType)
     {
-        case BYTE_IMG:
+        case SEP_TBYTE:
             getFloatBuffer<uint8_t>(data, x, y, w, h);
             break;
-        case SHORT_IMG:
+        case TSHORT:
             getFloatBuffer<int16_t>(data, x, y, w, h);
             break;
-        case USHORT_IMG:
+        case TUSHORT:
             getFloatBuffer<uint16_t>(data, x, y, w, h);
             break;
-        case LONG_IMG:
+        case TLONG:
             getFloatBuffer<int32_t>(data, x, y, w, h);
             break;
-        case ULONG_IMG:
+        case TULONG:
             getFloatBuffer<uint32_t>(data, x, y, w, h);
             break;
-        case FLOAT_IMG:
+        case TFLOAT:
             delete [] data;
             data = reinterpret_cast<float *>(m_ImageBuffer);
             break;
-        case LONGLONG_IMG:
+        case TLONGLONG:
             getFloatBuffer<int64_t>(data, x, y, w, h);
             break;
-        case DOUBLE_IMG:
+        case TDOUBLE:
             getFloatBuffer<double>(data, x, y, w, h);
             break;
         default:
@@ -255,7 +255,7 @@ bool SexySolver::runInnerSextractor()
     return true;
 
 exit:
-    if (stats.bitpix != FLOAT_IMG)
+    if (stats.dataType != TFLOAT)
         delete [] data;
     sep_bkg_free(bkg);
     sep_catalog_free(catalog);
