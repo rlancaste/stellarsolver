@@ -11,8 +11,15 @@ class ExternalSextractorSolver : public SexySolver
 public:
     explicit ExternalSextractorSolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent);
 
-    bool sextract(bool justSextract);
-    bool solveField();
+    //These are the methods that you can use for the External Programs to Sextract or Solve
+    void sextract();
+    void sextractAndSolve();
+
+    void abort();
+    bool isRunning();
+
+    bool runExternalSextractor();
+    bool runExternalSolver();
     QStringList getSolverArgsList();
 
     QString fileToSolve;
@@ -32,8 +39,7 @@ public:
 
     void logSolver();
     void logSextractor();
-    void runExternalSextractorAndSolver();
-    void abort();
+
 
     void printSextractorOutput();
     bool getSextractorTable();

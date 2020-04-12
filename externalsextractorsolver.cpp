@@ -44,15 +44,22 @@ ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t
 
 }
 
-//This is the method that runs the solver or sextractor.  Do not call it, use start() instead, so that it can start a new thread.
-void ExternalSextractorSolver::runExternalSextractorAndSolver()
+//This is the method you want to run to just sextract the image
+void ExternalSextractorSolver::sextract()
 {
-    if(sextract(false))
-    {
-        solveField();
-    }
+    justSextract = true;
+    runExternalSextractor();
 }
 
+//This is the method you want to use to both sextract and solve an image
+void ExternalSextractorSolver::sextractAndSolve()
+{
+    justSextract = false;
+    if(runExternalSextractor())
+    {
+        runExternalSolver();
+    }
+}
 
 //This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
 void ExternalSextractorSolver::abort()
@@ -64,13 +71,26 @@ void ExternalSextractorSolver::abort()
     emit logNeedsUpdating("Aborted");
 }
 
+//This determines whether one of the external processes is running or not.
+bool ExternalSextractorSolver::isRunning()
+{
+    if(!sextractorProcess.isNull() && sextractorProcess->state() == QProcess::Running)
+        return true;
+    if(!solver.isNull() && solver->state() == QProcess::Running)
+        return true;
+    return false;
+}
 
 //This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
-bool ExternalSextractorSolver::sextract(bool justSextract)
+bool ExternalSextractorSolver::runExternalSextractor()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
-    sextractorFilePath = tempPath + QDir::separator() + "SextractorList.xyls";
+    if(sextractorFilePath == "")
+    {
+        srand(time(NULL));
+        sextractorFilePath = basePath + QDir::separator() + "externalSolver_" + QString::number(rand()) + ".xyls";
+    }
     QFile sextractorFile(sextractorFilePath);
     if(sextractorFile.exists())
         sextractorFile.remove();
@@ -178,10 +198,9 @@ void ExternalSextractorSolver::printSextractorOutput()
 }
 
 //The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
-bool ExternalSextractorSolver::solveField()
+bool ExternalSextractorSolver::runExternalSolver()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    sextractorFilePath = tempPath + QDir::separator() + "SextractorList.xyls";
     QFile sextractorFile(sextractorFilePath);
     if(!sextractorFile.exists())
     {
@@ -192,7 +211,7 @@ bool ExternalSextractorSolver::solveField()
 
     solverArgs << "--backend-config" << confPath;
 
-    QString solutionFile = tempPath + QDir::separator() + "SextractorList.wcs";
+    QString solutionFile = tempPath + QDir::separator() + "ExternalSextractor.wcs";
     solverArgs << "-W" << solutionFile;
 
     solverArgs << sextractorFilePath;
@@ -451,7 +470,7 @@ bool ExternalSextractorSolver::getSextractorTable()
 
 bool ExternalSextractorSolver::getSolutionInformation()
 {
-    QString solutionFile = tempPath + QDir::separator() + "SextractorList.wcs";
+    QString solutionFile = tempPath + QDir::separator() + "ExternalSextractor.wcs";
     QFileInfo solutionInfo(solutionFile);
     if(!solutionInfo.exists())
     {

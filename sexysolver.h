@@ -45,6 +45,10 @@ public:
     // This boolean determines whether the solver should proceeed to solve the image, or just sextract
     bool justSextract = false;
 
+    //These are the methods that you can use for the SexySolver to Sextract or Solve
+    void sextract();
+    void sextractAndSolve();
+
     //Sextractor Photometry Parameters
     Shape apertureShape = SHAPE_CIRCLE;
     double kron_fact = 2.5;
@@ -120,14 +124,12 @@ public:
     void clearIndexFolderPaths();
     void addIndexFolderPath(QString pathToAdd);
 
-    QList<Star> getStarList(){return stars;}
-
-    Solution solution;
-
-    int getNumStarsFound(){return stars.size();};
-
     // This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
     QList<Star> stars;
+    int getNumStarsFound(){return stars.size();};
+    QList<Star> getStarList(){return stars;}
+    //This is the solution that comes back from the Solver
+    Solution solution;
 
 private:
 
@@ -144,10 +146,10 @@ private:
     job_t* job = &thejob;
 
     //These are for the internal SexySolver sextractor
-    bool runInnerSextractor();
+    bool runSEPSextractor();
 
     //These are for the internal SexySolver solver
-    int runAstrometryEngine();
+    int runInternalSolver();
     bool prepare_job();
 
     //This is used by the sextractor

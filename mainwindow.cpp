@@ -328,12 +328,20 @@ bool MainWindow::prepareForProcesses()
         logOutput("Please Load an Image First");
         return false;
     }
-    if(!sexySolver.isNull())
+    bool running = false;
+    if(!sexySolver.isNull() && sexySolver->isRunning())
+        running = true;
+    if(!extSolver.isNull() && extSolver->isRunning())
+        running = true;
+    if(running)
     {
+        int r = QMessageBox::question(this, "Abort?", "A Process is currently running. Abort it?");
+        if (r == QMessageBox::No)
+            return false;
         sexySolver->abort();
-        sexySolver.clear();
-        extSolver.clear();
     }
+    sexySolver.clear();
+    extSolver.clear();
     return true;
 }
 
@@ -368,11 +376,11 @@ bool MainWindow::sextractImage()
         return sextractInternally();
 
     #ifdef _WIN32
-    logOutput("Sextractor is not easily installed on Windows, try the Internal Sextractor please.");
+    logOutput("An External Sextractor is not easily installed on Windows, try the Internal Sextractor please.");
     return false;
     #endif
 
-    sextractExternally(true);
+    sextractExternally();
     return true;
 }
 
@@ -388,15 +396,15 @@ bool MainWindow::solveImage()
     if(ui->useSexySolver->isChecked())
         return solveInternally();
 
-#ifndef _WIN32 //This is because the sextractor program is VERY difficult to install,
-    if(sextractExternally(false))
+#ifdef _WIN32 //This is because the sextractor program is VERY difficult to install,
+    if(sextractInternally())
     {
 #endif
         if(solveExternally())
             return true;
         else
             return false;
-#ifndef _WIN32
+#ifdef _WIN32
     }
 #endif
     return false;
@@ -405,16 +413,16 @@ bool MainWindow::solveImage()
 //I wrote this method to call the external sextractor program.
 //It then will load the results into a table to the right of the image
 //It times the entire process and prints out how long it took
-bool MainWindow::sextractExternally(bool justSextract)
+bool MainWindow::sextractExternally()
 {
     setupExternalSextractorSolver();
 
     setSextractorSettings();
-    sexySolver->justSextract = true;
+
+    connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
 
     solverTimer.start();
-    extSolver->sextract(justSextract);
-    connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
+    extSolver->sextract();
 
     return true;
 }
@@ -427,11 +435,11 @@ bool MainWindow::solveExternally()
 
     setSextractorSettings();
     setSolverSettings();
-    sexySolver->justSextract = false;
+
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
     solverTimer.start();
-    extSolver->runExternalSextractorAndSolver();
+    extSolver->sextractAndSolve();
     return true;
 }
 
@@ -440,15 +448,14 @@ bool MainWindow::solveExternally()
 //It times the entire process and prints out how long it took
 bool MainWindow::sextractInternally()
 {
-
     setupInternalSexySolver();
 
     setSextractorSettings();
-    sexySolver->justSextract = true;
+
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
 
     solverTimer.start();
-    sexySolver->start();
+    sexySolver->sextract();
     return true;
 }
 
@@ -461,11 +468,11 @@ bool MainWindow::solveInternally()
 
       setSextractorSettings();
       setSolverSettings();
-      sexySolver->justSextract = false;
+
       connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
       solverTimer.start();
-      sexySolver->start();
+      sexySolver->sextractAndSolve();
       return true;
 }
 

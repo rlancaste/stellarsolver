@@ -187,7 +187,7 @@ public slots:
     //These are the functions that run when the bottom buttons are clicked
     bool sextractImage();
     bool solveImage();
-    bool sextractExternally(bool justSextract);
+    bool sextractExternally();
     bool solveExternally();
     bool sextractInternally();
     bool solveInternally();

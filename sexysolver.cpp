@@ -7,16 +7,30 @@ SexySolver::SexySolver(Statistic imagestats, uint8_t *imageBuffer, QObject *pare
  m_ImageBuffer=imageBuffer;
 }
 
-//This is the method that runs the solver or sextractor.  Do not call it, use start() instead, so that it can start a new thread.
+//This is the method you want to use to just sextract the image
+void SexySolver::sextract()
+{
+    justSextract = true;
+    this->start();
+}
+
+//This is the method you want to use to sextract and solve the image
+void SexySolver::sextractAndSolve()
+{
+    justSextract = false;
+    this->start();
+}
+
+//This is the method that runs the solver or sextractor.  Do not call it, use the methods above instead, so that it can start a new thread.
 void SexySolver::run()
 {
     if(justSextract)
-        runInnerSextractor();
+        runSEPSextractor();
     else
     {
-        if(runInnerSextractor())
+        if(runSEPSextractor())
         {
-            runAstrometryEngine();
+            runInternalSolver();
         }
     }
 }
@@ -55,7 +69,7 @@ void SexySolver::createConvFilterFromFWHM(double fwhm)
 //I used KStars and the SEP website as a guide for creating these functions
 //It saves the output to a file in the temp directory.
 
-bool SexySolver::runInnerSextractor()
+bool SexySolver::runSEPSextractor()
 {
     if(convFilter.size() == 0)
     {
@@ -451,7 +465,7 @@ bool SexySolver::prepare_job() {
 }
 
 //This method was adapted from the main method in engine-main.c in astrometry.net
-int SexySolver::runAstrometryEngine()
+int SexySolver::runInternalSolver()
 {
     emit logNeedsUpdating("++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Configuring SexySolver");
