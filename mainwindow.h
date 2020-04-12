@@ -94,8 +94,10 @@ private:
     QList<Star> stars;
     int selectedStar;
 
-    //System File Paths
     QString dirPath = QDir::homePath();
+
+    //Options for the External Sextractor and Solver
+    bool cleanupTemporaryFiles;
     QString tempPath;
     QStringList indexFilePaths;
     QString sextractorBinaryPath;

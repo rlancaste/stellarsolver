@@ -56,6 +56,7 @@ MainWindow::MainWindow() :
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveImage );
 
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
+    connect(ui->reset, &QPushButton::clicked, this, &MainWindow::resetOptionsToDefaults);
     connect(ui->Clear,&QAbstractButton::clicked, this, &MainWindow::clearAll );
     connect(ui->exportTable,&QAbstractButton::clicked, this, &MainWindow::saveSolutionTable);
 
@@ -71,14 +72,13 @@ MainWindow::MainWindow() :
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
     ui->splitter_2->setSizes(QList<int>() << 0 << ui->splitter_2->width() << 0 );
 
-    //Basic Settings
+    //Settings for the External Sextractor and Solver
     connect(ui->configFilePath, &QLineEdit::textChanged, this, [this](){ confPath = ui->configFilePath->text(); });
     connect(ui->sextractorPath, &QLineEdit::textChanged, this, [this](){ sextractorBinaryPath = ui->sextractorPath->text(); });
     connect(ui->solverPath, &QLineEdit::textChanged, this, [this](){ solverPath = ui->solverPath->text(); });
     connect(ui->tempPath, &QLineEdit::textChanged, this, [this](){ tempPath = ui->tempPath->text(); });
     connect(ui->wcsPath, &QLineEdit::textChanged, this, [this](){ wcsPath = ui->wcsPath->text(); });
-
-    connect(ui->reset, &QPushButton::clicked, this, &MainWindow::resetOptionsToDefaults);
+    connect(ui->cleanupTemp, &QCheckBox::stateChanged, this, [this](){ cleanupTemporaryFiles = ui->cleanupTemp->isChecked(); });
 
     //Sextractor Settings
     connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
@@ -151,12 +151,6 @@ MainWindow::MainWindow() :
     debayerParams.filter  = DC1394_COLOR_FILTER_RGGB;
     debayerParams.offsetX = debayerParams.offsetY = 0;
 
-
-    //Delete the temp files for Sextractor in case the parameters get changed during testing and coding
-    QDir temp(tempPath);
-    temp.remove("default.param");
-    temp.remove("default.conv");
-
     setWindowTitle("SexySolver Internal Sextractor and Astrometry.net Based Solver");
 
 }
@@ -164,10 +158,18 @@ MainWindow::MainWindow() :
 void MainWindow::resetOptionsToDefaults()
 {
     ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
-    ui->sextractorPath->setText(extTemp.sextractorBinaryPath);
-    ui->configFilePath->setText(extTemp.confPath);
-    ui->solverPath->setText(extTemp.solverPath);
-    ui->wcsPath->setText(extTemp.wcsPath);
+
+    sextractorBinaryPath = extTemp.sextractorBinaryPath;
+    confPath = extTemp.confPath;
+    solverPath = extTemp.solverPath;
+    wcsPath = extTemp.wcsPath;
+    cleanupTemporaryFiles = extTemp.cleanupTemporaryFiles;
+
+        ui->sextractorPath->setText(sextractorBinaryPath);
+        ui->configFilePath->setText(confPath);
+        ui->solverPath->setText(solverPath);
+        ui->wcsPath->setText(wcsPath);
+        ui->cleanupTemp->setChecked(cleanupTemporaryFiles);
 
     SexySolver temp(stats, m_ImageBuffer, this);
 
@@ -461,11 +463,12 @@ void MainWindow::setupExternalSextractorSolver()
     //Sets the file settings and other items specific to the external solver programs
     extSolver->fileToSolve = fileToSolve;
     extSolver->dirPath = dirPath;
-    extSolver->tempPath = tempPath;
+    extSolver->basePath = tempPath;
     extSolver->sextractorBinaryPath = sextractorBinaryPath;
     extSolver->confPath = confPath;
     extSolver->solverPath = solverPath;
     extSolver->wcsPath = wcsPath;
+    extSolver->cleanupTemporaryFiles = cleanupTemporaryFiles;
 }
 
 //This sets up the Internal SexySolver and sets settings specific to it

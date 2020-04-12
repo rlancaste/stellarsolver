@@ -31,11 +31,13 @@ public:
     QStringList getSolverArgsList();
 
     QString fileToSolve;
+    bool fileToSolveIsTempFile = false;
     int selectedStar;
+
+    bool cleanupTemporaryFiles = true;
 
     //System File Paths
     QString dirPath = QDir::homePath();
-    QString tempPath = QDir::tempPath();
     QStringList indexFilePaths;
     QString sextractorBinaryPath;
     QString confPath;
@@ -44,8 +46,11 @@ public:
 
     // This is the xyls file path that sextractor will be saving for Astrometry.net
     // If it is not set, it will be set to a random temporary file
+    QString basename;
     QString sextractorFilePath;
+    bool sextractorFilePathIsTempFile = false; //This will be set to true if it gets generated
     QString basePath = QDir::tempPath();
+
 
     void logSolver();
     void logSextractor();
@@ -56,6 +61,7 @@ public:
     bool getSextractorTable();
     bool getSolutionInformation();
     bool saveAsFITS();
+    void cleanupTempFiles();
 
 private:
     QPointer<QProcess> solver;
