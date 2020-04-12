@@ -131,6 +131,9 @@ public:
     //This is the solution that comes back from the Solver
     Solution solution;
 
+    //This is the method that actually runs the internal sextractor
+    bool runSEPSextractor();
+
 private:
 
     // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
@@ -144,9 +147,6 @@ private:
     //This is the job file that will be created for astrometry.net to solve
     job_t thejob;
     job_t* job = &thejob;
-
-    //These are for the internal SexySolver sextractor
-    bool runSEPSextractor();
 
     //These are for the internal SexySolver solver
     int runInternalSolver();

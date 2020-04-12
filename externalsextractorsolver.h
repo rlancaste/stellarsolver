@@ -34,6 +34,8 @@ public:
     QString solverPath;
     QString wcsPath;
 
+    // This is the xyls file path that sextractor will be saving for Astrometry.net
+    // If it is not set, it will be set to a random temporary file
     QString sextractorFilePath;
     QString basePath = QDir::tempPath();
 
@@ -42,6 +44,7 @@ public:
 
 
     void printSextractorOutput();
+    bool writeSextractorTable();
     bool getSextractorTable();
     bool getSolutionInformation();
 
@@ -50,6 +53,12 @@ private:
     QPointer<QProcess> sextractorProcess;
     // This is information about the image
     Statistic stats;
+
+    //These are used for reading and writing the sextractor file
+    char* xcol=strdup("X_IMAGE"); //This is the column for the x-coordinates
+    char* ycol=strdup("Y_IMAGE"); //This is the column for the y-coordinates
+    char* colFormat=strdup("1E"); //This Format means a decimal number
+    char* colUnits=strdup("pixels"); //This is the unit for the columns in the file
 
 };
 

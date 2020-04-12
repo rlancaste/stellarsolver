@@ -55,10 +55,12 @@ void ExternalSextractorSolver::sextract()
 void ExternalSextractorSolver::sextractAndSolve()
 {
     justSextract = false;
+#ifdef _WIN32
+    if(runSEPSextractor())
+#else
     if(runExternalSextractor())
-    {
+#endif
         runExternalSolver();
-    }
 }
 
 //This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
@@ -200,6 +202,10 @@ void ExternalSextractorSolver::printSextractorOutput()
 //The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
 bool ExternalSextractorSolver::runExternalSolver()
 {
+#ifdef _WIN32
+        //We need to write the table first on Windows.
+        writeSextractorTable();
+#endif
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     QFile sextractorFile(sextractorFilePath);
     if(!sextractorFile.exists())
@@ -535,4 +541,87 @@ bool ExternalSextractorSolver::getSolutionInformation()
     solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient};
     return true;
 }
+
+//This method writes the table to the file
+//I had to create it from the examples on NASA's website
+//https://heasarc.gsfc.nasa.gov/docs/software/fitsio/quick/node10.html
+//https://heasarc.gsfc.nasa.gov/docs/software/fitsio/cookbook/node16.html
+bool ExternalSextractorSolver::writeSextractorTable()
+{
+
+    if(sextractorFilePath == "")
+    {
+        srand(time(NULL));
+        sextractorFilePath = basePath + QDir::separator() + "sexySolver_" + QString::number(rand()) + ".xyls";
+    }
+
+    QFile sextractorFile(sextractorFilePath);
+    if(sextractorFile.exists())
+        sextractorFile.remove();
+
+    int status = 0;
+    fitsfile * new_fptr;
+
+
+    if (fits_create_file(&new_fptr, sextractorFilePath.toLatin1(), &status))
+    {
+        fits_report_error(stderr, status);
+        return false;
+    }
+
+    int tfields=2;
+    int nrows=stars.size();
+    QString extname="Sextractor_File";
+
+    //Columns: X_IMAGE, double, pixels, Y_IMAGE, double, pixels
+    char* ttype[] = { xcol, ycol };
+    char* tform[] = { colFormat, colFormat };
+    char* tunit[] = { colUnits, colUnits };
+    const char* extfile = "Sextractor_File";
+
+    float *xArray = new float[stars.size()];
+    float *yArray = new float[stars.size()];
+
+    for (int i = 0; i < stars.size(); i++)
+    {
+        xArray[i] = stars.at(i).x;
+        yArray[i] = stars.at(i).y;
+    }
+
+    if(fits_create_tbl(new_fptr, BINARY_TBL, nrows, tfields,
+        ttype, tform, tunit, extfile, &status))
+    {
+        emit logNeedsUpdating(QString("Could not create binary table."));
+        return false;
+    }
+
+    int firstrow  = 1;  /* first row in table to write   */
+    int firstelem = 1;
+    int column = 1;
+
+    if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, xArray, &status))
+    {
+        emit logNeedsUpdating(QString("Could not write x pixels in binary table."));
+        return false;
+    }
+
+    column = 2;
+    if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, yArray, &status))
+    {
+        emit logNeedsUpdating(QString("Could not write y pixels in binary table."));
+        return false;
+    }
+
+    if(fits_close_file(new_fptr, &status))
+    {
+        emit logNeedsUpdating(QString("Error closing file."));
+        return false;
+    }
+
+    free(xArray);
+    free(yArray);
+
+    return true;
+}
+
 

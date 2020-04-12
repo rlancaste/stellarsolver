@@ -166,17 +166,6 @@ private:
     void clearAstrometrySettings();
     void addSextractionToTable();
 
-    // This is the xyls file path that sextractor will be saving for Astrometry.net
-    // If it is not set, it will be set to a random temporary file
-    QString sextractorFilePath;
-    QString basePath = QDir::tempPath();
-
-    //These are used for reading and writing the sextractor file
-    char* xcol=strdup("X_IMAGE"); //This is the column for the x-coordinates
-    char* ycol=strdup("Y_IMAGE"); //This is the column for the y-coordinates
-    char* colFormat=strdup("1E"); //This Format means a decimal number
-    char* colUnits=strdup("pixels"); //This is the unit for the columns in the file
-
 public slots:
 
     bool prepareForProcesses();
@@ -222,9 +211,6 @@ public slots:
 
     //This function is for loading and parsing the options
     bool getSolverOptionsFromFITS();
-
-    //This function will write the sextractor table to a xyls file for the solver if desired.
-    bool writeSextractorTable();
 
     //These functions set the settings for the Sextractors and Solvers
     void setSextractorSettings();
