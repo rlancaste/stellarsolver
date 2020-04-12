@@ -1,3 +1,11 @@
+/*  MainWindow for SexySolver Tester Application, developed by Robert Lancaster, 2020
+
+    This application is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public
+    License as published by the Free Software Foundation; either
+    version 2 of the License, or (at your option) any later version.
+*/
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QUuid>
@@ -27,27 +35,6 @@
 #include <QtConcurrent>
 #include <QToolTip>
 #include <QtGlobal>
-
-void addColumnToTable(QTableWidget *table, QString heading)
-{
-    int colNum = table->columnCount();
-    table->insertColumn(colNum);
-    table->setHorizontalHeaderItem(colNum,new QTableWidgetItem(heading));
-}
-
-bool setItemInColumn(QTableWidget *table, QString colName, QString value)
-{
-    int row = table->rowCount() - 1;
-    for(int c = 0; c < table->columnCount() ; c ++)
-    {
-        if(table->horizontalHeaderItem(c)->text() == colName)
-        {
-            table->setItem(row,c, new QTableWidgetItem(value));
-            return true;
-        }
-    }
-    return false;
-}
 
 MainWindow::MainWindow() :
     QMainWindow(),
@@ -295,10 +282,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
-//These methods are for the logging of information to the textfield at the bottom of the window.
-//They are used by everything
-
+//This method clears the tables and displays when the user requests it.
 void MainWindow::clearAll()
 {
     ui->logDisplay->clear();
@@ -309,6 +293,7 @@ void MainWindow::clearAll()
     updateImage();
 }
 
+//These methods are for the logging of information to the textfield at the bottom of the window.
 void MainWindow::logOutput(QString text)
 {
      ui->logDisplay->append(text);
@@ -361,11 +346,9 @@ void MainWindow::displayTable()
 
 
 //The following methods are meant for starting the sextractor and image solving.
-//The methods run when the buttons are clicked.  The actual methods for doing sextraction and solving are further down.
+//The methods run when the buttons are clicked.  They call the methods inside SexySolver and ExternalSextractorSovler
 
-//I wrote this method to call the sextract method below in basically the same way we do in KStars right now.
-//It uses the external sextractor (or sex) program
-//It then will load the results into a table to the right of the image
+//This method responds when the user clicks the Sextract Button
 bool MainWindow::sextractImage()
 {
     if(!prepareForProcesses())
@@ -384,9 +367,7 @@ bool MainWindow::sextractImage()
     return true;
 }
 
-//I wrote this method to call the sextract and solve methods below in basically the same way we do in KStars right now.
-//It uses the external programs solve-field and sextractor (or sex)
-//It times the entire process and prints out how long it took
+//This method runs when the user clicks the Sextract and Solve buttton
 bool MainWindow::solveImage()
 {
     if(!prepareForProcesses())
@@ -434,6 +415,7 @@ bool MainWindow::solveExternally()
 }
 
 //I wrote this method to call the internal sextractor in the SexySolver.
+//It runs in a separate thread so that it is nonblocking
 //It then will load the results into a table to the right of the image
 //It times the entire process and prints out how long it took
 bool MainWindow::sextractInternally()
@@ -553,7 +535,8 @@ void MainWindow::setSolverSettings()
     sexySolver->logLevel = logLevel;
 }
 
-//This runs when the sextractor is complete.  It reports the time taken, prints a message, and adds the sextraction to the table.
+//This runs when the sextractor is complete.
+//It reports the time taken, prints a message, loads the sextraction stars to the startable, and adds the sextraction stats to the solution table.
 bool MainWindow::sextractorComplete(int error)
 {
     if(error == 0)
@@ -579,7 +562,7 @@ bool MainWindow::sextractorComplete(int error)
     }
 }
 
-//This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the table.
+//This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the solution table.
 bool MainWindow::solverComplete(int error)
 {
     if(error == 0)
@@ -601,15 +584,18 @@ bool MainWindow::solverComplete(int error)
     }
 }
 
-//This method will abort the sextractor, sovler, and any other processes currently being run, no matter which type
-//It will NOT abort the solver if the internal solver is run with QT Concurrent
+//This method will attempt to abort the sextractor, sovler, and any other processes currently being run, no matter which type
 void MainWindow::abort()
 {
     logOutput("Aborting. . .");
     if(!sexySolver.isNull())
         sexySolver->abort();
+    if(!extSolver.isNull())
+        extSolver->abort();
 }
 
+//This method is meant to clear out the Astrometry settings that should change with each image
+//They might be loaded from a fits file, but if the file doesn't contain them, they should be cleared.
 void MainWindow::clearAstrometrySettings()
 {
     //Note that due to connections, it automatically sets the variable as well.
@@ -620,9 +606,6 @@ void MainWindow::clearAstrometrySettings()
     ui->ra->setText("");
     ui->dec->setText("");
 }
-
-
-
 
 
 
@@ -669,6 +652,7 @@ bool MainWindow::imageLoad()
 }
 
 //This method was copied and pasted and modified from the method privateLoad in fitsdata in KStars
+//It loads a FITS file, reads the FITS Headers, and loads the data from the image
 bool MainWindow::loadFits()
 {
 
@@ -797,6 +781,7 @@ bool MainWindow::loadFits()
 
 //This method I wrote combining code from the fits loading method above, the fits debayering method below, and QT
 //I also consulted the ImageToFITS method in fitsdata in KStars
+//The goal of this method is to load the data from a file that is not FITS format
 bool MainWindow::loadOtherFormat()
 {
     QImageReader fileReader(fileToSolve.toLatin1());
@@ -978,6 +963,7 @@ bool MainWindow::saveAsFITS()
 
 
 //This method was copied and pasted from Fitsdata in KStars
+//It gets the bayer pattern information from the FITS header
 bool MainWindow::checkDebayer()
 {
     int status = 0;
@@ -1019,6 +1005,7 @@ bool MainWindow::checkDebayer()
 }
 
 //This method was copied and pasted from Fitsdata in KStars
+//It debayers the image using the methods below
 bool MainWindow::debayer()
 {
     switch (stats.dataType)
@@ -1035,6 +1022,7 @@ bool MainWindow::debayer()
 }
 
 //This method was copied and pasted from Fitsdata in KStars
+//This method debayers 8 bit images
 bool MainWindow::debayer_8bit()
 {
     dc1394error_t error_code;
@@ -1112,6 +1100,7 @@ bool MainWindow::debayer_8bit()
 }
 
 //This method was copied and pasted from Fitsdata in KStars
+//This method debayers 16 bit images
 bool MainWindow::debayer_16bit()
 {
     dc1394error_t error_code;
@@ -1189,6 +1178,7 @@ bool MainWindow::debayer_16bit()
 }
 
 //This method was copied and pasted from Fitsview in KStars
+//It sets up the image that will be displayed on the screen
 void MainWindow::initDisplayImage()
 {
     // Account for leftover when sampling. Thus a 5-wide image sampled by 2
@@ -1214,6 +1204,7 @@ void MainWindow::initDisplayImage()
 
 }
 
+//This method reacts when the user clicks the zoom in button
 void MainWindow::zoomIn()
 {
     if(!imageLoaded)
@@ -1223,6 +1214,7 @@ void MainWindow::zoomIn()
     updateImage();
 }
 
+//This method reacts when the user clicks the zoom out button
 void MainWindow::zoomOut()
 {
     if(!imageLoaded)
@@ -1233,6 +1225,7 @@ void MainWindow::zoomOut()
 }
 
 //This code was copied and pasted and modified from rescale in Fitsview in KStars
+//This method reacts when the user clicks the autoscale button and is called when the image is first loaded.
 void MainWindow::autoScale()
 {
     if(!imageLoaded)
@@ -1252,6 +1245,9 @@ void MainWindow::autoScale()
     updateImage();
 }
 
+
+//This method is intended to get the position and size of the star for rendering purposes
+//It is used to draw circles/ellipses for the stars and to detect when the mouse is over a star
 QRect MainWindow::getStarInImage(Star star)
 {
     double starx = star.x * currentWidth / stats.width ;
@@ -1271,6 +1267,8 @@ QRect MainWindow::getStarInImage(Star star)
 }
 
 //This method is very loosely based on updateFrame in Fitsview in Kstars
+//It will redraw the image when the user loads an image, zooms in, zooms out, or autoscales
+//It will also redraw the image when a change needs to be made in how the circles for the stars are displayed such as highlighting one star
 void MainWindow::updateImage()
 {
     if(!imageLoaded)
@@ -1320,6 +1318,7 @@ void MainWindow::updateImage()
 }
 
 //This code is copied and pasted from FITSView in KStars
+//It handles the stretch of the image
 void MainWindow::doStretch(QImage *outputImage)
 {
     if (outputImage->isNull())
@@ -1336,6 +1335,7 @@ void MainWindow::doStretch(QImage *outputImage)
 }
 
 //This method was copied and pasted from Fitsdata in KStars
+//It clears the image buffer out.
 void MainWindow::clearImageBuffers()
 {
     delete[] m_ImageBuffer;
@@ -1343,7 +1343,8 @@ void MainWindow::clearImageBuffers()
     //m_BayerBuffer = nullptr;
 }
 
-
+//I wrote the is method to respond when the user's mouse is over a star
+//It displays details about that particular star in a tooltip and highlights it in the image
 void MainWindow::mouseOverStar(QPoint location)
 {
     bool starFound = false;
@@ -1364,9 +1365,10 @@ void MainWindow::mouseOverStar(QPoint location)
         QToolTip::hideText();
 }
 
+//I wrote the is method to respond when the user clicks on a star
+//It highlights the row in the star table that corresponds to that star
 void MainWindow::mouseClickedOnStar(QPoint location)
 {
-    //logOutput(QString("Mouseclicked: x:") + location.x() + QString(", y:") + location.y());
     for(int i = 0 ; i < stars.size() ; i ++)
     {
         QRect starInImage = getStarInImage(stars.at(i));
@@ -1374,8 +1376,6 @@ void MainWindow::mouseClickedOnStar(QPoint location)
             ui->starList->selectRow(i);
     }
 }
-
-//I wrote these methods to load the sextracted stars into a table to the right of the image
 
 
 //THis method responds to row selections in the table and higlights the star you select in the image
@@ -1406,6 +1406,31 @@ void MainWindow::sortStars()
         });
     }
     updateStarTableFromList();
+}
+
+//This is a helper function that I wrote for the methods below
+//It add a column with a particular name to the specified table
+void addColumnToTable(QTableWidget *table, QString heading)
+{
+    int colNum = table->columnCount();
+    table->insertColumn(colNum);
+    table->setHorizontalHeaderItem(colNum,new QTableWidgetItem(heading));
+}
+
+//This is a helper function that I wrote for the methods below
+//It sets the value of a cell in the column of the specified name in the last row in the table
+bool setItemInColumn(QTableWidget *table, QString colName, QString value)
+{
+    int row = table->rowCount() - 1;
+    for(int c = 0; c < table->columnCount() ; c ++)
+    {
+        if(table->horizontalHeaderItem(c)->text() == colName)
+        {
+            table->setItem(row,c, new QTableWidgetItem(value));
+            return true;
+        }
+    }
+    return false;
 }
 
 //This copies the stars into the table
@@ -1439,17 +1464,9 @@ void MainWindow::updateStarTableFromList()
     }
 }
 
-
-
-
-//These methods will get the solver options from a fits file and prepare them for image solving.
-
-
-
 //This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
-//Then it was split in two parts
-//Tnis part extracts the options from the FITS file and prepares them.
-//It is used by both the internal and external solver
+//Then it was split in two parts, the other part was sent to the ExternalSextractorSolver class since the internal solver doesn't need it
+//This part extracts the options from the FITS file and prepares them for use by the internal or external solver
 bool MainWindow::getSolverOptionsFromFITS()
 {
     clearAstrometrySettings();
@@ -1635,10 +1652,12 @@ bool MainWindow::getSolverOptionsFromFITS()
 }
 
 
-
-//To add new columns to this table, just add it to both functions
+//Note: The next 3 functions are designed to work in an easily editable way.
+//To add new columns to this table, just add them to the first function
+//To have it fill the column when a Sextraction or Solve is complete, add it to one or both of the next two functions
 //So that the column gets setup and then gets filled in.
 
+//This method sets up the solution table to start with.
 void MainWindow::setupSolutionTable()
 {
     //These are in the order that they will appear in the table.
@@ -1672,6 +1691,8 @@ void MainWindow::setupSolutionTable()
     ui->solutionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
+//This adds a Sextraction to the Solution Table
+//To add, remove, or change the way certain columns are filled when a sextraction is finished, edit them here.
 void MainWindow::addSextractionToTable()
 {
     QTableWidget *table = ui->solutionTable;
@@ -1714,6 +1735,8 @@ void MainWindow::addSextractionToTable()
 
 }
 
+//This adds a solution to the Solution Table
+//To add, remove, or change the way certain columns are filled when a solve is finished, edit them here.
 void MainWindow::addSolutionToTable(Solution solution)
 {
     QTableWidget *table = ui->solutionTable;
@@ -1770,6 +1793,8 @@ void MainWindow::addSolutionToTable(Solution solution)
     setItemInColumn(table, "Field", ui->fileNameDisplay->text());
 }
 
+//This will write the solution table to a csv file if the user desires
+//Then the user can analyze the solution information in more detail to try to perfect sextractor and solver parameters
 void MainWindow::saveSolutionTable()
 {
     if (ui->solutionTable->rowCount() == 0)

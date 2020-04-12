@@ -1,3 +1,10 @@
+/*  ExternalSextractorSolver for SexySolver Tester Application, developed by Robert Lancaster, 2020
+
+    This application is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public
+    License as published by the Free Software Foundation; either
+    version 2 of the License, or (at your option) any later version.
+*/
 #include "externalsextractorsolver.h"
 #include <QTextStream>
 #include <QMessageBox>
@@ -6,6 +13,8 @@
 ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SexySolver(imagestats, imageBuffer, parent)
 {
     stats = imagestats;
+
+    //The code below sets default paths for these key external file settings.
 
 #if defined(Q_OS_OSX)
     sextractorBinaryPath = "/usr/local/bin/sex";
@@ -63,7 +72,7 @@ void ExternalSextractorSolver::sextractAndSolve()
         runExternalSolver();
 }
 
-//This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
+//This is the abort method.  For the external sextractor and solver, it uses the kill method to abort the processes
 void ExternalSextractorSolver::abort()
 {
     if(!solver.isNull())
@@ -84,6 +93,7 @@ bool ExternalSextractorSolver::isRunning()
 }
 
 //This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
+//It creates key files needed to run Sextractor from the desired options, then runs the sextractor program using the options.
 bool ExternalSextractorSolver::runExternalSextractor()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -193,6 +203,7 @@ bool ExternalSextractorSolver::runExternalSextractor()
 
 }
 
+//This method prints the output from the external sextractor
 void ExternalSextractorSolver::printSextractorOutput()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -200,6 +211,7 @@ void ExternalSextractorSolver::printSextractorOutput()
 }
 
 //The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
+//It runs the astrometry.net external program using the options selected.
 bool ExternalSextractorSolver::runExternalSolver()
 {
 #ifdef _WIN32
@@ -253,8 +265,8 @@ bool ExternalSextractorSolver::runExternalSolver()
 }
 
 //This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
-//Then it was split in two parts
-//Tnis part generates the argument list from the options for the external solver only
+//Then it was split in two parts (The other part is located in the MainWindow class)
+//This part generates the argument list from the options for the external solver only
 QStringList ExternalSextractorSolver::getSolverArgsList()
 {
     QStringList solverArgs;
@@ -297,7 +309,6 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
 }
 
 //These methods are for the logging of information to the textfield at the bottom of the window.
-//They are used by everything
 
 void ExternalSextractorSolver::logSextractor()
 {
@@ -474,6 +485,8 @@ bool ExternalSextractorSolver::getSextractorTable()
     return true;
 }
 
+//This method was based on a method in KStars.
+//It reads the information from the Solution file from Astrometry.net and puts it into the solution
 bool ExternalSextractorSolver::getSolutionInformation()
 {
     QString solutionFile = tempPath + QDir::separator() + "ExternalSextractor.wcs";
@@ -544,6 +557,8 @@ bool ExternalSextractorSolver::getSolutionInformation()
 
 //This method writes the table to the file
 //I had to create it from the examples on NASA's website
+//When I first made this program, I needed it to generate an xyls file from the internal sextraction
+//Now it is just used on Windows for the external solving because it needs to use the internal sextractor and the external solver.
 //https://heasarc.gsfc.nasa.gov/docs/software/fitsio/quick/node10.html
 //https://heasarc.gsfc.nasa.gov/docs/software/fitsio/cookbook/node16.html
 bool ExternalSextractorSolver::writeSextractorTable()

@@ -1,3 +1,10 @@
+/*  SexySolver Internal Library developed by Robert Lancaster, 2020
+
+    This application is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public
+    License as published by the Free Software Foundation; either
+    version 2 of the License, or (at your option) any later version.
+*/
 #include "sexysolver.h"
 #include "qmath.h"
 
@@ -67,8 +74,6 @@ void SexySolver::createConvFilterFromFWHM(double fwhm)
 
 //The code in this section is my attempt at running an internal sextractor program based on SEP
 //I used KStars and the SEP website as a guide for creating these functions
-//It saves the output to a file in the temp directory.
-
 bool SexySolver::runSEPSextractor()
 {
     if(convFilter.size() == 0)
@@ -317,6 +322,7 @@ void SexySolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
 //external method calls.  This would be critical for running astrometry.net on windows and it might make the code more efficient on Linux and mac since it
 //would not have to prepare command line options and parse them all the time.
 
+//This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.
 void SexySolver::setSearchScale(double fov_low, double fov_high, QString units)
 {
     use_scale = true;
@@ -337,6 +343,7 @@ void SexySolver::setSearchScale(double fov_low, double fov_high, QString units)
         scaleunit = SCALE_UNITS_FOCAL_MM;
 }
 
+//This is a convenience function used to set all the search position parameters based on the ra, dec, and radius
 //Warning!!  This method accepts the RA in decimal form and then will convert it to degrees for Astrometry.net
 void SexySolver::setSearchPosition(double ra, double dec, double rad)
 {
@@ -369,7 +376,6 @@ void SexySolver::addIndexFolderPath(QString pathToAdd)
 
 //This method prepares the job file.  It is based upon the methods parse_job_from_qfits_header and engine_read_job_file in engine.c of astrometry.net
 //as well as the part of the method augment_xylist in augment_xylist.c where it handles xyls files
-
 bool SexySolver::prepare_job() {
     blind_t* bp = &(job->bp);
     solver_t* sp = &(bp->solver);
