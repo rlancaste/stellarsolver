@@ -97,6 +97,14 @@ bool ExternalSextractorSolver::isRunning()
 bool ExternalSextractorSolver::runExternalSextractor()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    QFileInfo file(fileToSolve);
+    if(!file.exists())
+        return false;
+    if(file.suffix() != "fits" && file.suffix() != "fit")
+    {
+        if(!saveAsFITS())
+            return false;
+    }
 
     if(sextractorFilePath == "")
     {
@@ -514,7 +522,7 @@ bool ExternalSextractorSolver::getSolutionInformation()
     QString wcsinfo_stdout = wcsProcess.readAllStandardOutput();
 
     //This is a quick way to find out what keys are available
-   // logOutput(wcsinfo_stdout);
+   // emit logNeedsUpdating(wcsinfo_stdout);
 
     QStringList wcskeys = wcsinfo_stdout.split(QRegExp("[\n]"));
 
@@ -635,6 +643,101 @@ bool ExternalSextractorSolver::writeSextractorTable()
 
     free(xArray);
     free(yArray);
+
+    return true;
+}
+
+//This is very necessary for solving non-fits images with external Sextractor
+//This was copied and pasted and modified from ImageToFITS in fitsdata in KStars
+bool ExternalSextractorSolver::saveAsFITS()
+{
+    QFileInfo fileInfo(fileToSolve.toLatin1());
+    QString newFilename = tempPath + QDir::separator() + fileInfo.baseName() + "_solve.fits";
+
+    int status = 0;
+    fitsfile * new_fptr;
+
+    //I am hoping that this is correct.
+    //I"m trying to set these two variables based on the ndim variable since this class doesn't have access to these variables.
+    long naxis;
+    int m_Channels;
+    if (stats.ndim < 3)
+    {
+        m_Channels = 1;
+        naxis = 2;
+    }
+    else
+    {
+        m_Channels = 3;
+        naxis = 3;
+    }
+
+    long nelements, exposure;
+    long naxes[3] = { stats.width, stats.height, m_Channels };
+    char error_status[512] = {0};
+
+    QFileInfo newFileInfo(newFilename);
+    if(newFileInfo.exists())
+        QFile(newFilename).remove();
+
+    nelements = stats.samples_per_channel * m_Channels;
+
+    /* Create a new File, overwriting existing*/
+    if (fits_create_file(&new_fptr, newFilename.toLatin1(), &status))
+    {
+        fits_report_error(stderr, status);
+        return false;
+    }
+
+    fitsfile *fptr = new_fptr;
+
+    if (fits_create_img(fptr, BYTE_IMG, naxis, naxes, &status))
+    {
+        emit logNeedsUpdating(QString("fits_create_img failed: %1").arg(error_status));
+        status = 0;
+        fits_flush_file(fptr, &status);
+        fits_close_file(fptr, &status);
+        return false;
+    }
+
+    /* Write Data */
+    if (fits_write_img(fptr, stats.dataType, 1, nelements, m_ImageBuffer, &status))
+    {
+        fits_report_error(stderr, status);
+        return false;
+    }
+
+    /* Write keywords */
+
+    exposure = 1;
+    fits_update_key(fptr, TLONG, "EXPOSURE", &exposure, "Total Exposure Time", &status);
+
+    // NAXIS1
+    if (fits_update_key(fptr, TUSHORT, "NAXIS1", &(stats.width), "length of data axis 1", &status))
+    {
+        fits_report_error(stderr, status);
+        return false;
+    }
+
+    // NAXIS2
+    if (fits_update_key(fptr, TUSHORT, "NAXIS2", &(stats.height), "length of data axis 2", &status))
+    {
+        fits_report_error(stderr, status);
+        return false;
+    }
+
+    // ISO Date
+    if (fits_write_date(fptr, &status))
+    {
+        fits_report_error(stderr, status);
+        return false;
+    }
+
+    fileToSolve = newFilename;
+
+    fits_flush_file(fptr, &status);
+
+    emit logNeedsUpdating("Saved FITS file:" + fileToSolve);
 
     return true;
 }

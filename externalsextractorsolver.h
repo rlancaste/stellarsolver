@@ -55,6 +55,7 @@ public:
     bool writeSextractorTable();
     bool getSextractorTable();
     bool getSolutionInformation();
+    bool saveAsFITS();
 
 private:
     QPointer<QProcess> solver;

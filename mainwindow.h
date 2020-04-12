@@ -193,7 +193,6 @@ public slots:
     bool imageLoad();
     bool loadFits();
     bool loadOtherFormat();
-    bool saveAsFITS();
     bool debayer();
     bool debayer_8bit();
     bool debayer_16bit();

@@ -141,6 +141,9 @@ public:
     //This is the method that actually runs the internal sextractor
     bool runSEPSextractor();
 
+    // The generic data buffer containing the image data
+    uint8_t *m_ImageBuffer { nullptr };
+
 private:
 
     // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
@@ -148,8 +151,7 @@ private:
     // This is information about the image
     Statistic stats;
 
-    // The generic data buffer containing the image data
-    uint8_t *m_ImageBuffer { nullptr };
+
 
     //This is the job file that will be created for astrometry.net to solve
     job_t thejob;
