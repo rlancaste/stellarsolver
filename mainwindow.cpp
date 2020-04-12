@@ -399,6 +399,7 @@ bool MainWindow::solveImage()
 #ifdef _WIN32 //This is because the sextractor program is VERY difficult to install,
     if(sextractInternally())
     {
+        writeSextractorTable();
 #endif
         if(solveExternally())
             return true;
@@ -577,7 +578,6 @@ bool MainWindow::sextractorComplete(int error)
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
         addSextractionToTable();
-        writeSextractorTable();  //Just in case they then want to solve it.
         return true;
     }
     else
