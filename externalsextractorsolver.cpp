@@ -208,10 +208,27 @@ bool ExternalSextractorSolver::runExternalSextractor()
         }
         convFile.close();
     }
+
+    //Arguments from the default.sex file
+    //------------------------------- Extraction ----------------------------------
+    sextractorArgs << "-DETECT_TYPE" << "CCD";
+    sextractorArgs << "-DETECT_MINAREA" << QString::number(minarea);
+
+    //sextractorArgs << "-DETECT_THRESH" << QString::number();
+    //sextractorArgs << "-ANALYSIS_THRESH" << QString::number(minarea);
+
     sextractorArgs << "-FILTER" << "Y";
     sextractorArgs << "-FILTER_NAME" << convPath;
-    sextractorArgs << "-MAG_ZEROPOINT" << QString::number(magzero);
 
+    sextractorArgs << "-DEBLEND_NTHRESH" << QString::number(deblend_thresh);
+    sextractorArgs << "-DEBLEND_MINCONT" << QString::number(deblend_contrast);
+
+    sextractorArgs << "-CLEAN" << ((clean == 1)? "Y" :"N");
+    sextractorArgs << "-CLEAN_PARAM" << QString::number(clean_param);
+
+    //------------------------------ Photometry -----------------------------------
+    sextractorArgs << "-PHOT_AUTOPARAMS" << QString::number(kron_fact) + "," + QString::number(r_min);
+    sextractorArgs << "-MAG_ZEROPOINT" << QString::number(magzero);
 
     sextractorArgs <<  fileToSolve;
 
