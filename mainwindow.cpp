@@ -1275,7 +1275,7 @@ void MainWindow::mouseOverStar(QPoint location)
         QRect starInImage = getStarInImage(star);
         if(starInImage.contains(location))
         {
-            QString text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux);
+            QString text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5, HFR: %6").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.HFR);
             QToolTip::showText(QCursor::pos(), text, ui->Image);
             selectedStar = i;
             starFound = true;
@@ -1366,6 +1366,7 @@ void MainWindow::updateStarTableFromList()
     addColumnToTable(table,"X_IMAGE");
     addColumnToTable(table,"Y_IMAGE");
     addColumnToTable(table,"FLUX_AUTO");
+    addColumnToTable(table,"HFR");
     addColumnToTable(table,"a");
     addColumnToTable(table,"b");
     addColumnToTable(table,"theta");
@@ -1377,6 +1378,7 @@ void MainWindow::updateStarTableFromList()
 
         setItemInColumn(table, "MAG_AUTO", QString::number(star.mag));
         setItemInColumn(table, "FLUX_AUTO", QString::number(star.flux));
+        setItemInColumn(table, "HFR", QString::number(star.HFR));
         setItemInColumn(table, "X_IMAGE", QString::number(star.x));
         setItemInColumn(table, "Y_IMAGE", QString::number(star.y));
         setItemInColumn(table, "a", QString::number(star.a));

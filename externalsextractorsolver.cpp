@@ -151,7 +151,7 @@ bool ExternalSextractorSolver::runExternalSextractor()
     sextractorArgs << "-CATALOG_TYPE" << "FITS_1.0";
 
     //sextractor needs a default.param file in the working directory
-    //This creates that file with the options we need for astrometry.net
+    //This creates that file with the options we need for astrometry.net and sextractor
 
     QString paramPath =  basePath + "/" + "default.param";
     QFile paramFile(paramPath);
@@ -161,17 +161,16 @@ bool ExternalSextractorSolver::runExternalSextractor()
             QMessageBox::critical(nullptr,"Message","Sextractor file write error.");
         else
         {
-            //Note, if you change the parameters here, make sure you delete the default.param file from your temp directory
-            //Since it will only get created if it doesn't exist.
-            //The program will try to do this at launch,but if you choose a different directory, it won't be able to.
             QTextStream out(&paramFile);
-            out << "MAG_AUTO                 Kron-like elliptical aperture magnitude                   [mag]\n";
-            out << "FLUX_AUTO                Flux within a Kron-like elliptical aperture               [count]\n";
-            out << "X_IMAGE                  Object position along x                                   [pixel]\n";
-            out << "Y_IMAGE                  Object position along y                                   [pixel]\n";
-            out << "CXX_IMAGE                Cxx object ellipse parameter                              [pixel**(-2)]\n";
-            out << "CYY_IMAGE                Cyy object ellipse parameter                              [pixel**(-2)]\n";
-            out << "CXY_IMAGE                Cxy object ellipse parameter                              [pixel**(-2)]\n";
+            out << "MAG_AUTO\n";//                 Kron-like elliptical aperture magnitude                   [mag]
+            out << "FLUX_AUTO\n";//                Flux within a Kron-like elliptical aperture               [count]
+            out << "X_IMAGE\n";//                  Object position along x                                   [pixel]
+            out << "Y_IMAGE\n";//                  Object position along y                                   [pixel]
+            out << "CXX_IMAGE\n";//                Cxx object ellipse parameter                              [pixel**(-2)]
+            out << "CYY_IMAGE\n";//                Cyy object ellipse parameter                              [pixel**(-2)]
+            out << "CXY_IMAGE\n";//                Cxy object ellipse parameter                              [pixel**(-2)]
+            //I don't know why, but enabling this causes it to fail to do all of them!
+            //out << "FLUX_RADIUS\n";//              Fraction-of-light radii                                   [pixel]
             paramFile.close();
         }
     }
@@ -480,6 +479,7 @@ bool ExternalSextractorSolver::getSextractorTable()
             float stary = 0;
             float mag = 0;
             float flux = 0;
+            float HFR = 0;
             float xx = 0;
             float yy = 0;
             float xy = 0;
@@ -507,6 +507,8 @@ bool ExternalSextractorSolver::getSextractorTable()
                                 yy = QString(value).trimmed().toFloat();
                             if(ii == 7)
                                 xy = QString(value).trimmed().toFloat();
+                            if(ii == 8)
+                                HFR = QString(value).trimmed().toFloat();
                         }
                 }
 
@@ -522,7 +524,7 @@ bool ExternalSextractorSolver::getSextractorTable()
             float b = sqrt(lambda2);
             float theta = qRadiansToDegrees(atan(xy / (lambda1 - yy)));
 
-            Star star = {starx, stary, mag, flux, a, b, theta};
+            Star star = {starx, stary, mag, flux, HFR, a, b, theta};
 
             stars.append(star);
         }

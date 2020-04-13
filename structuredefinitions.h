@@ -38,6 +38,7 @@ typedef struct
     float y;
     float mag;
     float flux;
+    float HFR;
     float a;
     float b;
     float theta;

@@ -120,13 +120,17 @@ bool SexySolver::runSEPSextractor()
             return false;
     }
 
-    float * imback = nullptr;
-    double * flux = nullptr, *fluxerr = nullptr, *area = nullptr;
-    short * flag = nullptr;
+    float *imback = nullptr;
+    double *fluxerr = nullptr, *area = nullptr;
+    short *flag = nullptr;
     int status = 0;
-    sep_bkg * bkg = nullptr;
+    sep_bkg *bkg = nullptr;
     sep_catalog * catalog = nullptr;
 
+    //These are for the HFR
+    double requested_frac[2] = { 0.5, 0.99 };
+    double flux_fractions[2] = {0};
+    short flux_flag = 0;
 
     // #0 Create SEP Image structure
     sep_image im = {data, nullptr, nullptr, SEP_TFLOAT, 0, 0, w, h, 0.0, SEP_NOISE_NONE, 1.0, 0.0};
@@ -165,6 +169,7 @@ bool SexySolver::runSEPSextractor()
         float a = catalog->a[i];
         float b = catalog->b[i];
         float theta = catalog->theta[i];
+        double flux = catalog->flux[i];
 
         //Variables that will be obtained through methods
         double kronrad;
@@ -209,7 +214,11 @@ bool SexySolver::runSEPSextractor()
 
         float mag = magzero - 2.5 * log10(sum);
 
-        Star star = {xPos , yPos , mag, (float)sum, a, b, qRadiansToDegrees(theta)};
+        //Get HFR
+        sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, subpix, 0, &flux, requested_frac, 2, flux_fractions, &flux_flag);
+        float HFR = flux_fractions[0];
+
+        Star star = {xPos , yPos , mag, (float)sum, HFR, a, b, qRadiansToDegrees(theta)};
 
         stars.append(star);
 
@@ -280,7 +289,6 @@ exit:
     sep_bkg_free(bkg);
     sep_catalog_free(catalog);
     free(imback);
-    free(flux);
     free(fluxerr);
     free(area);
     free(flag);
