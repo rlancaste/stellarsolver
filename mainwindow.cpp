@@ -64,8 +64,8 @@ MainWindow::MainWindow() :
     ui->starList->setSelectionBehavior(QAbstractItemView::SelectRows);
     connect(ui->starList,&QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
 
-    //Behaviors for the Image to interact with the StartList
-    connect(ui->Image,&ImageLabel::mouseHovered,this, &MainWindow::mouseOverStar);
+    //Behaviors for the Mouse over the Image to interact with the StartList and the UI
+    connect(ui->Image,&ImageLabel::mouseHovered,this, &MainWindow::mouseMovedOverImage);
     connect(ui->Image,&ImageLabel::mouseClicked,this, &MainWindow::mouseClickedOnStar);
 
     //Hides the panels into the sides and bottom
@@ -81,7 +81,10 @@ MainWindow::MainWindow() :
     connect(ui->cleanupTemp, &QCheckBox::stateChanged, this, [this](){ cleanupTemporaryFiles = ui->cleanupTemp->isChecked(); });
 
     //Sextractor Settings
+    connect(ui->calculateHFR, &QCheckBox::stateChanged, this, [this](){ calculateHFR = ui->calculateHFR->isChecked(); });
     connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
+    connect(ui->starOptions,QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::updateImage);
+
     connect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){ apertureShape = (Shape) num; });
     connect(ui->kron_fact, &QLineEdit::textChanged, this, [this](){ kron_fact = ui->kron_fact->text().toDouble(); });
     connect(ui->subpix, &QLineEdit::textChanged, this, [this](){ subpix = ui->subpix->text().toDouble(); });
@@ -106,6 +109,7 @@ MainWindow::MainWindow() :
     connect(ui->maxEllipse, &QLineEdit::textChanged, this, [this](){ maxEllipse = ui->maxEllipse->text().toDouble(); });
     connect(ui->brightestPercent, &QLineEdit::textChanged, this, [this](){ removeBrightest = ui->brightestPercent->text().toDouble(); });
     connect(ui->dimmestPercent, &QLineEdit::textChanged, this, [this](){ removeDimmest = ui->dimmestPercent->text().toDouble(); });
+    connect(ui->saturationLimit, &QLineEdit::textChanged, this, [this](){ saturationLimit = ui->saturationLimit->text().toDouble(); });
 
     //Astrometry Settings
     connect(ui->inParallel, &QCheckBox::stateChanged, this, [this](){ inParallel = ui->inParallel->isChecked(); });
@@ -180,11 +184,13 @@ void MainWindow::resetOptionsToDefaults()
         ui->tempPath->setText(tempPath);
 
     //Sextractor Settings
+    calculateHFR = temp.calculateHFR;
     apertureShape = temp.apertureShape;
     kron_fact = temp.kron_fact;
     subpix = temp.subpix;
     r_min = temp.r_min;
 
+        ui->calculateHFR->setChecked(calculateHFR);
         ui->apertureShape->setCurrentIndex(apertureShape);
         ui->kron_fact->setText(QString::number(kron_fact));
         ui->subpix->setText(QString::number(subpix));
@@ -210,10 +216,12 @@ void MainWindow::resetOptionsToDefaults()
     maxEllipse = temp.maxEllipse;
     removeBrightest = temp.removeBrightest;
     removeDimmest = temp.removeDimmest;
+    saturationLimit = temp.saturationLimit;
 
         ui->maxEllipse->setText(QString::number(maxEllipse));
         ui->brightestPercent->setText(QString::number(removeBrightest));
         ui->dimmestPercent->setText(QString::number(removeDimmest));
+        ui->saturationLimit->setText(QString::number(saturationLimit));
 
     //Astrometry Settings
     inParallel = temp.inParallel;
@@ -488,6 +496,7 @@ void MainWindow::setupInternalSexySolver()
 void MainWindow::setSextractorSettings()
 { 
     //These are to pass the parameters to the internal sextractor
+    sexySolver->calculateHFR = calculateHFR;
     sexySolver->apertureShape = apertureShape;
     sexySolver->kron_fact = kron_fact;
     sexySolver->subpix = subpix ;
@@ -505,6 +514,7 @@ void MainWindow::setSextractorSettings()
     sexySolver->removeBrightest = removeBrightest;
     sexySolver->removeDimmest = removeDimmest;
     sexySolver->maxEllipse = maxEllipse;
+    sexySolver->saturationLimit = saturationLimit;
 }
 
 //This sets all the settings for either the internal or external astrometry.net solver
@@ -1169,22 +1179,42 @@ void MainWindow::autoScale()
 
 //This method is intended to get the position and size of the star for rendering purposes
 //It is used to draw circles/ellipses for the stars and to detect when the mouse is over a star
-QRect MainWindow::getStarInImage(Star star)
+QRect MainWindow::getStarSizeInImage(Star star)
 {
+    double width = 0;
+    double height = 0;
+    switch(ui->starOptions->currentIndex())
+    {
+        case 0: //Estimated star size from sextraction
+            if(apertureShape == SHAPE_ELLIPSE || apertureShape == SHAPE_AUTO)
+            {
+                width = 2 * star.a ;
+                height = 2 * star.b;
+            }
+            else
+            {
+                double size = 2 * sqrt( pow(star.a, 2) + pow(star.b, 2) );
+                width = size;
+                height = size;
+            }
+            break;
+
+        case 1: //Estimated HFR based size, 2 x radius is the diameter
+            width = 2 * star.HFR;
+            height = 2 * star.HFR;
+            break;
+
+        case 2: //Estimated 2 x HFD size, 2 x radius is the diameter
+            width = 4 * star.HFR;
+            height = 4 * star.HFR;
+            break;
+    }
+
     double starx = star.x * currentWidth / stats.width ;
     double stary = star.y * currentHeight / stats.height;
-    if(apertureShape == SHAPE_ELLIPSE || apertureShape == SHAPE_AUTO)
-    {
-        double starw = 2 * star.a * currentHeight / stats.height;
-        double starh = 2 * star.b * currentHeight / stats.height;
-        //int r = 10 * currentWidth / stats.width ;
-        return QRect(starx - starw, stary - starh , starw*2, starh*2);
-    }
-    else
-    {
-        double r = r_min * currentHeight / stats.height;
-        return QRect(starx - r, stary - r , r*2, r*2);
-    }
+    double starw = width * currentWidth / stats.width;
+    double starh = height * currentHeight / stats.height;
+    return QRect(starx - starw, stary - starh , starw*2, starh*2);
 }
 
 //This method is very loosely based on updateFrame in Fitsview in Kstars
@@ -1209,7 +1239,7 @@ void MainWindow::updateImage()
         for(int starnum = 0 ; starnum < stars.size() ; starnum++)
         {
             Star star = stars.at(starnum);
-            QRect starInImage = getStarInImage(star);
+            QRect starInImage = getStarSizeInImage(star);
             p.save();
             p.translate(starInImage.center());
             p.rotate(star.theta);
@@ -1264,26 +1294,89 @@ void MainWindow::clearImageBuffers()
     //m_BayerBuffer = nullptr;
 }
 
-//I wrote the is method to respond when the user's mouse is over a star
+//I wrote this method to respond when the user's mouse is over a star
 //It displays details about that particular star in a tooltip and highlights it in the image
-void MainWindow::mouseOverStar(QPoint location)
+//It also displays the x and y position of the mouse in the image and the pixel value at that spot now.
+void MainWindow::mouseMovedOverImage(QPoint location)
 {
-    bool starFound = false;
-    for(int i = 0 ; i < stars.size() ; i ++)
+    if(imageLoaded)
     {
-        Star star = stars.at(i);
-        QRect starInImage = getStarInImage(star);
-        if(starInImage.contains(location))
+        double x = location.x() * stats.width / currentWidth;
+        double y = location.y() * stats.height / currentHeight;
+
+        ui->mouseInfo->setText(QString("X: %1, Y: %2, Value: %3").arg(x).arg(y).arg(getValue(x,y)));
+
+        bool starFound = false;
+        for(int i = 0 ; i < stars.size() ; i ++)
         {
-            QString text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5, HFR: %6").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.HFR);
-            QToolTip::showText(QCursor::pos(), text, ui->Image);
-            selectedStar = i;
-            starFound = true;
-            updateImage();
+            Star star = stars.at(i);
+            QRect starInImage = getStarSizeInImage(star);
+            if(starInImage.contains(location))
+            {
+                QString text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5, HFR: %6").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.HFR);
+                QToolTip::showText(QCursor::pos(), text, ui->Image);
+                selectedStar = i;
+                starFound = true;
+                updateImage();
+            }
         }
+        if(!starFound)
+            QToolTip::hideText();
     }
-    if(!starFound)
-        QToolTip::hideText();
+}
+
+
+
+//This function is based upon code in the method mouseMoveEvent in FITSLabel in KStars
+//It is meant to get the value from the image buffer at a particular pixel location for the display
+//when the mouse is over a certain pixel
+QString MainWindow::getValue(int x, int y)
+{
+    if (m_ImageBuffer == nullptr)
+        return "";
+
+    int index = y * stats.width + x;
+    QString stringValue;
+
+    switch (stats.dataType)
+    {
+        case TBYTE:
+            stringValue = QLocale().toString(m_ImageBuffer[index]);
+            break;
+
+        case TSHORT:
+            stringValue = QLocale().toString((reinterpret_cast<int16_t *>(m_ImageBuffer))[index]);
+            break;
+
+        case TUSHORT:
+            stringValue = QLocale().toString((reinterpret_cast<uint16_t *>(m_ImageBuffer))[index]);
+            break;
+
+        case TLONG:
+            stringValue = QLocale().toString((reinterpret_cast<int32_t *>(m_ImageBuffer))[index]);
+            break;
+
+        case TULONG:
+            stringValue = QLocale().toString((reinterpret_cast<uint32_t *>(m_ImageBuffer))[index]);
+            break;
+
+        case TFLOAT:
+            stringValue = QLocale().toString((reinterpret_cast<float *>(m_ImageBuffer))[index], 'f', 5);
+            break;
+
+        case TLONGLONG:
+            stringValue = QLocale().toString(static_cast<int>((reinterpret_cast<int64_t *>(m_ImageBuffer))[index]));
+            break;
+
+        case TDOUBLE:
+            stringValue = QLocale().toString((reinterpret_cast<float *>(m_ImageBuffer))[index], 'f', 5);
+
+            break;
+
+        default:
+            break;
+    }
+    return stringValue;
 }
 
 //I wrote the is method to respond when the user clicks on a star
@@ -1292,7 +1385,7 @@ void MainWindow::mouseClickedOnStar(QPoint location)
 {
     for(int i = 0 ; i < stars.size() ; i ++)
     {
-        QRect starInImage = getStarInImage(stars.at(i));
+        QRect starInImage = getStarSizeInImage(stars.at(i));
         if(starInImage.contains(location))
             ui->starList->selectRow(i);
     }
@@ -1366,7 +1459,9 @@ void MainWindow::updateStarTableFromList()
     addColumnToTable(table,"X_IMAGE");
     addColumnToTable(table,"Y_IMAGE");
     addColumnToTable(table,"FLUX_AUTO");
-    addColumnToTable(table,"HFR");
+    addColumnToTable(table,"PEAK");
+    if(!sexySolver.isNull() && sexySolver->calculateHFR)
+        addColumnToTable(table,"HFR");
     addColumnToTable(table,"a");
     addColumnToTable(table,"b");
     addColumnToTable(table,"theta");
@@ -1378,7 +1473,9 @@ void MainWindow::updateStarTableFromList()
 
         setItemInColumn(table, "MAG_AUTO", QString::number(star.mag));
         setItemInColumn(table, "FLUX_AUTO", QString::number(star.flux));
-        setItemInColumn(table, "HFR", QString::number(star.HFR));
+        setItemInColumn(table, "PEAK", QString::number(star.peak));
+        if(!sexySolver.isNull() && sexySolver->calculateHFR)
+            setItemInColumn(table, "HFR", QString::number(star.HFR));
         setItemInColumn(table, "X_IMAGE", QString::number(star.x));
         setItemInColumn(table, "Y_IMAGE", QString::number(star.y));
         setItemInColumn(table, "a", QString::number(star.a));
@@ -1589,6 +1686,7 @@ void MainWindow::setupSolutionTable()
     addColumnToTable(ui->solutionTable,"Int?");
     addColumnToTable(ui->solutionTable,"Stars");
     //Sextractor Parameters
+     addColumnToTable(ui->solutionTable,"doHFR");
     addColumnToTable(ui->solutionTable,"Shape");
     addColumnToTable(ui->solutionTable,"Kron");
     addColumnToTable(ui->solutionTable,"Subpix");
@@ -1599,6 +1697,11 @@ void MainWindow::setupSolutionTable()
     addColumnToTable(ui->solutionTable,"clean");
     addColumnToTable(ui->solutionTable,"clean param");
     addColumnToTable(ui->solutionTable,"fwhm");
+    //Star Filtering Parameters
+    addColumnToTable(ui->solutionTable,"Max Ell");
+    addColumnToTable(ui->solutionTable,"Cut Bri");
+    addColumnToTable(ui->solutionTable,"Cut Dim");
+    addColumnToTable(ui->solutionTable,"Sat Lim");
     //Astrometry Parameters
     addColumnToTable(ui->solutionTable,"Pos?");
     addColumnToTable(ui->solutionTable,"Scale?");
@@ -1628,6 +1731,7 @@ void MainWindow::addSextractionToTable()
         setItemInColumn(ui->solutionTable, "Int?", "false");
     setItemInColumn(ui->solutionTable, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
+    setItemInColumn(ui->solutionTable,"doHFR", QVariant(sexySolver->calculateHFR).toString());
     QString shapeName="Circle";
     switch(sexySolver->apertureShape)
     {
@@ -1656,51 +1760,21 @@ void MainWindow::addSextractionToTable()
     setItemInColumn(ui->solutionTable,"fwhm", QString::number(sexySolver->fwhm));
     setItemInColumn(ui->solutionTable, "Field", ui->fileNameDisplay->text());
 
+    //StarFilter Parameters
+    setItemInColumn(ui->solutionTable,"Max Ell", QString::number(sexySolver->maxEllipse));
+    setItemInColumn(ui->solutionTable,"Cut Bri", QString::number(sexySolver->removeBrightest));
+    setItemInColumn(ui->solutionTable,"Cut Dim", QString::number(sexySolver->removeDimmest));
+    setItemInColumn(ui->solutionTable,"Sat Lim", QString::number(sexySolver->saturationLimit));
+
 }
 
 //This adds a solution to the Solution Table
 //To add, remove, or change the way certain columns are filled when a solve is finished, edit them here.
 void MainWindow::addSolutionToTable(Solution solution)
 {
+    addSextractionToTable();
+
     QTableWidget *table = ui->solutionTable;
-    table->insertRow(table->rowCount());
-
-    setItemInColumn(table, "Time", QString::number(elapsed));
-
-    if(extSolver.isNull())
-        setItemInColumn(ui->solutionTable, "Int?", "true");
-    else
-        setItemInColumn(ui->solutionTable, "Int?", "false");
-
-    setItemInColumn(ui->solutionTable, "Stars", QString::number(sexySolver->getNumStarsFound()));
-
-    //Sextractor Parameters
-    QString shapeName="Circle";
-    switch(sexySolver->apertureShape)
-    {
-        case SHAPE_AUTO:
-            shapeName = "Auto";
-        break;
-
-        case SHAPE_CIRCLE:
-           shapeName = "Circle";
-        break;
-
-        case SHAPE_ELLIPSE:
-            shapeName = "Ellipse";
-        break;
-    }
-    //Sextractor Parameters
-    setItemInColumn(ui->solutionTable,"Shape", shapeName);
-    setItemInColumn(ui->solutionTable,"Kron", QString::number(sexySolver->kron_fact));
-    setItemInColumn(ui->solutionTable,"Subpix", QString::number(sexySolver->subpix));
-    setItemInColumn(ui->solutionTable,"r_min", QString::number(sexySolver->r_min));
-    setItemInColumn(ui->solutionTable,"minarea", QString::number(sexySolver->minarea));
-    setItemInColumn(ui->solutionTable,"d_thresh", QString::number(sexySolver->deblend_thresh));
-    setItemInColumn(ui->solutionTable,"d_cont", QString::number(sexySolver->deblend_contrast));
-    setItemInColumn(ui->solutionTable,"clean", QString::number(sexySolver->clean));
-    setItemInColumn(ui->solutionTable,"clean param", QString::number(sexySolver->clean_param));
-    setItemInColumn(ui->solutionTable,"fwhm", QString::number(sexySolver->fwhm));
 
     //Astrometry Parameters
     setItemInColumn(ui->solutionTable, "Pos?", QVariant(sexySolver->use_position).toString());

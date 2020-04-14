@@ -64,6 +64,7 @@ public:
     short inflags;
 
     //Sextractor Extraction Parameters
+    bool calculateHFR = false;
     float magzero = 20;
     float minarea = 5;
     int deblend_thresh = 32;
@@ -81,6 +82,7 @@ public:
     double maxEllipse = 0; //The maximum ratio between the semi-major and semi-minor axes for stars to include (a/b)
     double removeBrightest = 0; //The percentage of brightest stars to remove from the list
     double removeDimmest = 0; //The percentage of dimmest stars to remove from the list
+    double saturationLimit = 0; //Remove all stars above a certain threshhold percentage of saturation
 
     //Astrometry Config/Engine Parameters
     QStringList indexFolderPaths; //This is the list of folder paths that the solver will use to search for index files

@@ -170,6 +170,7 @@ bool SexySolver::runSEPSextractor()
         float b = catalog->b[i];
         float theta = catalog->theta[i];
         double flux = catalog->flux[i];
+        double peak = catalog->peak[i];
 
         //Variables that will be obtained through methods
         double kronrad;
@@ -214,11 +215,15 @@ bool SexySolver::runSEPSextractor()
 
         float mag = magzero - 2.5 * log10(sum);
 
-        //Get HFR
-        sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, subpix, 0, &flux, requested_frac, 2, flux_fractions, &flux_flag);
-        float HFR = flux_fractions[0];
+        float HFR = 0;
+        if(calculateHFR)
+        {
+            //Get HFR
+            sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, subpix, 0, &flux, requested_frac, 2, flux_fractions, &flux_flag);
+            HFR = flux_fractions[0];
+        }
 
-        Star star = {xPos , yPos , mag, (float)sum, HFR, a, b, qRadiansToDegrees(theta)};
+        Star star = {xPos , yPos , mag, (float)sum, (float)peak, HFR, a, b, qRadiansToDegrees(theta)};
 
         stars.append(star);
 
@@ -268,6 +273,21 @@ bool SexySolver::runSEPSextractor()
                 Star star = stars.at(i);
                 double ratio = star.a/star.b;
                 if(ratio>maxEllipse)
+                {
+                    stars.removeAt(i);
+                    i--;
+                }
+            }
+        }
+
+        if(saturationLimit > 0.0)
+        {
+            double maxSizeofDataType = pow(2, stats.bytesPerPixel * 8) - 1;
+            emit logNeedsUpdating(QString("Removing the saturated stars with peak values greater than %1 Percent of %2").arg(saturationLimit).arg(maxSizeofDataType));
+            for(int i = 0; i<stars.size();i++)
+            {
+                Star star = stars.at(i);
+                if(star.peak > (saturationLimit/100.0) * maxSizeofDataType)
                 {
                     stars.removeAt(i);
                     i--;

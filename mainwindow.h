@@ -106,6 +106,7 @@ private:
     QString wcsPath;
 
     //Parameters for sextracting
+    bool calculateHFR;
     Shape apertureShape;
     double kron_fact;
     int subpix;
@@ -124,6 +125,7 @@ private:
     double maxEllipse;
     double removeBrightest;
     double removeDimmest;
+    double saturationLimit;
 
     //Parameters for solving
     bool use_scale = false;
@@ -213,9 +215,10 @@ public slots:
     void starClickedInTable();
     void updateStarTableFromList();
 
-    void mouseOverStar(QPoint location);
+    void mouseMovedOverImage(QPoint location);
+    QString getValue(int x, int y);
     void mouseClickedOnStar(QPoint location);
-    QRect getStarInImage(Star star);
+    QRect getStarSizeInImage(Star star);
 
     //This function is for loading and parsing the options
     bool getSolverOptionsFromFITS();
