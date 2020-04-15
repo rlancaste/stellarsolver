@@ -97,7 +97,7 @@
           <x>0</x>
           <y>0</y>
           <width>272</width>
-          <height>347</height>
+          <height>349</height>
          </rect>
         </property>
         <attribute name="label">
@@ -204,7 +204,7 @@
           <x>0</x>
           <y>0</y>
           <width>272</width>
-          <height>347</height>
+          <height>349</height>
          </rect>
         </property>
         <attribute name="label">
@@ -292,7 +292,7 @@
             <string>Show Solution Details</string>
            </property>
            <property name="checked">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -374,7 +374,7 @@
           <x>0</x>
           <y>0</y>
           <width>272</width>
-          <height>347</height>
+          <height>349</height>
          </rect>
         </property>
         <attribute name="label">
@@ -626,7 +626,7 @@
           <x>0</x>
           <y>0</y>
           <width>272</width>
-          <height>347</height>
+          <height>349</height>
          </rect>
         </property>
         <attribute name="label">
@@ -754,7 +754,7 @@
           <x>0</x>
           <y>0</y>
           <width>272</width>
-          <height>347</height>
+          <height>349</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1187,7 +1187,7 @@
            <x>0</x>
            <y>0</y>
            <width>341</width>
-           <height>338</height>
+           <height>340</height>
           </rect>
          </property>
          <property name="sizePolicy">

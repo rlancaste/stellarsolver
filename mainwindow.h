@@ -111,7 +111,7 @@ private:
     bool showStarShapeInfo = false;
     bool showSextractorParams = false;
     bool showAstrometryParams = false;
-    bool showSolutionDetails = false;
+    bool showSolutionDetails = true;
 
     //Parameters for sextracting
     bool calculateHFR;

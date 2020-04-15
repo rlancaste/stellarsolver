@@ -1360,7 +1360,11 @@ void MainWindow::mouseMovedOverImage(QPoint location)
             QRect starInImage = getStarSizeInImage(star);
             if(starInImage.contains(location))
             {
-                QString text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5, HFR: %6").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.HFR);
+                QString text;
+                if(calculateHFR)
+                    text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5, peak:%6, HFR: %7").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.peak).arg(star.HFR);
+                 else
+                    text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5, peak:%6").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.peak);
                 QToolTip::showText(QCursor::pos(), text, ui->Image);
                 selectedStar = i;
                 starFound = true;
