@@ -187,10 +187,11 @@ public slots:
     //These are the functions that run when the bottom buttons are clicked
     bool sextractImage();
     bool solveImage();
+    bool classicSolve();
     bool sextractExternally();
-    bool solveExternally();
+    bool sextractAndSolveExternally();
     bool sextractInternally();
-    bool solveInternally();
+    bool sextractAndSolveInternally();
     void abort();
 
     //These functions are for loading and displaying the image
@@ -232,9 +233,11 @@ public slots:
     //These functions get called when the sextractor or solver finishes
     bool sextractorComplete(int error);
     bool solverComplete(int error);
+    bool classicSolverComplete(int error);
 
     //These functions handle the solution table
     void addSolutionToTable(Solution solution);
+    void addClassicSolutionToTable(Solution solution);
     void saveSolutionTable();
 
 };

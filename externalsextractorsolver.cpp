@@ -14,6 +14,10 @@ ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t
 {
     stats = imagestats;
 
+    //This sets the base name used for the temp files.
+    srand(time(NULL));
+    basename = "externalSextractorSolver_" + QString::number(rand());
+
     //The code below sets default paths for these key external file settings.
 
 #if defined(Q_OS_OSX)
@@ -75,6 +79,12 @@ void ExternalSextractorSolver::sextractAndSolve()
         runExternalSolver();
 }
 
+//This is the method you want to use to solve the image using traditional astrometry.net
+void ExternalSextractorSolver::classicSolve()
+{
+    this->runExternalClassicSolver();
+}
+
 //This is the abort method.  For the external sextractor and solver, it uses the kill method to abort the processes
 void ExternalSextractorSolver::abort()
 {
@@ -133,8 +143,6 @@ bool ExternalSextractorSolver::runExternalSextractor()
     if(sextractorFilePath == "")
     {
         sextractorFilePathIsTempFile = true;
-        srand(time(NULL));
-        basename = "externalSextractorSolver_" + QString::number(rand());
         sextractorFilePath = basePath + "/" + basename + ".xyls";
     }
     QFile sextractorFile(sextractorFilePath);
@@ -314,6 +322,62 @@ bool ExternalSextractorSolver::runExternalSolver()
     return true;
 }
 
+//The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
+//It runs the astrometry.net external program using the options selected.
+bool ExternalSextractorSolver::runExternalClassicSolver()
+{
+    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+    QStringList solverArgs=getClassicSolverArgsList();
+
+    solverArgs << "--backend-config" << confPath;
+
+    QString solutionFile = basePath + "/" + basename + ".wcs";
+    solverArgs << "-W" << solutionFile;
+
+    solverArgs << fileToSolve;
+
+    solver.clear();
+    solver = new QProcess();
+
+    solver->setProcessChannelMode(QProcess::MergedChannels);
+    connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
+    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){getSolutionInformation();emit finished(x);});
+
+#ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work
+        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+        QString path            = env.value("Path", "");
+        QString ansvrPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/";
+        QString pathsToInsert =ansvrPath + "bin;";
+        pathsToInsert += ansvrPath + "lib/lapack;";
+        pathsToInsert += ansvrPath + "lib/astrometry/bin;";
+        env.insert("Path", pathsToInsert + path);
+        solver->setProcessEnvironment(env);
+#endif
+
+#ifdef Q_OS_OSX
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    QString path            = env.value("PATH", "");
+    QString pythonExecPath = "/usr/local/opt/python/libexec/bin";
+
+    env.insert("PATH", "/Applications/KStars.app/Contents/MacOS/netpbm/bin:" + pythonExecPath + ":/usr/local/bin:" + path);
+
+    solver->setProcessEnvironment(env);
+
+#endif
+
+    solver->start(solverPath, solverArgs);
+
+    emit logNeedsUpdating("Starting external Astrometry.net solver using python and without Sextractor first...");
+    emit logNeedsUpdating("Command: " + solverPath + solverArgs.join(" "));
+
+
+    QString command = solverPath + ' ' + solverArgs.join(' ');
+
+    emit logNeedsUpdating(command);
+    return true;
+}
+
 //This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
 //Then it was split in two parts (The other part is located in the MainWindow class)
 //This part generates the argument list from the options for the external solver only
@@ -348,6 +412,33 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
                 //This may need to be changed later, but since the goal for using sextractor is to avoid python, this is placed here.
     solverArgs << "--no-remove-lines";
     solverArgs << "--uniformize" << "0";
+
+    if (use_scale)
+        solverArgs << "-L" << QString::number(scalelo) << "-H" << QString::number(scalehi) << "-u" << units;
+
+    if (use_position)
+        solverArgs << "-3" << QString::number(search_ra) << "-4" << QString::number(search_dec) << "-5" << QString::number(search_radius);
+
+    return solverArgs;
+}
+
+//This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
+//Then it was split in two parts (The other part is located in the MainWindow class)
+//This part generates the argument list from the options for the external solver only
+//Unlike the copy of this above, the arguments for eliminating python and using sextractor have been removed.
+QStringList ExternalSextractorSolver::getClassicSolverArgsList()
+{
+    QStringList solverArgs;
+
+    // Start with always-used arguments
+    solverArgs << "-O"
+                << "--no-plots";
+
+    // Now go over boolean options
+    solverArgs << "--no-verify";
+
+    // downsample
+    solverArgs << "--downsample" << QString::number(2);
 
     if (use_scale)
         solverArgs << "-L" << QString::number(scalelo) << "-H" << QString::number(scalehi) << "-u" << units;
@@ -620,8 +711,6 @@ bool ExternalSextractorSolver::writeSextractorTable()
     if(sextractorFilePath == "")
     {
         sextractorFilePathIsTempFile = true;
-        srand(time(NULL));
-        basename = "externalSextractorSolver_" + QString::number(rand());
         sextractorFilePath = basePath + "/" + basename + ".xyls";
     }
 

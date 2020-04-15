@@ -96,8 +96,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>294</width>
-          <height>265</height>
+          <width>320</width>
+          <height>297</height>
          </rect>
         </property>
         <attribute name="label">
@@ -203,7 +203,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>294</width>
+          <width>320</width>
           <height>297</height>
          </rect>
         </property>
@@ -370,8 +370,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>294</width>
-          <height>265</height>
+          <width>320</width>
+          <height>297</height>
          </rect>
         </property>
         <attribute name="label">
@@ -388,7 +388,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>268</width>
+              <width>294</width>
               <height>464</height>
              </rect>
             </property>
@@ -622,8 +622,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>294</width>
-          <height>265</height>
+          <width>320</width>
+          <height>297</height>
          </rect>
         </property>
         <attribute name="label">
@@ -655,7 +655,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>313</width>
+              <width>318</width>
               <height>848</height>
              </rect>
             </property>
@@ -997,8 +997,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>328</width>
-              <height>88</height>
+              <width>314</width>
+              <height>99</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -1055,8 +1055,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>330</width>
-           <height>260</height>
+           <width>316</width>
+           <height>281</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -1165,6 +1165,13 @@
         </property>
         <property name="checked">
          <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="classicSolve">
+        <property name="text">
+         <string>Classic Solve</string>
         </property>
        </widget>
       </item>

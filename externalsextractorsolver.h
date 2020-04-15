@@ -22,13 +22,16 @@ public:
     //These are the methods that you can use for the External Programs to Sextract or Solve
     void sextract();
     void sextractAndSolve();
+    void classicSolve();
 
     void abort();
     bool isRunning();
 
     bool runExternalSextractor();
     bool runExternalSolver();
+    bool runExternalClassicSolver();
     QStringList getSolverArgsList();
+    QStringList getClassicSolverArgsList();
 
     QString fileToSolve;
     bool fileToSolveIsTempFile = false;

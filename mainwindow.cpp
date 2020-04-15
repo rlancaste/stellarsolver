@@ -54,6 +54,7 @@ MainWindow::MainWindow() :
     //The Options at the bottom of the Window
     connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractImage );
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveImage );
+    connect(ui->classicSolve,&QAbstractButton::clicked, this, &MainWindow::classicSolve );
 
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     connect(ui->reset, &QPushButton::clicked, this, &MainWindow::resetOptionsToDefaults);
@@ -385,9 +386,27 @@ bool MainWindow::solveImage()
 
     //If the Use SexySolver CheckBox is checked, use the internal method instead.
     if(ui->useSexySolver->isChecked())
-        return solveInternally();
+        return sextractAndSolveInternally();
 
-    solveExternally();
+    sextractAndSolveExternally();
+    return true;
+}
+
+//This method runs when the user clicks the Classic Solve button
+//It is meant to run the traditional solve KStars used to do using python and astrometry.net
+bool MainWindow::classicSolve()
+{
+    if(!prepareForProcesses())
+        return false;
+
+    setupExternalSextractorSolver();
+    setSolverSettings();
+
+    connect(sexySolver, &SexySolver::finished, this, &MainWindow::classicSolverComplete);
+
+    solverTimer.start();
+    extSolver->classicSolve();
+
     return true;
 }
 
@@ -410,7 +429,7 @@ bool MainWindow::sextractExternally()
 
 //I wrote this method to call the external sextractor and solver program.
 //It times the entire process and prints out how long it took
-bool MainWindow::solveExternally()
+bool MainWindow::sextractAndSolveExternally()
 {
     setupExternalSextractorSolver();
 
@@ -444,7 +463,7 @@ bool MainWindow::sextractInternally()
 //I wrote this method to start the internal solver in the SexySolver.
 //It runs in a separate thread so that it is nonblocking
 //It times the entire process and prints out how long it took
-bool MainWindow::solveInternally()
+bool MainWindow::sextractAndSolveInternally()
 {
       setupInternalSexySolver();
 
@@ -585,6 +604,28 @@ bool MainWindow::solverComplete(int error)
         logOutput(QString("Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         addSolutionToTable(sexySolver->solution);
+        return true;
+    }
+    else
+    {
+        elapsed = solverTimer.elapsed() / 1000.0;
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        logOutput(QString("Solver failed after %1 second(s).").arg( elapsed));
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        return false;
+    }
+}
+
+//This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the solution table.
+bool MainWindow::classicSolverComplete(int error)
+{
+    if(error == 0)
+    {
+        elapsed = solverTimer.elapsed() / 1000.0;
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        logOutput(QString("Classic Solving took a total of: %1 second(s).").arg( elapsed));
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        addClassicSolutionToTable(sexySolver->solution);
         return true;
     }
     else
@@ -1684,6 +1725,7 @@ void MainWindow::setupSolutionTable()
 
     addColumnToTable(ui->solutionTable,"Time");
     addColumnToTable(ui->solutionTable,"Int?");
+    addColumnToTable(ui->solutionTable,"Command");
     addColumnToTable(ui->solutionTable,"Stars");
     //Sextractor Parameters
      addColumnToTable(ui->solutionTable,"doHFR");
@@ -1726,9 +1768,10 @@ void MainWindow::addSextractionToTable()
 
     setItemInColumn(table, "Time", QString::number(elapsed));
     if(extSolver.isNull())
-        setItemInColumn(ui->solutionTable, "Int?", "true");
+        setItemInColumn(ui->solutionTable, "Int?", "Internal");
     else
-        setItemInColumn(ui->solutionTable, "Int?", "false");
+        setItemInColumn(ui->solutionTable, "Int?", "External");
+    setItemInColumn(ui->solutionTable, "Command", "Sextract");
     setItemInColumn(ui->solutionTable, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
     setItemInColumn(ui->solutionTable,"doHFR", QVariant(sexySolver->calculateHFR).toString());
@@ -1775,6 +1818,33 @@ void MainWindow::addSolutionToTable(Solution solution)
     addSextractionToTable();
 
     QTableWidget *table = ui->solutionTable;
+
+    setItemInColumn(ui->solutionTable, "Command", "Sextract and Solve");
+
+    //Astrometry Parameters
+    setItemInColumn(ui->solutionTable, "Pos?", QVariant(sexySolver->use_position).toString());
+    setItemInColumn(ui->solutionTable, "Scale?", QVariant(sexySolver->use_scale).toString());
+    setItemInColumn(ui->solutionTable, "Resort?", QVariant(sexySolver->resort).toString());
+
+    //Results
+    setItemInColumn(table, "RA", solution.rastr);
+    setItemInColumn(table, "DEC", solution.decstr);
+    setItemInColumn(table, "Orientation", QString::number(solution.orientation));
+    setItemInColumn(table, "Field Width", QString::number(solution.fieldWidth));
+    setItemInColumn(table, "Field Height", QString::number(solution.fieldHeight));
+    setItemInColumn(table, "Field", ui->fileNameDisplay->text());
+}
+
+//This adds a solution to the Solution Table
+//To add, remove, or change the way certain columns are filled when a solve is finished, edit them here.
+void MainWindow::addClassicSolutionToTable(Solution solution)
+{
+    QTableWidget *table = ui->solutionTable;
+    table->insertRow(table->rowCount());
+
+    setItemInColumn(table, "Time", QString::number(elapsed));
+    setItemInColumn(ui->solutionTable, "Int?", "External");
+    setItemInColumn(ui->solutionTable, "Command", "Classic Solve");
 
     //Astrometry Parameters
     setItemInColumn(ui->solutionTable, "Pos?", QVariant(sexySolver->use_position).toString());
