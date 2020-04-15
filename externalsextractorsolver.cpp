@@ -297,7 +297,7 @@ bool ExternalSextractorSolver::runExternalSolver()
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
-    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){getSolutionInformation();emit finished(x);});
+    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){ getSextractorTable(); getSolutionInformation();emit finished(x);});
 
 #ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work
         QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
