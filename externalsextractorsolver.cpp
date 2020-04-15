@@ -163,24 +163,22 @@ bool ExternalSextractorSolver::runExternalSextractor()
 
     QString paramPath =  basePath + "/" + "default.param";
     QFile paramFile(paramPath);
-    if(!paramFile.exists())
+    if (paramFile.open(QIODevice::WriteOnly) == false)
+        QMessageBox::critical(nullptr,"Message","Sextractor file write error.");
+    else
     {
-        if (paramFile.open(QIODevice::WriteOnly) == false)
-            QMessageBox::critical(nullptr,"Message","Sextractor file write error.");
-        else
-        {
-            QTextStream out(&paramFile);
-            out << "MAG_AUTO\n";//                 Kron-like elliptical aperture magnitude                   [mag]
-            out << "FLUX_AUTO\n";//                Flux within a Kron-like elliptical aperture               [count]
-            out << "X_IMAGE\n";//                  Object position along x                                   [pixel]
-            out << "Y_IMAGE\n";//                  Object position along y                                   [pixel]
-            out << "CXX_IMAGE\n";//                Cxx object ellipse parameter                              [pixel**(-2)]
-            out << "CYY_IMAGE\n";//                Cyy object ellipse parameter                              [pixel**(-2)]
-            out << "CXY_IMAGE\n";//                Cxy object ellipse parameter                              [pixel**(-2)]
-            //I don't know why, but enabling this causes it to fail to do all of them!
-            //out << "FLUX_RADIUS\n";//              Fraction-of-light radii                                   [pixel]
-            paramFile.close();
-        }
+        QTextStream out(&paramFile);
+        out << "X_IMAGE\n";//                  Object position along x                                   [pixel]
+        out << "Y_IMAGE\n";//                  Object position along y                                   [pixel]
+        out << "MAG_AUTO\n";//                 Kron-like elliptical aperture magnitude                   [mag]
+        out << "FLUX_AUTO\n";//                Flux within a Kron-like elliptical aperture               [count]
+        out << "FLUX_MAX\n";//                 Peak flux above background                                [count]
+        out << "CXX_IMAGE\n";//                Cxx object ellipse parameter                              [pixel**(-2)]
+        out << "CYY_IMAGE\n";//                Cyy object ellipse parameter                              [pixel**(-2)]
+        out << "CXY_IMAGE\n";//                Cxy object ellipse parameter                              [pixel**(-2)]
+        if(calculateHFR)
+            out << "FLUX_RADIUS\n";//              Fraction-of-light radii                                   [pixel]
+        paramFile.close();
     }
     sextractorArgs << "-PARAMETERS_NAME" << paramPath;
 
@@ -478,13 +476,9 @@ bool ExternalSextractorSolver::getSextractorTable()
 
     /* FITS file pointer, defined in fitsio.h */
     char *val, value[1000], nullptrstr[]="*";
-    char keyword[FLEN_KEYWORD], colname[FLEN_VALUE];
     int status = 0;   /*  CFITSIO status value MUST be initialized to zero!  */
-    int hdunum, hdutype = ANY_HDU, ncols, ii, anynul, dispwidth[1000];
+    int hdunum, hdutype = ANY_HDU, ncols, ii, anynul;
     long nelements[1000];
-    int firstcol, lastcol = 1, linewidth;
-    int max_linewidth = 80;
-    int elem, firstelem, lastelem = 0, nelems;
     long jj, nrows, kk;
 
     if (fits_open_diskfile(&new_fptr, sextractorFilePath.toLatin1(), READONLY, &status))
@@ -513,56 +507,9 @@ bool ExternalSextractorSolver::getSextractorTable()
     for (jj=1; jj<=ncols; jj++)
         fits_get_coltype(new_fptr, jj, nullptr, &nelements[jj], nullptr, &status);
 
-
-    /* find the number of columns that will fit within max_linewidth
-     characters */
-    for (;;) {
-        int breakout = 0;
-        linewidth = 0;
-        /* go on to the next element in the current column. */
-        /* (if such an element does not exist, the inner 'for' loop
-         does not get run and we skip to the next column.) */
-        firstcol = lastcol;
-        firstelem = lastelem + 1;
-        elem = firstelem;
-
-        for (lastcol = firstcol; lastcol <= ncols; lastcol++) {
-            int typecode;
-            fits_get_col_display_width(new_fptr, lastcol, &dispwidth[lastcol], &status);
-            fits_get_coltype(new_fptr, lastcol, &typecode, nullptr, nullptr, &status);
-            typecode = abs(typecode);
-            if (typecode == TBIT)
-                nelements[lastcol] = (nelements[lastcol] + 7)/8;
-            else if (typecode == TSTRING)
-                nelements[lastcol] = 1;
-            nelems = nelements[lastcol];
-            for (lastelem = elem; lastelem <= nelems; lastelem++) {
-                int nextwidth = linewidth + dispwidth[lastcol] + 1;
-                if (nextwidth > max_linewidth) {
-                    breakout = 1;
-                    break;
-                }
-                linewidth = nextwidth;
-            }
-            if (breakout)
-                break;
-            /* start at the first element of the next column. */
-            elem = 1;
-        }
-
-        /* if we exited the loop naturally, (not via break) then include all columns. */
-        if (!breakout) {
-            lastcol = ncols;
-            lastelem = nelements[lastcol];
-        }
-
-        if (linewidth == 0)
-            break;
-
         stars.clear();
 
-
-        /* print each column, row by row (there are faster ways to do this) */
+        /* read each column, row by row */
         val = value;
         for (jj = 1; jj <= nrows && !status; jj++) {
                // ui->starList->setItem(jj,0,new QTableWidgetItem(QString::number(jj)));
@@ -570,38 +517,40 @@ bool ExternalSextractorSolver::getSextractorTable()
             float stary = 0;
             float mag = 0;
             float flux = 0;
-            float HFR = 0;
+            float peak = 0;
             float xx = 0;
             float yy = 0;
             float xy = 0;
-            for (ii = firstcol; ii <= lastcol; ii++)
+            float HFR = 0;
+
+            for (ii = 1; ii <= ncols; ii++)
+            {
+                for (kk = 1; kk <= nelements[ii]; kk++)
                 {
-                    kk = ((ii == firstcol) ? firstelem : 1);
-                    nelems = ((ii == lastcol) ? lastelem : nelements[ii]);
-                    for (; kk <= nelems; kk++)
-                        {
-                            /* read value as a string, regardless of intrinsic datatype */
-                            if (fits_read_col_str (new_fptr,ii,jj,kk, 1, nullptrstr,
-                                                   &val, &anynul, &status) )
-                                break;  /* jump out of loop on error */
-                            if(ii == 1)
-                                mag = QString(value).trimmed().toFloat();
-                            if(ii == 2)
-                                flux = QString(value).trimmed().toFloat();
-                            if(ii == 3)
-                                starx = QString(value).trimmed().toFloat();
-                            if(ii == 4)
-                                stary = QString(value).trimmed().toFloat();
-                            if(ii == 5)
-                                xx = QString(value).trimmed().toFloat();
-                            if(ii == 6)
-                                yy = QString(value).trimmed().toFloat();
-                            if(ii == 7)
-                                xy = QString(value).trimmed().toFloat();
-                            if(ii == 8)
-                                HFR = QString(value).trimmed().toFloat();
-                        }
+                    /* read value as a string, regardless of intrinsic datatype */
+                    if (fits_read_col_str (new_fptr,ii,jj,kk, 1, nullptrstr,
+                                           &val, &anynul, &status) )
+                        break;  /* jump out of loop on error */
+                    if(ii == 1)
+                        starx = QString(value).trimmed().toFloat();
+                    if(ii == 2)
+                        stary = QString(value).trimmed().toFloat();
+                    if(ii == 3)
+                        mag = QString(value).trimmed().toFloat();
+                    if(ii == 4)
+                        flux = QString(value).trimmed().toFloat();
+                    if(ii == 5)
+                        peak = QString(value).trimmed().toFloat();
+                    if(ii == 6)
+                        xx = QString(value).trimmed().toFloat();
+                    if(ii == 7)
+                        yy = QString(value).trimmed().toFloat();
+                    if(ii == 8)
+                        xy = QString(value).trimmed().toFloat();
+                    if(calculateHFR && ii == 9)
+                        HFR = QString(value).trimmed().toFloat();
                 }
+            }
 
             //  xx  xy      or     a   b
             //  xy  yy             b   c
@@ -615,14 +564,10 @@ bool ExternalSextractorSolver::getSextractorTable()
             float b = sqrt(lambda2);
             float theta = qRadiansToDegrees(atan(xy / (lambda1 - yy)));
 
-            Star star = {starx, stary, mag, flux, HFR, a, b, theta};
+            Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta};
 
             stars.append(star);
         }
-
-        if (!breakout)
-            break;
-    }
     fits_close_file(new_fptr, &status);
 
     if (status) fits_report_error(stderr, status); /* print any error message */

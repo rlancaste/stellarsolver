@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>972</width>
-    <height>565</height>
+    <height>942</height>
    </rect>
   </property>
   <property name="font">
@@ -96,8 +96,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>320</width>
-          <height>297</height>
+          <width>272</width>
+          <height>347</height>
          </rect>
         </property>
         <attribute name="label">
@@ -203,14 +203,99 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>320</width>
-          <height>297</height>
+          <width>272</width>
+          <height>347</height>
          </rect>
         </property>
         <attribute name="label">
          <string>SexySolver Options</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_10">
+         <item row="5" column="0" colspan="3">
+          <widget class="QCheckBox" name="showFluxInfo">
+           <property name="text">
+            <string>Show Flux Info</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="0" colspan="3">
+          <widget class="QCheckBox" name="showSextractorParams">
+           <property name="text">
+            <string>Show Sextractor Parameters</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="0" colspan="3">
+          <widget class="QCheckBox" name="showAstrometryParams">
+           <property name="text">
+            <string>Show Astrometry Parameters</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="0">
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="0" column="0" colspan="3">
+          <widget class="QLabel" name="label_49">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Options for Image Viewer</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0" colspan="3">
+          <widget class="QLabel" name="label_50">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Options for the Sextractor Star Table</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="0" colspan="3">
+          <widget class="QCheckBox" name="showSolutionDetails">
+           <property name="text">
+            <string>Show Solution Details</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
          <item row="1" column="0">
           <widget class="QCheckBox" name="showStars">
            <property name="text">
@@ -221,18 +306,26 @@
            </property>
           </widget>
          </item>
-         <item row="6" column="2">
-          <widget class="QLineEdit" name="brightestPercent">
+         <item row="6" column="0" colspan="3">
+          <widget class="QCheckBox" name="showStarShapeInfo">
            <property name="text">
-            <string>0</string>
+            <string>Show Star a, b, θ</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
            </property>
           </widget>
          </item>
-         <item row="1" column="2">
+         <item row="2" column="0">
           <widget class="QComboBox" name="starOptions">
            <item>
             <property name="text">
-             <string>Size of Star</string>
+             <string>Ellipse</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Circle</string>
             </property>
            </item>
            <item>
@@ -247,101 +340,8 @@
            </item>
           </widget>
          </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_39">
-           <property name="text">
-            <string>Max Ellipse</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="2">
-          <widget class="QLineEdit" name="dimmestPercent">
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="2">
-          <widget class="QLineEdit" name="maxEllipse">
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="0">
-          <widget class="QLabel" name="label_41">
-           <property name="text">
-            <string>Cut Dimmest</string>
-           </property>
-          </widget>
-         </item>
-         <item row="8" column="0">
-          <widget class="QLabel" name="label_46">
-           <property name="text">
-            <string>Sat. Limit</string>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="0">
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="8" column="2">
-          <widget class="QLineEdit" name="saturationLimit">
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0" colspan="3">
-          <widget class="QCheckBox" name="calculateHFR">
-           <property name="text">
-            <string>Calculate HFR</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="3">
-          <widget class="QLabel" name="label_44">
-           <property name="text">
-            <string>%</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="3">
-          <widget class="QLabel" name="label_45">
-           <property name="text">
-            <string>%</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="label_40">
-           <property name="text">
-            <string>Cut Brightest</string>
-           </property>
-          </widget>
-         </item>
-         <item row="8" column="3">
-          <widget class="QLabel" name="label_47">
-           <property name="text">
-            <string>%</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0" colspan="3">
-          <widget class="QLabel" name="label_43">
+         <item row="8" column="0" colspan="3">
+          <widget class="QLabel" name="label_53">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -349,17 +349,20 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Star Filtering (stars to leave out)</string>
+            <string>Options for the Results Table</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="9" column="0" colspan="4">
-          <widget class="QLabel" name="label_48">
+         <item row="3" column="0">
+          <widget class="QCheckBox" name="calculateHFR">
            <property name="text">
-            <string>Make these settings 0 to disable them</string>
+            <string>Calculate HFR</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -370,8 +373,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>320</width>
-          <height>297</height>
+          <width>272</width>
+          <height>347</height>
          </rect>
         </property>
         <attribute name="label">
@@ -388,7 +391,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>294</width>
+              <width>246</width>
               <height>464</height>
              </rect>
             </property>
@@ -617,13 +620,141 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="StarFilters">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>272</width>
+          <height>347</height>
+         </rect>
+        </property>
+        <attribute name="label">
+         <string>Star Filtering</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_11">
+         <item row="5" column="1">
+          <widget class="QLineEdit" name="saturationLimit">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLineEdit" name="dimmestPercent">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_46">
+           <property name="text">
+            <string>Sat. Limit</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="brightestPercent">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_41">
+           <property name="text">
+            <string>Cut Dimmest</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="3">
+          <widget class="QLabel" name="label_51">
+           <property name="text">
+            <string>%</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="maxEllipse">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QLabel" name="label_44">
+           <property name="text">
+            <string>%</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_39">
+           <property name="text">
+            <string>Max Ellipse</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_40">
+           <property name="text">
+            <string>Cut Brightest</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="3">
+          <widget class="QLabel" name="label_52">
+           <property name="text">
+            <string>%</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <spacer name="verticalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="6" column="0" colspan="4">
+          <widget class="QLabel" name="label_48">
+           <property name="text">
+            <string>(Make these settings 0 to disable them)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="4">
+          <widget class="QLabel" name="label_43">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Star Filtering Options for SexySolver</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
        <widget class="QWidget" name="Astrometry">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>320</width>
-          <height>297</height>
+          <width>272</width>
+          <height>347</height>
          </rect>
         </property>
         <attribute name="label">
@@ -655,7 +786,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>318</width>
+              <width>313</width>
               <height>848</height>
              </rect>
             </property>
@@ -997,8 +1128,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>314</width>
-              <height>99</height>
+              <width>339</width>
+              <height>126</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -1055,8 +1186,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>316</width>
-           <height>281</height>
+           <width>341</width>
+           <height>338</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -1105,9 +1236,9 @@
               </item>
              </layout>
             </widget>
-            <widget class="QWidget" name="solutionTableView">
+            <widget class="QWidget" name="resultsTableView">
              <attribute name="title">
-              <string>Solution Table</string>
+              <string>Results Table</string>
              </attribute>
              <layout class="QGridLayout" name="gridLayout_7">
               <property name="leftMargin">
@@ -1123,7 +1254,14 @@
                <number>0</number>
               </property>
               <item row="0" column="0">
-               <widget class="QTableWidget" name="solutionTable"/>
+               <widget class="QTableWidget" name="resultsTable">
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="dragDropOverwriteMode">
+                 <bool>false</bool>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -1133,7 +1271,14 @@
         </widget>
        </widget>
       </widget>
-      <widget class="QTableWidget" name="starList"/>
+      <widget class="QTableWidget" name="starList">
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="dragDropOverwriteMode">
+        <bool>false</bool>
+       </property>
+      </widget>
      </widget>
     </item>
     <item>
@@ -1209,7 +1354,7 @@
       <item>
        <widget class="QPushButton" name="exportTable">
         <property name="text">
-         <string>Export Solution Table</string>
+         <string>Export Results Table</string>
         </property>
        </widget>
       </item>

@@ -59,7 +59,7 @@ MainWindow::MainWindow() :
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     connect(ui->reset, &QPushButton::clicked, this, &MainWindow::resetOptionsToDefaults);
     connect(ui->Clear,&QAbstractButton::clicked, this, &MainWindow::clearAll );
-    connect(ui->exportTable,&QAbstractButton::clicked, this, &MainWindow::saveSolutionTable);
+    connect(ui->exportTable,&QAbstractButton::clicked, this, &MainWindow::saveResultsTable);
 
     //Behaviors for the StarList
     ui->starList->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -81,10 +81,17 @@ MainWindow::MainWindow() :
     connect(ui->wcsPath, &QLineEdit::textChanged, this, [this](){ wcsPath = ui->wcsPath->text(); });
     connect(ui->cleanupTemp, &QCheckBox::stateChanged, this, [this](){ cleanupTemporaryFiles = ui->cleanupTemp->isChecked(); });
 
-    //Sextractor Settings
+    //SexySolver Tester Options
     connect(ui->calculateHFR, &QCheckBox::stateChanged, this, [this](){ calculateHFR = ui->calculateHFR->isChecked(); });
     connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
     connect(ui->starOptions,QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::updateImage);
+    connect(ui->showFluxInfo, &QCheckBox::stateChanged, this, [this](){ showFluxInfo = ui->showFluxInfo->isChecked(); updateHiddenStarTableColumns(); });
+    connect(ui->showStarShapeInfo, &QCheckBox::stateChanged, this, [this](){ showStarShapeInfo = ui->showStarShapeInfo->isChecked(); updateHiddenStarTableColumns();});
+    connect(ui->showSextractorParams, &QCheckBox::stateChanged, this, [this](){ showSextractorParams = ui->showSextractorParams->isChecked(); updateHiddenResultsTableColumns(); });
+    connect(ui->showAstrometryParams, &QCheckBox::stateChanged, this, [this](){ showAstrometryParams = ui->showAstrometryParams->isChecked(); updateHiddenResultsTableColumns(); });
+    connect(ui->showSolutionDetails, &QCheckBox::stateChanged, this, [this](){ showSolutionDetails = ui->showSolutionDetails->isChecked(); updateHiddenResultsTableColumns(); });
+
+    //Sextractor Settings
 
     connect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){ apertureShape = (Shape) num; });
     connect(ui->kron_fact, &QLineEdit::textChanged, this, [this](){ kron_fact = ui->kron_fact->text().toDouble(); });
@@ -150,7 +157,7 @@ MainWindow::MainWindow() :
 
     resetOptionsToDefaults();
 
-    setupSolutionTable();
+    setupResultsTable();
 
     debayerParams.method  = DC1394_BAYER_METHOD_NEAREST;
     debayerParams.filter  = DC1394_COLOR_FILTER_RGGB;
@@ -298,8 +305,8 @@ void MainWindow::clearAll()
 {
     ui->logDisplay->clear();
     ui->starList->clearContents();
-    ui->solutionTable->clearContents();
-    ui->solutionTable->setRowCount(0);
+    ui->resultsTable->clearContents();
+    ui->resultsTable->setRowCount(0);
     stars.clear();
     updateImage();
 }
@@ -568,7 +575,7 @@ void MainWindow::setSolverSettings()
 }
 
 //This runs when the sextractor is complete.
-//It reports the time taken, prints a message, loads the sextraction stars to the startable, and adds the sextraction stats to the solution table.
+//It reports the time taken, prints a message, loads the sextraction stars to the startable, and adds the sextraction stats to the results table.
 bool MainWindow::sextractorComplete(int error)
 {
     if(error == 0)
@@ -594,7 +601,7 @@ bool MainWindow::sextractorComplete(int error)
     }
 }
 
-//This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the solution table.
+//This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the results table.
 bool MainWindow::solverComplete(int error)
 {
     if(error == 0)
@@ -616,7 +623,7 @@ bool MainWindow::solverComplete(int error)
     }
 }
 
-//This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the solution table.
+//This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the results table.
 bool MainWindow::classicSolverComplete(int error)
 {
     if(error == 0)
@@ -1226,13 +1233,12 @@ QRect MainWindow::getStarSizeInImage(Star star)
     double height = 0;
     switch(ui->starOptions->currentIndex())
     {
-        case 0: //Estimated star size from sextraction
-            if(apertureShape == SHAPE_ELLIPSE || apertureShape == SHAPE_AUTO)
-            {
-                width = 2 * star.a ;
-                height = 2 * star.b;
-            }
-            else
+        case 0: //Ellipse from Sextraction
+            width = 2 * star.a ;
+            height = 2 * star.b;
+            break;
+
+        case 1: //Circle from Sextraction
             {
                 double size = 2 * sqrt( pow(star.a, 2) + pow(star.b, 2) );
                 width = size;
@@ -1240,12 +1246,12 @@ QRect MainWindow::getStarSizeInImage(Star star)
             }
             break;
 
-        case 1: //Estimated HFR based size, 2 x radius is the diameter
+        case 2: //HFD Size, based on HFR, 2 x radius is the diameter
             width = 2 * star.HFR;
             height = 2 * star.HFR;
             break;
 
-        case 2: //Estimated 2 x HFD size, 2 x radius is the diameter
+        case 3: //2 x HFD size, based on HFR, 4 x radius is 2 x the diameter
             width = 4 * star.HFR;
             height = 4 * star.HFR;
             break;
@@ -1472,6 +1478,16 @@ void addColumnToTable(QTableWidget *table, QString heading)
     table->setHorizontalHeaderItem(colNum,new QTableWidgetItem(heading));
 }
 
+//This is a method I wrote to hide the desired columns in a table based on their name
+void setColumnHidden(QTableWidget *table, QString colName, bool hidden)
+{
+    for(int c = 0; c < table->columnCount() ; c ++)
+    {
+        if(table->horizontalHeaderItem(c)->text() == colName)
+            table->setColumnHidden(c, hidden);
+    }
+}
+
 //This is a helper function that I wrote for the methods below
 //It sets the value of a cell in the column of the specified name in the last row in the table
 bool setItemInColumn(QTableWidget *table, QString colName, QString value)
@@ -1499,10 +1515,12 @@ void MainWindow::updateStarTableFromList()
     addColumnToTable(table,"MAG_AUTO");
     addColumnToTable(table,"X_IMAGE");
     addColumnToTable(table,"Y_IMAGE");
+
     addColumnToTable(table,"FLUX_AUTO");
     addColumnToTable(table,"PEAK");
     if(!sexySolver.isNull() && sexySolver->calculateHFR)
         addColumnToTable(table,"HFR");
+
     addColumnToTable(table,"a");
     addColumnToTable(table,"b");
     addColumnToTable(table,"theta");
@@ -1513,16 +1531,32 @@ void MainWindow::updateStarTableFromList()
         Star star = stars.at(i);
 
         setItemInColumn(table, "MAG_AUTO", QString::number(star.mag));
+        setItemInColumn(table, "X_IMAGE", QString::number(star.x));
+        setItemInColumn(table, "Y_IMAGE", QString::number(star.y));
+
         setItemInColumn(table, "FLUX_AUTO", QString::number(star.flux));
         setItemInColumn(table, "PEAK", QString::number(star.peak));
         if(!sexySolver.isNull() && sexySolver->calculateHFR)
             setItemInColumn(table, "HFR", QString::number(star.HFR));
-        setItemInColumn(table, "X_IMAGE", QString::number(star.x));
-        setItemInColumn(table, "Y_IMAGE", QString::number(star.y));
+
         setItemInColumn(table, "a", QString::number(star.a));
         setItemInColumn(table, "b", QString::number(star.b));
         setItemInColumn(table, "theta", QString::number(star.theta));
     }
+    updateHiddenStarTableColumns();
+}
+
+void MainWindow::updateHiddenStarTableColumns()
+{
+    QTableWidget *table = ui->starList;
+
+    setColumnHidden(table,"FLUX_AUTO", !showFluxInfo);
+    setColumnHidden(table,"PEAK", !showFluxInfo);
+    setColumnHidden(table,"HFR", !showFluxInfo);
+
+    setColumnHidden(table,"a", !showStarShapeInfo);
+    setColumnHidden(table,"b", !showStarShapeInfo);
+    setColumnHidden(table,"theta", !showStarShapeInfo);
 }
 
 //This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
@@ -1718,63 +1752,65 @@ bool MainWindow::getSolverOptionsFromFITS()
 //To have it fill the column when a Sextraction or Solve is complete, add it to one or both of the next two functions
 //So that the column gets setup and then gets filled in.
 
-//This method sets up the solution table to start with.
-void MainWindow::setupSolutionTable()
+//This method sets up the results table to start with.
+void MainWindow::setupResultsTable()
 {
     //These are in the order that they will appear in the table.
 
-    addColumnToTable(ui->solutionTable,"Time");
-    addColumnToTable(ui->solutionTable,"Int?");
-    addColumnToTable(ui->solutionTable,"Command");
-    addColumnToTable(ui->solutionTable,"Stars");
+    addColumnToTable(ui->resultsTable,"Time");
+    addColumnToTable(ui->resultsTable,"Int?");
+    addColumnToTable(ui->resultsTable,"Command");
+    addColumnToTable(ui->resultsTable,"Stars");
     //Sextractor Parameters
-     addColumnToTable(ui->solutionTable,"doHFR");
-    addColumnToTable(ui->solutionTable,"Shape");
-    addColumnToTable(ui->solutionTable,"Kron");
-    addColumnToTable(ui->solutionTable,"Subpix");
-    addColumnToTable(ui->solutionTable,"r_min");
-    addColumnToTable(ui->solutionTable,"minarea");
-    addColumnToTable(ui->solutionTable,"d_thresh");
-    addColumnToTable(ui->solutionTable,"d_cont");
-    addColumnToTable(ui->solutionTable,"clean");
-    addColumnToTable(ui->solutionTable,"clean param");
-    addColumnToTable(ui->solutionTable,"fwhm");
+    addColumnToTable(ui->resultsTable,"doHFR");
+    addColumnToTable(ui->resultsTable,"Shape");
+    addColumnToTable(ui->resultsTable,"Kron");
+    addColumnToTable(ui->resultsTable,"Subpix");
+    addColumnToTable(ui->resultsTable,"r_min");
+    addColumnToTable(ui->resultsTable,"minarea");
+    addColumnToTable(ui->resultsTable,"d_thresh");
+    addColumnToTable(ui->resultsTable,"d_cont");
+    addColumnToTable(ui->resultsTable,"clean");
+    addColumnToTable(ui->resultsTable,"clean param");
+    addColumnToTable(ui->resultsTable,"fwhm");
     //Star Filtering Parameters
-    addColumnToTable(ui->solutionTable,"Max Ell");
-    addColumnToTable(ui->solutionTable,"Cut Bri");
-    addColumnToTable(ui->solutionTable,"Cut Dim");
-    addColumnToTable(ui->solutionTable,"Sat Lim");
+    addColumnToTable(ui->resultsTable,"Max Ell");
+    addColumnToTable(ui->resultsTable,"Cut Bri");
+    addColumnToTable(ui->resultsTable,"Cut Dim");
+    addColumnToTable(ui->resultsTable,"Sat Lim");
     //Astrometry Parameters
-    addColumnToTable(ui->solutionTable,"Pos?");
-    addColumnToTable(ui->solutionTable,"Scale?");
-    addColumnToTable(ui->solutionTable,"Resort?");
+    addColumnToTable(ui->resultsTable,"Pos?");
+    addColumnToTable(ui->resultsTable,"Scale?");
+    addColumnToTable(ui->resultsTable,"Resort?");
     //Results
-    addColumnToTable(ui->solutionTable,"RA");
-    addColumnToTable(ui->solutionTable,"DEC");
-    addColumnToTable(ui->solutionTable,"Orientation");
-    addColumnToTable(ui->solutionTable,"Field Width");
-    addColumnToTable(ui->solutionTable,"Field Height");
-    addColumnToTable(ui->solutionTable,"Field");
+    addColumnToTable(ui->resultsTable,"RA");
+    addColumnToTable(ui->resultsTable,"DEC");
+    addColumnToTable(ui->resultsTable,"Orientation");
+    addColumnToTable(ui->resultsTable,"Field Width");
+    addColumnToTable(ui->resultsTable,"Field Height");
+    addColumnToTable(ui->resultsTable,"Field");
 
-    ui->solutionTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->resultsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+    updateHiddenResultsTableColumns();
 }
 
-//This adds a Sextraction to the Solution Table
+//This adds a Sextraction to the Results Table
 //To add, remove, or change the way certain columns are filled when a sextraction is finished, edit them here.
 void MainWindow::addSextractionToTable()
 {
-    QTableWidget *table = ui->solutionTable;
+    QTableWidget *table = ui->resultsTable;
     table->insertRow(table->rowCount());
 
     setItemInColumn(table, "Time", QString::number(elapsed));
     if(extSolver.isNull())
-        setItemInColumn(ui->solutionTable, "Int?", "Internal");
+        setItemInColumn(ui->resultsTable, "Int?", "Internal");
     else
-        setItemInColumn(ui->solutionTable, "Int?", "External");
-    setItemInColumn(ui->solutionTable, "Command", "Sextract");
-    setItemInColumn(ui->solutionTable, "Stars", QString::number(sexySolver->getNumStarsFound()));
+        setItemInColumn(ui->resultsTable, "Int?", "External");
+    setItemInColumn(ui->resultsTable, "Command", "Sextract");
+    setItemInColumn(ui->resultsTable, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
-    setItemInColumn(ui->solutionTable,"doHFR", QVariant(sexySolver->calculateHFR).toString());
+    setItemInColumn(ui->resultsTable,"doHFR", QVariant(sexySolver->calculateHFR).toString());
     QString shapeName="Circle";
     switch(sexySolver->apertureShape)
     {
@@ -1791,40 +1827,40 @@ void MainWindow::addSextractionToTable()
         break;
     }
 
-    setItemInColumn(ui->solutionTable,"Shape", shapeName);
-    setItemInColumn(ui->solutionTable,"Kron", QString::number(sexySolver->kron_fact));
-    setItemInColumn(ui->solutionTable,"Subpix", QString::number(sexySolver->subpix));
-    setItemInColumn(ui->solutionTable,"r_min", QString::number(sexySolver->r_min));
-    setItemInColumn(ui->solutionTable,"minarea", QString::number(sexySolver->minarea));
-    setItemInColumn(ui->solutionTable,"d_thresh", QString::number(sexySolver->deblend_thresh));
-    setItemInColumn(ui->solutionTable,"d_cont", QString::number(sexySolver->deblend_contrast));
-    setItemInColumn(ui->solutionTable,"clean", QString::number(sexySolver->clean));
-    setItemInColumn(ui->solutionTable,"clean param", QString::number(sexySolver->clean_param));
-    setItemInColumn(ui->solutionTable,"fwhm", QString::number(sexySolver->fwhm));
-    setItemInColumn(ui->solutionTable, "Field", ui->fileNameDisplay->text());
+    setItemInColumn(ui->resultsTable,"Shape", shapeName);
+    setItemInColumn(ui->resultsTable,"Kron", QString::number(sexySolver->kron_fact));
+    setItemInColumn(ui->resultsTable,"Subpix", QString::number(sexySolver->subpix));
+    setItemInColumn(ui->resultsTable,"r_min", QString::number(sexySolver->r_min));
+    setItemInColumn(ui->resultsTable,"minarea", QString::number(sexySolver->minarea));
+    setItemInColumn(ui->resultsTable,"d_thresh", QString::number(sexySolver->deblend_thresh));
+    setItemInColumn(ui->resultsTable,"d_cont", QString::number(sexySolver->deblend_contrast));
+    setItemInColumn(ui->resultsTable,"clean", QString::number(sexySolver->clean));
+    setItemInColumn(ui->resultsTable,"clean param", QString::number(sexySolver->clean_param));
+    setItemInColumn(ui->resultsTable,"fwhm", QString::number(sexySolver->fwhm));
+    setItemInColumn(ui->resultsTable, "Field", ui->fileNameDisplay->text());
 
     //StarFilter Parameters
-    setItemInColumn(ui->solutionTable,"Max Ell", QString::number(sexySolver->maxEllipse));
-    setItemInColumn(ui->solutionTable,"Cut Bri", QString::number(sexySolver->removeBrightest));
-    setItemInColumn(ui->solutionTable,"Cut Dim", QString::number(sexySolver->removeDimmest));
-    setItemInColumn(ui->solutionTable,"Sat Lim", QString::number(sexySolver->saturationLimit));
+    setItemInColumn(ui->resultsTable,"Max Ell", QString::number(sexySolver->maxEllipse));
+    setItemInColumn(ui->resultsTable,"Cut Bri", QString::number(sexySolver->removeBrightest));
+    setItemInColumn(ui->resultsTable,"Cut Dim", QString::number(sexySolver->removeDimmest));
+    setItemInColumn(ui->resultsTable,"Sat Lim", QString::number(sexySolver->saturationLimit));
 
 }
 
-//This adds a solution to the Solution Table
+//This adds a solution to the Results Table
 //To add, remove, or change the way certain columns are filled when a solve is finished, edit them here.
 void MainWindow::addSolutionToTable(Solution solution)
 {
     addSextractionToTable();
 
-    QTableWidget *table = ui->solutionTable;
+    QTableWidget *table = ui->resultsTable;
 
-    setItemInColumn(ui->solutionTable, "Command", "Sextract and Solve");
+    setItemInColumn(ui->resultsTable, "Command", "Sextract and Solve");
 
     //Astrometry Parameters
-    setItemInColumn(ui->solutionTable, "Pos?", QVariant(sexySolver->use_position).toString());
-    setItemInColumn(ui->solutionTable, "Scale?", QVariant(sexySolver->use_scale).toString());
-    setItemInColumn(ui->solutionTable, "Resort?", QVariant(sexySolver->resort).toString());
+    setItemInColumn(ui->resultsTable, "Pos?", QVariant(sexySolver->use_position).toString());
+    setItemInColumn(ui->resultsTable, "Scale?", QVariant(sexySolver->use_scale).toString());
+    setItemInColumn(ui->resultsTable, "Resort?", QVariant(sexySolver->resort).toString());
 
     //Results
     setItemInColumn(table, "RA", solution.rastr);
@@ -1835,21 +1871,21 @@ void MainWindow::addSolutionToTable(Solution solution)
     setItemInColumn(table, "Field", ui->fileNameDisplay->text());
 }
 
-//This adds a solution to the Solution Table
+//This adds a solution to the Results Table
 //To add, remove, or change the way certain columns are filled when a solve is finished, edit them here.
 void MainWindow::addClassicSolutionToTable(Solution solution)
 {
-    QTableWidget *table = ui->solutionTable;
+    QTableWidget *table = ui->resultsTable;
     table->insertRow(table->rowCount());
 
     setItemInColumn(table, "Time", QString::number(elapsed));
-    setItemInColumn(ui->solutionTable, "Int?", "External");
-    setItemInColumn(ui->solutionTable, "Command", "Classic Solve");
+    setItemInColumn(ui->resultsTable, "Int?", "External");
+    setItemInColumn(ui->resultsTable, "Command", "Classic Solve");
 
     //Astrometry Parameters
-    setItemInColumn(ui->solutionTable, "Pos?", QVariant(sexySolver->use_position).toString());
-    setItemInColumn(ui->solutionTable, "Scale?", QVariant(sexySolver->use_scale).toString());
-    setItemInColumn(ui->solutionTable, "Resort?", QVariant(sexySolver->resort).toString());
+    setItemInColumn(ui->resultsTable, "Pos?", QVariant(sexySolver->use_position).toString());
+    setItemInColumn(ui->resultsTable, "Scale?", QVariant(sexySolver->use_scale).toString());
+    setItemInColumn(ui->resultsTable, "Resort?", QVariant(sexySolver->resort).toString());
 
     //Results
     setItemInColumn(table, "RA", solution.rastr);
@@ -1860,14 +1896,46 @@ void MainWindow::addClassicSolutionToTable(Solution solution)
     setItemInColumn(table, "Field", ui->fileNameDisplay->text());
 }
 
-//This will write the solution table to a csv file if the user desires
-//Then the user can analyze the solution information in more detail to try to perfect sextractor and solver parameters
-void MainWindow::saveSolutionTable()
+//I wrote this method to hide certain columns in the Results Table if the user wants to reduce clutter in the table.
+void MainWindow::updateHiddenResultsTableColumns()
 {
-    if (ui->solutionTable->rowCount() == 0)
+    //Sextractor Params
+    setColumnHidden(ui->resultsTable,"doHFR", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"Shape", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"Kron", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"Subpix", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"r_min", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"minarea", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"d_thresh", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"d_cont", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"clean", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"clean param", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"fwhm", !showSextractorParams);
+    //Star Filtering Parameters
+    setColumnHidden(ui->resultsTable,"Max Ell", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"Cut Bri", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"Cut Dim", !showSextractorParams);
+    setColumnHidden(ui->resultsTable,"Sat Lim", !showSextractorParams);
+    //Astrometry Parameters
+    setColumnHidden(ui->resultsTable,"Pos?", !showAstrometryParams);
+    setColumnHidden(ui->resultsTable,"Scale?", !showAstrometryParams);
+    setColumnHidden(ui->resultsTable,"Resort?", !showAstrometryParams);
+    //Results
+    setColumnHidden(ui->resultsTable,"RA", !showSolutionDetails);
+    setColumnHidden(ui->resultsTable,"DEC", !showSolutionDetails);
+    setColumnHidden(ui->resultsTable,"Orientation", !showSolutionDetails);
+    setColumnHidden(ui->resultsTable,"Field Width", !showSolutionDetails);
+    setColumnHidden(ui->resultsTable,"Field Height", !showSolutionDetails);
+}
+
+//This will write the Results table to a csv file if the user desires
+//Then the user can analyze the solution information in more detail to try to perfect sextractor and solver parameters
+void MainWindow::saveResultsTable()
+{
+    if (ui->resultsTable->rowCount() == 0)
         return;
 
-    QUrl exportFile = QFileDialog::getSaveFileUrl(this, "Export Solution Table", dirPath,
+    QUrl exportFile = QFileDialog::getSaveFileUrl(this, "Export Results Table", dirPath,
                       "CSV File (*.csv)");
     if (exportFile.isEmpty()) // if user presses cancel
         return;
@@ -1878,10 +1946,8 @@ void MainWindow::saveSolutionTable()
 
     if (QFile::exists(path))
     {
-        int r = QMessageBox::question(this,
-                QString("A file named \"%1\" already exists. ").arg("Overwrite File?"),
-                     "Overwrite it?",
-                     exportFile.fileName());
+        int r = QMessageBox::question(this, "Overwrite it?",
+                QString("A file named \"%1\" already exists. Do you want to overwrite it?").arg(exportFile.fileName()));
         if (r == QMessageBox::No)
             return;
     }
@@ -1904,20 +1970,22 @@ void MainWindow::saveSolutionTable()
 
     QTextStream outstream(&file);
 
-    for (int c = 0; c < ui->solutionTable->columnCount(); c++)
+    for (int c = 0; c < ui->resultsTable->columnCount(); c++)
     {
-        outstream << ui->solutionTable->horizontalHeaderItem(c)->text() << ',';
+        outstream << ui->resultsTable->horizontalHeaderItem(c)->text() << ',';
     }
     outstream << "\n";
 
-    for (int r = 0; r < ui->solutionTable->rowCount(); r++)
+    for (int r = 0; r < ui->resultsTable->rowCount(); r++)
     {
-        for (int c = 0; c < ui->solutionTable->columnCount(); c++)
+        for (int c = 0; c < ui->resultsTable->columnCount(); c++)
         {
-            QTableWidgetItem *cell = ui->solutionTable->item(r, c);
+            QTableWidgetItem *cell = ui->resultsTable->item(r, c);
 
             if (cell)
                 outstream << cell->text() << ',';
+            else
+                outstream << " " << ',';
         }
         outstream << endl;
     }

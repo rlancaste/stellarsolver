@@ -105,6 +105,14 @@ private:
     QString solverPath;
     QString wcsPath;
 
+    //Options for SexySolver Tester
+    bool showStars = true;
+    bool showFluxInfo = false;
+    bool showStarShapeInfo = false;
+    bool showSextractorParams = false;
+    bool showAstrometryParams = false;
+    bool showSolutionDetails = false;
+
     //Parameters for sextracting
     bool calculateHFR;
     Shape apertureShape;
@@ -173,7 +181,7 @@ private:
     QTime solverTimer;
     double elapsed;
 
-    void setupSolutionTable();
+    void setupResultsTable();
     void clearAstrometrySettings();
     void addSextractionToTable();
 
@@ -215,6 +223,7 @@ public slots:
     void sortStars();
     void starClickedInTable();
     void updateStarTableFromList();
+    void updateHiddenStarTableColumns();
 
     void mouseMovedOverImage(QPoint location);
     QString getValue(int x, int y);
@@ -237,8 +246,9 @@ public slots:
 
     //These functions handle the solution table
     void addSolutionToTable(Solution solution);
+    void updateHiddenResultsTableColumns();
     void addClassicSolutionToTable(Solution solution);
-    void saveSolutionTable();
+    void saveResultsTable();
 
 };
 
