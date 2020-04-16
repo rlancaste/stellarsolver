@@ -282,15 +282,29 @@ bool SexySolver::runSEPSextractor()
 
         if(saturationLimit > 0.0)
         {
-            double maxSizeofDataType = pow(2, stats.bytesPerPixel * 8) - 1;
-            emit logNeedsUpdating(QString("Removing the saturated stars with peak values greater than %1 Percent of %2").arg(saturationLimit).arg(maxSizeofDataType));
-            for(int i = 0; i<stars.size();i++)
+            double maxSizeofDataType;
+            if(stats.dataType == TSHORT || stats.dataType == TLONG || stats.dataType == TLONGLONG)
+                maxSizeofDataType = pow(2, stats.bytesPerPixel * 7) - 1;
+            else if(stats.dataType == TUSHORT || stats.dataType == TULONG || stats.dataType == TULONGLONG)
+                maxSizeofDataType = pow(2, stats.bytesPerPixel * 8) - 1;
+            else // Float and Double Images are unlikely to saturate
+                maxSizeofDataType = -1;
+
+            if(maxSizeofDataType == -1)
             {
-                Star star = stars.at(i);
-                if(star.peak > (saturationLimit/100.0) * maxSizeofDataType)
+                emit logNeedsUpdating("Skipping Saturation filter");
+            }
+            else
+            {
+                emit logNeedsUpdating(QString("Removing the saturated stars with peak values greater than %1 Percent of %2").arg(saturationLimit).arg(maxSizeofDataType));
+                for(int i = 0; i<stars.size();i++)
                 {
-                    stars.removeAt(i);
-                    i--;
+                    Star star = stars.at(i);
+                    if(star.peak > (saturationLimit/100.0) * maxSizeofDataType)
+                    {
+                        stars.removeAt(i);
+                        i--;
+                    }
                 }
             }
         }
