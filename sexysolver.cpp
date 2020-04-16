@@ -284,7 +284,7 @@ bool SexySolver::runSEPSextractor()
         {
             double maxSizeofDataType;
             if(stats.dataType == TSHORT || stats.dataType == TLONG || stats.dataType == TLONGLONG)
-                maxSizeofDataType = pow(2, stats.bytesPerPixel * 7) - 1;
+                maxSizeofDataType = pow(2, stats.bytesPerPixel * 8) / 2 - 1;
             else if(stats.dataType == TUSHORT || stats.dataType == TULONG || stats.dataType == TULONGLONG)
                 maxSizeofDataType = pow(2, stats.bytesPerPixel * 8) - 1;
             else // Float and Double Images are unlikely to saturate
