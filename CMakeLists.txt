@@ -280,6 +280,10 @@ set(SexySolverApp_ICON SexySolverIcon.icns)
 set_source_files_properties(${SexySolverApp_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 endif(APPLE)
 
+if(WIN32)
+set(SexySolverApp_ICON windowsicon.rc)
+endif(WIN32)
+
 add_executable(SexySolver ${SexySolver_SRCS} ${SexySolverui_SRCS} ${SexySolverApp_ICON})
 
 target_link_libraries(SexySolver sep astrometry)
@@ -293,7 +297,6 @@ target_link_libraries(SexySolver
     Qt5::Core
     Qt5::Concurrent
     )
-
 
 
 if(APPLE)
