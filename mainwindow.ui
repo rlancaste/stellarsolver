@@ -200,7 +200,11 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QLineEdit" name="configFilePath"/>
+          <widget class="QLineEdit" name="configFilePath">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
          </item>
          <item row="0" column="0">
           <widget class="QLabel" name="label_3">
@@ -255,7 +259,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>213</width>
           <height>333</height>
          </rect>
         </property>
@@ -425,263 +429,244 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
-          <height>306</height>
+          <width>208</width>
+          <height>474</height>
          </rect>
         </property>
         <attribute name="label">
          <string>Sextractor</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_8">
-         <item row="0" column="2">
-          <widget class="QScrollArea" name="scrollArea_4">
-           <property name="widgetResizable">
+         <item row="5" column="1">
+          <widget class="QCheckBox" name="cleanCheckBox">
+           <property name="text">
+            <string>Clean?</string>
+           </property>
+           <property name="checked">
             <bool>true</bool>
            </property>
-           <widget class="QWidget" name="scrollAreaWidgetContents_4">
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>0</y>
-              <width>224</width>
-              <height>474</height>
-             </rect>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_9">
-             <item row="20" column="2">
-              <widget class="QLabel" name="label_14">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Photometry</string>
-               </property>
-              </widget>
-             </item>
-             <item row="8" column="0">
-              <widget class="QLabel" name="label_24">
-               <property name="text">
-                <string>Sub Pix</string>
-               </property>
-              </widget>
-             </item>
-             <item row="25" column="2">
-              <widget class="QComboBox" name="apertureShape">
-               <property name="currentIndex">
-                <number>1</number>
-               </property>
-               <item>
-                <property name="text">
-                 <string>Auto</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Circle</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Ellipse</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-             <item row="6" column="0">
-              <widget class="QLabel" name="label_25">
-               <property name="text">
-                <string>Kron Factor</string>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="2">
-              <widget class="QLabel" name="label_38">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Extraction</string>
-               </property>
-              </widget>
-             </item>
-             <item row="17" column="2">
-              <widget class="QLineEdit" name="deblend_thresh">
-               <property name="text">
-                <string>32</string>
-               </property>
-              </widget>
-             </item>
-             <item row="10" column="0">
-              <widget class="QCheckBox" name="cleanCheckBox">
-               <property name="text">
-                <string>Clean?</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="17" column="0">
-              <widget class="QLabel" name="label_18">
-               <property name="text">
-                <string>Threshhold</string>
-               </property>
-              </widget>
-             </item>
-             <item row="10" column="2">
-              <widget class="QLineEdit" name="clean_param">
-               <property name="text">
-                <string>1</string>
-               </property>
-              </widget>
-             </item>
-             <item row="29" column="0">
-              <widget class="QLabel" name="label_13">
-               <property name="text">
-                <string>r_min</string>
-               </property>
-              </widget>
-             </item>
-             <item row="14" column="0">
-              <widget class="QLabel" name="label_23">
-               <property name="text">
-                <string>FWHM</string>
-               </property>
-              </widget>
-             </item>
-             <item row="8" column="2">
-              <widget class="QLineEdit" name="subpix">
-               <property name="text">
-                <string>5</string>
-               </property>
-              </widget>
-             </item>
-             <item row="7" column="0">
-              <widget class="QLabel" name="label_21">
-               <property name="text">
-                <string>Min Area</string>
-               </property>
-              </widget>
-             </item>
-             <item row="30" column="0">
-              <widget class="QLabel" name="label_15">
-               <property name="text">
-                <string>magzero</string>
-               </property>
-              </widget>
-             </item>
-             <item row="6" column="2">
-              <widget class="QLineEdit" name="kron_fact">
-               <property name="text">
-                <string>3.5</string>
-               </property>
-              </widget>
-             </item>
-             <item row="9" column="0">
-              <widget class="QLabel" name="label_17">
-               <property name="text">
-                <string>Threshhold</string>
-               </property>
-              </widget>
-             </item>
-             <item row="14" column="2">
-              <widget class="QLineEdit" name="fwhm">
-               <property name="text">
-                <string>2</string>
-               </property>
-              </widget>
-             </item>
-             <item row="16" column="2">
-              <widget class="QLabel" name="label_20">
-               <property name="text">
-                <string>Deblend</string>
-               </property>
-              </widget>
-             </item>
-             <item row="19" column="2">
-              <widget class="QLineEdit" name="deblend_contrast">
-               <property name="text">
-                <string>1</string>
-               </property>
-              </widget>
-             </item>
-             <item row="13" column="2">
-              <widget class="QLabel" name="label_22">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Conv Filter</string>
-               </property>
-              </widget>
-             </item>
-             <item row="25" column="0">
-              <widget class="QLabel" name="label_12">
-               <property name="text">
-                <string>Shape</string>
-               </property>
-              </widget>
-             </item>
-             <item row="9" column="2">
-              <widget class="QLineEdit" name="detect_thresh">
-               <property name="text">
-                <string>?????</string>
-               </property>
-              </widget>
-             </item>
-             <item row="7" column="2">
-              <widget class="QLineEdit" name="minarea">
-               <property name="text">
-                <string>5</string>
-               </property>
-              </widget>
-             </item>
-             <item row="30" column="2">
-              <widget class="QLineEdit" name="magzero">
-               <property name="text">
-                <string>20</string>
-               </property>
-              </widget>
-             </item>
-             <item row="19" column="0">
-              <widget class="QLabel" name="label_19">
-               <property name="text">
-                <string>Min Contrast</string>
-               </property>
-              </widget>
-             </item>
-             <item row="29" column="2">
-              <widget class="QLineEdit" name="r_min">
-               <property name="text">
-                <string>3.5</string>
-               </property>
-              </widget>
-             </item>
-             <item row="31" column="2">
-              <spacer name="verticalSpacer_4">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </widget>
           </widget>
+         </item>
+         <item row="13" column="3">
+          <widget class="QComboBox" name="apertureShape">
+           <property name="currentIndex">
+            <number>1</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>Auto</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Circle</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Ellipse</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="11" column="3">
+          <widget class="QLineEdit" name="fwhm">
+           <property name="text">
+            <string>2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="label_21">
+           <property name="text">
+            <string>Min Area</string>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="1">
+          <widget class="QLabel" name="label_19">
+           <property name="text">
+            <string>Min Cont.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QLineEdit" name="subpix">
+           <property name="text">
+            <string>5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="3">
+          <widget class="QLineEdit" name="clean_param">
+           <property name="text">
+            <string>1</string>
+           </property>
+          </widget>
+         </item>
+         <item row="15" column="3">
+          <widget class="QLineEdit" name="magzero">
+           <property name="text">
+            <string>20</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1" colspan="3">
+          <widget class="QLabel" name="label_38">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Extraction Params</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QLineEdit" name="kron_fact">
+           <property name="text">
+            <string>3.5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="1">
+          <widget class="QLabel" name="label_12">
+           <property name="text">
+            <string>Shape</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLabel" name="label_17">
+           <property name="text">
+            <string>Threshhold</string>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="1">
+          <widget class="QLabel" name="label_23">
+           <property name="text">
+            <string>FWHM</string>
+           </property>
+          </widget>
+         </item>
+         <item row="15" column="1">
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>magzero</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLabel" name="label_24">
+           <property name="text">
+            <string>Sub Pix</string>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="1">
+          <widget class="QLabel" name="label_13">
+           <property name="text">
+            <string>r_min</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3">
+          <widget class="QLineEdit" name="minarea">
+           <property name="text">
+            <string>5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_25">
+           <property name="text">
+            <string>Kron Factor</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="3">
+          <widget class="QLineEdit" name="deblend_thresh">
+           <property name="text">
+            <string>32</string>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="1" colspan="3">
+          <widget class="QLabel" name="label_22">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Conv Filter</string>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="3">
+          <widget class="QLineEdit" name="deblend_contrast">
+           <property name="text">
+            <string>1</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="3">
+          <widget class="QLineEdit" name="detect_thresh">
+           <property name="text">
+            <string>?????</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1" colspan="3">
+          <widget class="QLabel" name="label_20">
+           <property name="text">
+            <string>Deblending Params</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="1">
+          <widget class="QLabel" name="label_18">
+           <property name="text">
+            <string>Threshhold</string>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="1" colspan="3">
+          <widget class="QLabel" name="label_14">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Photometry Params</string>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="3">
+          <widget class="QLineEdit" name="r_min">
+           <property name="text">
+            <string>3.5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="16" column="3">
+          <spacer name="verticalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
@@ -818,7 +803,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>208</width>
           <height>306</height>
          </rect>
         </property>
@@ -931,7 +916,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>208</width>
           <height>306</height>
          </rect>
         </property>
@@ -964,8 +949,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>248</width>
-              <height>349</height>
+              <width>211</width>
+              <height>351</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_5">
@@ -984,38 +969,69 @@
              <property name="spacing">
               <number>-1</number>
              </property>
-             <item row="24" column="0">
-              <widget class="QLabel" name="label_35">
-               <property name="text">
-                <string>log Odds to Solve</string>
-               </property>
-              </widget>
-             </item>
-             <item row="23" column="2">
-              <widget class="QLabel" name="label_34">
-               <property name="text">
-                <string>Solving Odds</string>
-               </property>
-              </widget>
-             </item>
-             <item row="24" column="2">
-              <widget class="QLineEdit" name="oddsToSolve">
+             <item row="26" column="2">
+              <widget class="QLineEdit" name="oddsToTune">
                <property name="text">
                 <string/>
                </property>
               </widget>
              </item>
-             <item row="28" column="2">
-              <widget class="QCheckBox" name="logToFile">
+             <item row="22" column="2">
+              <widget class="QLineEdit" name="maxWidth">
                <property name="text">
-                <string>Log to File</string>
+                <string>180</string>
                </property>
               </widget>
              </item>
-             <item row="29" column="2">
-              <widget class="QLineEdit" name="logFile">
+             <item row="26" column="0">
+              <widget class="QLabel" name="label_37">
+               <property name="text">
+                <string>Tune</string>
+               </property>
+              </widget>
+             </item>
+             <item row="21" column="0">
+              <widget class="QLabel" name="label_27">
+               <property name="text">
+                <string>minwidth</string>
+               </property>
+              </widget>
+             </item>
+             <item row="29" column="0">
+              <widget class="QLabel" name="label_32">
+               <property name="text">
+                <string>LogFile</string>
+               </property>
+              </widget>
+             </item>
+             <item row="21" column="2">
+              <widget class="QLineEdit" name="minWidth">
+               <property name="text">
+                <string>0.1</string>
+               </property>
+              </widget>
+             </item>
+             <item row="25" column="2">
+              <widget class="QLineEdit" name="oddsToKeep">
                <property name="text">
                 <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="18" column="0">
+              <widget class="QCheckBox" name="inParallel">
+               <property name="text">
+                <string>InParallel</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="22" column="0">
+              <widget class="QLabel" name="label_28">
+               <property name="text">
+                <string>maxwidth</string>
                </property>
               </widget>
              </item>
@@ -1048,38 +1064,24 @@
                </item>
               </widget>
              </item>
-             <item row="19" column="0">
-              <widget class="QLabel" name="label_29">
+             <item row="29" column="2">
+              <widget class="QLineEdit" name="logFile">
                <property name="text">
-                <string>Time Limit</string>
+                <string/>
                </property>
               </widget>
              </item>
-             <item row="27" column="2">
-              <widget class="QLabel" name="label_31">
+             <item row="30" column="0">
+              <widget class="QLabel" name="label_33">
                <property name="text">
-                <string>Logging</string>
+                <string>LogLevel</string>
                </property>
               </widget>
              </item>
-             <item row="29" column="0">
-              <widget class="QLabel" name="label_32">
+             <item row="24" column="0">
+              <widget class="QLabel" name="label_35">
                <property name="text">
-                <string>LogFile</string>
-               </property>
-              </widget>
-             </item>
-             <item row="25" column="0">
-              <widget class="QLabel" name="label_36">
-               <property name="text">
-                <string>log Odds to Keep</string>
-               </property>
-              </widget>
-             </item>
-             <item row="21" column="0">
-              <widget class="QLabel" name="label_27">
-               <property name="text">
-                <string>minwidth</string>
+                <string>Solve</string>
                </property>
               </widget>
              </item>
@@ -1090,62 +1092,58 @@
                </property>
               </widget>
              </item>
-             <item row="22" column="0">
-              <widget class="QLabel" name="label_28">
+             <item row="25" column="0">
+              <widget class="QLabel" name="label_36">
                <property name="text">
-                <string>maxwidth</string>
+                <string>Keep</string>
                </property>
               </widget>
              </item>
-             <item row="26" column="2">
-              <widget class="QLineEdit" name="oddsToTune">
+             <item row="24" column="2">
+              <widget class="QLineEdit" name="oddsToSolve">
                <property name="text">
                 <string/>
                </property>
               </widget>
              </item>
-             <item row="25" column="2">
-              <widget class="QLineEdit" name="oddsToKeep">
+             <item row="19" column="0">
+              <widget class="QLabel" name="label_29">
                <property name="text">
-                <string/>
+                <string>Time Limit</string>
                </property>
               </widget>
              </item>
-             <item row="21" column="2">
-              <widget class="QLineEdit" name="minWidth">
+             <item row="31" column="2">
+              <spacer name="verticalSpacer_7">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="23" column="0" colspan="3">
+              <widget class="QLabel" name="label_34">
                <property name="text">
-                <string>0.1</string>
+                <string>Solving Log Odds</string>
                </property>
               </widget>
              </item>
-             <item row="26" column="0">
-              <widget class="QLabel" name="label_37">
+             <item row="27" column="0" colspan="3">
+              <widget class="QLabel" name="label_31">
                <property name="text">
-                <string>log Odds to Tune</string>
+                <string>Logging</string>
                </property>
               </widget>
              </item>
-             <item row="22" column="2">
-              <widget class="QLineEdit" name="maxWidth">
+             <item row="28" column="0" colspan="3">
+              <widget class="QCheckBox" name="logToFile">
                <property name="text">
-                <string>180</string>
-               </property>
-              </widget>
-             </item>
-             <item row="18" column="0">
-              <widget class="QCheckBox" name="inParallel">
-               <property name="text">
-                <string>InParallel</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="30" column="0">
-              <widget class="QLabel" name="label_33">
-               <property name="text">
-                <string>LogLevel</string>
+                <string>Log to File</string>
                </property>
               </widget>
              </item>
@@ -1160,7 +1158,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>250</width>
+          <width>228</width>
           <height>338</height>
          </rect>
         </property>
@@ -1246,7 +1244,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>235</width>
+              <width>257</width>
               <height>116</height>
              </rect>
             </property>
@@ -1304,7 +1302,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>237</width>
+           <width>259</width>
            <height>319</height>
           </rect>
          </property>
