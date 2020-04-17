@@ -294,10 +294,13 @@ target_link_libraries(SexySolver
     Qt5::Concurrent
     )
 
+
+
+if(APPLE)
+
 SET_TARGET_PROPERTIES(SexySolver PROPERTIES MACOSX_BUNDLE TRUE)
 set(MACOSX_BUNDLE_ICON_FILE SexySolverIcon.icns)
 
-if(APPLE)
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
 #Gets the path to QMake
 get_target_property(QMAKE_EXE Qt5::qmake IMPORTED_LOCATION)
