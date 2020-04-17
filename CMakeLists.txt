@@ -342,16 +342,16 @@ endif(APPLE)
 if(WIN32)
 
 #Searches for windeployqt in that directory
-find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINDIR}")
+#find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINDIR}")
 
-add_custom_command(TARGET SexySolver POST_BUILD
-    COMMAND "${WINDEPLOYQT_EXE}" -E
-        env PATH="${QT_BINDIR}" "${WINDEPLOYQT_EXE}"
-        --verbose 0
-        --no-compiler-runtime
-        \"$<TARGET_FILE:SexySolver>\"
-    COMMENT "Running winddeployqt..."
-)
+#add_custom_command(TARGET SexySolver POST_BUILD
+#    COMMAND "${WINDEPLOYQT_EXE}" -E
+#        env PATH="${QT_BINDIR}" "${WINDEPLOYQT_EXE}"
+#        --verbose 0
+#        --no-compiler-runtime
+#        \"$<TARGET_FILE:SexySolver>\"
+#    COMMENT "Running winddeployqt..."
+#)
 
 endif(WIN32)
 
