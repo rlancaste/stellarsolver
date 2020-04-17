@@ -286,6 +286,10 @@ endif(WIN32)
 
 add_executable(SexySolver ${SexySolver_SRCS} ${SexySolverui_SRCS} ${SexySolverApp_ICON})
 
+if(APPLE)
+    SET_TARGET_PROPERTIES(SexySolver PROPERTIES MACOSX_BUNDLE TRUE)
+endif(APPLE)
+
 target_link_libraries(SexySolver sep astrometry)
 
 target_link_libraries(SexySolver
@@ -299,10 +303,7 @@ target_link_libraries(SexySolver
     )
 
 
-if(APPLE)
-
-SET_TARGET_PROPERTIES(SexySolver PROPERTIES MACOSX_BUNDLE TRUE)
-set(MACOSX_BUNDLE_ICON_FILE SexySolverIcon.icns)
+if(APPLE OR WIN32)
 
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
 #Gets the path to QMake
@@ -311,6 +312,9 @@ get_target_property(QMAKE_EXE Qt5::qmake IMPORTED_LOCATION)
 get_filename_component(QT_BINDIR "${QMAKE_EXE}" DIRECTORY)
 #Uses the QT bin Directory to get the lib Directory
 get_filename_component(QT_LIBDIR "${QT_BINDIR}/../lib" ABSOLUTE)
+
+if(APPLE)
+
 #Searches for macdeployqt in that directory
 find_program(MACDEPLOYQT_EXE macdeployqt HINTS "${QT_BINDIR}")
 #Runs MacDeployQt after the build
@@ -332,9 +336,31 @@ install(TARGETS SexySolver
     BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
     RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
     )
-else(APPLE)
-    install(TARGETS SexySolver RUNTIME DESTINATION bin)
+
 endif(APPLE)
+
+if(WIN32)
+
+#Searches for windeployqt in that directory
+find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINDIR}")
+
+add_custom_command(TARGET SexySolver POST_BUILD
+    COMMAND "${WINDEPLOYQT_EXE}" -E
+        env PATH="${QT_BINDIR}" "${WINDEPLOYQT_EXE}"
+        --verbose 0
+        --no-compiler-runtime
+        \"$<TARGET_FILE:SexySolver>\"
+    COMMENT "Running winddeployqt..."
+)
+
+endif(WIN32)
+
+else(APPLE OR WIN32)
+    #installation for Linux
+    install(TARGETS SexySolver RUNTIME DESTINATION bin)
+
+endif(APPLE OR WIN32)
+
 
 
 
