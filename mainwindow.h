@@ -193,6 +193,8 @@ public slots:
     void clearAll();
     void resetOptionsToDefaults();
 
+    void loadIndexFilesList();
+
     //These are the functions that run when the bottom buttons are clicked
     bool sextractImage();
     bool solveImage();

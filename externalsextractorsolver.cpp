@@ -21,34 +21,58 @@ ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t
     //The code below sets default paths for these key external file settings.
 
 #if defined(Q_OS_OSX)
-    sextractorBinaryPath = "/usr/local/bin/sex";
+    setMacHomebrewPaths();
 #elif defined(Q_OS_LINUX)
-    sextractorBinaryPath = "/usr/bin/sextractor";
+    setLinuxDefaultPaths();
 #else //Windows
-    sextractorBinaryPath = "C:/cygwin64/bin/sextractor";
-#endif
-
-#if defined(Q_OS_OSX)
-    solverPath = "/usr/local/bin/solve-field";
-#elif defined(Q_OS_LINUX)
-    solverPath = "/usr/bin/solve-field";
-#else //Windows
-    //solverPath = "C:/cygwin64/bin/solve-field";
-    solverPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe";
-#endif
-
-#if defined(Q_OS_OSX)
-    wcsPath = "/usr/local/bin/wcsinfo";
-#elif defined(Q_OS_LINUX)
-    wcsPath = "/usr/bin/wcsinfo";
-#else //Windows
-    //wcsPath = "C:/cygwin64/bin/wcsinfo";
-    wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
+    setWinANSVRPaths();
 #endif
 
     //This will automatically delete the temporary files if that option is selected
     connect(this, &SexySolver::finished, this, &ExternalSextractorSolver::cleanupTempFiles);
 
+}
+
+//The following methods are available to set the default paths for different operating systems and configurations.
+
+void ExternalSextractorSolver::setLinuxDefaultPaths()
+{
+    confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
+    sextractorBinaryPath = "/usr/bin/sextractor";
+    solverPath = "/usr/bin/solve-field";
+    wcsPath = "/usr/bin/wcsinfo";
+}
+
+void ExternalSextractorSolver::setMacHomebrewPaths()
+{
+    confPath = "/usr/local/etc/astrometry.cfg";
+    sextractorBinaryPath = "/usr/local/bin/sex";
+    solverPath = "/usr/local/bin/solve-field";
+    wcsPath = "/usr/local/bin/wcsinfo";
+}
+
+void ExternalSextractorSolver::setMacInternalPaths()
+{
+    confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
+    sextractorBinaryPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/sex";
+    solverPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/solve-field";
+    wcsPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/wcsinfo";
+}
+
+void ExternalSextractorSolver::setWinANSVRPaths()
+{
+    confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg";
+    sextractorBinaryPath = "";
+    solverPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe";
+    wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
+}
+
+void ExternalSextractorSolver::setWinCygwinPaths()
+{
+    confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
+    sextractorBinaryPath = "";
+    solverPath = "C:/cygwin64/bin/solve-field";
+    wcsPath = "C:/cygwin64/bin/wcsinfo";
 }
 
 //This is the method you want to run to just sextract the image

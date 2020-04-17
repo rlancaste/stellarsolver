@@ -92,6 +92,41 @@ MainWindow::MainWindow() :
     connect(ui->showSextractorParams, &QCheckBox::stateChanged, this, [this](){ showSextractorParams = ui->showSextractorParams->isChecked(); updateHiddenResultsTableColumns(); });
     connect(ui->showAstrometryParams, &QCheckBox::stateChanged, this, [this](){ showAstrometryParams = ui->showAstrometryParams->isChecked(); updateHiddenResultsTableColumns(); });
     connect(ui->showSolutionDetails, &QCheckBox::stateChanged, this, [this](){ showSolutionDetails = ui->showSolutionDetails->isChecked(); updateHiddenResultsTableColumns(); });
+    connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){
+        ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
+
+        switch(num)
+        {
+            case 0:
+                extTemp.setLinuxDefaultPaths();
+                break;
+            case 1:
+                extTemp.setMacHomebrewPaths();
+                break;
+            case 2:
+                extTemp.setMacInternalPaths();
+                break;
+            case 3:
+                extTemp.setWinANSVRPaths();
+                break;
+            case 4:
+                extTemp.setWinCygwinPaths();
+                break;
+            default:
+                extTemp.setLinuxDefaultPaths();
+                break;
+        }
+
+        sextractorBinaryPath = extTemp.sextractorBinaryPath;
+        confPath = extTemp.confPath;
+        solverPath = extTemp.solverPath;
+        wcsPath = extTemp.wcsPath;
+
+        ui->sextractorPath->setText(sextractorBinaryPath);
+        ui->configFilePath->setText(confPath);
+        ui->solverPath->setText(solverPath);
+        ui->wcsPath->setText(wcsPath);
+    });
 
     //Sextractor Settings
 
@@ -145,17 +180,8 @@ MainWindow::MainWindow() :
     connect(ui->logFile, &QLineEdit::textChanged, this, [this](){ logFile = ui->logFile->text(); });
     connect(ui->logLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index){ logLevel = index; });
 
-    connect(ui->indexPaths, &QListWidget::itemChanged, this, [this](QListWidgetItem * item){
-        int row = ui->indexPaths->row(item);
-        indexFilePaths.removeAt(row);
-        indexFilePaths.insert(row,item->text());
-    });
-    connect(ui->addIndexPath, &QPushButton::clicked, this, [this](){
-        QListWidgetItem *item = new QListWidgetItem("type path here");
-        item->setFlags(item->flags () | Qt::ItemIsEditable);
-        ui->indexPaths->addItem(item);
-        indexFilePaths.append("");
-    });
+    connect(ui->indexFolderPaths, &QComboBox::currentTextChanged, this, [this](QString item){ loadIndexFilesList(); });
+    connect(ui->removeIndexPath, &QPushButton::clicked, this, [this](){ ui->indexFolderPaths->removeItem( ui->indexFolderPaths->currentIndex()); });
 
     resetOptionsToDefaults();
 
@@ -171,6 +197,15 @@ MainWindow::MainWindow() :
 
 void MainWindow::resetOptionsToDefaults()
 {
+
+#if defined(Q_OS_OSX)
+    ui->setPathsAutomatically->setCurrentIndex(1);
+#elif defined(Q_OS_LINUX)
+    ui->setPathsAutomatically->setCurrentIndex(0);
+#else //Windows
+    ui->setPathsAutomatically->setCurrentIndex(3);
+#endif
+
     ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
 
     sextractorBinaryPath = extTemp.sextractorBinaryPath;
@@ -270,7 +305,7 @@ void MainWindow::resetOptionsToDefaults()
 
     //Astrometry Index File Paths to Search
     indexFilePaths.clear();
-    ui->indexPaths->clear();
+    ui->indexFolderPaths->clear();
 
 
 #if defined(Q_OS_OSX)
@@ -292,10 +327,10 @@ void MainWindow::resetOptionsToDefaults()
 
     foreach(QString pathName, indexFilePaths)
     {
-        QListWidgetItem *item = new QListWidgetItem(pathName);
-        item->setFlags(item->flags () | Qt::ItemIsEditable);
-        ui->indexPaths->addItem(item);
+        ui->indexFolderPaths->addItem(pathName);
     }
+
+    loadIndexFilesList();
 
 }
 
@@ -363,7 +398,22 @@ void MainWindow::displayTable()
     updateImage();
 }
 
-
+//This method is intended to load a list of the index files to display as feedback to the user.
+void MainWindow::loadIndexFilesList()
+{
+    QString currentPath = ui->indexFolderPaths->currentText();
+    QDir dir(currentPath);
+    ui->indexFiles->clear();
+    if(dir.exists())
+    {
+        dir.setNameFilters(QStringList()<<"*.fits"<<"*.fit");
+        if(dir.entryList().count() == 0)
+            ui->indexFiles->addItem("No index files in Folder");
+        ui->indexFiles->addItems(dir.entryList());
+    }
+    else
+        ui->indexFiles->addItem("Invalid Folder");
+}
 
 
 

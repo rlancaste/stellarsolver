@@ -50,6 +50,13 @@ public:
     QString solverPath;
     QString wcsPath;
 
+    //Methods to Set File Paths Automatically
+    void setLinuxDefaultPaths();
+    void setMacHomebrewPaths();
+    void setMacInternalPaths();
+    void setWinANSVRPaths();
+    void setWinCygwinPaths();
+
     // This is the xyls file path that sextractor will be saving for Astrometry.net
     // If it is not set, it will be set to a random temporary file
     QString basename;

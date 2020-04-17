@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>669</width>
-    <height>540</height>
+    <width>748</width>
+    <height>611</height>
    </rect>
   </property>
   <property name="font">
@@ -91,13 +91,16 @@
        <property name="currentIndex">
         <number>1</number>
        </property>
+       <property name="tabSpacing">
+        <number>2</number>
+       </property>
        <widget class="QWidget" name="External">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>272</width>
-          <height>301</height>
+          <width>273</width>
+          <height>306</height>
          </rect>
         </property>
         <attribute name="label">
@@ -116,13 +119,63 @@
          <property name="bottomMargin">
           <number>0</number>
          </property>
-         <property name="spacing">
+         <property name="horizontalSpacing">
           <number>0</number>
          </property>
+         <property name="verticalSpacing">
+          <number>-1</number>
+         </property>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_42">
+           <property name="text">
+            <string>WCSInfo Path</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Sextractor Path</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLineEdit" name="wcsPath"/>
+         </item>
+         <item row="6" column="1">
+          <widget class="QLineEdit" name="tempPath"/>
+         </item>
+         <item row="15" column="0">
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>Temp Path</string>
+           </property>
+          </widget>
+         </item>
          <item row="1" column="1">
           <widget class="QLineEdit" name="sextractorPath">
            <property name="text">
             <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Solver Path</string>
            </property>
           </widget>
          </item>
@@ -136,66 +189,6 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Sextractor Path</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="configFilePath"/>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Solver Path</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_42">
-           <property name="text">
-            <string>WCSInfo Path</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QLineEdit" name="tempPath"/>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>Temp Path</string>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="0">
-          <spacer name="verticalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="4" column="1">
-          <widget class="QLineEdit" name="wcsPath"/>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="solverPath"/>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Astro Config</string>
-           </property>
-          </widget>
-         </item>
          <item row="10" column="0" colspan="2">
           <widget class="QCheckBox" name="generateAstrometryConfig">
            <property name="text">
@@ -206,6 +199,55 @@
            </property>
           </widget>
          </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="configFilePath"/>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Astro Config</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="solverPath"/>
+         </item>
+         <item row="13" column="0" colspan="2">
+          <widget class="QLabel" name="label_10">
+           <property name="text">
+            <string>Set Paths Automatically with profile:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="0" colspan="2">
+          <widget class="QComboBox" name="setPathsAutomatically">
+           <item>
+            <property name="text">
+             <string>Linux Default</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Mac Homebrew</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Mac KStars Internal</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Windows ANSVR</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Windows Cygwin</string>
+            </property>
+           </item>
+          </widget>
+         </item>
         </layout>
        </widget>
        <widget class="QWidget" name="SexySolverOptions">
@@ -213,8 +255,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>213</width>
-          <height>349</height>
+          <width>250</width>
+          <height>333</height>
          </rect>
         </property>
         <attribute name="label">
@@ -289,7 +331,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Options for the Sextractor Star Table</string>
+            <string>Star Table Options</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -359,7 +401,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Options for the Results Table</string>
+            <string>Results Table Options</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -383,8 +425,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>198</width>
-          <height>301</height>
+          <width>250</width>
+          <height>306</height>
          </rect>
         </property>
         <attribute name="label">
@@ -401,7 +443,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>185</width>
+              <width>224</width>
               <height>474</height>
              </rect>
             </property>
@@ -649,7 +691,7 @@
           <x>0</x>
           <y>0</y>
           <width>261</width>
-          <height>301</height>
+          <height>306</height>
          </rect>
         </property>
         <attribute name="label">
@@ -776,8 +818,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>183</width>
-          <height>261</height>
+          <width>250</width>
+          <height>306</height>
          </rect>
         </property>
         <attribute name="label">
@@ -889,8 +931,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>198</width>
-          <height>301</height>
+          <width>250</width>
+          <height>306</height>
          </rect>
         </property>
         <attribute name="label">
@@ -922,8 +964,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>313</width>
-              <height>585</height>
+              <width>248</width>
+              <height>349</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_5">
@@ -942,21 +984,42 @@
              <property name="spacing">
               <number>-1</number>
              </property>
-             <item row="18" column="0">
-              <widget class="QLabel" name="label_29">
+             <item row="24" column="0">
+              <widget class="QLabel" name="label_35">
                <property name="text">
-                <string>Time Limit</string>
+                <string>log Odds to Solve</string>
+               </property>
+              </widget>
+             </item>
+             <item row="23" column="2">
+              <widget class="QLabel" name="label_34">
+               <property name="text">
+                <string>Solving Odds</string>
                </property>
               </widget>
              </item>
              <item row="24" column="2">
-              <widget class="QLineEdit" name="oddsToKeep">
+              <widget class="QLineEdit" name="oddsToSolve">
                <property name="text">
                 <string/>
                </property>
               </widget>
              </item>
+             <item row="28" column="2">
+              <widget class="QCheckBox" name="logToFile">
+               <property name="text">
+                <string>Log to File</string>
+               </property>
+              </widget>
+             </item>
              <item row="29" column="2">
+              <widget class="QLineEdit" name="logFile">
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="30" column="2">
               <widget class="QComboBox" name="logLevel">
                <item>
                 <property name="text">
@@ -985,69 +1048,91 @@
                </item>
               </widget>
              </item>
-             <item row="25" column="2">
-              <widget class="QLineEdit" name="oddsToTune">
+             <item row="19" column="0">
+              <widget class="QLabel" name="label_29">
                <property name="text">
-                <string/>
+                <string>Time Limit</string>
                </property>
               </widget>
              </item>
-             <item row="31" column="2">
-              <widget class="QListWidget" name="indexPaths"/>
+             <item row="27" column="2">
+              <widget class="QLabel" name="label_31">
+               <property name="text">
+                <string>Logging</string>
+               </property>
+              </widget>
+             </item>
+             <item row="29" column="0">
+              <widget class="QLabel" name="label_32">
+               <property name="text">
+                <string>LogFile</string>
+               </property>
+              </widget>
+             </item>
+             <item row="25" column="0">
+              <widget class="QLabel" name="label_36">
+               <property name="text">
+                <string>log Odds to Keep</string>
+               </property>
+              </widget>
              </item>
              <item row="21" column="0">
-              <widget class="QLabel" name="label_28">
-               <property name="text">
-                <string>maxwidth</string>
-               </property>
-              </widget>
-             </item>
-             <item row="28" column="2">
-              <widget class="QLineEdit" name="logFile">
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item row="20" column="0">
               <widget class="QLabel" name="label_27">
                <property name="text">
                 <string>minwidth</string>
                </property>
               </widget>
              </item>
-             <item row="30" column="2">
-              <widget class="QPushButton" name="addIndexPath">
+             <item row="19" column="2">
+              <widget class="QLineEdit" name="solverTimeLimit">
                <property name="text">
-                <string>Add Indexfile Folder Path</string>
+                <string>600</string>
                </property>
               </widget>
              </item>
-             <item row="31" column="0">
-              <widget class="QLabel" name="label_26">
+             <item row="22" column="0">
+              <widget class="QLabel" name="label_28">
                <property name="text">
-                <string>Index File Folder Paths</string>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
+                <string>maxwidth</string>
                </property>
               </widget>
              </item>
-             <item row="23" column="0">
-              <widget class="QLabel" name="label_35">
+             <item row="26" column="2">
+              <widget class="QLineEdit" name="oddsToTune">
                <property name="text">
-                <string>log Odds to Solve</string>
+                <string/>
                </property>
               </widget>
              </item>
-             <item row="20" column="2">
+             <item row="25" column="2">
+              <widget class="QLineEdit" name="oddsToKeep">
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="21" column="2">
               <widget class="QLineEdit" name="minWidth">
                <property name="text">
                 <string>0.1</string>
                </property>
               </widget>
              </item>
-             <item row="17" column="2">
+             <item row="26" column="0">
+              <widget class="QLabel" name="label_37">
+               <property name="text">
+                <string>log Odds to Tune</string>
+               </property>
+              </widget>
+             </item>
+             <item row="22" column="2">
+              <widget class="QLineEdit" name="maxWidth">
+               <property name="text">
+                <string>180</string>
+               </property>
+              </widget>
+             </item>
+             <item row="18" column="0">
               <widget class="QCheckBox" name="inParallel">
                <property name="text">
                 <string>InParallel</string>
@@ -1057,78 +1142,67 @@
                </property>
               </widget>
              </item>
-             <item row="23" column="2">
-              <widget class="QLineEdit" name="oddsToSolve">
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item row="24" column="0">
-              <widget class="QLabel" name="label_36">
-               <property name="text">
-                <string>log Odds to Keep</string>
-               </property>
-              </widget>
-             </item>
-             <item row="18" column="2">
-              <widget class="QLineEdit" name="solverTimeLimit">
-               <property name="text">
-                <string>600</string>
-               </property>
-              </widget>
-             </item>
-             <item row="29" column="0">
+             <item row="30" column="0">
               <widget class="QLabel" name="label_33">
                <property name="text">
                 <string>LogLevel</string>
                </property>
               </widget>
              </item>
-             <item row="21" column="2">
-              <widget class="QLineEdit" name="maxWidth">
-               <property name="text">
-                <string>180</string>
-               </property>
-              </widget>
-             </item>
-             <item row="27" column="2">
-              <widget class="QCheckBox" name="logToFile">
-               <property name="text">
-                <string>Log to File</string>
-               </property>
-              </widget>
-             </item>
-             <item row="22" column="2">
-              <widget class="QLabel" name="label_34">
-               <property name="text">
-                <string>Solving Odds</string>
-               </property>
-              </widget>
-             </item>
-             <item row="26" column="2">
-              <widget class="QLabel" name="label_31">
-               <property name="text">
-                <string>Logging</string>
-               </property>
-              </widget>
-             </item>
-             <item row="25" column="0">
-              <widget class="QLabel" name="label_37">
-               <property name="text">
-                <string>log Odds to Tune</string>
-               </property>
-              </widget>
-             </item>
-             <item row="28" column="0">
-              <widget class="QLabel" name="label_32">
-               <property name="text">
-                <string>LogFile</string>
-               </property>
-              </widget>
-             </item>
             </layout>
            </widget>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="IndexFiles">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>250</width>
+          <height>338</height>
+         </rect>
+        </property>
+        <attribute name="label">
+         <string>Index Files</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_13">
+         <item row="4" column="1">
+          <widget class="QListWidget" name="indexFiles"/>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="indexFolderPaths">
+           <property name="editable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QPushButton" name="removeIndexPath">
+           <property name="text">
+            <string>Remove Indexfile Folder Path</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_26">
+           <property name="text">
+            <string>Index File Folder Paths</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLabel" name="label_30">
+           <property name="text">
+            <string>Index Files</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
         </layout>
@@ -1172,8 +1246,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>229</width>
-              <height>94</height>
+              <width>235</width>
+              <height>116</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -1230,8 +1304,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>231</width>
-           <height>270</height>
+           <width>237</width>
+           <height>319</height>
           </rect>
          </property>
          <property name="sizePolicy">
