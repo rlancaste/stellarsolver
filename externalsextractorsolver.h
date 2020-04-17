@@ -32,12 +32,15 @@ public:
     bool runExternalClassicSolver();
     QStringList getSolverArgsList();
     QStringList getClassicSolverArgsList();
+    bool generateAstrometryConfigFile();
 
     QString fileToSolve;
     bool fileToSolveIsTempFile = false;
     int selectedStar;
 
+    //External Options
     bool cleanupTemporaryFiles = true;
+    bool autoGenerateAstroConfig = true;
 
     //System File Paths
     QString dirPath = QDir::homePath();

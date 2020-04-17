@@ -72,7 +72,7 @@ MainWindow::MainWindow() :
 
     //Hides the panels into the sides and bottom
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
-    ui->splitter_2->setSizes(QList<int>() << 0 << ui->splitter_2->width() << 0 );
+    ui->splitter_2->setSizes(QList<int>() << 100 << ui->splitter_2->width() / 2  << 0 );
 
     //Settings for the External Sextractor and Solver
     connect(ui->configFilePath, &QLineEdit::textChanged, this, [this](){ confPath = ui->configFilePath->text(); });
@@ -81,6 +81,7 @@ MainWindow::MainWindow() :
     connect(ui->tempPath, &QLineEdit::textChanged, this, [this](){ tempPath = ui->tempPath->text(); });
     connect(ui->wcsPath, &QLineEdit::textChanged, this, [this](){ wcsPath = ui->wcsPath->text(); });
     connect(ui->cleanupTemp, &QCheckBox::stateChanged, this, [this](){ cleanupTemporaryFiles = ui->cleanupTemp->isChecked(); });
+    connect(ui->generateAstrometryConfig, &QCheckBox::stateChanged, this, [this](){ autoGenerateAstroConfig = ui->generateAstrometryConfig->isChecked(); });
 
     //SexySolver Tester Options
     connect(ui->calculateHFR, &QCheckBox::stateChanged, this, [this](){ calculateHFR = ui->calculateHFR->isChecked(); });
@@ -177,12 +178,14 @@ void MainWindow::resetOptionsToDefaults()
     solverPath = extTemp.solverPath;
     wcsPath = extTemp.wcsPath;
     cleanupTemporaryFiles = extTemp.cleanupTemporaryFiles;
+    autoGenerateAstroConfig = extTemp.autoGenerateAstroConfig;
 
         ui->sextractorPath->setText(sextractorBinaryPath);
         ui->configFilePath->setText(confPath);
         ui->solverPath->setText(solverPath);
         ui->wcsPath->setText(wcsPath);
         ui->cleanupTemp->setChecked(cleanupTemporaryFiles);
+        ui->generateAstrometryConfig->setChecked(autoGenerateAstroConfig);
 
     SexySolver temp(stats, m_ImageBuffer, this);
 
@@ -504,6 +507,7 @@ void MainWindow::setupExternalSextractorSolver()
     extSolver->solverPath = solverPath;
     extSolver->wcsPath = wcsPath;
     extSolver->cleanupTemporaryFiles = cleanupTemporaryFiles;
+    extSolver->autoGenerateAstroConfig = autoGenerateAstroConfig;
 }
 
 //This sets up the Internal SexySolver and sets settings specific to it

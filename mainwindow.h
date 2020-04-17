@@ -98,6 +98,7 @@ private:
 
     //Options for the External Sextractor and Solver
     bool cleanupTemporaryFiles;
+    bool autoGenerateAstroConfig;
     QString tempPath;
     QStringList indexFilePaths;
     QString sextractorBinaryPath;

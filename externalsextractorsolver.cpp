@@ -29,15 +29,6 @@ ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t
 #endif
 
 #if defined(Q_OS_OSX)
-    confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
-#elif defined(Q_OS_LINUX)
-    confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
-#else //Windows
-    //confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
-    confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg";
-#endif
-
-#if defined(Q_OS_OSX)
     solverPath = "/usr/local/bin/solve-field";
 #elif defined(Q_OS_LINUX)
     solverPath = "/usr/bin/solve-field";
@@ -283,6 +274,9 @@ bool ExternalSextractorSolver::runExternalSolver()
 
     QStringList solverArgs=getSolverArgsList();
 
+    if(autoGenerateAstroConfig)
+        generateAstrometryConfigFile();
+
     solverArgs << "--backend-config" << confPath;
 
     QString solutionFile = basePath + "/" + basename + ".wcs";
@@ -327,6 +321,9 @@ bool ExternalSextractorSolver::runExternalClassicSolver()
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
     QStringList solverArgs=getClassicSolverArgsList();
+
+    if(autoGenerateAstroConfig)
+        generateAstrometryConfigFile();
 
     solverArgs << "--backend-config" << confPath;
 
@@ -396,6 +393,10 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     // downsample
     solverArgs << "--downsample" << QString::number(2);
 
+    solverArgs << "--odds-to-solve" << QString::number(logratio_tosolve);
+    solverArgs << "--odds-to-tune-up" << QString::number(logratio_totune);
+    //solverArgs << "--odds-to-solve" << QString::number(logratio_tokeep);  I'm not sure if this is one we need.
+
 
     solverArgs << "--width" << QString::number(stats.width);
     solverArgs << "--height" << QString::number(stats.height);
@@ -446,6 +447,34 @@ QStringList ExternalSextractorSolver::getClassicSolverArgsList()
 
     return solverArgs;
 }
+
+bool ExternalSextractorSolver::generateAstrometryConfigFile()
+{
+    confPath =  basePath + "/" + "astrometry.cfg";
+    QFile configFile(confPath);
+    if (configFile.open(QIODevice::WriteOnly) == false)
+    {
+        QMessageBox::critical(nullptr,"Message","Config file write error.");
+        return false;
+    }
+    else
+    {
+        QTextStream out(&configFile);
+        if(inParallel)
+            out << "inparallel\n";
+        out << "minwidth " << minwidth << "\n";
+        out << "maxwidth " << minwidth << "\n";
+        out << "cpulimit " << solverTimeLimit << "\n";
+        out << "autoindex\n";
+        foreach(QString folder,indexFolderPaths)
+        {
+            out << "add_path " << folder << "\n";
+        }
+        configFile.close();
+    }
+    return true;
+}
+
 
 //These methods are for the logging of information to the textfield at the bottom of the window.
 
