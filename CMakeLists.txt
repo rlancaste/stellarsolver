@@ -3,6 +3,18 @@ cmake_minimum_required(VERSION 2.4.7)
 
 cmake_policy(SET CMP0003 NEW)
 
+# Timestamp build
+string(TIMESTAMP SexySolver_BUILD_TS UTC)
+
+# SexySolver Version 0.5
+set (SexySolver_VERSION_MAJOR 0)
+set (SexySolver_VERSION_MINOR 5)
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/version.h.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/version.h
+)
+
 set(CMAKE_AUTOMOC ON)
 
 if(APPLE)

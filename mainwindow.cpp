@@ -35,6 +35,7 @@
 #include <QtConcurrent>
 #include <QToolTip>
 #include <QtGlobal>
+#include "version.h"
 
 MainWindow::MainWindow() :
     QMainWindow(),
@@ -163,7 +164,7 @@ MainWindow::MainWindow() :
     debayerParams.filter  = DC1394_COLOR_FILTER_RGGB;
     debayerParams.offsetX = debayerParams.offsetY = 0;
 
-    setWindowTitle("SexySolver Internal Sextractor and Astrometry.net Based Solver");
+    setWindowTitle(QString("SexySolver Library Tester %1, build: %2").arg(SexySolver_VERSION).arg(SexySolver_BUILD_TS));
 
 }
 
