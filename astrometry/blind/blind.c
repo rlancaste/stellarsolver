@@ -18,6 +18,7 @@
 #ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
 #include <sys/time.h>
 #include <libgen.h>
+#include "ioutils.h"
 #else
 struct timeval {
         long    tv_sec;         /* seconds */

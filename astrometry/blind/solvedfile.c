@@ -249,6 +249,7 @@ int solvedfile_set_file(char* fn, anbool* vals, int N) {
     }
     return 0;
 }
+#endif //# Modified by Robert Lancaster for the SexySolver Internal Library
 
 int solvedfile_set(char* fn, int fieldnum) {
     int f;
@@ -259,7 +260,11 @@ int solvedfile_set(char* fn, int fieldnum) {
     fieldnum--;
 
     // (file mode 666; umask will modify this, if set).
+#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+    f = open(fn, O_WRONLY | O_CREAT | O_SYNC);
+#else
     f = open(fn, O_WRONLY | O_CREAT | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+#endif
     if (f == -1) {
         fprintf(stderr, "Error: failed to open file %s for writing: %s\n",
                 fn, strerror(errno));
@@ -296,4 +301,4 @@ int solvedfile_set(char* fn, int fieldnum) {
     }
     return 0;
 }
-#endif //# Modified by Robert Lancaster for the SexySolver Internal Library
+

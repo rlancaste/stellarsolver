@@ -18,6 +18,11 @@ typedef unsigned short int ushort;
 typedef unsigned int uint;
 #endif
 
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+char* basename(const char* path);
+char* dirname(const char* path);
+#endif
+
 #include <time.h>
 
 #include "astrometry/an-bool.h"

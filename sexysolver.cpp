@@ -441,7 +441,7 @@ bool SexySolver::prepare_job() {
     sp->field_maxx = stats.width;
     sp->field_maxy = stats.height;
 
-    QString basedir = QDir::tempPath() + QDir::separator() + "AstrometrySolver";
+    QString basedir = QDir::tempPath() + "/AstrometrySolver";
     cancelfn       = QString("%1.cancel").arg(basedir);
     solvedfn       = QString("%1.solved").arg(basedir);
     QFile(cancelfn).remove();
@@ -623,9 +623,6 @@ int SexySolver::runInternalSolver()
         bp->total_timelimit = bp->timelimit;
         bp->total_cpulimit  = bp->cpulimit ;
     }
-
-    //This sets the directory for Astrometry.net
-    job_set_output_base_dir(job, QDir::tempPath().toLatin1().constData());
 
     emit logNeedsUpdating("Starting Internal SexySolver Astrometry.net based Engine. . .");
 
