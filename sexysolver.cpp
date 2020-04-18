@@ -443,12 +443,11 @@ bool SexySolver::prepare_job() {
 
     QString basedir = QDir::tempPath() + QDir::separator() + "AstrometrySolver";
     cancelfn       = QString("%1.cancel").arg(basedir);
+    solvedfn       = QString("%1.solved").arg(basedir);
     QFile(cancelfn).remove();
+    QFile(solvedfn).remove();
     blind_set_cancel_file(bp, cancelfn.toLatin1().constData());
-
-    //This sets the x and y columns to read from the xyls file
-    //blind_set_xcol(bp, xcol);
-    //blind_set_ycol(bp, ycol);
+    blind_set_solved_file(bp,solvedfn.toLatin1().constData());
 
     //Logratios for Solving
     bp->logratio_tosolve = logratio_tosolve;

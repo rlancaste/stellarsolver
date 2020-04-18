@@ -541,7 +541,7 @@
          <item row="4" column="1">
           <widget class="QLabel" name="label_17">
            <property name="text">
-            <string>Threshhold</string>
+            <string>Thresh</string>
            </property>
           </widget>
          </item>
@@ -631,7 +631,7 @@
          <item row="8" column="1">
           <widget class="QLabel" name="label_18">
            <property name="text">
-            <string>Threshhold</string>
+            <string>Thresh</string>
            </property>
           </widget>
          </item>

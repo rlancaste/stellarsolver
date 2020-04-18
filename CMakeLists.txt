@@ -330,19 +330,19 @@ if(APPLE)
 #Searches for macdeployqt in that directory
 find_program(MACDEPLOYQT_EXE macdeployqt HINTS "${QT_BINDIR}")
 #Runs MacDeployQt after the build
-add_custom_command(TARGET SexySolver POST_BUILD
-    COMMAND "${MACDEPLOYQT_EXE}"
-        "$<TARGET_FILE_DIR:SexySolver>/../.."
-        -always-overwrite
-    COMMENT "Running macdeployqt..."
-)
+#add_custom_command(TARGET SexySolver POST_BUILD
+#    COMMAND "${MACDEPLOYQT_EXE}"
+#        "$<TARGET_FILE_DIR:SexySolver>/../.."
+#        -always-overwrite
+#    COMMENT "Running macdeployqt..."
+#)
 #This adds an rpath to the SexySolver executable because macdeployqt had an error when it tried to remove it and it did not exist.
 #It does seem silly to add a path that will just get removed later, but it gets rid of the error.
-add_custom_command(TARGET SexySolver POST_BUILD
-    COMMAND "${CMAKE_INSTALL_NAME_TOOL}"
-        -add_rpath "${QT_LIBDIR}" "$<TARGET_FILE_DIR:SexySolver>/SexySolver"
-    COMMENT "Adding Missing RPath to avoid an error..."
-)
+#add_custom_command(TARGET SexySolver POST_BUILD
+#    COMMAND "${CMAKE_INSTALL_NAME_TOOL}"
+#        -add_rpath "${QT_LIBDIR}" "$<TARGET_FILE_DIR:SexySolver>/SexySolver"
+#    COMMENT "Adding Missing RPath to avoid an error..."
+#)
 #This sets the install directory for Macs
 install(TARGETS SexySolver
     BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}

@@ -150,6 +150,7 @@ private:
 
     // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
     QString cancelfn; //Filename whose creation signals the process to stop
+     QString solvedfn; //Filename whose creation tells astrometry.net it already solved the field.
     // This is information about the image
     Statistic stats;
 

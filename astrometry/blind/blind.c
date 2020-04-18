@@ -983,16 +983,14 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
                 strncpy(template.fieldname, idstr, sizeof(template.fieldname) - 1);
             free(idstr);
         }
-
+**/
         // Has the field already been solved?
-        //# Modified by Robert Lancaster for the SexySolver Internal Library
-        //This is unnecessary since we solve one field at a time.
-        //if (is_field_solved(bp, fieldnum))
-           // goto cleanup; //# Modified by Robert Lancaster for the SexySolver Internal Library
+        if (is_field_solved(bp, fieldnum))
+           return; //# Modified by Robert Lancaster for the SexySolver Internal Library
 
         // Get the field.
-        solver_set_field(sp, xylist_read_field(bp->xyls, NULL));
-        **/
+        //solver_set_field(sp, xylist_read_field(bp->xyls, NULL));   //# Modified by Robert Lancaster for the SexySolver Internal Library
+
         if (!sp->fieldxy) {
             logerr("Failed to read xylist field.\n");
             return; //# Modified by Robert Lancaster for the SexySolver Internal Library
@@ -1069,7 +1067,7 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
             }
         }
 
-        solver_free_field(sp);
+        //solver_free_field(sp); //# Modified by Robert Lancaster for the SexySolver Internal Library
 
         get_resource_stats(&utime, &stime, NULL);
         gettimeofday(&wtime, NULL);
@@ -1110,12 +1108,10 @@ static anbool is_field_solved(blind_t* bp, int fieldnum) {
 static void solved_field(blind_t* bp, int fieldnum) {
     // Record in solved file, or send to solved server.
     if (bp->solved_out) {
-/**  //# Modified by Robert Lancaster for the SexySolver Internal Library
         logmsg("Field %i solved: writing to file %s to indicate this.\n", fieldnum, bp->solved_out);
         if (solvedfile_set(bp->solved_out, fieldnum)) {
             logerr("Failed to write solvedfile %s.\n", bp->solved_out);
         }
-**/
     }
     if (bp->solvedserver) {
         solvedclient_set(bp->fieldid, fieldnum);
