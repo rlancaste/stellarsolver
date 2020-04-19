@@ -433,6 +433,14 @@ bool MainWindow::solveImage()
     if(ui->useSexySolver->isChecked())
         return sextractAndSolveInternally();
 
+#ifdef _WIN32
+    if(inParallel)
+    {
+        logOutput("The external ANSVR solver on windows does not handle the inparallel option well, please disable it to use the external solver.");
+        return false;
+    }
+#endif
+
     sextractAndSolveExternally();
     return true;
 }
