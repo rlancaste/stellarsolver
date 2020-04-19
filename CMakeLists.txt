@@ -308,9 +308,11 @@ target_link_libraries(SexySolver
     Qt5::Concurrent
     )
 
+option(PACKAGE_UP "Make a Deployable Package" Off)
+
+if(PACKAGE_UP)
 
 if(APPLE OR WIN32)
-
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
 #Gets the path to QMake
 get_target_property(QMAKE_EXE Qt5::qmake IMPORTED_LOCATION)
@@ -318,25 +320,26 @@ get_target_property(QMAKE_EXE Qt5::qmake IMPORTED_LOCATION)
 get_filename_component(QT_BINDIR "${QMAKE_EXE}" DIRECTORY)
 #Uses the QT bin Directory to get the lib Directory
 get_filename_component(QT_LIBDIR "${QT_BINDIR}/../lib" ABSOLUTE)
+endif(APPLE OR WIN32)
 
 if(APPLE)
 
 #Searches for macdeployqt in that directory
 find_program(MACDEPLOYQT_EXE macdeployqt HINTS "${QT_BINDIR}")
 #Runs MacDeployQt after the build
-#add_custom_command(TARGET SexySolver POST_BUILD
-#    COMMAND "${MACDEPLOYQT_EXE}"
-#        "$<TARGET_FILE_DIR:SexySolver>/../.."
-#        -always-overwrite
-#    COMMENT "Running macdeployqt..."
-#)
+add_custom_command(TARGET SexySolver POST_BUILD
+    COMMAND "${MACDEPLOYQT_EXE}"
+        "$<TARGET_FILE_DIR:SexySolver>/../.."
+        -always-overwrite
+    COMMENT "Running macdeployqt..."
+)
 #This adds an rpath to the SexySolver executable because macdeployqt had an error when it tried to remove it and it did not exist.
 #It does seem silly to add a path that will just get removed later, but it gets rid of the error.
-#add_custom_command(TARGET SexySolver POST_BUILD
-#    COMMAND "${CMAKE_INSTALL_NAME_TOOL}"
-#        -add_rpath "${QT_LIBDIR}" "$<TARGET_FILE_DIR:SexySolver>/SexySolver"
-#    COMMENT "Adding Missing RPath to avoid an error..."
-#)
+add_custom_command(TARGET SexySolver POST_BUILD
+    COMMAND "${CMAKE_INSTALL_NAME_TOOL}"
+        -add_rpath "${QT_LIBDIR}" "$<TARGET_FILE_DIR:SexySolver>/SexySolver"
+    COMMENT "Adding Missing RPath to avoid an error..."
+)
 #This sets the install directory for Macs
 install(TARGETS SexySolver
     BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
@@ -360,12 +363,11 @@ if(WIN32)
 #)
 
 endif(WIN32)
+endif(PACKAGE_UP)
 
-else(APPLE OR WIN32)
-    #installation for Linux
-    install(TARGETS SexySolver RUNTIME DESTINATION bin)
+#installation for Linux
+install(TARGETS SexySolver RUNTIME DESTINATION bin)
 
-endif(APPLE OR WIN32)
 
 
 

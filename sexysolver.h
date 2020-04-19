@@ -130,6 +130,7 @@ public:
 
     //Methods to set the index file folders for Astrometry
     void setIndexFolderPaths(QStringList paths);
+    QStringList getDefaultIndexFolderPaths();
     void clearIndexFolderPaths();
     void addIndexFolderPath(QString pathToAdd);
 

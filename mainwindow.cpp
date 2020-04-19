@@ -307,23 +307,7 @@ void MainWindow::resetOptionsToDefaults()
     indexFilePaths.clear();
     ui->indexFolderPaths->clear();
 
-
-#if defined(Q_OS_OSX)
-    //Mac Default location
-    indexFilePaths.append(QDir::homePath() + "/Library/Application Support/Astrometry");
-#elif defined(Q_OS_LINUX)
-    //Linux Default Location
-    indexFilePaths.append("/usr/share/astrometry/");
-    //Linux Local KStars Location
-    QString localAstroPath = QDir::homePath() + "/.local/share/kstars/astrometry/";
-    if(QFileInfo(localAstroPath).exists())
-        indexFilePaths.append(localAstroPath);
-#elif defined(_WIN32)
-    //A Windows Location
-    QString localAstroPath = "C:/Astrometry";
-    if(QFileInfo(localAstroPath).exists())
-        indexFilePaths.append(localAstroPath);
-#endif
+    indexFilePaths = temp.getDefaultIndexFolderPaths();
 
     foreach(QString pathName, indexFilePaths)
     {

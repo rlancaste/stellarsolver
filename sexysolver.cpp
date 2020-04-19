@@ -404,6 +404,33 @@ void SexySolver::setIndexFolderPaths(QStringList paths)
     indexFolderPaths = paths;
 }
 
+QStringList SexySolver::getDefaultIndexFolderPaths()
+{
+    QStringList indexFilePaths;
+#if defined(Q_OS_OSX)
+    //Mac Default location
+    indexFilePaths.append(QDir::homePath() + "/Library/Application Support/Astrometry");
+    //Homebrew location
+    indexFilePaths.append("/usr/local/share/astrometry");
+#elif defined(Q_OS_LINUX)
+    //Linux Default Location
+    indexFilePaths.append("/usr/share/astrometry/");
+    //Linux Local KStars Location
+    QString localAstroPath = QDir::homePath() + "/.local/share/kstars/astrometry/";
+    if(QFileInfo(localAstroPath).exists())
+        indexFilePaths.append(localAstroPath);
+#elif defined(_WIN32)
+    //Windows Locations
+    QString ANSVRPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/usr/share/astrometry/data";
+    if(QFileInfo(ANSVRPath).exists())
+        indexFilePaths.append(ANSVRPath);
+    QString CygwinPath = "C:/cygwin/usr/share/astrometry/data";
+    if(QFileInfo(CygwinPath).exists())
+        indexFilePaths.append(CygwinPath);
+#endif
+    return indexFilePaths;
+}
+
 //This clears the folders that Astrometry.net should search for index files
 void SexySolver::clearIndexFolderPaths()
 {
