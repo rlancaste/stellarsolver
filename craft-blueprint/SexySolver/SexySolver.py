@@ -16,6 +16,7 @@ class subinfo(info.infoclass):
         self.runtimeDependencies["virtual/base"] = "default"
         self.runtimeDependencies["libs/qt5/qtbase"] = "default"
         self.runtimeDependencies["libs/gsl"] = "default"
+        self.runtimeDependencies["libs/mman"] = "default"
         self.runtimeDependencies["libs/cfitsio"] = "default"
         self.runtimeDependencies["libs/zlib"] = "default"
         self.runtimeDependencies["boost-regex"] = "default"
@@ -31,4 +32,11 @@ class Package(CMakePackageBase):
         CMakePackageBase.__init__(self)
         root = CraftCore.standardDirs.craftRoot()
         craftLibDir = os.path.join(root,  'lib')
-        self.subinfo.options.configure.args = "-DCMAKE_INSTALL_PREFIX=" + root + " -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_MACOSX_RPATH=1 -DBUILD_LIBS=1 -DCMAKE_INSTALL_RPATH=" + craftLibDir
+        self.subinfo.options.configure.args = "-DCMAKE_INSTALL_PREFIX=" + root + " -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_MACOSX_RPATH=1 -DCMAKE_INSTALL_RPATH=" + craftLibDir
+
+    def createPackage(self):
+        self.defines["executable"] = "bin\\SexySolver.exe"
+        self.defines["icon"] = os.path.join(self.packageDir(), "SexySolverInstallIcon.ico")
+        if isinstance(self, AppxPackager):
+              self.defines["display_name"] = "SexySolver"
+        return TypePackager.createPackage(self)
