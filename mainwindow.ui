@@ -100,7 +100,7 @@
           <x>0</x>
           <y>0</y>
           <width>273</width>
-          <height>306</height>
+          <height>300</height>
          </rect>
         </property>
         <attribute name="label">
@@ -676,7 +676,7 @@
           <x>0</x>
           <y>0</y>
           <width>261</width>
-          <height>306</height>
+          <height>300</height>
          </rect>
         </property>
         <attribute name="label">
@@ -804,7 +804,7 @@
           <x>0</x>
           <y>0</y>
           <width>208</width>
-          <height>306</height>
+          <height>300</height>
          </rect>
         </property>
         <attribute name="label">
@@ -917,7 +917,7 @@
           <x>0</x>
           <y>0</y>
           <width>208</width>
-          <height>306</height>
+          <height>300</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1245,7 +1245,7 @@
               <x>0</x>
               <y>0</y>
               <width>257</width>
-              <height>116</height>
+              <height>115</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -1303,7 +1303,7 @@
            <x>0</x>
            <y>0</y>
            <width>259</width>
-           <height>319</height>
+           <height>314</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -1413,27 +1413,53 @@
        </widget>
       </item>
       <item>
+       <widget class="QComboBox" name="sextractorType">
+        <item>
+         <property name="text">
+          <string>Internal</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>External</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="SolveImage">
         <property name="text">
-         <string>Sextract and Solve</string>
+         <string>Solve</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="useSexySolver">
-        <property name="text">
-         <string>Use Internal SexySolver</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="classicSolve">
-        <property name="text">
-         <string>Classic Solve</string>
-        </property>
+       <widget class="QComboBox" name="solverType">
+        <item>
+         <property name="text">
+          <string>Internal SexySolver</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Ext. Sextractor Ext. Solver</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Int. Sextractor Ext. Solver</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Classic Astrometry.net</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>ASTAP Solver</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>

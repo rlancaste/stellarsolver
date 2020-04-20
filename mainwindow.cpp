@@ -55,7 +55,6 @@ MainWindow::MainWindow() :
     //The Options at the bottom of the Window
     connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractImage );
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveImage );
-    connect(ui->classicSolve,&QAbstractButton::clicked, this, &MainWindow::classicSolve );
 
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     connect(ui->reset, &QPushButton::clicked, this, &MainWindow::resetOptionsToDefaults);
@@ -410,17 +409,24 @@ bool MainWindow::sextractImage()
     if(!prepareForProcesses())
         return false;
 
-    //If the Use SexySolver CheckBox is checked, use the internal method instead.
-    if(ui->useSexySolver->isChecked())
+    if(ui->sextractorType->currentIndex() == 0) //Internal
         return sextractInternally();
+    else
+    {
+        #ifdef _WIN32
+        logOutput("An External Sextractor is not easily installed on Windows, try the Internal Sextractor please.");
+        return false;
+        #endif
 
-    #ifdef _WIN32
-    logOutput("An External Sextractor is not easily installed on Windows, try the Internal Sextractor please.");
-    return false;
-    #endif
+        if(!QFileInfo(sextractorBinaryPath).exists())
+        {
+            logOutput("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
+            return false;
+        }
 
-    sextractExternally();
-    return true;
+        sextractExternally();
+        return true;
+    }
 }
 
 //This method runs when the user clicks the Sextract and Solve buttton
@@ -429,23 +435,75 @@ bool MainWindow::solveImage()
     if(!prepareForProcesses())
         return false;
 
-    //If the Use SexySolver CheckBox is checked, use the internal method instead.
-    if(ui->useSexySolver->isChecked())
-        return sextractAndSolveInternally();
-
-#ifdef _WIN32
-    if(inParallel)
+    //Select the type of Solve
+    switch(ui->solverType->currentIndex())
     {
-        logOutput("The external ANSVR solver on windows does not handle the inparallel option well, please disable it to use the external solver.");
-        return false;
-    }
-#endif
+        case 0: //Internal SexySolver
+            return sextractAndSolveInternally();
+        break;
 
-    sextractAndSolveExternally();
-    return true;
+        case 1: //External Sextractor and Solver
+
+            #ifdef _WIN32
+                logOutput("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
+            #endif
+
+                if(!QFileInfo(sextractorBinaryPath).exists())
+                {
+                    logOutput("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
+                    return false;
+                }
+
+                if(!QFileInfo(solverPath).exists())
+                {
+                    logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
+                    return false;
+                }
+
+            sextractAndSolveExternally();
+            return true;
+
+        break;
+
+        case 2: //Int. SEP Ext. Solver
+            #ifdef _WIN32
+                if(inParallel)
+                {
+                    logOutput("The external ANSVR solver on windows does not handle the inparallel option well, please disable it to use the external solver.");
+                    return false;
+                }
+            #endif
+
+                if(!QFileInfo(solverPath).exists())
+                {
+                    logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
+                    return false;
+                }
+
+            return SEPAndSolveExternally();
+
+        break;
+
+        case 3: //Classic Astrometry.net
+
+                if(!QFileInfo(solverPath).exists())
+                {
+                    logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
+                    return false;
+                }
+
+            return classicSolve();
+
+        break;
+
+        case 4: //ASTAP Solver
+            logOutput("ASTAP not implemented yet");
+        break;
+
+    }
 }
 
-//This method runs when the user clicks the Classic Solve button
+//This method runs when the user selects the Classic Solve Option
 //It is meant to run the traditional solve KStars used to do using python and astrometry.net
 bool MainWindow::classicSolve()
 {
@@ -493,6 +551,22 @@ bool MainWindow::sextractAndSolveExternally()
 
     solverTimer.start();
     extSolver->sextractAndSolve();
+    return true;
+}
+
+//I wrote this method to call the internal sextractor and external solver program.
+//It times the entire process and prints out how long it took
+bool MainWindow::SEPAndSolveExternally()
+{
+    setupExternalSextractorSolver();
+
+    setSextractorSettings();
+    setSolverSettings();
+
+    connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
+
+    solverTimer.start();
+    extSolver->SEPAndSolve();
     return true;
 }
 
@@ -677,7 +751,7 @@ bool MainWindow::classicSolverComplete(int error)
     {
         elapsed = solverTimer.elapsed() / 1000.0;
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString("Classic Solving took a total of: %1 second(s).").arg( elapsed));
+        logOutput(QString("Astrometry.net solve took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         addClassicSolutionToTable(sexySolver->solution);
         return true;
@@ -1939,7 +2013,7 @@ void MainWindow::addClassicSolutionToTable(Solution solution)
 
     setItemInColumn(table, "Time", QString::number(elapsed));
     setItemInColumn(ui->resultsTable, "Int?", "External");
-    setItemInColumn(ui->resultsTable, "Command", "Classic Solve");
+    setItemInColumn(ui->resultsTable, "Command", "Astrometry.net Solve");
 
     //Astrometry Parameters
     setItemInColumn(ui->resultsTable, "Pos?", QVariant(sexySolver->use_position).toString());

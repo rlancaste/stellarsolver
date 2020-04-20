@@ -408,29 +408,32 @@ void SexySolver::setIndexFolderPaths(QStringList paths)
     indexFolderPaths = paths;
 }
 
+void addPathToListIfExists(QStringList *list, QString path)
+{
+    if(list)
+    {
+        if(QFileInfo(path).exists())
+            list->append(path);
+    }
+}
+
 QStringList SexySolver::getDefaultIndexFolderPaths()
 {
     QStringList indexFilePaths;
 #if defined(Q_OS_OSX)
     //Mac Default location
-    indexFilePaths.append(QDir::homePath() + "/Library/Application Support/Astrometry");
+    addPathToListIfExists(&indexFilePaths, QDir::homePath() + "/Library/Application Support/Astrometry");
     //Homebrew location
-    indexFilePaths.append("/usr/local/share/astrometry");
+    addPathToListIfExists(&indexFilePaths, "/usr/local/share/astrometry");
 #elif defined(Q_OS_LINUX)
     //Linux Default Location
-    indexFilePaths.append("/usr/share/astrometry/");
+    addPathToListIfExists(&indexFilePaths, "/usr/share/astrometry/");
     //Linux Local KStars Location
-    QString localAstroPath = QDir::homePath() + "/.local/share/kstars/astrometry/";
-    if(QFileInfo(localAstroPath).exists())
-        indexFilePaths.append(localAstroPath);
+    addPathToListIfExists(&indexFilePaths, QDir::homePath() + "/.local/share/kstars/astrometry/");
 #elif defined(_WIN32)
     //Windows Locations
-    QString ANSVRPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/usr/share/astrometry/data";
-    if(QFileInfo(ANSVRPath).exists())
-        indexFilePaths.append(ANSVRPath);
-    QString CygwinPath = "C:/cygwin/usr/share/astrometry/data";
-    if(QFileInfo(CygwinPath).exists())
-        indexFilePaths.append(CygwinPath);
+    addPathToListIfExists(&indexFilePaths, "/AppData/Local/cygwin_ansvr/usr/share/astrometry/data");
+    addPathToListIfExists(&indexFilePaths, "C:/cygwin/usr/share/astrometry/data");
 #endif
     return indexFilePaths;
 }

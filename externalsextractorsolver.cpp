@@ -86,12 +86,20 @@ void ExternalSextractorSolver::sextract()
 void ExternalSextractorSolver::sextractAndSolve()
 {
     justSextract = false;
-#ifdef _WIN32
-    if(runSEPSextractor())
-#else
     if(runExternalSextractor())
-#endif
         runExternalSolver();
+}
+
+//This is the method you want to use to both sextract and solve an image
+void ExternalSextractorSolver::SEPAndSolve()
+{
+    justSextract = false;
+    if(runSEPSextractor())
+    {
+        writeSextractorTable();
+        resort = false;  //If we don't write the column we will use to sort into the xyls file, we can't use resort.  If resort was true, it was already sorted anyway by SEP Sextractor
+        runExternalSolver();
+    }
 }
 
 //This is the method you want to use to solve the image using traditional astrometry.net
@@ -285,10 +293,6 @@ void ExternalSextractorSolver::printSextractorOutput()
 //It runs the astrometry.net external program using the options selected.
 bool ExternalSextractorSolver::runExternalSolver()
 {
-#ifdef _WIN32
-        //We need to write the table first on Windows.
-        writeSextractorTable();
-#endif
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     QFile sextractorFile(sextractorFilePath);
     if(!sextractorFile.exists())
@@ -410,9 +414,13 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
 
     // Now go over boolean options
     solverArgs << "--no-verify";
-#ifndef _WIN32  //For Windows it is already sorted.
-    solverArgs << "--resort";
-#endif
+
+    if(resort) //We only want the resort options if they click resort.  Resorting is not necessary if using SEP because its already sorted.
+    {
+        solverArgs << "--resort";
+        solverArgs << "--sort-column" << "MAG_AUTO";
+        solverArgs << "--sort-ascending";
+    }
 
     // downsample
     solverArgs << "--downsample" << QString::number(2);
@@ -426,10 +434,6 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     solverArgs << "--height" << QString::number(stats.height);
     solverArgs << "--x-column" << "X_IMAGE";
     solverArgs << "--y-column" << "Y_IMAGE";
-#ifndef _WIN32 //For Windows it is guaranteed to be already sorted since it uses the internal sextractor.
-    solverArgs << "--sort-column" << "MAG_AUTO";
-    solverArgs << "--sort-ascending";
-#endif
 
                 //Note This set of items is NOT NEEDED for Sextractor, it is needed to avoid python usage
                 //This may need to be changed later, but since the goal for using sextractor is to avoid python, this is placed here.
@@ -738,11 +742,13 @@ bool ExternalSextractorSolver::writeSextractorTable()
 
     float *xArray = new float[stars.size()];
     float *yArray = new float[stars.size()];
+    float *magArray = new float[stars.size()];
 
     for (int i = 0; i < stars.size(); i++)
     {
         xArray[i] = stars.at(i).x;
         yArray[i] = stars.at(i).y;
+        magArray[i] = stars.at(i).y;
     }
 
     if(fits_create_tbl(new_fptr, BINARY_TBL, nrows, tfields,

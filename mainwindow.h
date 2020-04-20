@@ -201,6 +201,7 @@ public slots:
     bool classicSolve();
     bool sextractExternally();
     bool sextractAndSolveExternally();
+    bool SEPAndSolveExternally();
     bool sextractInternally();
     bool sextractAndSolveInternally();
     void abort();
