@@ -6,9 +6,9 @@ cmake_policy(SET CMP0003 NEW)
 # Timestamp build
 string(TIMESTAMP SexySolver_BUILD_TS UTC)
 
-# SexySolver Version 0.5
+# SexySolver Version 0.6
 set (SexySolver_VERSION_MAJOR 0)
-set (SexySolver_VERSION_MINOR 5)
+set (SexySolver_VERSION_MINOR 6)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/version.h.cmake
@@ -18,7 +18,7 @@ configure_file(
 set(CMAKE_AUTOMOC ON)
 
 if(APPLE)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.12)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13)
 endif(APPLE)
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/")
