@@ -56,6 +56,10 @@ public:
     void sextract();
     void sextractAndSolve();
 
+    //This is for creating temporary files
+    QString baseName;
+    QString basePath = QDir::tempPath();
+
     //Sextractor Photometry Parameters
     Shape apertureShape = SHAPE_CIRCLE;
     double kron_fact = 2.5;

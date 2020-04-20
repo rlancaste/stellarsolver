@@ -10,8 +10,12 @@
 
 SexySolver::SexySolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : QThread(parent)
 {
- stats=imagestats;
- m_ImageBuffer=imageBuffer;
+     stats=imagestats;
+     m_ImageBuffer=imageBuffer;
+
+     //This sets the base name used for the temp files.
+     srand(time(NULL));
+     baseName = "internalSextractorSolver_" + QString::number(rand());
 }
 
 //This is the method you want to use to just sextract the image
@@ -468,11 +472,11 @@ bool SexySolver::prepare_job() {
     sp->field_maxx = stats.width;
     sp->field_maxy = stats.height;
 
+    QDir temp(basePath);
     QString basedir = QDir::tempPath() + "/AstrometrySolver";
-    cancelfn       = QString("%1.cancel").arg(basedir);
-    solvedfn       = QString("%1.solved").arg(basedir);
-    QFile(cancelfn).remove();
-    QFile(solvedfn).remove();
+    cancelfn       = basePath + "/" + baseName + ".cancel";
+    solvedfn       = basePath + "/" + baseName + ".solved";
+
     blind_set_cancel_file(bp, cancelfn.toLatin1().constData());
     blind_set_solved_file(bp,solvedfn.toLatin1().constData());
 
@@ -589,6 +593,7 @@ int SexySolver::runInternalSolver()
 
     prepare_job();
     engine->cancelfn = cancelfn.toLatin1().data();
+    engine->solvedfn = solvedfn.toLatin1().data();
 
     blind_t* bp = &(job->bp);
 
@@ -659,6 +664,11 @@ int SexySolver::runInternalSolver()
 
     //This deletes the engine object since it is no longer needed.
     engine_free(engine);
+
+    //This deletes the temporary files
+    QDir temp(QDir::tempPath());
+    temp.remove(cancelfn);
+    temp.remove(solvedfn);
 
     //Note: I can only get these items after the solve because I made a small change to the
     //Astrometry.net Code.  I made it return in solve_fields in blind.c before it ran "cleanup"

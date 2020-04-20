@@ -695,11 +695,19 @@ bool MainWindow::classicSolverComplete(int error)
 //This method will attempt to abort the sextractor, sovler, and any other processes currently being run, no matter which type
 void MainWindow::abort()
 {
-    logOutput("Aborting. . .");
-    if(!sexySolver.isNull())
+    if(!sexySolver.isNull() && sexySolver->isRunning())
+    {
         sexySolver->abort();
-    if(!extSolver.isNull())
+        logOutput("Aborting Internal Process. . .");
+    }
+    else if(!extSolver.isNull() && extSolver->isRunning())
+    {
         extSolver->abort();
+        logOutput("Aborting External Process. . .");
+    }
+    else
+        logOutput("No Processes Running.");
+
 }
 
 //This method is meant to clear out the Astrometry settings that should change with each image

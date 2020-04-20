@@ -59,11 +59,8 @@ public:
 
     // This is the xyls file path that sextractor will be saving for Astrometry.net
     // If it is not set, it will be set to a random temporary file
-    QString basename;
     QString sextractorFilePath;
     bool sextractorFilePathIsTempFile = false; //This will be set to true if it gets generated
-    QString basePath = QDir::tempPath();
-
 
     void logSolver();
     void logSextractor();

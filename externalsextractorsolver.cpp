@@ -16,7 +16,7 @@ ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t
 
     //This sets the base name used for the temp files.
     srand(time(NULL));
-    basename = "externalSextractorSolver_" + QString::number(rand());
+    baseName = "externalSextractorSolver_" + QString::number(rand());
 
     //The code below sets default paths for these key external file settings.
 
@@ -127,14 +127,14 @@ void ExternalSextractorSolver::cleanupTempFiles()
         QDir temp(basePath);
         temp.remove("default.param");
         temp.remove("default.conv");
-        temp.remove(basename + ".corr");
-        temp.remove(basename + ".rdls");
-        temp.remove(basename + ".axy");
-        temp.remove(basename + ".corr");
-        temp.remove(basename + ".wcs");
-        temp.remove(basename + ".solved");
-        temp.remove(basename + ".match");
-        temp.remove(basename + "-indx.xyls");
+        temp.remove(baseName + ".corr");
+        temp.remove(baseName + ".rdls");
+        temp.remove(baseName + ".axy");
+        temp.remove(baseName + ".corr");
+        temp.remove(baseName + ".wcs");
+        temp.remove(baseName + ".solved");
+        temp.remove(baseName + ".match");
+        temp.remove(baseName + "-indx.xyls");
         QFile(sextractorFilePath).remove();
         if(fileToSolveIsTempFile)
             QFile(fileToSolve).remove();
@@ -158,7 +158,7 @@ bool ExternalSextractorSolver::runExternalSextractor()
     if(sextractorFilePath == "")
     {
         sextractorFilePathIsTempFile = true;
-        sextractorFilePath = basePath + "/" + basename + ".xyls";
+        sextractorFilePath = basePath + "/" + baseName + ".xyls";
     }
     QFile sextractorFile(sextractorFilePath);
     if(sextractorFile.exists())
@@ -303,7 +303,7 @@ bool ExternalSextractorSolver::runExternalSolver()
 
     solverArgs << "--backend-config" << confPath;
 
-    QString solutionFile = basePath + "/" + basename + ".wcs";
+    QString solutionFile = basePath + "/" + baseName + ".wcs";
     solverArgs << "-W" << solutionFile;
 
     solverArgs << sextractorFilePath;
@@ -351,7 +351,7 @@ bool ExternalSextractorSolver::runExternalClassicSolver()
 
     solverArgs << "--backend-config" << confPath;
 
-    QString solutionFile = basePath + "/" + basename + ".wcs";
+    QString solutionFile = basePath + "/" + baseName + ".wcs";
     solverArgs << "-W" << solutionFile;
 
     solverArgs << fileToSolve;
@@ -631,7 +631,7 @@ bool ExternalSextractorSolver::getSextractorTable()
 //It reads the information from the Solution file from Astrometry.net and puts it into the solution
 bool ExternalSextractorSolver::getSolutionInformation()
 {
-    QString solutionFile = basePath + "/" + basename + ".wcs";
+    QString solutionFile = basePath + "/" + baseName + ".wcs";
     QFileInfo solutionInfo(solutionFile);
     if(!solutionInfo.exists())
     {
@@ -709,7 +709,7 @@ bool ExternalSextractorSolver::writeSextractorTable()
     if(sextractorFilePath == "")
     {
         sextractorFilePathIsTempFile = true;
-        sextractorFilePath = basePath + "/" + basename + ".xyls";
+        sextractorFilePath = basePath + "/" + baseName + ".xyls";
     }
 
     QFile sextractorFile(sextractorFilePath);
@@ -786,7 +786,7 @@ bool ExternalSextractorSolver::writeSextractorTable()
 bool ExternalSextractorSolver::saveAsFITS()
 {
     QFileInfo fileInfo(fileToSolve.toLatin1());
-    QString newFilename = basePath + "/" + basename + "_solve.fits";
+    QString newFilename = basePath + "/" + baseName + "_solve.fits";
 
     int status = 0;
     fitsfile * new_fptr;
