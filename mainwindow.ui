@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>748</width>
-    <height>611</height>
+    <width>809</width>
+    <height>678</height>
    </rect>
   </property>
   <property name="font">
@@ -89,7 +89,7 @@
       </property>
       <widget class="QToolBox" name="optionsBox">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <property name="tabSpacing">
         <number>2</number>
@@ -100,7 +100,7 @@
           <x>0</x>
           <y>0</y>
           <width>273</width>
-          <height>300</height>
+          <height>333</height>
          </rect>
         </property>
         <attribute name="label">
@@ -125,53 +125,6 @@
          <property name="verticalSpacing">
           <number>-1</number>
          </property>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_42">
-           <property name="text">
-            <string>WCSInfo Path</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Sextractor Path</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QLineEdit" name="wcsPath"/>
-         </item>
-         <item row="6" column="1">
-          <widget class="QLineEdit" name="tempPath"/>
-         </item>
-         <item row="15" column="0">
-          <spacer name="verticalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>Temp Path</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="sextractorPath">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
          <item row="3" column="0">
           <widget class="QLabel" name="label_2">
            <property name="text">
@@ -179,25 +132,8 @@
            </property>
           </widget>
          </item>
-         <item row="9" column="0" colspan="2">
-          <widget class="QCheckBox" name="cleanupTemp">
-           <property name="text">
-            <string>Cleanup Temporary Files After Processes</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="0" colspan="2">
-          <widget class="QCheckBox" name="generateAstrometryConfig">
-           <property name="text">
-            <string>Auto Generate Astro Config</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
+         <item row="5" column="1">
+          <widget class="QLineEdit" name="wcsPath"/>
          </item>
          <item row="0" column="1">
           <widget class="QLineEdit" name="configFilePath">
@@ -206,24 +142,14 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Astro Config</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="solverPath"/>
-         </item>
-         <item row="13" column="0" colspan="2">
+         <item row="14" column="0" colspan="2">
           <widget class="QLabel" name="label_10">
            <property name="text">
             <string>Set Paths Automatically with profile:</string>
            </property>
           </widget>
          </item>
-         <item row="14" column="0" colspan="2">
+         <item row="15" column="0" colspan="2">
           <widget class="QComboBox" name="setPathsAutomatically">
            <item>
             <property name="text">
@@ -250,6 +176,90 @@
              <string>Windows Cygwin</string>
             </property>
            </item>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Sextractor Path</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_42">
+           <property name="text">
+            <string>WCSInfo Path</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>Temp Path</string>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="0" colspan="2">
+          <widget class="QCheckBox" name="generateAstrometryConfig">
+           <property name="text">
+            <string>Auto Generate Astro Config</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1">
+          <widget class="QLineEdit" name="tempPath"/>
+         </item>
+         <item row="16" column="0">
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="sextractorPath">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="solverPath"/>
+         </item>
+         <item row="10" column="0" colspan="2">
+          <widget class="QCheckBox" name="cleanupTemp">
+           <property name="text">
+            <string>Cleanup Temporary Files After Processes</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Astro Config</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLineEdit" name="astapPath"/>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_45">
+           <property name="text">
+            <string>ASTAP Path</string>
+           </property>
           </widget>
          </item>
         </layout>
@@ -1244,8 +1254,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>257</width>
-              <height>115</height>
+              <width>279</width>
+              <height>125</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -1302,8 +1312,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>259</width>
-           <height>314</height>
+           <width>281</width>
+           <height>337</height>
           </rect>
          </property>
          <property name="sizePolicy">

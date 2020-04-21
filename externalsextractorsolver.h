@@ -24,6 +24,7 @@ public:
     void sextractAndSolve();
     void SEPAndSolve();
     void classicSolve();
+    void astapSolve();
 
     void abort();
     bool isRunning();
@@ -31,6 +32,7 @@ public:
     bool runExternalSextractor();
     bool runExternalSolver();
     bool runExternalClassicSolver();
+    bool runExternalASTAPSolver();
     QStringList getSolverArgsList();
     QStringList getClassicSolverArgsList();
     bool generateAstrometryConfigFile();
@@ -46,6 +48,7 @@ public:
     //System File Paths
     QString dirPath = QDir::homePath();
     QStringList indexFilePaths;
+    QString astapBinaryPath;
     QString sextractorBinaryPath;
     QString confPath;
     QString solverPath;
@@ -71,6 +74,7 @@ public:
     bool writeSextractorTable();
     bool getSextractorTable();
     bool getSolutionInformation();
+    bool getASTAPSolutionInformation();
     bool saveAsFITS();
     void cleanupTempFiles();
 

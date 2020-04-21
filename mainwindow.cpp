@@ -77,6 +77,7 @@ MainWindow::MainWindow() :
     connect(ui->configFilePath, &QLineEdit::textChanged, this, [this](){ confPath = ui->configFilePath->text(); });
     connect(ui->sextractorPath, &QLineEdit::textChanged, this, [this](){ sextractorBinaryPath = ui->sextractorPath->text(); });
     connect(ui->solverPath, &QLineEdit::textChanged, this, [this](){ solverPath = ui->solverPath->text(); });
+    connect(ui->astapPath, &QLineEdit::textChanged, this, [this](){ astapPath = ui->astapPath->text(); });
     connect(ui->tempPath, &QLineEdit::textChanged, this, [this](){ tempPath = ui->tempPath->text(); });
     connect(ui->wcsPath, &QLineEdit::textChanged, this, [this](){ wcsPath = ui->wcsPath->text(); });
     connect(ui->cleanupTemp, &QCheckBox::stateChanged, this, [this](){ cleanupTemporaryFiles = ui->cleanupTemp->isChecked(); });
@@ -119,11 +120,13 @@ MainWindow::MainWindow() :
         sextractorBinaryPath = extTemp.sextractorBinaryPath;
         confPath = extTemp.confPath;
         solverPath = extTemp.solverPath;
+        astapPath = extTemp.astapBinaryPath;
         wcsPath = extTemp.wcsPath;
 
         ui->sextractorPath->setText(sextractorBinaryPath);
         ui->configFilePath->setText(confPath);
         ui->solverPath->setText(solverPath);
+        ui->astapPath->setText(astapPath);
         ui->wcsPath->setText(wcsPath);
     });
 
@@ -210,6 +213,7 @@ void MainWindow::resetOptionsToDefaults()
     sextractorBinaryPath = extTemp.sextractorBinaryPath;
     confPath = extTemp.confPath;
     solverPath = extTemp.solverPath;
+    astapPath = extTemp.astapBinaryPath;
     wcsPath = extTemp.wcsPath;
     cleanupTemporaryFiles = extTemp.cleanupTemporaryFiles;
     autoGenerateAstroConfig = extTemp.autoGenerateAstroConfig;
@@ -217,6 +221,7 @@ void MainWindow::resetOptionsToDefaults()
         ui->sextractorPath->setText(sextractorBinaryPath);
         ui->configFilePath->setText(confPath);
         ui->solverPath->setText(solverPath);
+        ui->astapPath->setText(astapPath);
         ui->wcsPath->setText(wcsPath);
         ui->cleanupTemp->setChecked(cleanupTemporaryFiles);
         ui->generateAstrometryConfig->setChecked(autoGenerateAstroConfig);
@@ -497,7 +502,13 @@ bool MainWindow::solveImage()
         break;
 
         case 4: //ASTAP Solver
-            logOutput("ASTAP not implemented yet");
+            if(!QFileInfo(astapPath).exists())
+            {
+                logOutput("There is no ASTAP solver at " + astapPath + ", Aborting");
+                return false;
+            }
+             astapSolve();
+             return true;
         break;
 
     }
@@ -511,12 +522,30 @@ bool MainWindow::classicSolve()
         return false;
 
     setupExternalSextractorSolver();
-    setSolverSettings();
+    setSolverSettings(); 
 
-    connect(sexySolver, &SexySolver::finished, this, &MainWindow::classicSolverComplete);
+    connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
     solverTimer.start();
     extSolver->classicSolve();
+
+    return true;
+}
+
+//This method runs when the user selects the Classic Solve Option
+//It is meant to run the traditional solve KStars used to do using python and astrometry.net
+bool MainWindow::astapSolve()
+{
+    if(!prepareForProcesses())
+        return false;
+
+    setupExternalSextractorSolver();
+    setSolverSettings();
+
+    connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
+
+    solverTimer.start();
+    extSolver->astapSolve();
 
     return true;
 }
@@ -621,9 +650,12 @@ void MainWindow::setupExternalSextractorSolver()
     extSolver->sextractorBinaryPath = sextractorBinaryPath;
     extSolver->confPath = confPath;
     extSolver->solverPath = solverPath;
+    extSolver->astapBinaryPath = astapPath;
     extSolver->wcsPath = wcsPath;
     extSolver->cleanupTemporaryFiles = cleanupTemporaryFiles;
     extSolver->autoGenerateAstroConfig = autoGenerateAstroConfig;
+
+    extSolver->command = ui->solverType->currentText();
 }
 
 //This sets up the Internal SexySolver and sets settings specific to it
@@ -634,6 +666,8 @@ void MainWindow::setupInternalSexySolver()
 
     //Connects the SexySolver for logging
     connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
+
+    sexySolver->command = ui->solverType->currentText();
 
 }
 
@@ -708,7 +742,7 @@ bool MainWindow::sextractorComplete(int error)
         logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
         logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-
+        ui->resultsTable->insertRow(ui->resultsTable->rowCount());
         addSextractionToTable();
         return true;
     }
@@ -729,31 +763,11 @@ bool MainWindow::solverComplete(int error)
     {
         elapsed = solverTimer.elapsed() / 1000.0;
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString("Sextraction and Solving took a total of: %1 second(s).").arg( elapsed));
+        logOutput(QString(sexySolver->command + " took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        ui->resultsTable->insertRow(ui->resultsTable->rowCount());
+        addSextractionToTable();
         addSolutionToTable(sexySolver->solution);
-        return true;
-    }
-    else
-    {
-        elapsed = solverTimer.elapsed() / 1000.0;
-        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString("Solver failed after %1 second(s).").arg( elapsed));
-        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        return false;
-    }
-}
-
-//This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the results table.
-bool MainWindow::classicSolverComplete(int error)
-{
-    if(error == 0)
-    {
-        elapsed = solverTimer.elapsed() / 1000.0;
-        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString("Astrometry.net solve took a total of: %1 second(s).").arg( elapsed));
-        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        addClassicSolutionToTable(sexySolver->solution);
         return true;
     }
     else
@@ -1888,42 +1902,45 @@ bool MainWindow::getSolverOptionsFromFITS()
 //This method sets up the results table to start with.
 void MainWindow::setupResultsTable()
 {
+
+     QTableWidget *table = ui->resultsTable;
+
     //These are in the order that they will appear in the table.
 
-    addColumnToTable(ui->resultsTable,"Time");
-    addColumnToTable(ui->resultsTable,"Int?");
-    addColumnToTable(ui->resultsTable,"Command");
-    addColumnToTable(ui->resultsTable,"Stars");
+    addColumnToTable(table,"Time");
+    addColumnToTable(table,"Int?");
+    addColumnToTable(table,"Command");
+    addColumnToTable(table,"Stars");
     //Sextractor Parameters
-    addColumnToTable(ui->resultsTable,"doHFR");
-    addColumnToTable(ui->resultsTable,"Shape");
-    addColumnToTable(ui->resultsTable,"Kron");
-    addColumnToTable(ui->resultsTable,"Subpix");
-    addColumnToTable(ui->resultsTable,"r_min");
-    addColumnToTable(ui->resultsTable,"minarea");
-    addColumnToTable(ui->resultsTable,"d_thresh");
-    addColumnToTable(ui->resultsTable,"d_cont");
-    addColumnToTable(ui->resultsTable,"clean");
-    addColumnToTable(ui->resultsTable,"clean param");
-    addColumnToTable(ui->resultsTable,"fwhm");
+    addColumnToTable(table,"doHFR");
+    addColumnToTable(table,"Shape");
+    addColumnToTable(table,"Kron");
+    addColumnToTable(table,"Subpix");
+    addColumnToTable(table,"r_min");
+    addColumnToTable(table,"minarea");
+    addColumnToTable(table,"d_thresh");
+    addColumnToTable(table,"d_cont");
+    addColumnToTable(table,"clean");
+    addColumnToTable(table,"clean param");
+    addColumnToTable(table,"fwhm");
     //Star Filtering Parameters
-    addColumnToTable(ui->resultsTable,"Max Ell");
-    addColumnToTable(ui->resultsTable,"Cut Bri");
-    addColumnToTable(ui->resultsTable,"Cut Dim");
-    addColumnToTable(ui->resultsTable,"Sat Lim");
+    addColumnToTable(table,"Max Ell");
+    addColumnToTable(table,"Cut Bri");
+    addColumnToTable(table,"Cut Dim");
+    addColumnToTable(table,"Sat Lim");
     //Astrometry Parameters
-    addColumnToTable(ui->resultsTable,"Pos?");
-    addColumnToTable(ui->resultsTable,"Scale?");
-    addColumnToTable(ui->resultsTable,"Resort?");
+    addColumnToTable(table,"Pos?");
+    addColumnToTable(table,"Scale?");
+    addColumnToTable(table,"Resort?");
     //Results
-    addColumnToTable(ui->resultsTable,"RA");
-    addColumnToTable(ui->resultsTable,"DEC");
-    addColumnToTable(ui->resultsTable,"Orientation");
-    addColumnToTable(ui->resultsTable,"Field Width");
-    addColumnToTable(ui->resultsTable,"Field Height");
-    addColumnToTable(ui->resultsTable,"Field");
+    addColumnToTable(table,"RA");
+    addColumnToTable(table,"DEC");
+    addColumnToTable(table,"Orientation");
+    addColumnToTable(table,"Field Width");
+    addColumnToTable(table,"Field Height");
+    addColumnToTable(table,"Field");
 
-    ui->resultsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     updateHiddenResultsTableColumns();
 }
@@ -1933,17 +1950,16 @@ void MainWindow::setupResultsTable()
 void MainWindow::addSextractionToTable()
 {
     QTableWidget *table = ui->resultsTable;
-    table->insertRow(table->rowCount());
 
     setItemInColumn(table, "Time", QString::number(elapsed));
     if(extSolver.isNull())
-        setItemInColumn(ui->resultsTable, "Int?", "Internal");
+        setItemInColumn(table, "Int?", "Internal");
     else
-        setItemInColumn(ui->resultsTable, "Int?", "External");
-    setItemInColumn(ui->resultsTable, "Command", "Sextract");
-    setItemInColumn(ui->resultsTable, "Stars", QString::number(sexySolver->getNumStarsFound()));
+        setItemInColumn(table, "Int?", "External");
+    setItemInColumn(table, "Command", "Sextract");
+    setItemInColumn(table, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
-    setItemInColumn(ui->resultsTable,"doHFR", QVariant(sexySolver->calculateHFR).toString());
+    setItemInColumn(table,"doHFR", QVariant(sexySolver->calculateHFR).toString());
     QString shapeName="Circle";
     switch(sexySolver->apertureShape)
     {
@@ -1960,23 +1976,23 @@ void MainWindow::addSextractionToTable()
         break;
     }
 
-    setItemInColumn(ui->resultsTable,"Shape", shapeName);
-    setItemInColumn(ui->resultsTable,"Kron", QString::number(sexySolver->kron_fact));
-    setItemInColumn(ui->resultsTable,"Subpix", QString::number(sexySolver->subpix));
-    setItemInColumn(ui->resultsTable,"r_min", QString::number(sexySolver->r_min));
-    setItemInColumn(ui->resultsTable,"minarea", QString::number(sexySolver->minarea));
-    setItemInColumn(ui->resultsTable,"d_thresh", QString::number(sexySolver->deblend_thresh));
-    setItemInColumn(ui->resultsTable,"d_cont", QString::number(sexySolver->deblend_contrast));
-    setItemInColumn(ui->resultsTable,"clean", QString::number(sexySolver->clean));
-    setItemInColumn(ui->resultsTable,"clean param", QString::number(sexySolver->clean_param));
-    setItemInColumn(ui->resultsTable,"fwhm", QString::number(sexySolver->fwhm));
-    setItemInColumn(ui->resultsTable, "Field", ui->fileNameDisplay->text());
+    setItemInColumn(table,"Shape", shapeName);
+    setItemInColumn(table,"Kron", QString::number(sexySolver->kron_fact));
+    setItemInColumn(table,"Subpix", QString::number(sexySolver->subpix));
+    setItemInColumn(table,"r_min", QString::number(sexySolver->r_min));
+    setItemInColumn(table,"minarea", QString::number(sexySolver->minarea));
+    setItemInColumn(table,"d_thresh", QString::number(sexySolver->deblend_thresh));
+    setItemInColumn(table,"d_cont", QString::number(sexySolver->deblend_contrast));
+    setItemInColumn(table,"clean", QString::number(sexySolver->clean));
+    setItemInColumn(table,"clean param", QString::number(sexySolver->clean_param));
+    setItemInColumn(table,"fwhm", QString::number(sexySolver->fwhm));
+    setItemInColumn(table, "Field", ui->fileNameDisplay->text());
 
     //StarFilter Parameters
-    setItemInColumn(ui->resultsTable,"Max Ell", QString::number(sexySolver->maxEllipse));
-    setItemInColumn(ui->resultsTable,"Cut Bri", QString::number(sexySolver->removeBrightest));
-    setItemInColumn(ui->resultsTable,"Cut Dim", QString::number(sexySolver->removeDimmest));
-    setItemInColumn(ui->resultsTable,"Sat Lim", QString::number(sexySolver->saturationLimit));
+    setItemInColumn(table,"Max Ell", QString::number(sexySolver->maxEllipse));
+    setItemInColumn(table,"Cut Bri", QString::number(sexySolver->removeBrightest));
+    setItemInColumn(table,"Cut Dim", QString::number(sexySolver->removeDimmest));
+    setItemInColumn(table,"Sat Lim", QString::number(sexySolver->saturationLimit));
 
 }
 
@@ -1984,41 +2000,19 @@ void MainWindow::addSextractionToTable()
 //To add, remove, or change the way certain columns are filled when a solve is finished, edit them here.
 void MainWindow::addSolutionToTable(Solution solution)
 {
-    addSextractionToTable();
-
     QTableWidget *table = ui->resultsTable;
-
-    setItemInColumn(ui->resultsTable, "Command", "Sextract and Solve");
-
-    //Astrometry Parameters
-    setItemInColumn(ui->resultsTable, "Pos?", QVariant(sexySolver->use_position).toString());
-    setItemInColumn(ui->resultsTable, "Scale?", QVariant(sexySolver->use_scale).toString());
-    setItemInColumn(ui->resultsTable, "Resort?", QVariant(sexySolver->resort).toString());
-
-    //Results
-    setItemInColumn(table, "RA", solution.rastr);
-    setItemInColumn(table, "DEC", solution.decstr);
-    setItemInColumn(table, "Orientation", QString::number(solution.orientation));
-    setItemInColumn(table, "Field Width", QString::number(solution.fieldWidth));
-    setItemInColumn(table, "Field Height", QString::number(solution.fieldHeight));
-    setItemInColumn(table, "Field", ui->fileNameDisplay->text());
-}
-
-//This adds a solution to the Results Table
-//To add, remove, or change the way certain columns are filled when a solve is finished, edit them here.
-void MainWindow::addClassicSolutionToTable(Solution solution)
-{
-    QTableWidget *table = ui->resultsTable;
-    table->insertRow(table->rowCount());
-
     setItemInColumn(table, "Time", QString::number(elapsed));
-    setItemInColumn(ui->resultsTable, "Int?", "External");
-    setItemInColumn(ui->resultsTable, "Command", "Astrometry.net Solve");
+    if(extSolver.isNull())
+        setItemInColumn(table, "Int?", "Internal");
+    else
+        setItemInColumn(table, "Int?", "External");
+
+    setItemInColumn(table, "Command", sexySolver->command);
 
     //Astrometry Parameters
-    setItemInColumn(ui->resultsTable, "Pos?", QVariant(sexySolver->use_position).toString());
-    setItemInColumn(ui->resultsTable, "Scale?", QVariant(sexySolver->use_scale).toString());
-    setItemInColumn(ui->resultsTable, "Resort?", QVariant(sexySolver->resort).toString());
+    setItemInColumn(table, "Pos?", QVariant(sexySolver->use_position).toString());
+    setItemInColumn(table, "Scale?", QVariant(sexySolver->use_scale).toString());
+    setItemInColumn(table, "Resort?", QVariant(sexySolver->resort).toString());
 
     //Results
     setItemInColumn(table, "RA", solution.rastr);
@@ -2032,33 +2026,34 @@ void MainWindow::addClassicSolutionToTable(Solution solution)
 //I wrote this method to hide certain columns in the Results Table if the user wants to reduce clutter in the table.
 void MainWindow::updateHiddenResultsTableColumns()
 {
+    QTableWidget *table = ui->resultsTable;
     //Sextractor Params
-    setColumnHidden(ui->resultsTable,"doHFR", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"Shape", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"Kron", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"Subpix", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"r_min", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"minarea", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"d_thresh", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"d_cont", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"clean", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"clean param", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"fwhm", !showSextractorParams);
+    setColumnHidden(table,"doHFR", !showSextractorParams);
+    setColumnHidden(table,"Shape", !showSextractorParams);
+    setColumnHidden(table,"Kron", !showSextractorParams);
+    setColumnHidden(table,"Subpix", !showSextractorParams);
+    setColumnHidden(table,"r_min", !showSextractorParams);
+    setColumnHidden(table,"minarea", !showSextractorParams);
+    setColumnHidden(table,"d_thresh", !showSextractorParams);
+    setColumnHidden(table,"d_cont", !showSextractorParams);
+    setColumnHidden(table,"clean", !showSextractorParams);
+    setColumnHidden(table,"clean param", !showSextractorParams);
+    setColumnHidden(table,"fwhm", !showSextractorParams);
     //Star Filtering Parameters
-    setColumnHidden(ui->resultsTable,"Max Ell", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"Cut Bri", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"Cut Dim", !showSextractorParams);
-    setColumnHidden(ui->resultsTable,"Sat Lim", !showSextractorParams);
+    setColumnHidden(table,"Max Ell", !showSextractorParams);
+    setColumnHidden(table,"Cut Bri", !showSextractorParams);
+    setColumnHidden(table,"Cut Dim", !showSextractorParams);
+    setColumnHidden(table,"Sat Lim", !showSextractorParams);
     //Astrometry Parameters
-    setColumnHidden(ui->resultsTable,"Pos?", !showAstrometryParams);
-    setColumnHidden(ui->resultsTable,"Scale?", !showAstrometryParams);
-    setColumnHidden(ui->resultsTable,"Resort?", !showAstrometryParams);
+    setColumnHidden(table,"Pos?", !showAstrometryParams);
+    setColumnHidden(table,"Scale?", !showAstrometryParams);
+    setColumnHidden(table,"Resort?", !showAstrometryParams);
     //Results
-    setColumnHidden(ui->resultsTable,"RA", !showSolutionDetails);
-    setColumnHidden(ui->resultsTable,"DEC", !showSolutionDetails);
-    setColumnHidden(ui->resultsTable,"Orientation", !showSolutionDetails);
-    setColumnHidden(ui->resultsTable,"Field Width", !showSolutionDetails);
-    setColumnHidden(ui->resultsTable,"Field Height", !showSolutionDetails);
+    setColumnHidden(table,"RA", !showSolutionDetails);
+    setColumnHidden(table,"DEC", !showSolutionDetails);
+    setColumnHidden(table,"Orientation", !showSolutionDetails);
+    setColumnHidden(table,"Field Width", !showSolutionDetails);
+    setColumnHidden(table,"Field Height", !showSolutionDetails);
 }
 
 //This will write the Results table to a csv file if the user desires

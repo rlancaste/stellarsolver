@@ -104,6 +104,7 @@ private:
     QString sextractorBinaryPath;
     QString confPath;
     QString solverPath;
+    QString astapPath;
     QString wcsPath;
 
     //Options for SexySolver Tester
@@ -199,6 +200,7 @@ public slots:
     bool sextractImage();
     bool solveImage();
     bool classicSolve();
+    bool astapSolve();
     bool sextractExternally();
     bool sextractAndSolveExternally();
     bool SEPAndSolveExternally();
@@ -246,12 +248,10 @@ public slots:
     //These functions get called when the sextractor or solver finishes
     bool sextractorComplete(int error);
     bool solverComplete(int error);
-    bool classicSolverComplete(int error);
 
     //These functions handle the solution table
     void addSolutionToTable(Solution solution);
     void updateHiddenResultsTableColumns();
-    void addClassicSolutionToTable(Solution solution);
     void saveResultsTable();
 
 };

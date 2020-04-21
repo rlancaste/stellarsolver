@@ -9,6 +9,7 @@
 #include <QTextStream>
 #include <QMessageBox>
 #include <qmath.h>
+#include "dms.h"
 
 ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SexySolver(imagestats, imageBuffer, parent)
 {
@@ -40,6 +41,7 @@ void ExternalSextractorSolver::setLinuxDefaultPaths()
     confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
     sextractorBinaryPath = "/usr/bin/sextractor";
     solverPath = "/usr/bin/solve-field";
+    astapBinaryPath = "/bin/astap";
     wcsPath = "/usr/bin/wcsinfo";
 }
 
@@ -48,6 +50,7 @@ void ExternalSextractorSolver::setMacHomebrewPaths()
     confPath = "/usr/local/etc/astrometry.cfg";
     sextractorBinaryPath = "/usr/local/bin/sex";
     solverPath = "/usr/local/bin/solve-field";
+    astapBinaryPath = "/Applications/ASTAP.app/Contents/MacOS/astap";
     wcsPath = "/usr/local/bin/wcsinfo";
 }
 
@@ -56,6 +59,7 @@ void ExternalSextractorSolver::setMacInternalPaths()
     confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
     sextractorBinaryPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/sex";
     solverPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/solve-field";
+    astapBinaryPath = "/Applications/ASTAP.app/Contents/MacOS/astap";
     wcsPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/wcsinfo";
 }
 
@@ -64,6 +68,7 @@ void ExternalSextractorSolver::setWinANSVRPaths()
     confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg";
     sextractorBinaryPath = "";
     solverPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe";
+    astapBinaryPath = "C:/Program Files/astap/astap.exe";
     wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
 }
 
@@ -72,6 +77,7 @@ void ExternalSextractorSolver::setWinCygwinPaths()
     confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
     sextractorBinaryPath = "";
     solverPath = "C:/cygwin64/bin/solve-field";
+    astapBinaryPath = "C:/Program Files/astap/astap.exe";
     wcsPath = "C:/cygwin64/bin/wcsinfo";
 }
 
@@ -102,10 +108,16 @@ void ExternalSextractorSolver::SEPAndSolve()
     }
 }
 
-//This is the method you want to use to solve the image using traditional astrometry.net
+//This is the method you want to use to solve the image externally using traditional astrometry.net
 void ExternalSextractorSolver::classicSolve()
 {
     this->runExternalClassicSolver();
+}
+
+//This is the method yu want to use to solve the image externally with ASTAP
+void ExternalSextractorSolver::astapSolve()
+{
+   runExternalASTAPSolver();
 }
 
 //This is the abort method.  For the external sextractor and solver, it uses the kill method to abort the processes
@@ -135,6 +147,7 @@ void ExternalSextractorSolver::cleanupTempFiles()
         QDir temp(basePath);
         temp.remove("default.param");
         temp.remove("default.conv");
+        temp.remove(baseName + ".ini");
         temp.remove(baseName + ".corr");
         temp.remove(baseName + ".rdls");
         temp.remove(baseName + ".axy");
@@ -333,12 +346,8 @@ bool ExternalSextractorSolver::runExternalSolver()
     solver->start(solverPath, solverArgs);
 
     emit logNeedsUpdating("Starting external Astrometry.net solver...");
-    emit logNeedsUpdating("Command: " + solverPath + solverArgs.join(" "));
+    emit logNeedsUpdating("Command: " + solverPath + " " + solverArgs.join(" "));
 
-
-    QString command = solverPath + ' ' + solverArgs.join(' ');
-
-    emit logNeedsUpdating(command);
     return true;
 }
 
@@ -392,14 +401,41 @@ bool ExternalSextractorSolver::runExternalClassicSolver()
     solver->start(solverPath, solverArgs);
 
     emit logNeedsUpdating("Starting external Astrometry.net solver using python and without Sextractor first...");
-    emit logNeedsUpdating("Command: " + solverPath + solverArgs.join(" "));
+    emit logNeedsUpdating("Command: " + solverPath + " " + solverArgs.join(" "));
 
-
-    QString command = solverPath + ' ' + solverArgs.join(' ');
-
-    emit logNeedsUpdating(command);
     return true;
 }
+
+//The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
+//It runs the astrometry.net external program using the options selected.
+bool ExternalSextractorSolver::runExternalASTAPSolver()
+{
+    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+    QStringList solverArgs;
+
+
+    QString solutionFile = basePath + "/" + baseName + ".ini";
+    solverArgs << "-o" << solutionFile;
+    solverArgs << "-r" << QString::number(search_radius);
+    solverArgs << "-speed" << "auto";
+    solverArgs << "-f" << fileToSolve;
+
+    solver.clear();
+    solver = new QProcess();
+
+    solver->setProcessChannelMode(QProcess::MergedChannels);
+    connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
+    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){getASTAPSolutionInformation();emit finished(x);});
+
+    solver->start(astapBinaryPath, solverArgs);
+
+    emit logNeedsUpdating("Starting external ASTAP Solver...");
+    emit logNeedsUpdating("Command: " + astapBinaryPath + " " + solverArgs.join(" "));
+
+    return true;
+}
+
 
 //This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
 //Then it was split in two parts (The other part is located in the MainWindow class)
@@ -699,6 +735,75 @@ bool ExternalSextractorSolver::getSolutionInformation()
     }
     solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient};
     return true;
+}
+
+//This method was based on a method in KStars.
+//It reads the information from the Solution file from Astrometry.net and puts it into the solution
+bool ExternalSextractorSolver::getASTAPSolutionInformation()
+{
+    QFile results(QDir::tempPath() + "/" + baseName + ".ini");
+
+        if (!results.open(QIODevice::ReadOnly))
+        {
+            emit logNeedsUpdating("Failed to open solution file" + QDir::tempPath() + "/" + baseName + ".ini");
+            return false;
+        }
+
+        QTextStream in(&results);
+        QString line = in.readLine();
+
+        QStringList ini = line.split("=");
+        if (ini[1] == "F")
+        {
+            emit logNeedsUpdating("Solver failed. Try again.");
+            return false;
+        }
+        double ra = 0, dec = 0, orient = 0;
+        double fieldw = 0, fieldh = 0;
+        QString rastr, decstr;
+
+        double pixscale = 0;
+        bool ok[4] = {false};
+
+        line = in.readLine();
+        while (!line.isNull())
+        {
+            QStringList ini = line.split("=");
+            if (ini[0] == "CRVAL1")
+                ra = ini[1].trimmed().toDouble(&ok[0]);
+            else if (ini[0] == "CRVAL2")
+                dec = ini[1].trimmed().toDouble(&ok[1]);
+            else if (ini[0] == "CDELT1")
+                pixscale = ini[1].trimmed().toDouble(&ok[2]) * 3600.0;
+            else if (ini[0] == "CROTA2")
+                orient = ini[1].trimmed().toDouble(&ok[3]);
+
+            line = in.readLine();
+        }
+
+        if (ok[0] && ok[1] && ok[2] && ok[3])
+        {
+            dms radms(ra);
+            dms decdms(dec);
+            rastr = radms.toHMSString();
+            decstr = decdms.toDMSString();
+            fieldw = stats.width * pixscale / 60;
+            fieldh = stats.height * pixscale / 60;
+            solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient};
+
+            emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
+            emit logNeedsUpdating(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
+            emit logNeedsUpdating(QString("Field size: %1 x %2").arg( fieldw).arg( fieldh));
+            emit logNeedsUpdating(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
+
+            return true;
+        }
+        else
+        {
+            emit logNeedsUpdating("Solver failed. Try again.");
+            return false;
+        }
 }
 
 //This method writes the table to the file

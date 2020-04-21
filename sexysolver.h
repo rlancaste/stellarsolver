@@ -53,6 +53,7 @@ public:
     bool justSextract = false;
 
     //These are the methods that you can use for the SexySolver to Sextract or Solve
+    QString command;
     void sextract();
     void sextractAndSolve();
 
