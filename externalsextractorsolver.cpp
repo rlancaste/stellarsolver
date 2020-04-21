@@ -22,7 +22,10 @@ ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t
     //The code below sets default paths for these key external file settings.
 
 #if defined(Q_OS_OSX)
-    setMacHomebrewPaths();
+    if(QFile("/usr/local/bin/solve-field").exists())
+        setMacHomebrewPaths();
+    else
+        setMacInternalPaths();
 #elif defined(Q_OS_LINUX)
     setLinuxDefaultPaths();
 #else //Windows
