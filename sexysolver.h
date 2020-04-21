@@ -83,7 +83,7 @@ public:
                                 0.260856, 0.483068, 0.260856};
 
     //Star Filter Parameters
-    bool resort = true;  //Whether to resort the stars based on magnitude. NOTE: This is REQUIRED to be true for the filters
+    bool resort = true;  //Whether to resort the stars based on magnitude NOTE: This is REQUIRED to be true for the filters
     double maxEllipse = 0; //The maximum ratio between the semi-major and semi-minor axes for stars to include (a/b)
     double removeBrightest = 0; //The percentage of brightest stars to remove from the list
     double removeDimmest = 0; //The percentage of dimmest stars to remove from the list
@@ -114,7 +114,7 @@ public:
 
     //Logging Settings for Astrometry
     bool logToFile = false; //This determines whether or not to save the output from Astrometry.net to a file
-    QString logFile = QDir::tempPath() + "/AstrometryLog.txt"; //This is the path to the log file that it will save.
+    QString logFile = basePath + "/AstrometryLog.txt"; //This is the path to the log file that it will save.
     int logLevel = LOG_NONE; //This is the level of logging getting saved to the log file
 
     //LogOdds Settings

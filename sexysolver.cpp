@@ -476,7 +476,6 @@ bool SexySolver::prepare_job() {
     sp->field_maxy = stats.height;
 
     QDir temp(basePath);
-    QString basedir = QDir::tempPath() + "/AstrometrySolver";
     cancelfn       = basePath + "/" + baseName + ".cancel";
     solvedfn       = basePath + "/" + baseName + ".solved";
 
@@ -669,7 +668,7 @@ int SexySolver::runInternalSolver()
     engine_free(engine);
 
     //This deletes the temporary files
-    QDir temp(QDir::tempPath());
+    QDir temp(basePath);
     temp.remove(cancelfn);
     temp.remove(solvedfn);
 

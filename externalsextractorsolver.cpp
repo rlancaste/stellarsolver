@@ -103,7 +103,6 @@ void ExternalSextractorSolver::SEPAndSolve()
     if(runSEPSextractor())
     {
         writeSextractorTable();
-        resort = false;  //If we don't write the column we will use to sort into the xyls file, we can't use resort.  If resort was true, it was already sorted anyway by SEP Sextractor
         runExternalSolver();
     }
 }
@@ -145,8 +144,9 @@ void ExternalSextractorSolver::cleanupTempFiles()
     if(cleanupTemporaryFiles)
     {
         QDir temp(basePath);
-        temp.remove("default.param");
-        temp.remove("default.conv");
+        temp.remove(baseName + ".param");
+        temp.remove(baseName + ".conv");
+        temp.remove(baseName + ".cfg");
         temp.remove(baseName + ".ini");
         temp.remove(baseName + ".corr");
         temp.remove(baseName + ".rdls");
@@ -156,9 +156,10 @@ void ExternalSextractorSolver::cleanupTempFiles()
         temp.remove(baseName + ".solved");
         temp.remove(baseName + ".match");
         temp.remove(baseName + "-indx.xyls");
-        QFile(sextractorFilePath).remove();
-        if(fileToSolveIsTempFile)
-            QFile(fileToSolve).remove();
+        if(sextractorFilePathIsTempFile)
+            QFile(sextractorFilePath).remove();
+        if(fileToProcessIsTempFile)
+            QFile(fileToProcess).remove();
     }
 }
 
@@ -167,7 +168,7 @@ void ExternalSextractorSolver::cleanupTempFiles()
 bool ExternalSextractorSolver::runExternalSextractor()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    QFileInfo file(fileToSolve);
+    QFileInfo file(fileToProcess);
     if(!file.exists())
         return false;
     if(file.suffix() != "fits" && file.suffix() != "fit")
@@ -197,23 +198,29 @@ bool ExternalSextractorSolver::runExternalSextractor()
     //sextractor needs a default.param file in the working directory
     //This creates that file with the options we need for astrometry.net and sextractor
 
-    QString paramPath =  basePath + "/" + "default.param";
+    QString paramPath =  basePath + "/" + baseName + ".param";
     QFile paramFile(paramPath);
     if (paramFile.open(QIODevice::WriteOnly) == false)
+    {
         QMessageBox::critical(nullptr,"Message","Sextractor file write error.");
+        return false;
+    }
     else
     {
         QTextStream out(&paramFile);
         out << "X_IMAGE\n";//                  Object position along x                                   [pixel]
         out << "Y_IMAGE\n";//                  Object position along y                                   [pixel]
         out << "MAG_AUTO\n";//                 Kron-like elliptical aperture magnitude                   [mag]
-        out << "FLUX_AUTO\n";//                Flux within a Kron-like elliptical aperture               [count]
-        out << "FLUX_MAX\n";//                 Peak flux above background                                [count]
-        out << "CXX_IMAGE\n";//                Cxx object ellipse parameter                              [pixel**(-2)]
-        out << "CYY_IMAGE\n";//                Cyy object ellipse parameter                              [pixel**(-2)]
-        out << "CXY_IMAGE\n";//                Cxy object ellipse parameter                              [pixel**(-2)]
-        if(calculateHFR)
-            out << "FLUX_RADIUS\n";//              Fraction-of-light radii                                   [pixel]
+        if(justSextract)
+        {
+            out << "FLUX_AUTO\n";//                Flux within a Kron-like elliptical aperture               [count]
+            out << "FLUX_MAX\n";//                 Peak flux above background                                [count]
+            out << "CXX_IMAGE\n";//                Cxx object ellipse parameter                              [pixel**(-2)]
+            out << "CYY_IMAGE\n";//                Cyy object ellipse parameter                              [pixel**(-2)]
+            out << "CXY_IMAGE\n";//                Cxy object ellipse parameter                              [pixel**(-2)]
+            if(calculateHFR)
+                out << "FLUX_RADIUS\n";//              Fraction-of-light radii                                   [pixel]
+        }
         paramFile.close();
     }
     sextractorArgs << "-PARAMETERS_NAME" << paramPath;
@@ -222,10 +229,13 @@ bool ExternalSextractorSolver::runExternalSextractor()
     //sextractor needs a default.conv file in the working directory
     //This creates the default one
 
-    QString convPath =  basePath + "/" + "default.conv";
+    QString convPath =  basePath + "/" + baseName + ".conv";
     QFile convFile(convPath);
     if (convFile.open(QIODevice::WriteOnly) == false)
+    {
         QMessageBox::critical(nullptr,"Message","Sextractor CONV filter write error.");
+        return false;
+    }
     else
     {
         QTextStream out(&convFile);
@@ -271,7 +281,7 @@ bool ExternalSextractorSolver::runExternalSextractor()
     sextractorArgs << "-PHOT_AUTOPARAMS" << QString::number(kron_fact) + "," + QString::number(r_min);
     sextractorArgs << "-MAG_ZEROPOINT" << QString::number(magzero);
 
-    sextractorArgs <<  fileToSolve;
+    sextractorArgs <<  fileToProcess;
 
     sextractorProcess.clear();
     sextractorProcess = new QProcess();
@@ -367,7 +377,7 @@ bool ExternalSextractorSolver::runExternalClassicSolver()
     QString solutionFile = basePath + "/" + baseName + ".wcs";
     solverArgs << "-W" << solutionFile;
 
-    solverArgs << fileToSolve;
+    solverArgs << fileToProcess;
 
     solver.clear();
     solver = new QProcess();
@@ -419,7 +429,7 @@ bool ExternalSextractorSolver::runExternalASTAPSolver()
     solverArgs << "-o" << solutionFile;
     solverArgs << "-r" << QString::number(search_radius);
     solverArgs << "-speed" << "auto";
-    solverArgs << "-f" << fileToSolve;
+    solverArgs << "-f" << fileToProcess;
 
     solver.clear();
     solver = new QProcess();
@@ -451,7 +461,7 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     // Now go over boolean options
     solverArgs << "--no-verify";
 
-    if(resort) //We only want the resort options if they click resort.  Resorting is not necessary if using SEP because its already sorted.
+    if(resort) //We only want the resort options if they click resort.
     {
         solverArgs << "--resort";
         solverArgs << "--sort-column" << "MAG_AUTO";
@@ -461,9 +471,9 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     // downsample
     solverArgs << "--downsample" << QString::number(2);
 
-    solverArgs << "--odds-to-solve" << QString::number(logratio_tosolve);
-    solverArgs << "--odds-to-tune-up" << QString::number(logratio_totune);
-    //solverArgs << "--odds-to-solve" << QString::number(logratio_tokeep);  I'm not sure if this is one we need.
+    solverArgs << "--odds-to-solve" << QString::number(exp(logratio_tosolve));
+    solverArgs << "--odds-to-tune-up" << QString::number(exp(logratio_totune));
+    //solverArgs << "--odds-to-keep" << QString::number(logratio_tokeep);  I'm not sure if this is one we need.
 
 
     solverArgs << "--width" << QString::number(stats.width);
@@ -514,7 +524,7 @@ QStringList ExternalSextractorSolver::getClassicSolverArgsList()
 
 bool ExternalSextractorSolver::generateAstrometryConfigFile()
 {
-    confPath =  basePath + "/" + "astrometry.cfg";
+    confPath =  basePath + "/" + baseName + ".cfg";
     QFile configFile(confPath);
     if (configFile.open(QIODevice::WriteOnly) == false)
     {
@@ -527,7 +537,7 @@ bool ExternalSextractorSolver::generateAstrometryConfigFile()
         if(inParallel)
             out << "inparallel\n";
         out << "minwidth " << minwidth << "\n";
-        out << "maxwidth " << minwidth << "\n";
+        out << "maxwidth " << maxwidth << "\n";
         out << "cpulimit " << solverTimeLimit << "\n";
         out << "autoindex\n";
         foreach(QString folder,indexFolderPaths)
@@ -741,11 +751,11 @@ bool ExternalSextractorSolver::getSolutionInformation()
 //It reads the information from the Solution file from Astrometry.net and puts it into the solution
 bool ExternalSextractorSolver::getASTAPSolutionInformation()
 {
-    QFile results(QDir::tempPath() + "/" + baseName + ".ini");
+    QFile results(basePath + "/" + baseName + ".ini");
 
         if (!results.open(QIODevice::ReadOnly))
         {
-            emit logNeedsUpdating("Failed to open solution file" + QDir::tempPath() + "/" + baseName + ".ini");
+            emit logNeedsUpdating("Failed to open solution file" + basePath + "/" + baseName + ".ini");
             return false;
         }
 
@@ -835,14 +845,14 @@ bool ExternalSextractorSolver::writeSextractorTable()
         return false;
     }
 
-    int tfields=2;
+    int tfields=3;
     int nrows=stars.size();
     QString extname="Sextractor_File";
 
     //Columns: X_IMAGE, double, pixels, Y_IMAGE, double, pixels
-    char* ttype[] = { xcol, ycol };
-    char* tform[] = { colFormat, colFormat };
-    char* tunit[] = { colUnits, colUnits };
+    char* ttype[] = { xcol, ycol, magcol };
+    char* tform[] = { colFormat, colFormat, colFormat };
+    char* tunit[] = { colUnits, colUnits, magUnits };
     const char* extfile = "Sextractor_File";
 
     float *xArray = new float[stars.size()];
@@ -853,7 +863,7 @@ bool ExternalSextractorSolver::writeSextractorTable()
     {
         xArray[i] = stars.at(i).x;
         yArray[i] = stars.at(i).y;
-        magArray[i] = stars.at(i).y;
+        magArray[i] = stars.at(i).mag;
     }
 
     if(fits_create_tbl(new_fptr, BINARY_TBL, nrows, tfields,
@@ -865,8 +875,8 @@ bool ExternalSextractorSolver::writeSextractorTable()
 
     int firstrow  = 1;  /* first row in table to write   */
     int firstelem = 1;
-    int column = 1;
 
+    int column = 1;
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, xArray, &status))
     {
         emit logNeedsUpdating(QString("Could not write x pixels in binary table."));
@@ -880,6 +890,13 @@ bool ExternalSextractorSolver::writeSextractorTable()
         return false;
     }
 
+    column = 3;
+    if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, magArray, &status))
+    {
+        emit logNeedsUpdating(QString("Could not write magnitudes in binary table."));
+        return false;
+    }
+
     if(fits_close_file(new_fptr, &status))
     {
         emit logNeedsUpdating(QString("Error closing file."));
@@ -888,6 +905,7 @@ bool ExternalSextractorSolver::writeSextractorTable()
 
     free(xArray);
     free(yArray);
+    free(magArray);
 
     return true;
 }
@@ -896,7 +914,7 @@ bool ExternalSextractorSolver::writeSextractorTable()
 //This was copied and pasted and modified from ImageToFITS in fitsdata in KStars
 bool ExternalSextractorSolver::saveAsFITS()
 {
-    QFileInfo fileInfo(fileToSolve.toLatin1());
+    QFileInfo fileInfo(fileToProcess.toLatin1());
     QString newFilename = basePath + "/" + baseName + "_solve.fits";
 
     int status = 0;
@@ -978,12 +996,12 @@ bool ExternalSextractorSolver::saveAsFITS()
         return false;
     }
 
-    fileToSolve = newFilename;
-    fileToSolveIsTempFile = true;
+    fileToProcess = newFilename;
+    fileToProcessIsTempFile = true;
 
     fits_flush_file(fptr, &status);
 
-    emit logNeedsUpdating("Saved FITS file:" + fileToSolve);
+    emit logNeedsUpdating("Saved FITS file:" + fileToProcess);
 
     return true;
 }

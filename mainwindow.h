@@ -90,7 +90,7 @@ private:
 
     QPointer<SexySolver> sexySolver;
     QPointer<ExternalSextractorSolver> extSolver;
-    QString fileToSolve;
+    QString fileToProcess;
     QList<Star> stars;
     int selectedStar;
 
@@ -99,7 +99,7 @@ private:
     //Options for the External Sextractor and Solver
     bool cleanupTemporaryFiles;
     bool autoGenerateAstroConfig;
-    QString tempPath;
+    QString basePath;
     QStringList indexFilePaths;
     QString sextractorBinaryPath;
     QString confPath;
@@ -131,13 +131,13 @@ private:
     double fwhm;
 
     //Star Filter Parameters
-    bool resort;
     double maxEllipse;
     double removeBrightest;
     double removeDimmest;
     double saturationLimit;
 
     //Parameters for solving
+    bool resort;
     bool use_scale = false;
     double fov_low, fov_high;
     QString units;

@@ -94,8 +94,8 @@ MainWindow::MainWindow() :
     ui->solverPath->setToolTip("The path to the external Astrometry.net solve-field executable");
     connect(ui->astapPath, &QLineEdit::textChanged, this, [this](){ astapPath = ui->astapPath->text(); });
     ui->astapPath->setToolTip("The path to the external ASTAP executable");
-    connect(ui->tempPath, &QLineEdit::textChanged, this, [this](){ tempPath = ui->tempPath->text(); });
-    ui->tempPath->setToolTip("The path where temporary files are saved on your computer");
+    connect(ui->basePath, &QLineEdit::textChanged, this, [this](){ basePath = ui->basePath->text(); });
+    ui->basePath->setToolTip("The base path where sextractor and astrometry temporary files are saved on your computer");
     connect(ui->wcsPath, &QLineEdit::textChanged, this, [this](){ wcsPath = ui->wcsPath->text(); });
     ui->wcsPath->setToolTip("The path to wcsinfo for the external Astrometry.net");
     connect(ui->cleanupTemp, &QCheckBox::stateChanged, this, [this](){ cleanupTemporaryFiles = ui->cleanupTemp->isChecked(); });
@@ -193,6 +193,8 @@ MainWindow::MainWindow() :
     ui->fwhm->setToolTip("A function that I made that creates a convolution filter based upon the desired FWHM for better star detection of that star size and shape");
 
     //Star Filter Settings
+    connect(ui->resortQT, &QCheckBox::stateChanged, this, [this](){ resort = ui->resortQT->isChecked(); ui->resort->setChecked(resort);});
+    ui->resortQT->setToolTip("This resorts the stars based on magnitude.  It MUST be checked for the next couple of filters to be enabled.");
     connect(ui->maxEllipse, &QLineEdit::textChanged, this, [this](){ maxEllipse = ui->maxEllipse->text().toDouble(); });
     ui->maxEllipse->setToolTip("Stars are typically round, this filter divides stars' semi major and minor axes and rejects stars with distorted shapes greater than this number (1 is perfectly round)");
     connect(ui->brightestPercent, &QLineEdit::textChanged, this, [this](){ removeBrightest = ui->brightestPercent->text().toDouble(); });
@@ -212,6 +214,8 @@ MainWindow::MainWindow() :
     connect(ui->maxWidth, &QLineEdit::textChanged, this, [this](){ maxwidth = ui->maxWidth->text().toDouble(); });
     ui->maxWidth->setToolTip("Sets a the maximum degree limit in the scales for Astrometry to search if the scale parameter isn't set");
 
+    connect(ui->resort, &QCheckBox::stateChanged, this, [this](){ resort = ui->resort->isChecked(); ui->resortQT->setChecked(resort); });
+    ui->resort->setToolTip("This resorts the stars based on magnitude. It usually makes it solve faster.");
     connect(ui->use_scale, &QCheckBox::stateChanged, this, [this](){ use_scale = ui->use_scale->isChecked(); });
     ui->use_scale->setToolTip("Whether or not to use the estimated image scale below to try to speed up the solve");
     connect(ui->scale_low, &QLineEdit::textChanged, this, [this](){ fov_low = ui->scale_low->text().toDouble(); });
@@ -292,10 +296,10 @@ void MainWindow::resetOptionsToDefaults()
     SexySolver temp(stats, m_ImageBuffer, this);
 
     //Basic Settings
-    tempPath = QDir::tempPath();
+    basePath = temp.basePath;
 
         ui->showStars->setChecked(true);
-        ui->tempPath->setText(tempPath);
+        ui->basePath->setText(basePath);
 
     //Sextractor Settings
     calculateHFR = temp.calculateHFR;
@@ -352,6 +356,10 @@ void MainWindow::resetOptionsToDefaults()
 
     clearAstrometrySettings(); //Resets the Position and Scale settings
 
+    resort = temp.resort;
+
+        ui->resort->setChecked(resort);
+
     //Astrometry Log Ratio Settings
     logratio_tokeep = temp.logratio_tokeep;
     logratio_tosolve = temp.logratio_tosolve;
@@ -362,7 +370,7 @@ void MainWindow::resetOptionsToDefaults()
         ui->oddsToTune->setText(QString::number(logratio_totune));
 
     //Astrometry Logging Settings
-    logFile = QDir::tempPath() + "/AstrometryLog.txt";
+    logFile = basePath + "/AstrometryLog.txt";
     logToFile = temp.logToFile;
     logLevel = temp.logLevel;
 
@@ -707,9 +715,9 @@ void MainWindow::setupExternalSextractorSolver()
     connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput);
 
     //Sets the file settings and other items specific to the external solver programs
-    extSolver->fileToSolve = fileToSolve;
+    extSolver->fileToProcess = fileToProcess;
     extSolver->dirPath = dirPath;
-    extSolver->basePath = tempPath;
+    extSolver->basePath = basePath;
     extSolver->sextractorBinaryPath = sextractorBinaryPath;
     extSolver->confPath = confPath;
     extSolver->solverPath = solverPath;
@@ -755,6 +763,7 @@ void MainWindow::setSextractorSettings()
     sexySolver->createConvFilterFromFWHM(fwhm);
 
     //Star Filter Settings
+    sexySolver->resort = resort;
     sexySolver->removeBrightest = removeBrightest;
     sexySolver->removeDimmest = removeDimmest;
     sexySolver->maxEllipse = maxEllipse;
@@ -772,6 +781,8 @@ void MainWindow::setSolverSettings()
     sexySolver->minwidth = minwidth;
     sexySolver->inParallel = inParallel;
     sexySolver->solverTimeLimit = solverTimeLimit;
+
+    sexySolver->resort = resort;
 
     //Setting the scale settings
     if(use_scale)
@@ -890,11 +901,11 @@ bool MainWindow::imageLoad()
     QFileInfo fileInfo(fileURL);
     if(!fileInfo.exists())
         return false;
-    QString newFileURL=tempPath + QDir::separator() + fileInfo.fileName().remove(" ");
+    QString newFileURL=basePath + QDir::separator() + fileInfo.fileName().remove(" ");
     QFile::copy(fileURL, newFileURL);
     QFileInfo newFileInfo(newFileURL);
     dirPath = fileInfo.absolutePath();
-    fileToSolve = newFileURL;
+    fileToProcess = newFileURL;
 
     clearAstrometrySettings();
 
@@ -929,13 +940,13 @@ bool MainWindow::loadFits()
 
         // Use open diskfile as it does not use extended file names which has problems opening
         // files with [ ] or ( ) in their names.
-    if (fits_open_diskfile(&fptr, fileToSolve.toLatin1(), READONLY, &status))
+    if (fits_open_diskfile(&fptr, fileToProcess.toLatin1(), READONLY, &status))
     {
-        logOutput(QString("Error opening fits file %1").arg(fileToSolve));
+        logOutput(QString("Error opening fits file %1").arg(fileToProcess));
         return false;
     }
     else
-        stats.size = QFile(fileToSolve).size();
+        stats.size = QFile(fileToProcess).size();
 
     if (fits_movabs_hdu(fptr, 1, IMAGE_HDU, &status))
     {
@@ -1051,17 +1062,17 @@ bool MainWindow::loadFits()
 //The goal of this method is to load the data from a file that is not FITS format
 bool MainWindow::loadOtherFormat()
 {
-    QImageReader fileReader(fileToSolve.toLatin1());
+    QImageReader fileReader(fileToProcess.toLatin1());
 
     if (QImageReader::supportedImageFormats().contains(fileReader.format()) == false)
     {
-        logOutput("Failed to convert" + fileToSolve + "to FITS since format, " + fileReader.format() + ", is not supported in Qt");
+        logOutput("Failed to convert" + fileToProcess + "to FITS since format, " + fileReader.format() + ", is not supported in Qt");
         return false;
     }
 
     QString errMessage;
     QImage imageFromFile;
-    if(!imageFromFile.load(fileToSolve.toLatin1()))
+    if(!imageFromFile.load(fileToProcess.toLatin1()))
     {
         logOutput("Failed to open image.");
         return false;
@@ -1787,7 +1798,7 @@ bool MainWindow::getSolverOptionsFromFITS()
 
     // Use open diskfile as it does not use extended file names which has problems opening
     // files with [ ] or ( ) in their names.
-    if (fits_open_diskfile(&fptr, fileToSolve.toLatin1(), READONLY, &status))
+    if (fits_open_diskfile(&fptr, fileToProcess.toLatin1(), READONLY, &status))
     {
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
