@@ -48,18 +48,30 @@ MainWindow::MainWindow() :
 
     //The Options at the top of the Window
     connect(ui->ImageLoad,&QAbstractButton::clicked, this, &MainWindow::imageLoad );
+    ui->ImageLoad->setToolTip("Loads an Image into the Viewer");
     connect(ui->zoomIn,&QAbstractButton::clicked, this, &MainWindow::zoomIn );
+    ui->zoomIn->setToolTip("Zooms In on the Image");
     connect(ui->zoomOut,&QAbstractButton::clicked, this, &MainWindow::zoomOut );
+    ui->zoomOut->setToolTip("Zooms Out on the Image");
     connect(ui->AutoScale,&QAbstractButton::clicked, this, &MainWindow::autoScale );
+    ui->AutoScale->setToolTip("Rescales the image based on the available space");
 
     //The Options at the bottom of the Window
     connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractImage );
+    ui->SextractStars->setToolTip("Sextract the stars in the image using the chosen method and load them into the star table");
+    ui->sextractorType->setToolTip("Lets you choose the Internal SexySolver SEP or external Sextractor program");
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveImage );
+    ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box to the right");
+    ui->solverType->setToolTip("Lets you choose how to solve the image");
 
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
+    ui->Abort->setToolTip("Aborts the current process if one is running.");
     connect(ui->reset, &QPushButton::clicked, this, &MainWindow::resetOptionsToDefaults);
+    ui->reset->setToolTip("Resets all the options in the left option pane to defalt values");
     connect(ui->Clear,&QAbstractButton::clicked, this, &MainWindow::clearAll );
+    ui->Clear->setToolTip("Clears the stars from the image, the star table, the results table, and the log at the bottom");
     connect(ui->exportTable,&QAbstractButton::clicked, this, &MainWindow::saveResultsTable);
+    ui->exportTable->setToolTip("Exports the log of processes executed during this session to a CSV file for further analysis");
 
     //Behaviors for the StarList
     ui->starList->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -75,23 +87,39 @@ MainWindow::MainWindow() :
 
     //Settings for the External Sextractor and Solver
     connect(ui->configFilePath, &QLineEdit::textChanged, this, [this](){ confPath = ui->configFilePath->text(); });
+    ui->configFilePath->setToolTip("The path to the Astrometry.cfg file used by astrometry.net for configuration.");
     connect(ui->sextractorPath, &QLineEdit::textChanged, this, [this](){ sextractorBinaryPath = ui->sextractorPath->text(); });
+    ui->sextractorPath->setToolTip("The path to the external Sextractor executable");
     connect(ui->solverPath, &QLineEdit::textChanged, this, [this](){ solverPath = ui->solverPath->text(); });
+    ui->solverPath->setToolTip("The path to the external Astrometry.net solve-field executable");
     connect(ui->astapPath, &QLineEdit::textChanged, this, [this](){ astapPath = ui->astapPath->text(); });
+    ui->astapPath->setToolTip("The path to the external ASTAP executable");
     connect(ui->tempPath, &QLineEdit::textChanged, this, [this](){ tempPath = ui->tempPath->text(); });
+    ui->tempPath->setToolTip("The path where temporary files are saved on your computer");
     connect(ui->wcsPath, &QLineEdit::textChanged, this, [this](){ wcsPath = ui->wcsPath->text(); });
+    ui->wcsPath->setToolTip("The path to wcsinfo for the external Astrometry.net");
     connect(ui->cleanupTemp, &QCheckBox::stateChanged, this, [this](){ cleanupTemporaryFiles = ui->cleanupTemp->isChecked(); });
+    ui->cleanupTemp->setToolTip("This option allows the program to clean up temporary files created when running various processes");
     connect(ui->generateAstrometryConfig, &QCheckBox::stateChanged, this, [this](){ autoGenerateAstroConfig = ui->generateAstrometryConfig->isChecked(); });
+    ui->generateAstrometryConfig->setToolTip("Determines whether to generate an astrometry.cfg file based on the options in the options panel or to use the external config file above.");
 
     //SexySolver Tester Options
     connect(ui->calculateHFR, &QCheckBox::stateChanged, this, [this](){ calculateHFR = ui->calculateHFR->isChecked(); });
+    ui->calculateHFR->setToolTip("This is a Sextractor option, when checked it will calculate the HFR of the stars.");
     connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
+    ui->showStars->setToolTip("This toggles the stars circles on and off in the image");
     connect(ui->starOptions,QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::updateImage);
+    ui->starOptions->setToolTip("This allows you to select different types of star circles to put on the stars.  Warning, some require HFR to have been calculated first.");
     connect(ui->showFluxInfo, &QCheckBox::stateChanged, this, [this](){ showFluxInfo = ui->showFluxInfo->isChecked(); updateHiddenStarTableColumns(); });
+    ui->showFluxInfo->setToolTip("This toggles whether to show or hide the HFR, peak, Flux columns in the star table after Sextraction.");
     connect(ui->showStarShapeInfo, &QCheckBox::stateChanged, this, [this](){ showStarShapeInfo = ui->showStarShapeInfo->isChecked(); updateHiddenStarTableColumns();});
+    ui->showStarShapeInfo->setToolTip("This toggles whether to show or hide the information about each star's semi-major axis, semi-minor axis, and orientation in the star table after sextraction.");
     connect(ui->showSextractorParams, &QCheckBox::stateChanged, this, [this](){ showSextractorParams = ui->showSextractorParams->isChecked(); updateHiddenResultsTableColumns(); });
+    ui->showSextractorParams->setToolTip("This toggles whether to show or hide the Sextractor Settings in the Results table at the bottom");
     connect(ui->showAstrometryParams, &QCheckBox::stateChanged, this, [this](){ showAstrometryParams = ui->showAstrometryParams->isChecked(); updateHiddenResultsTableColumns(); });
+    ui->showAstrometryParams->setToolTip("This toggles whether to show or hide the Astrometry Settings in the Results table at the bottom");
     connect(ui->showSolutionDetails, &QCheckBox::stateChanged, this, [this](){ showSolutionDetails = ui->showSolutionDetails->isChecked(); updateHiddenResultsTableColumns(); });
+    ui->showSolutionDetails->setToolTip("This toggles whether to show or hide the Solution Details in the Results table at the bottom");
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){
         ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
 
@@ -129,62 +157,97 @@ MainWindow::MainWindow() :
         ui->astapPath->setText(astapPath);
         ui->wcsPath->setText(wcsPath);
     });
+    ui->setPathsAutomatically->setToolTip("This allows you to select the default values of typical configurations of paths to external files/programs on different systems from a dropdown");
 
     //Sextractor Settings
 
     connect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){ apertureShape = (Shape) num; });
+    ui->apertureShape->setToolTip("This selects whether to instruct the Sextractor to use Ellipses or Circles for flux calculations");
     connect(ui->kron_fact, &QLineEdit::textChanged, this, [this](){ kron_fact = ui->kron_fact->text().toDouble(); });
+    ui->kron_fact->setToolTip("This sets the Kron Factor for use with the kron radius for flux calculations.");
     connect(ui->subpix, &QLineEdit::textChanged, this, [this](){ subpix = ui->subpix->text().toDouble(); });
+    ui->subpix->setToolTip("The subpix setting.  The instructions say to make it 5");
     connect(ui->r_min, &QLineEdit::textChanged, this, [this](){ r_min = ui->r_min->text().toDouble(); });
+    ui->r_min->setToolTip("The minimum radius for stars for flux calculations.");
     //no inflags???;
     connect(ui->magzero, &QLineEdit::textChanged, this, [this](){ magzero = ui->magzero->text().toDouble(); });
+    ui->magzero->setToolTip("This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.");
     connect(ui->minarea, &QLineEdit::textChanged, this, [this](){ minarea = ui->minarea->text().toDouble(); });
+    ui->minarea->setToolTip("This is the minimum area in pixels for a star detection, smaller stars are ignored.");
     connect(ui->deblend_thresh, &QLineEdit::textChanged, this, [this](){ deblend_thresh = ui->deblend_thresh->text().toDouble(); });
+    ui->deblend_thresh->setToolTip("The number of thresholds the intensity range is divided up into");
     connect(ui->deblend_contrast, &QLineEdit::textChanged, this, [this](){ deblend_contrast = ui->deblend_contrast->text().toDouble(); });
+    ui->deblend_contrast->setToolTip("The percentage of flux a separate peak must # have to be considered a separate object");
     connect(ui->cleanCheckBox,&QCheckBox::stateChanged,this,[this](){
         if(ui->cleanCheckBox->isChecked())
             clean = 1;
         else
             clean = 0;
     });
+    ui->cleanCheckBox->setToolTip("Attempts to 'clean' the image to remove artifacts caused by bright objects");
     connect(ui->clean_param, &QLineEdit::textChanged, this, [this](){ clean_param = ui->clean_param->text().toDouble(); });
+    ui->clean_param->setToolTip("The cleaning parameter, not sure what it does.");
 
     //This generates an array that can be used as a convFilter based on the desired FWHM
     connect(ui->fwhm, &QLineEdit::textChanged, this, [this](){ fwhm = ui->fwhm->text().toDouble(); });
+    ui->fwhm->setToolTip("A function that I made that creates a convolution filter based upon the desired FWHM for better star detection of that star size and shape");
 
     //Star Filter Settings
     connect(ui->maxEllipse, &QLineEdit::textChanged, this, [this](){ maxEllipse = ui->maxEllipse->text().toDouble(); });
+    ui->maxEllipse->setToolTip("Stars are typically round, this filter divides stars' semi major and minor axes and rejects stars with distorted shapes greater than this number (1 is perfectly round)");
     connect(ui->brightestPercent, &QLineEdit::textChanged, this, [this](){ removeBrightest = ui->brightestPercent->text().toDouble(); });
+    ui->brightestPercent->setToolTip("Removes the brightest % of stars from the image");
     connect(ui->dimmestPercent, &QLineEdit::textChanged, this, [this](){ removeDimmest = ui->dimmestPercent->text().toDouble(); });
+    ui->dimmestPercent->setToolTip("Removes the dimmest % of stars from the image");
     connect(ui->saturationLimit, &QLineEdit::textChanged, this, [this](){ saturationLimit = ui->saturationLimit->text().toDouble(); });
+    ui->saturationLimit->setToolTip("Removes stars above a certain % of the saturation limit of an image of this data type");
 
     //Astrometry Settings
     connect(ui->inParallel, &QCheckBox::stateChanged, this, [this](){ inParallel = ui->inParallel->isChecked(); });
+    ui->inParallel->setToolTip("Loads the Astrometry index files in parallel.  This can speed it up, but uses more resources");
     connect(ui->solverTimeLimit, &QLineEdit::textChanged, this, [this](){ solverTimeLimit = ui->solverTimeLimit->text().toInt(); });
+    ui->solverTimeLimit->setToolTip("This is the maximum time the Astrometry.net solver should spend on the image before giving up");
     connect(ui->minWidth, &QLineEdit::textChanged, this, [this](){ minwidth = ui->minWidth->text().toDouble(); });
+    ui->minWidth->setToolTip("Sets a the minimum degree limit in the scales for Astrometry to search if the scale parameter isn't set");
     connect(ui->maxWidth, &QLineEdit::textChanged, this, [this](){ maxwidth = ui->maxWidth->text().toDouble(); });
+    ui->maxWidth->setToolTip("Sets a the maximum degree limit in the scales for Astrometry to search if the scale parameter isn't set");
 
     connect(ui->use_scale, &QCheckBox::stateChanged, this, [this](){ use_scale = ui->use_scale->isChecked(); });
+    ui->use_scale->setToolTip("Whether or not to use the estimated image scale below to try to speed up the solve");
     connect(ui->scale_low, &QLineEdit::textChanged, this, [this](){ fov_low = ui->scale_low->text().toDouble(); });
+    ui->scale_low->setToolTip("The minimum size for the estimated image scale");
     connect(ui->scale_high, &QLineEdit::textChanged, this, [this](){ fov_high = ui->scale_high->text().toDouble(); });
+    ui->scale_high->setToolTip("The maximum size for the estimated image scale");
     connect(ui->units, &QComboBox::currentTextChanged, this, [this](QString text){ units = text; });
+    ui->units->setToolTip("The units for the estimated image scale");
 
     connect(ui->use_position, &QCheckBox::stateChanged, this, [this](){ use_position= ui->use_position->isChecked(); });
+    ui->use_position->setToolTip("Whether or not to use the estimated position below to try to speed up the solve");
     connect(ui->ra, &QLineEdit::textChanged, this, [this](){ ra = ui->ra->text().toDouble(); });
+    ui->ra->setToolTip("The estimated RA of the object in decimal form in hours not degrees");
     connect(ui->dec, &QLineEdit::textChanged, this, [this](){ dec = ui->dec->text().toDouble(); });
+    ui->dec->setToolTip("The estimated DEC of the object in decimal form in degrees");
     connect(ui->radius, &QLineEdit::textChanged, this, [this](){ radius = ui->radius->text().toDouble(); });
+    ui->radius->setToolTip("The search radius (degrees) of a circle centered on this position for astrometry.net to search for solutions");
 
     connect(ui->oddsToKeep, &QLineEdit::textChanged, this, [this](){ logratio_tokeep = ui->oddsToKeep->text().toDouble(); });
+    ui->oddsToKeep->setToolTip("The Astrometry oddsToKeep Parameter.  This may need to be changed or removed");
     connect(ui->oddsToSolve, &QLineEdit::textChanged, this, [this](){ logratio_tosolve = ui->oddsToSolve->text().toDouble(); });
+    ui->oddsToSolve->setToolTip("The Astrometry oddsToSolve Parameter.  This may need to be changed or removed");
     connect(ui->oddsToTune, &QLineEdit::textChanged, this, [this](){ logratio_totune = ui->oddsToTune->text().toDouble(); });
+    ui->oddsToTune->setToolTip("The Astrometry oddsToTune Parameter.  This may need to be changed or removed");
 
     connect(ui->logToFile, &QCheckBox::stateChanged, this, [this](){ logToFile = ui->logToFile->isChecked(); });
+    ui->logToFile->setToolTip("Whether or not the internal solver should log its output to a file for analysis");
     connect(ui->logFile, &QLineEdit::textChanged, this, [this](){ logFile = ui->logFile->text(); });
+    ui->logFile->setToolTip("The Filename that the log for the internal solver gets saved to");
     connect(ui->logLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index){ logLevel = index; });
+    ui->logLevel->setToolTip("The verbosity level of the log to be saved for the internal solver.");
 
     connect(ui->indexFolderPaths, &QComboBox::currentTextChanged, this, [this](QString item){ loadIndexFilesList(); });
+    ui->indexFolderPaths->setToolTip("The paths on your compute to search for index files.  To add another, just start typing in the box.  To select one to look at, use the drop down.");
     connect(ui->removeIndexPath, &QPushButton::clicked, this, [this](){ ui->indexFolderPaths->removeItem( ui->indexFolderPaths->currentIndex()); });
-
+    ui->removeIndexPath->setToolTip("Removes the selected path in the index folder paths dropdown so that it won't get passed to the solver");
     resetOptionsToDefaults();
 
     setupResultsTable();

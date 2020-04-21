@@ -89,7 +89,7 @@
       </property>
       <widget class="QToolBox" name="optionsBox">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <property name="tabSpacing">
         <number>2</number>
@@ -253,7 +253,11 @@
           </widget>
          </item>
          <item row="4" column="1">
-          <widget class="QLineEdit" name="astapPath"/>
+          <widget class="QLineEdit" name="astapPath">
+           <property name="text">
+            <string> </string>
+           </property>
+          </widget>
          </item>
          <item row="4" column="0">
           <widget class="QLabel" name="label_45">
@@ -269,7 +273,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>213</width>
+          <width>267</width>
           <height>333</height>
          </rect>
         </property>
@@ -439,7 +443,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>208</width>
+          <width>267</width>
           <height>474</height>
          </rect>
         </property>
@@ -685,8 +689,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>261</width>
-          <height>300</height>
+          <width>267</width>
+          <height>333</height>
          </rect>
         </property>
         <attribute name="label">
@@ -813,8 +817,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>208</width>
-          <height>300</height>
+          <width>267</width>
+          <height>333</height>
          </rect>
         </property>
         <attribute name="label">
@@ -926,8 +930,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>208</width>
-          <height>300</height>
+          <width>267</width>
+          <height>333</height>
          </rect>
         </property>
         <attribute name="label">
@@ -959,7 +963,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>211</width>
+              <width>265</width>
               <height>351</height>
              </rect>
             </property>
@@ -1168,7 +1172,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>228</width>
+          <width>267</width>
           <height>338</height>
          </rect>
         </property>
@@ -1254,7 +1258,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>279</width>
+              <width>258</width>
               <height>125</height>
              </rect>
             </property>
@@ -1312,7 +1316,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>281</width>
+           <width>260</width>
            <height>337</height>
           </rect>
          </property>
