@@ -429,7 +429,7 @@ QStringList SexySolver::getDefaultIndexFolderPaths()
     addPathToListIfExists(&indexFilePaths, QDir::homePath() + "/.local/share/kstars/astrometry/");
 #elif defined(_WIN32)
     //Windows Locations
-    addPathToListIfExists(&indexFilePaths, "/AppData/Local/cygwin_ansvr/usr/share/astrometry/data");
+    addPathToListIfExists(&indexFilePaths, QDir::homePath() + "/AppData/Local/cygwin_ansvr/usr/share/astrometry/data");
     addPathToListIfExists(&indexFilePaths, "C:/cygwin/usr/share/astrometry/data");
 #endif
     return indexFilePaths;
