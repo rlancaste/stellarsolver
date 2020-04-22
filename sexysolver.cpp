@@ -286,7 +286,7 @@ bool SexySolver::runSEPSextractor()
             double maxSizeofDataType;
             if(stats.dataType == TSHORT || stats.dataType == TLONG || stats.dataType == TLONGLONG)
                 maxSizeofDataType = pow(2, stats.bytesPerPixel * 8) / 2 - 1;
-            else if(stats.dataType == TUSHORT || stats.dataType == TULONG || stats.dataType == TULONGLONG)
+            else if(stats.dataType == TUSHORT || stats.dataType == TULONG)
                 maxSizeofDataType = pow(2, stats.bytesPerPixel * 8) - 1;
             else // Float and Double Images saturation level is not so easy to determine, especially since they were probably processed by another program and the saturation level is now changed.
                 maxSizeofDataType = -1;
