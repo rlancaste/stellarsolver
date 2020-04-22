@@ -113,9 +113,6 @@ bool SexySolver::runSEPSextractor()
             delete [] data;
             data = reinterpret_cast<float *>(m_ImageBuffer);
             break;
-        case TLONGLONG:
-            getFloatBuffer<int64_t>(data, x, y, w, h);
-            break;
         case TDOUBLE:
             getFloatBuffer<double>(data, x, y, w, h);
             break;
