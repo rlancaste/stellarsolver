@@ -9,7 +9,6 @@
 #include <QTextStream>
 #include <QMessageBox>
 #include <qmath.h>
-#include "dms.h"
 
 ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SexySolver(imagestats, imageBuffer, parent)
 {
@@ -297,7 +296,15 @@ bool ExternalSextractorSolver::runExternalSextractor()
     emit logNeedsUpdating(sextractorBinaryPath + " " + sextractorArgs.join(' '));
     sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
     if(justSextract)
-        connect(sextractorProcess, QOverload<int>::of(&QProcess::finished), this, [this](int x){printSextractorOutput(); getSextractorTable();  emit finished(x);});
+        connect(sextractorProcess, QOverload<int>::of(&QProcess::finished), this, [this](int x){
+            printSextractorOutput();
+            if(x!=0)
+                emit finished(x);
+             if(getSextractorTable())
+                 emit finished(0);
+             else
+                 emit finished(-1);
+        });
     else
     {
         sextractorProcess->waitForFinished();
@@ -343,7 +350,17 @@ bool ExternalSextractorSolver::runExternalSolver()
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
-    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){ getSextractorTable(); getSolutionInformation();emit finished(x);});
+    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){
+        if(x!=0)
+            emit finished(x);
+        else if(getSextractorTable())
+        {
+            if(getSolutionInformation())
+                emit finished(0);
+        }
+        else
+            emit finished(-1);
+    });
 
 #ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work
         QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
@@ -387,7 +404,14 @@ bool ExternalSextractorSolver::runExternalClassicSolver()
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
-    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){getSolutionInformation();emit finished(x);});
+    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){
+        if(x!=0)
+            emit finished(x);
+        else if(getSolutionInformation())
+            emit finished(0);
+        else
+            emit finished(-1);
+    });
 
 #ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work
         QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
@@ -439,7 +463,14 @@ bool ExternalSextractorSolver::runExternalASTAPSolver()
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
-    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){getASTAPSolutionInformation();emit finished(x);});
+    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){
+        if(x!=0)
+            emit finished(x);
+        else if(getASTAPSolutionInformation())
+            emit finished(0);
+        else
+            emit finished(-1);
+    });
 
     solver->start(astapBinaryPath, solverArgs);
 
@@ -716,8 +747,9 @@ bool ExternalSextractorSolver::getSolutionInformation()
     QStringList key_value;
 
     double ra = 0, dec = 0, orient = 0;
-    double fieldw = 0, fieldh = 0;
+    double fieldw = 0, fieldh = 0, pixscale = 0;
     QString rastr, decstr;
+    QString parity;
 
     for (auto &key : wcskeys)
     {
@@ -739,14 +771,13 @@ bool ExternalSextractorSolver::getSolutionInformation()
                 rastr = key_value[1];
             else if (key_value[0] == "dec_center_dms")
                 decstr = key_value[1];
-
-            //else if (key_value[0] == "pixscale")
-                //pixscale = key_value[1].toDouble();
-            //else if (key_value[0] == "parity")
-               // parity = (key_value[1].toInt() == 0) ? "pos" : "neg";
+            else if (key_value[0] == "pixscale")
+                pixscale = key_value[1].toDouble();
+            else if (key_value[0] == "parity")
+                parity = (key_value[1].toInt() == 0) ? "pos" : "neg";
         }
     }
-    solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient};
+    solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient,pixscale, parity};
     return true;
 }
 
@@ -772,10 +803,9 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
             return false;
         }
         double ra = 0, dec = 0, orient = 0;
-        double fieldw = 0, fieldh = 0;
-        QString rastr, decstr;
+        double fieldw = 0, fieldh = 0, pixscale = 0;
+        char rastr[32], decstr[32], parity[32];
 
-        double pixscale = 0;
         bool ok[4] = {false};
 
         line = in.readLine();
@@ -796,19 +826,18 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
 
         if (ok[0] && ok[1] && ok[2] && ok[3])
         {
-            dms radms(ra);
-            dms decdms(dec);
-            rastr = radms.toHMSString();
-            decstr = decdms.toDMSString();
+            ra2hmsstring(ra, rastr);
+            dec2dmsstring(dec, decstr);
             fieldw = stats.width * pixscale / 60;
             fieldh = stats.height * pixscale / 60;
-            solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient};
+            solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient, pixscale, parity};
 
             emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
             emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
             emit logNeedsUpdating(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
             emit logNeedsUpdating(QString("Field size: %1 x %2").arg( fieldw).arg( fieldh));
             emit logNeedsUpdating(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
+            emit logNeedsUpdating(QString("Pixel Scale: %1\"").arg( pixscale ));
 
             return true;
         }

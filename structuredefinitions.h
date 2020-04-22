@@ -54,6 +54,8 @@ typedef struct
     QString rastr;
     QString decstr;
     double orientation;
+    double pixscale;
+    QString parity;
 
 } Solution;
 

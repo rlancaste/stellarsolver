@@ -679,8 +679,9 @@ int SexySolver::runInternalSolver()
 
     if(wcs)
     {
-        double ra, dec, fieldw, fieldh;
+        double ra, dec, fieldw, fieldh, pixscale;
         char rastr[32], decstr[32];
+        QString parity;
         char* fieldunits;
 
         // print info about the field.
@@ -690,6 +691,11 @@ int SexySolver::runInternalSolver()
         sip_get_radec_center_hms_string(wcs, rastr, decstr);
         sip_get_field_size(wcs, &fieldw, &fieldh, &fieldunits);
         orient = sip_get_orientation(wcs);
+        // Note, negative determinant = positive parity.
+        double det = sip_det_cd(wcs);
+        parity = (det < 0 ? "pos" : "neg");
+        pixscale = sip_pixel_scale(wcs);
+
         emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         emit logNeedsUpdating(QString("Solve Log Odds:  %1").arg(bp->solver.best_logodds));
         emit logNeedsUpdating(QString("Number of Matches:  %1").arg(match.nmatch));
@@ -697,12 +703,13 @@ int SexySolver::runInternalSolver()
         emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
         emit logNeedsUpdating(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
         emit logNeedsUpdating(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));
+        emit logNeedsUpdating(QString("Pixel Scale: %1\"").arg( pixscale));
         emit logNeedsUpdating(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
-        // Note, negative determinant = positive parity.
-        double det = sip_det_cd(wcs);
-        emit logNeedsUpdating(QString("Field parity: %1\n").arg( (det < 0 ? "pos" : "neg")));
 
-        solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient};
+
+        emit logNeedsUpdating(QString("Field parity: %1\n").arg( parity));
+
+        solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient, pixscale, parity};
         emit finished(0);
         return 0;
     }

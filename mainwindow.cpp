@@ -848,7 +848,7 @@ bool MainWindow::solverComplete(int error)
     {
         elapsed = solverTimer.elapsed() / 1000.0;
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString("Solver failed after %1 second(s).").arg( elapsed));
+        logOutput(QString(sexySolver->command + "failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         return false;
     }
@@ -2012,6 +2012,8 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table,"Orientation");
     addColumnToTable(table,"Field Width");
     addColumnToTable(table,"Field Height");
+    addColumnToTable(table,"PixScale");
+    addColumnToTable(table,"Parity");
     addColumnToTable(table,"Field");
 
     table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -2094,6 +2096,8 @@ void MainWindow::addSolutionToTable(Solution solution)
     setItemInColumn(table, "Orientation", QString::number(solution.orientation));
     setItemInColumn(table, "Field Width", QString::number(solution.fieldWidth));
     setItemInColumn(table, "Field Height", QString::number(solution.fieldHeight));
+    setItemInColumn(table, "PixScale", QString::number(solution.pixscale));
+    setItemInColumn(table, "Parity", solution.parity);
     setItemInColumn(table, "Field", ui->fileNameDisplay->text());
 }
 
@@ -2128,6 +2132,8 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table,"Orientation", !showSolutionDetails);
     setColumnHidden(table,"Field Width", !showSolutionDetails);
     setColumnHidden(table,"Field Height", !showSolutionDetails);
+    setColumnHidden(table,"PixScale", !showSolutionDetails);
+    setColumnHidden(table,"Parity", !showSolutionDetails);
 }
 
 //This will write the Results table to a csv file if the user desires
