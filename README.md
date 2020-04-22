@@ -39,7 +39,7 @@ Another thought I had in the back of my mind was that there were a copule of rea
  - Goal 2 was completed in March 2020, but some changes might yet be made.  Astrometry and Sextractor are now fully integraded for Linux and Mac Computers and no external configuration files are needed anymore.  Netpbm and Python are not required either.
  - Goal 3 is mostly completed by April 2020.  by the end of March 2020, I had it compiling on Windows at least with the MinGW compiler.  As of April 2nd, I have it compiling in the MSVC compiler.  And on Windows it is solving images successfully just like on Mac and Linux.
  
-#Installing the program
+# Installing the program
 
 ## Linux
  - Download the sexysolver-tester git repository in a terminal window or download it in your browser
@@ -61,7 +61,27 @@ Another thought I had in the back of my mind was that there were a copule of rea
  - Download the lastest release exe installer
  - Double click the exe and follow the dialogs to install the program
  - Go to your Start Menu and Open the program
- 
+
+# Using the SexySolver Tester Program
+Remember that the main goal of this SexySolver tester program is to perfect the internal libraries, determine what settings need to be avaiable for the user to use,
+determine what settings should be set to fixed values and hidden from the user, and to figure out what effect some settings have on the program.  With that goal in mind,
+please test plate solving all kinds of images on different systems.  Try Sextracting all kinds of images on different systems.  Compare the results in the results table
+and in the star table.  Find out what works and what does not work.  Send feedback!
+
+## Sextracting Images
+You can either use the Internal Sextractor or the External Sextractor (Assuming you have one installed, I'm not sure it can be installed on Windows.)
+We would like to perfect the Internal Sextractor so that it works the best, but we also need to perfect the settings for the external one.
+There are many settings for the Sextractor in the left panel of options, please play with them, find out what works best, and see how we can make it better.
+When you do the sextraction, the program will load the results into the star table at the right and the stars will get circles around them in the image.
+We want the Sextractor to be fairly fast, accurately detect stars (or other objects) for various purposes, and report things like Magnitude and Flux.
+One goal is to use the sextracted stars to solve images, the other is to use the sextracted stars for other reasons like guiding and photometry.
+
+## Solving Images
+You can use the Internal Solver or the External Solver(s).  There are numerous options like using internal sextractor and external astrometry.net, or using ASTAP to solve images.
+We want to support various methods of solving images because different systems work better for different people or goals.  The Internal Solver is the ultimate goal of this repo, but the others are important too.
+There are a number of settings in the left panel of options that you can set for solving images.  We want to solve images quickly but accurately.
+So please play around with the settings and find out what can work the best.
+
 # Building the program
 
 ## Linux
