@@ -263,6 +263,7 @@ MainWindow::MainWindow() :
         if (dir.isEmpty())
             return;
         ui->indexFolderPaths->addItem( dir );
+        ui->indexFolderPaths->setCurrentIndex(ui->indexFolderPaths->count() - 1);
     });
     ui->addIndexPath->setToolTip("Adds a path the user selects to the list of index folder paths");
 

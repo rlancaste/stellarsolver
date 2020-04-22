@@ -89,7 +89,7 @@
       </property>
       <widget class="QToolBox" name="optionsBox">
        <property name="currentIndex">
-        <number>6</number>
+        <number>1</number>
        </property>
        <property name="tabSpacing">
         <number>2</number>
@@ -100,7 +100,7 @@
           <x>0</x>
           <y>0</y>
           <width>273</width>
-          <height>338</height>
+          <height>334</height>
          </rect>
         </property>
         <attribute name="label">
@@ -278,8 +278,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>267</width>
-          <height>338</height>
+          <width>271</width>
+          <height>334</height>
          </rect>
         </property>
         <attribute name="label">
@@ -448,7 +448,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>267</width>
+          <width>271</width>
           <height>474</height>
          </rect>
         </property>
@@ -694,8 +694,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>267</width>
-          <height>338</height>
+          <width>271</width>
+          <height>334</height>
          </rect>
         </property>
         <attribute name="label">
@@ -829,8 +829,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>267</width>
-          <height>338</height>
+          <width>271</width>
+          <height>334</height>
          </rect>
         </property>
         <attribute name="label">
@@ -949,8 +949,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>267</width>
-          <height>338</height>
+          <width>271</width>
+          <height>334</height>
          </rect>
         </property>
         <attribute name="label">
@@ -982,7 +982,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>265</width>
+              <width>269</width>
               <height>351</height>
              </rect>
             </property>
@@ -1191,8 +1191,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>267</width>
-          <height>338</height>
+          <width>271</width>
+          <height>334</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1284,8 +1284,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>258</width>
-              <height>127</height>
+              <width>256</width>
+              <height>126</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -1342,8 +1342,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>260</width>
-           <height>340</height>
+           <width>258</width>
+           <height>337</height>
           </rect>
          </property>
          <property name="sizePolicy">
