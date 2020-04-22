@@ -76,11 +76,15 @@ When you do the sextraction, the program will load the results into the star tab
 We want the Sextractor to be fairly fast, accurately detect stars (or other objects) for various purposes, and report things like Magnitude and Flux.
 One goal is to use the sextracted stars to solve images, the other is to use the sextracted stars for other reasons like guiding and photometry.
 
+![SexySolver Sextractor](/Sextractor.png "SexySolver sextracting stars into the star table.")
+
 ## Solving Images
 You can use the Internal Solver or the External Solver(s).  There are numerous options like using internal sextractor and external astrometry.net, or using ASTAP to solve images.
 We want to support various methods of solving images because different systems work better for different people or goals.  The Internal Solver is the ultimate goal of this repo, but the others are important too.
 There are a number of settings in the left panel of options that you can set for solving images.  We want to solve images quickly but accurately.
 So please play around with the settings and find out what can work the best.
+
+![SexySolver Solver](/Solver.png "SexySolver solving an image using different methods.")
 
 # Building the program
 
