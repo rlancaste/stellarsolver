@@ -94,70 +94,13 @@ private:
     QList<Star> stars;
     int selectedStar;
 
-    QString dirPath = QDir::homePath();
-
-    //Options for the External Sextractor and Solver
-    bool cleanupTemporaryFiles;
-    bool autoGenerateAstroConfig;
-    QString basePath;
-    QString sextractorBinaryPath;
-    QString confPath;
-    QString solverPath;
-    QString astapPath;
-    QString wcsPath;
-
     //Options for SexySolver Tester
-    bool showStars = true;
+    QString dirPath = QDir::homePath();
     bool showFluxInfo = false;
     bool showStarShapeInfo = false;
     bool showSextractorParams = false;
     bool showAstrometryParams = false;
     bool showSolutionDetails = true;
-
-    //Parameters for sextracting
-    bool calculateHFR;
-    Shape apertureShape;
-    double kron_fact;
-    int subpix;
-    float r_min;
-    short inflags;
-    float magzero;
-    float minarea;
-    int deblend_thresh;
-    float deblend_contrast;
-    int clean;
-    double clean_param;
-    double fwhm;
-
-    //Star Filter Parameters
-    double maxEllipse;
-    double removeBrightest;
-    double removeDimmest;
-    double saturationLimit;
-
-    //Parameters for solving
-    bool resort;
-    bool use_scale = false;
-    double fov_low, fov_high;
-    QString units;
-    bool use_position = false;
-    double ra;
-    double dec;
-    double radius;
-
-    bool inParallel;
-    int solverTimeLimit;
-    double minwidth;
-    double maxwidth;
-
-    bool logToFile;
-    QString logFile;
-    int logLevel;
-
-    //LogOdds Settings
-    double logratio_tosolve;
-    double logratio_tokeep;
-    double logratio_totune;
 
     //Data about the image
     bool imageLoaded = false;

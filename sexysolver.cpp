@@ -558,6 +558,8 @@ int SexySolver::runInternalSolver()
     //This sets the logging level and log file based on the user's preferences.
     if(logToFile)
     {
+        if(logFile == "")
+            logFile = basePath + "/" + baseName + ".log.txt";
         if(QFile(logFile).exists())
             QFile(logFile).remove();
         FILE *log = fopen(logFile.toLatin1().constData(),"wb");

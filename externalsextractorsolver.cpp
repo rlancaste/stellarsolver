@@ -512,7 +512,7 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     }
 
     // downsample
-    solverArgs << "--downsample" << QString::number(2);
+    solverArgs << "--downsample" << QString::number(downsample);
 
     solverArgs << "--odds-to-solve" << QString::number(exp(logratio_tosolve));
     solverArgs << "--odds-to-tune-up" << QString::number(exp(logratio_totune));
@@ -554,7 +554,7 @@ QStringList ExternalSextractorSolver::getClassicSolverArgsList()
     solverArgs << "--no-verify";
 
     // downsample
-    solverArgs << "--downsample" << QString::number(2);
+    solverArgs << "--downsample" << QString::number(downsample);
 
     if (use_scale)
         solverArgs << "-L" << QString::number(scalelo) << "-H" << QString::number(scalehi) << "-u" << units;

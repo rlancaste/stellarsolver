@@ -86,25 +86,16 @@ MainWindow::MainWindow() :
     ui->splitter_2->setSizes(QList<int>() << 100 << ui->splitter_2->width() / 2  << 0 );
 
     //Settings for the External Sextractor and Solver
-    connect(ui->configFilePath, &QLineEdit::textChanged, this, [this](){ confPath = ui->configFilePath->text(); });
     ui->configFilePath->setToolTip("The path to the Astrometry.cfg file used by astrometry.net for configuration.");
-    connect(ui->sextractorPath, &QLineEdit::textChanged, this, [this](){ sextractorBinaryPath = ui->sextractorPath->text(); });
     ui->sextractorPath->setToolTip("The path to the external Sextractor executable");
-    connect(ui->solverPath, &QLineEdit::textChanged, this, [this](){ solverPath = ui->solverPath->text(); });
     ui->solverPath->setToolTip("The path to the external Astrometry.net solve-field executable");
-    connect(ui->astapPath, &QLineEdit::textChanged, this, [this](){ astapPath = ui->astapPath->text(); });
     ui->astapPath->setToolTip("The path to the external ASTAP executable");
-    connect(ui->basePath, &QLineEdit::textChanged, this, [this](){ basePath = ui->basePath->text(); });
     ui->basePath->setToolTip("The base path where sextractor and astrometry temporary files are saved on your computer");
-    connect(ui->wcsPath, &QLineEdit::textChanged, this, [this](){ wcsPath = ui->wcsPath->text(); });
     ui->wcsPath->setToolTip("The path to wcsinfo for the external Astrometry.net");
-    connect(ui->cleanupTemp, &QCheckBox::stateChanged, this, [this](){ cleanupTemporaryFiles = ui->cleanupTemp->isChecked(); });
     ui->cleanupTemp->setToolTip("This option allows the program to clean up temporary files created when running various processes");
-    connect(ui->generateAstrometryConfig, &QCheckBox::stateChanged, this, [this](){ autoGenerateAstroConfig = ui->generateAstrometryConfig->isChecked(); });
     ui->generateAstrometryConfig->setToolTip("Determines whether to generate an astrometry.cfg file based on the options in the options panel or to use the external config file above.");
 
     //SexySolver Tester Options
-    connect(ui->calculateHFR, &QCheckBox::stateChanged, this, [this](){ calculateHFR = ui->calculateHFR->isChecked(); });
     ui->calculateHFR->setToolTip("This is a Sextractor option, when checked it will calculate the HFR of the stars.");
     connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
     ui->showStars->setToolTip("This toggles the stars circles on and off in the image");
@@ -148,107 +139,63 @@ MainWindow::MainWindow() :
                 break;
         }
 
-        sextractorBinaryPath = extTemp.sextractorBinaryPath;
-        confPath = extTemp.confPath;
-        solverPath = extTemp.solverPath;
-        astapPath = extTemp.astapBinaryPath;
-        wcsPath = extTemp.wcsPath;
-
-        ui->sextractorPath->setText(sextractorBinaryPath);
-        ui->configFilePath->setText(confPath);
-        ui->solverPath->setText(solverPath);
-        ui->astapPath->setText(astapPath);
-        ui->wcsPath->setText(wcsPath);
+        ui->sextractorPath->setText(extTemp.sextractorBinaryPath);
+        ui->configFilePath->setText(extTemp.confPath);
+        ui->solverPath->setText(extTemp.solverPath);
+        ui->astapPath->setText(extTemp.astapBinaryPath);
+        ui->wcsPath->setText(extTemp.wcsPath);
     });
     ui->setPathsAutomatically->setToolTip("This allows you to select the default values of typical configurations of paths to external files/programs on different systems from a dropdown");
 
     //Sextractor Settings
 
-    connect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){ apertureShape = (Shape) num; });
     ui->apertureShape->setToolTip("This selects whether to instruct the Sextractor to use Ellipses or Circles for flux calculations");
-    connect(ui->kron_fact, &QLineEdit::textChanged, this, [this](){ kron_fact = ui->kron_fact->text().toDouble(); });
     ui->kron_fact->setToolTip("This sets the Kron Factor for use with the kron radius for flux calculations.");
-    connect(ui->subpix, &QLineEdit::textChanged, this, [this](){ subpix = ui->subpix->text().toDouble(); });
     ui->subpix->setToolTip("The subpix setting.  The instructions say to make it 5");
-    connect(ui->r_min, &QLineEdit::textChanged, this, [this](){ r_min = ui->r_min->text().toDouble(); });
     ui->r_min->setToolTip("The minimum radius for stars for flux calculations.");
     //no inflags???;
-    connect(ui->magzero, &QLineEdit::textChanged, this, [this](){ magzero = ui->magzero->text().toDouble(); });
     ui->magzero->setToolTip("This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.");
-    connect(ui->minarea, &QLineEdit::textChanged, this, [this](){ minarea = ui->minarea->text().toDouble(); });
     ui->minarea->setToolTip("This is the minimum area in pixels for a star detection, smaller stars are ignored.");
-    connect(ui->deblend_thresh, &QLineEdit::textChanged, this, [this](){ deblend_thresh = ui->deblend_thresh->text().toDouble(); });
     ui->deblend_thresh->setToolTip("The number of thresholds the intensity range is divided up into");
-    connect(ui->deblend_contrast, &QLineEdit::textChanged, this, [this](){ deblend_contrast = ui->deblend_contrast->text().toDouble(); });
     ui->deblend_contrast->setToolTip("The percentage of flux a separate peak must # have to be considered a separate object");
-    connect(ui->cleanCheckBox,&QCheckBox::stateChanged,this,[this](){
-        if(ui->cleanCheckBox->isChecked())
-            clean = 1;
-        else
-            clean = 0;
-    });
+
     ui->cleanCheckBox->setToolTip("Attempts to 'clean' the image to remove artifacts caused by bright objects");
-    connect(ui->clean_param, &QLineEdit::textChanged, this, [this](){ clean_param = ui->clean_param->text().toDouble(); });
     ui->clean_param->setToolTip("The cleaning parameter, not sure what it does.");
 
     //This generates an array that can be used as a convFilter based on the desired FWHM
-    connect(ui->fwhm, &QLineEdit::textChanged, this, [this](){ fwhm = ui->fwhm->text().toDouble(); });
     ui->fwhm->setToolTip("A function that I made that creates a convolution filter based upon the desired FWHM for better star detection of that star size and shape");
 
     //Star Filter Settings
-    connect(ui->resortQT, &QCheckBox::stateChanged, this, [this](){ resort = ui->resortQT->isChecked(); ui->resort->setChecked(resort);});
+    connect(ui->resortQT, &QCheckBox::stateChanged, this, [this](){ ui->resort->setChecked(ui->resortQT->isChecked());});
     ui->resortQT->setToolTip("This resorts the stars based on magnitude.  It MUST be checked for the next couple of filters to be enabled.");
-    connect(ui->maxEllipse, &QLineEdit::textChanged, this, [this](){ maxEllipse = ui->maxEllipse->text().toDouble(); });
     ui->maxEllipse->setToolTip("Stars are typically round, this filter divides stars' semi major and minor axes and rejects stars with distorted shapes greater than this number (1 is perfectly round)");
-    connect(ui->brightestPercent, &QLineEdit::textChanged, this, [this](){ removeBrightest = ui->brightestPercent->text().toDouble(); });
     ui->brightestPercent->setToolTip("Removes the brightest % of stars from the image");
-    connect(ui->dimmestPercent, &QLineEdit::textChanged, this, [this](){ removeDimmest = ui->dimmestPercent->text().toDouble(); });
     ui->dimmestPercent->setToolTip("Removes the dimmest % of stars from the image");
-    connect(ui->saturationLimit, &QLineEdit::textChanged, this, [this](){ saturationLimit = ui->saturationLimit->text().toDouble(); });
     ui->saturationLimit->setToolTip("Removes stars above a certain % of the saturation limit of an image of this data type");
 
     //Astrometry Settings
-    connect(ui->inParallel, &QCheckBox::stateChanged, this, [this](){ inParallel = ui->inParallel->isChecked(); });
     ui->inParallel->setToolTip("Loads the Astrometry index files in parallel.  This can speed it up, but uses more resources");
-    connect(ui->solverTimeLimit, &QLineEdit::textChanged, this, [this](){ solverTimeLimit = ui->solverTimeLimit->text().toInt(); });
     ui->solverTimeLimit->setToolTip("This is the maximum time the Astrometry.net solver should spend on the image before giving up");
-    connect(ui->minWidth, &QLineEdit::textChanged, this, [this](){ minwidth = ui->minWidth->text().toDouble(); });
     ui->minWidth->setToolTip("Sets a the minimum degree limit in the scales for Astrometry to search if the scale parameter isn't set");
-    connect(ui->maxWidth, &QLineEdit::textChanged, this, [this](){ maxwidth = ui->maxWidth->text().toDouble(); });
     ui->maxWidth->setToolTip("Sets a the maximum degree limit in the scales for Astrometry to search if the scale parameter isn't set");
 
-    connect(ui->resort, &QCheckBox::stateChanged, this, [this](){ resort = ui->resort->isChecked(); ui->resortQT->setChecked(resort); });
+    connect(ui->resort, &QCheckBox::stateChanged, this, [this](){ ui->resortQT->setChecked(ui->resort->isChecked()); });
     ui->resort->setToolTip("This resorts the stars based on magnitude. It usually makes it solve faster.");
-    connect(ui->use_scale, &QCheckBox::stateChanged, this, [this](){ use_scale = ui->use_scale->isChecked(); });
     ui->use_scale->setToolTip("Whether or not to use the estimated image scale below to try to speed up the solve");
-    connect(ui->scale_low, &QLineEdit::textChanged, this, [this](){ fov_low = ui->scale_low->text().toDouble(); });
     ui->scale_low->setToolTip("The minimum size for the estimated image scale");
-    connect(ui->scale_high, &QLineEdit::textChanged, this, [this](){ fov_high = ui->scale_high->text().toDouble(); });
     ui->scale_high->setToolTip("The maximum size for the estimated image scale");
-    connect(ui->units, &QComboBox::currentTextChanged, this, [this](QString text){ units = text; });
     ui->units->setToolTip("The units for the estimated image scale");
 
-    connect(ui->use_position, &QCheckBox::stateChanged, this, [this](){ use_position= ui->use_position->isChecked(); });
     ui->use_position->setToolTip("Whether or not to use the estimated position below to try to speed up the solve");
-    connect(ui->ra, &QLineEdit::textChanged, this, [this](){ ra = ui->ra->text().toDouble(); });
     ui->ra->setToolTip("The estimated RA of the object in decimal form in hours not degrees");
-    connect(ui->dec, &QLineEdit::textChanged, this, [this](){ dec = ui->dec->text().toDouble(); });
     ui->dec->setToolTip("The estimated DEC of the object in decimal form in degrees");
-    connect(ui->radius, &QLineEdit::textChanged, this, [this](){ radius = ui->radius->text().toDouble(); });
     ui->radius->setToolTip("The search radius (degrees) of a circle centered on this position for astrometry.net to search for solutions");
 
-    connect(ui->oddsToKeep, &QLineEdit::textChanged, this, [this](){ logratio_tokeep = ui->oddsToKeep->text().toDouble(); });
     ui->oddsToKeep->setToolTip("The Astrometry oddsToKeep Parameter.  This may need to be changed or removed");
-    connect(ui->oddsToSolve, &QLineEdit::textChanged, this, [this](){ logratio_tosolve = ui->oddsToSolve->text().toDouble(); });
     ui->oddsToSolve->setToolTip("The Astrometry oddsToSolve Parameter.  This may need to be changed or removed");
-    connect(ui->oddsToTune, &QLineEdit::textChanged, this, [this](){ logratio_totune = ui->oddsToTune->text().toDouble(); });
     ui->oddsToTune->setToolTip("The Astrometry oddsToTune Parameter.  This may need to be changed or removed");
 
-    connect(ui->logToFile, &QCheckBox::stateChanged, this, [this](){ logToFile = ui->logToFile->isChecked(); });
     ui->logToFile->setToolTip("Whether or not the internal solver should log its output to a file for analysis");
-    connect(ui->logFile, &QLineEdit::textChanged, this, [this](){ logFile = ui->logFile->text(); });
-    ui->logFile->setToolTip("The Filename that the log for the internal solver gets saved to");
-    connect(ui->logLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index){ logLevel = index; });
     ui->logLevel->setToolTip("The verbosity level of the log to be saved for the internal solver.");
 
     connect(ui->indexFolderPaths, &QComboBox::currentTextChanged, this, [this](QString item){ loadIndexFilesList(); });
@@ -295,106 +242,67 @@ void MainWindow::resetOptionsToDefaults()
 
     ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
 
-    sextractorBinaryPath = extTemp.sextractorBinaryPath;
-    confPath = extTemp.confPath;
-    solverPath = extTemp.solverPath;
-    astapPath = extTemp.astapBinaryPath;
-    wcsPath = extTemp.wcsPath;
-    cleanupTemporaryFiles = extTemp.cleanupTemporaryFiles;
-    autoGenerateAstroConfig = extTemp.autoGenerateAstroConfig;
-
-        ui->sextractorPath->setText(sextractorBinaryPath);
-        ui->configFilePath->setText(confPath);
-        ui->solverPath->setText(solverPath);
-        ui->astapPath->setText(astapPath);
-        ui->wcsPath->setText(wcsPath);
-        ui->cleanupTemp->setChecked(cleanupTemporaryFiles);
-        ui->generateAstrometryConfig->setChecked(autoGenerateAstroConfig);
+        ui->sextractorPath->setText(extTemp.sextractorBinaryPath);
+        ui->configFilePath->setText(extTemp.confPath);
+        ui->solverPath->setText(extTemp.solverPath);
+        ui->astapPath->setText(extTemp.astapBinaryPath);
+        ui->wcsPath->setText(extTemp.wcsPath);
+        ui->cleanupTemp->setChecked(extTemp.cleanupTemporaryFiles);
+        ui->generateAstrometryConfig->setChecked(extTemp.autoGenerateAstroConfig);
 
     SexySolver temp(stats, m_ImageBuffer, this);
 
     //Basic Settings
-    basePath = temp.basePath;
+    QString basePath = temp.basePath;
 
         ui->showStars->setChecked(true);
         ui->basePath->setText(basePath);
 
     //Sextractor Settings
-    calculateHFR = temp.calculateHFR;
-    apertureShape = temp.apertureShape;
-    kron_fact = temp.kron_fact;
-    subpix = temp.subpix;
-    r_min = temp.r_min;
 
-        ui->calculateHFR->setChecked(calculateHFR);
-        ui->apertureShape->setCurrentIndex(apertureShape);
-        ui->kron_fact->setText(QString::number(kron_fact));
-        ui->subpix->setText(QString::number(subpix));
-        ui->r_min->setText(QString::number(r_min));
+        ui->calculateHFR->setChecked(temp.calculateHFR);
+        ui->apertureShape->setCurrentIndex(temp.apertureShape);
+        ui->kron_fact->setText(QString::number(temp.kron_fact));
+        ui->subpix->setText(QString::number(temp.subpix));
+        ui->r_min->setText(QString::number(temp.r_min));
 
-    magzero = temp.magzero;
-    minarea = temp.minarea;
-    deblend_thresh = temp.deblend_thresh;
-    deblend_contrast = temp.deblend_contrast;
-    clean = temp.clean;
-    clean_param = temp.clean_param;
-    fwhm = temp.fwhm;
-
-        ui->magzero->setText(QString::number(magzero));
-        ui->minarea->setText(QString::number(minarea));
-        ui->deblend_thresh->setText(QString::number(deblend_thresh));
-        ui->deblend_contrast->setText(QString::number(deblend_contrast));
-        ui->cleanCheckBox->setChecked(clean == 1);
-        ui->clean_param->setText(QString::number(clean_param));
-        ui->fwhm->setText(QString::number(fwhm));
+        ui->magzero->setText(QString::number(temp.magzero));
+        ui->minarea->setText(QString::number(temp.minarea));
+        ui->deblend_thresh->setText(QString::number(temp.deblend_thresh));
+        ui->deblend_contrast->setText(QString::number(temp.deblend_contrast));
+        ui->cleanCheckBox->setChecked(temp.clean == 1);
+        ui->clean_param->setText(QString::number(temp.clean_param));
+        ui->fwhm->setText(QString::number(temp.fwhm));
 
     //Star Filter Settings
-    maxEllipse = temp.maxEllipse;
-    removeBrightest = temp.removeBrightest;
-    removeDimmest = temp.removeDimmest;
-    saturationLimit = temp.saturationLimit;
-
-        ui->maxEllipse->setText(QString::number(maxEllipse));
-        ui->brightestPercent->setText(QString::number(removeBrightest));
-        ui->dimmestPercent->setText(QString::number(removeDimmest));
-        ui->saturationLimit->setText(QString::number(saturationLimit));
+        ui->maxEllipse->setText(QString::number(temp.maxEllipse));
+        ui->brightestPercent->setText(QString::number(temp.removeBrightest));
+        ui->dimmestPercent->setText(QString::number(temp.removeDimmest));
+        ui->saturationLimit->setText(QString::number(temp.saturationLimit));
 
     //Astrometry Settings
-    inParallel = temp.inParallel;
-    solverTimeLimit = temp.solverTimeLimit;
-    minwidth = temp.minwidth;
-    maxwidth = temp.maxwidth;
-    radius = temp.search_radius;
 
-        ui->inParallel->setChecked(inParallel);
-        ui->solverTimeLimit->setText(QString::number(solverTimeLimit));
-        ui->minWidth->setText(QString::number(minwidth));
-        ui->maxWidth->setText(QString::number(maxwidth));
-        ui->radius->setText(QString::number(radius));
+        ui->downsample->setValue(temp.downsample);
+        ui->inParallel->setChecked(temp.inParallel);
+        ui->solverTimeLimit->setText(QString::number(temp.solverTimeLimit));
+        ui->minWidth->setText(QString::number(temp.minwidth));
+        ui->maxWidth->setText(QString::number(temp.maxwidth));
+        ui->radius->setText(QString::number(temp.search_radius));
 
     clearAstrometrySettings(); //Resets the Position and Scale settings
 
-    resort = temp.resort;
-
-        ui->resort->setChecked(resort);
+        ui->resort->setChecked(temp.resort);
 
     //Astrometry Log Ratio Settings
-    logratio_tokeep = temp.logratio_tokeep;
-    logratio_tosolve = temp.logratio_tosolve;
-    logratio_totune = temp.logratio_totune;
 
-        ui->oddsToKeep->setText(QString::number(logratio_tokeep));
-        ui->oddsToSolve->setText(QString::number(logratio_tosolve));
-        ui->oddsToTune->setText(QString::number(logratio_totune));
+        ui->oddsToKeep->setText(QString::number(temp.logratio_tokeep));
+        ui->oddsToSolve->setText(QString::number(temp.logratio_tosolve));
+        ui->oddsToTune->setText(QString::number(temp.logratio_totune));
 
     //Astrometry Logging Settings
-    logFile = basePath + "/AstrometryLog.txt";
-    logToFile = temp.logToFile;
-    logLevel = temp.logLevel;
 
-        ui->logFile->setText(logFile);
-        ui->logToFile->setChecked(logToFile);
-        ui->logLevel->setCurrentIndex(logLevel);
+        ui->logToFile->setChecked(temp.logToFile);
+        ui->logLevel->setCurrentIndex(temp.logLevel);
 
     //Astrometry Index File Paths to Search
     ui->indexFolderPaths->clear();
@@ -499,6 +407,8 @@ void MainWindow::loadIndexFilesList()
 //This method responds when the user clicks the Sextract Button
 bool MainWindow::sextractImage()
 {
+    QString sextractorBinaryPath = ui->sextractorPath->text();
+
     if(!prepareForProcesses())
         return false;
 
@@ -525,6 +435,10 @@ bool MainWindow::sextractImage()
 //This method runs when the user clicks the Sextract and Solve buttton
 bool MainWindow::solveImage()
 {
+    QString sextractorBinaryPath = ui->sextractorPath->text();
+    QString solverPath = ui->solverPath->text();
+    QString astapPath = ui->astapPath->text();
+
     if(!prepareForProcesses())
         return false;
 
@@ -615,6 +529,7 @@ bool MainWindow::classicSolve()
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
     solverTimer.start();
+    ui->progressBar->setRange(0,0);
     extSolver->classicSolve();
 
     return true;
@@ -633,6 +548,7 @@ bool MainWindow::astapSolve()
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
     solverTimer.start();
+    ui->progressBar->setRange(0,0);
     extSolver->astapSolve();
 
     return true;
@@ -650,6 +566,7 @@ bool MainWindow::sextractExternally()
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
 
     solverTimer.start();
+    ui->progressBar->setRange(0,0);
     extSolver->sextract();
 
     return true;
@@ -667,6 +584,7 @@ bool MainWindow::sextractAndSolveExternally()
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
     solverTimer.start();
+    ui->progressBar->setRange(0,0);
     extSolver->sextractAndSolve();
     return true;
 }
@@ -683,6 +601,7 @@ bool MainWindow::SEPAndSolveExternally()
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
     solverTimer.start();
+    ui->progressBar->setRange(0,0);
     extSolver->SEPAndSolve();
     return true;
 }
@@ -700,6 +619,7 @@ bool MainWindow::sextractInternally()
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
 
     solverTimer.start();
+    ui->progressBar->setRange(0,0);
     sexySolver->sextract();
     return true;
 }
@@ -717,6 +637,7 @@ bool MainWindow::sextractAndSolveInternally()
       connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
       solverTimer.start();
+      ui->progressBar->setRange(0,0);
       sexySolver->sextractAndSolve();
       return true;
 }
@@ -733,15 +654,14 @@ void MainWindow::setupExternalSextractorSolver()
 
     //Sets the file settings and other items specific to the external solver programs
     extSolver->fileToProcess = fileToProcess;
-    extSolver->dirPath = dirPath;
-    extSolver->basePath = basePath;
-    extSolver->sextractorBinaryPath = sextractorBinaryPath;
-    extSolver->confPath = confPath;
-    extSolver->solverPath = solverPath;
-    extSolver->astapBinaryPath = astapPath;
-    extSolver->wcsPath = wcsPath;
-    extSolver->cleanupTemporaryFiles = cleanupTemporaryFiles;
-    extSolver->autoGenerateAstroConfig = autoGenerateAstroConfig;
+    extSolver->basePath = ui->basePath->text();
+    extSolver->sextractorBinaryPath = ui->sextractorPath->text();
+    extSolver->confPath = ui->configFilePath->text();
+    extSolver->solverPath = ui->solverPath->text();
+    extSolver->astapBinaryPath = ui->astapPath->text();
+    extSolver->wcsPath = ui->wcsPath->text();
+    extSolver->cleanupTemporaryFiles = ui->cleanupTemp->isChecked();
+    extSolver->autoGenerateAstroConfig = ui->generateAstrometryConfig->isChecked();
 
     extSolver->command = ui->solverType->currentText();
 }
@@ -765,26 +685,26 @@ void MainWindow::setupInternalSexySolver()
 void MainWindow::setSextractorSettings()
 { 
     //These are to pass the parameters to the internal sextractor
-    sexySolver->calculateHFR = calculateHFR;
-    sexySolver->apertureShape = apertureShape;
-    sexySolver->kron_fact = kron_fact;
-    sexySolver->subpix = subpix ;
-    sexySolver->r_min = r_min;
-    sexySolver->inflags = inflags;
-    sexySolver->magzero = magzero;
-    sexySolver->minarea = minarea;
-    sexySolver->deblend_thresh = deblend_thresh;
-    sexySolver->deblend_contrast = deblend_contrast;
-    sexySolver->clean = clean;
-    sexySolver->clean_param = clean_param;
-    sexySolver->createConvFilterFromFWHM(fwhm);
+    sexySolver->calculateHFR = ui->calculateHFR->isChecked();
+    sexySolver->apertureShape = (Shape) ui->apertureShape->currentIndex();
+    sexySolver->kron_fact = ui->kron_fact->text().toDouble();
+    sexySolver->subpix = ui->subpix->text().toInt() ;
+    sexySolver->r_min = ui->r_min->text().toFloat();
+    //sexySolver->inflags
+    sexySolver->magzero = ui->magzero->text().toFloat();
+    sexySolver->minarea = ui->minarea->text().toFloat();
+    sexySolver->deblend_thresh = ui->deblend_thresh->text().toInt();
+    sexySolver->deblend_contrast = ui->deblend_contrast->text().toFloat();
+    sexySolver->clean = (ui->cleanCheckBox->isChecked()) ? 1 : 0;
+    sexySolver->clean_param = ui->clean_param->text().toDouble();
+    sexySolver->createConvFilterFromFWHM(ui->fwhm->text().toDouble());
 
     //Star Filter Settings
-    sexySolver->resort = resort;
-    sexySolver->removeBrightest = removeBrightest;
-    sexySolver->removeDimmest = removeDimmest;
-    sexySolver->maxEllipse = maxEllipse;
-    sexySolver->saturationLimit = saturationLimit;
+    sexySolver->resort = ui->resort->isChecked();
+    sexySolver->removeBrightest = ui->brightestPercent->text().toDouble();;
+    sexySolver->removeDimmest = ui->dimmestPercent->text().toDouble();;
+    sexySolver->maxEllipse = ui->maxEllipse->text().toDouble();;
+    sexySolver->saturationLimit = ui->saturationLimit->text().toDouble();;
 }
 
 //This sets all the settings for either the internal or external astrometry.net solver
@@ -799,36 +719,37 @@ void MainWindow::setSolverSettings()
         indexFilePaths << ui->indexFolderPaths->itemText(i);
     }
     sexySolver->setIndexFolderPaths(indexFilePaths);
-    sexySolver->maxwidth = maxwidth;
-    sexySolver->minwidth = minwidth;
-    sexySolver->inParallel = inParallel;
-    sexySolver->solverTimeLimit = solverTimeLimit;
+    sexySolver->maxwidth = ui->maxWidth->text().toDouble();
+    sexySolver->minwidth = ui->minWidth->text().toDouble();
+    sexySolver->inParallel = ui->inParallel->isChecked();
+    sexySolver->solverTimeLimit = ui->solverTimeLimit->text().toDouble();
 
-    sexySolver->resort = resort;
+    sexySolver->resort = ui->resort->isChecked();
+    sexySolver->downsample = ui->downsample->value();
 
     //Setting the scale settings
-    if(use_scale)
-        sexySolver->setSearchScale(fov_low, fov_high, units);
+    if(ui->use_scale->isChecked())
+        sexySolver->setSearchScale(ui->scale_low->text().toDouble(), ui->scale_high->text().toDouble(), ui->units->currentText());
 
     //Setting the initial search location settings
-    if(use_position)
-        sexySolver->setSearchPosition(ra, dec, radius);
+    if(ui->use_position->isChecked())
+        sexySolver->setSearchPosition(ui->ra->text().toDouble(), ui->dec->text().toDouble(), ui->radius->text().toDouble());
 
     //Setting the settings to know when to stop or keep searching for solutions
-    sexySolver->logratio_tokeep = logratio_tokeep;
-    sexySolver->logratio_totune = logratio_totune;
-    sexySolver->logratio_tosolve = logratio_tosolve;
+    sexySolver->logratio_tokeep = ui->oddsToKeep->text().toDouble();
+    sexySolver->logratio_totune = ui->oddsToTune->text().toDouble();
+    sexySolver->logratio_tosolve = ui->oddsToSolve->text().toDouble();
 
     //Setting the logging settings
-    sexySolver->logToFile = logToFile;
-    sexySolver->logFile = logFile;
-    sexySolver->logLevel = logLevel;
+    sexySolver->logToFile = ui->logToFile->isChecked();
+    sexySolver->logLevel = ui->logLevel->currentIndex();
 }
 
 //This runs when the sextractor is complete.
 //It reports the time taken, prints a message, loads the sextraction stars to the startable, and adds the sextraction stats to the results table.
 bool MainWindow::sextractorComplete(int error)
 {
+    ui->progressBar->setRange(0,10);
     if(error == 0)
     {
         elapsed = solverTimer.elapsed() / 1000.0;
@@ -855,9 +776,11 @@ bool MainWindow::sextractorComplete(int error)
 //This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the results table.
 bool MainWindow::solverComplete(int error)
 {
+    ui->progressBar->setRange(0,10);
     if(error == 0)
     {
         elapsed = solverTimer.elapsed() / 1000.0;
+        ui->progressBar->setRange(0,10);
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput(QString(sexySolver->command + " took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -923,7 +846,7 @@ bool MainWindow::imageLoad()
     QFileInfo fileInfo(fileURL);
     if(!fileInfo.exists())
         return false;
-    QString newFileURL=basePath + QDir::separator() + fileInfo.fileName().remove(" ");
+    QString newFileURL=ui->basePath->text() + "/" + fileInfo.fileName().remove(" ");
     QFile::copy(fileURL, newFileURL);
     QFileInfo newFileInfo(newFileURL);
     dirPath = fileInfo.absolutePath();
@@ -1600,7 +1523,7 @@ void MainWindow::mouseMovedOverImage(QPoint location)
             if(starInImage.contains(location))
             {
                 QString text;
-                if(calculateHFR)
+                if(ui->calculateHFR->isChecked())
                     text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5, peak:%6, HFR: %7").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.peak).arg(star.HFR);
                  else
                     text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5, peak:%6").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.peak);
@@ -1809,6 +1732,8 @@ bool MainWindow::getSolverOptionsFromFITS()
 {
     clearAstrometrySettings();
 
+    double ra, dec;
+
     int status = 0, fits_ccd_width, fits_ccd_height, fits_binx = 1, fits_biny = 1;
     char comment[128], error_status[512];
     fitsfile *fptr = nullptr;
@@ -1899,7 +1824,6 @@ bool MainWindow::getSolverOptionsFromFITS()
     if(coord_ok)
     {
         ui->use_position->setChecked(true);
-        use_position = true;
         ui->ra->setText(QString::number(ra));
         ui->dec->setText(QString::number(dec));
 
@@ -1911,10 +1835,8 @@ bool MainWindow::getSolverOptionsFromFITS()
     // instead of calculating it from FOCAL length and other information
     if (fits_read_key(fptr, TDOUBLE, "SCALE", &pixelScale, comment, &status) == 0)
     {
-        fov_low  = 0.9 * pixelScale;
-        fov_high = 1.1 * pixelScale;
-        units = "app";
-        use_scale = true;
+        double fov_low  = 0.9 * pixelScale;
+        double fov_high = 1.1 * pixelScale;
 
         ui->scale_low->setText(QString::number(fov_low));
         ui->scale_high->setText(QString::number(fov_high));
@@ -1976,13 +1898,9 @@ bool MainWindow::getSolverOptionsFromFITS()
     fov_upper *= 1.10;
 
     //Final Options that get stored.
-    fov_low  = fov_lower;
-    fov_high = fov_upper;
-    units = "aw";
-    use_scale = true;
 
-    ui->scale_low->setText(QString::number(fov_low));
-    ui->scale_high->setText(QString::number(fov_high));
+    ui->scale_low->setText(QString::number(fov_lower));
+    ui->scale_high->setText(QString::number(fov_upper));
     ui->units->setCurrentText("aw");
     ui->use_scale->setChecked(true);
 
@@ -2028,6 +1946,7 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table,"Pos?");
     addColumnToTable(table,"Scale?");
     addColumnToTable(table,"Resort?");
+    addColumnToTable(table,"Down");
     //Results
     addColumnToTable(table,"RA");
     addColumnToTable(table,"DEC");
@@ -2111,6 +2030,7 @@ void MainWindow::addSolutionToTable(Solution solution)
     setItemInColumn(table, "Pos?", QVariant(sexySolver->use_position).toString());
     setItemInColumn(table, "Scale?", QVariant(sexySolver->use_scale).toString());
     setItemInColumn(table, "Resort?", QVariant(sexySolver->resort).toString());
+    setItemInColumn(table, "Down", QVariant(sexySolver->downsample).toString());
 
     //Results
     setItemInColumn(table, "RA", solution.rastr);
@@ -2148,6 +2068,7 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table,"Pos?", !showAstrometryParams);
     setColumnHidden(table,"Scale?", !showAstrometryParams);
     setColumnHidden(table,"Resort?", !showAstrometryParams);
+    setColumnHidden(table,"Down", !showAstrometryParams);
     //Results
     setColumnHidden(table,"RA", !showSolutionDetails);
     setColumnHidden(table,"DEC", !showSolutionDetails);

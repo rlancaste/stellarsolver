@@ -46,7 +46,6 @@ public:
     bool autoGenerateAstroConfig = true;
 
     //System File Paths
-    QString dirPath = QDir::homePath();
     QStringList indexFilePaths;
     QString astapBinaryPath;
     QString sextractorBinaryPath;
