@@ -12,7 +12,7 @@
  - The Index Files are still required for solving images, but the program or the user can specify the folder locations rather than putting them in the config file.
  - Note: The executable created by MainWindow is only meant for testing purposes.  It is for developing and improving SexySolver.cpp and the included libraries in the astrometry and sep folders.  It can be used to compare the library to an existing installation of astrometry.net on the computer to perfect the settings.
 
-![SexySolver In Action](/SexySolverInAction.png "SexySolver running the same solve on different platforms.")
+![SexySolver In Action](/SexySolverInAction2.png "SexySolver running the same solve on different platforms.")
 ## Based on:
  - Astrometry.net [Astrometry README](http://astrometry.net/doc/readme.html)
  - Sextractor [Sextractor Documentation](https://sextractor.readthedocs.io/en/latest/)
