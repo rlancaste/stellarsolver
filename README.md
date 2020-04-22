@@ -7,8 +7,8 @@
  - Netpbm is not required for the library
  - Internal Library, so calls to external programs are not required
  - No Astrometry.cfg file is needed, the settings are internal to the program
- - Directly loads the star xy-list internally from Sextractor into astrometry.net, so there is no need to save any files.
- - No temporary files need to be created for solving and no WCS file needs to be created to read the solved information.
+ - Directly loads the image data into SEP star and then the xy-list internally from Sextractor into astrometry.net, so there is no need to save any files.
+ - No temporary files need to be created for solving and no WCS file needs to be created to read the solved information.  Although astrometry.net does monitor for the creation of 2 files indicating that a field is solved or a cancel was made, so these are created for now.
  - The Index Files are still required for solving images, but the program or the user can specify the folder locations rather than putting them in the config file.
  - Note: The executable created by MainWindow is only meant for testing purposes.  It is for developing and improving SexySolver.cpp and the included libraries in the astrometry and sep folders.  It can be used to compare the library to an existing installation of astrometry.net on the computer to perfect the settings.
 
@@ -37,12 +37,35 @@ Another thought I had in the back of my mind was that there were a copule of rea
 ## Results:
  - Goal 1 was partially completed when I got the program set up and ready for testing in February 2020.  Now testing should continue so that we can see what parameters are needed, what makes it more efficient, and how to make it better.
  - Goal 2 was completed in March 2020, but some changes might yet be made.  Astrometry and Sextractor are now fully integraded for Linux and Mac Computers and no external configuration files are needed anymore.  Netpbm and Python are not required either.
- - Goal 3 is ongoing.  by the end of March 2020, I had it compiling on Windows at least with the MinGW compiler.  As of April 2nd, I have it compiling in the MSVC compiler.  And on Windows it is solving images successfully just like on Mac and Linux.
+ - Goal 3 is mostly completed by April 2020.  by the end of March 2020, I had it compiling on Windows at least with the MinGW compiler.  As of April 2nd, I have it compiling in the MSVC compiler.  And on Windows it is solving images successfully just like on Mac and Linux.
  
-# Setting up the program for testing.
+#Installing the program
 
 ## Linux
-You can follow this set of steps on ubuntu to get the program SexySolver set up to run.
+ - Download the sexysolver-tester git repository in a terminal window or download it in your browser
+ 
+ 		git clone https://github.com/rlancaste/sexysolver-tester.git
+ 		
+ - Run the installLinux.sh script
+ 
+ 		./installLinux.sh
+ 		
+ - It will build and install the program and create a shortcut on the desktop
+ 
+## Mac
+ - Download the latest release DMG
+ - Double click the DMG and drag the icon to your /Applications folder
+ - Right click the icon in your /Applications Folder and select "open"
+
+## Windows
+ - Download the lastest release exe installer
+ - Double click the exe and follow the dialogs to install the program
+ - Go to your Start Menu and Open the program
+ 
+# Building the program
+
+## Linux
+You can follow this set of steps on ubuntu build the program SexySolver on Linux if you don't want to use the installer above.
 
 	sudo apt -y install git cmake qt5-default libcfitsio-dev libgsl-dev
 	git clone https://github.com/rlancaste/sexysolver-tester.git
@@ -50,7 +73,7 @@ You can follow this set of steps on ubuntu to get the program SexySolver set up 
 	cd build
 	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ../sexysolver-tester/
 	make -j $(expr $(nproc) + 2)
-	make install
+	sudo make install
 
 
 ## Mac
@@ -63,7 +86,7 @@ Once you set up craft, just copy the SexySolver recipe in the craft-blueprint fo
 
 	craft -v -i SexySolver
 
-and it will install
+and it will build.
 
 ## Windows
 The Windows build is still very much experimental.  On Windows, right now you have to use craft to get gsl, cfitsio, QT,
@@ -75,5 +98,4 @@ Once you set up craft, just copy the SexySolver recipe in the craft-blueprint fo
 
 	craft -v -i SexySolver
 
-and it will install.  If there is a build problem due to boost-regex, please edit the CMakelists.txt file to point to the boost-regex 
-library.  There are instructions in the file.  I will fix this in the future.
+and it will build.

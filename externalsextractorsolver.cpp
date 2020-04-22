@@ -40,6 +40,15 @@ ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t
 
 void ExternalSextractorSolver::setLinuxDefaultPaths()
 {
+    confPath = "/etc/astrometry.cfg";
+    sextractorBinaryPath = "/usr/bin/sextractor";
+    solverPath = "/usr/bin/solve-field";
+    astapBinaryPath = "/bin/astap";
+    wcsPath = "/usr/bin/wcsinfo";
+}
+
+void ExternalSextractorSolver::setLinuxInternalPaths()
+{
     confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
     sextractorBinaryPath = "/usr/bin/sextractor";
     solverPath = "/usr/bin/solve-field";

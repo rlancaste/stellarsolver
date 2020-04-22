@@ -89,7 +89,7 @@
       </property>
       <widget class="QToolBox" name="optionsBox">
        <property name="currentIndex">
-        <number>1</number>
+        <number>6</number>
        </property>
        <property name="tabSpacing">
         <number>2</number>
@@ -100,7 +100,7 @@
           <x>0</x>
           <y>0</y>
           <width>273</width>
-          <height>333</height>
+          <height>338</height>
          </rect>
         </property>
         <attribute name="label">
@@ -154,6 +154,11 @@
            <item>
             <property name="text">
              <string>Linux Default</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Linux KStars Internal </string>
             </property>
            </item>
            <item>
@@ -273,8 +278,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>225</width>
-          <height>333</height>
+          <width>267</width>
+          <height>338</height>
          </rect>
         </property>
         <attribute name="label">
@@ -443,7 +448,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>225</width>
+          <width>267</width>
           <height>474</height>
          </rect>
         </property>
@@ -689,8 +694,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>261</width>
-          <height>333</height>
+          <width>267</width>
+          <height>338</height>
          </rect>
         </property>
         <attribute name="label">
@@ -824,8 +829,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>225</width>
-          <height>333</height>
+          <width>267</width>
+          <height>338</height>
          </rect>
         </property>
         <attribute name="label">
@@ -944,8 +949,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>225</width>
-          <height>333</height>
+          <width>267</width>
+          <height>338</height>
          </rect>
         </property>
         <attribute name="label">
@@ -977,7 +982,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>223</width>
+              <width>265</width>
               <height>351</height>
              </rect>
             </property>
@@ -1186,7 +1191,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>228</width>
+          <width>267</width>
           <height>338</height>
          </rect>
         </property>
@@ -1194,24 +1199,21 @@
          <string>Index Files</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_13">
-         <item row="4" column="1">
-          <widget class="QListWidget" name="indexFiles"/>
-         </item>
-         <item row="2" column="1">
-          <widget class="QComboBox" name="indexFolderPaths">
-           <property name="editable">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="1">
           <widget class="QPushButton" name="removeIndexPath">
            <property name="text">
-            <string>Remove Indexfile Folder Path</string>
+            <string>Remove</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="addIndexPath">
+           <property name="text">
+            <string>Add</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="2">
           <widget class="QLabel" name="label_26">
            <property name="text">
             <string>Index File Folder Paths</string>
@@ -1221,7 +1223,17 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
+         <item row="3" column="0" colspan="2">
+          <widget class="QComboBox" name="indexFolderPaths">
+           <property name="editable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0" colspan="2">
+          <widget class="QListWidget" name="indexFiles"/>
+         </item>
+         <item row="4" column="0" colspan="2">
           <widget class="QLabel" name="label_30">
            <property name="text">
             <string>Index Files</string>
@@ -1272,8 +1284,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>279</width>
-              <height>125</height>
+              <width>258</width>
+              <height>127</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -1330,8 +1342,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>281</width>
-           <height>337</height>
+           <width>260</width>
+           <height>340</height>
           </rect>
          </property>
          <property name="sizePolicy">

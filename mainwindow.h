@@ -100,7 +100,6 @@ private:
     bool cleanupTemporaryFiles;
     bool autoGenerateAstroConfig;
     QString basePath;
-    QStringList indexFilePaths;
     QString sextractorBinaryPath;
     QString confPath;
     QString solverPath;

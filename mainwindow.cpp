@@ -129,15 +129,18 @@ MainWindow::MainWindow() :
                 extTemp.setLinuxDefaultPaths();
                 break;
             case 1:
-                extTemp.setMacHomebrewPaths();
+                extTemp.setLinuxInternalPaths();
                 break;
             case 2:
-                extTemp.setMacInternalPaths();
+                extTemp.setMacHomebrewPaths();
                 break;
             case 3:
-                extTemp.setWinANSVRPaths();
+                extTemp.setMacInternalPaths();
                 break;
             case 4:
+                extTemp.setWinANSVRPaths();
+                break;
+            case 5:
                 extTemp.setWinCygwinPaths();
                 break;
             default:
@@ -252,6 +255,17 @@ MainWindow::MainWindow() :
     ui->indexFolderPaths->setToolTip("The paths on your compute to search for index files.  To add another, just start typing in the box.  To select one to look at, use the drop down.");
     connect(ui->removeIndexPath, &QPushButton::clicked, this, [this](){ ui->indexFolderPaths->removeItem( ui->indexFolderPaths->currentIndex()); });
     ui->removeIndexPath->setToolTip("Removes the selected path in the index folder paths dropdown so that it won't get passed to the solver");
+    connect(ui->addIndexPath, &QPushButton::clicked, this, [this](){
+        QString dir = QFileDialog::getExistingDirectory(this, "Load Index File Directory",
+                                                        QDir::homePath(),
+                                                        QFileDialog::ShowDirsOnly
+                                                        | QFileDialog::DontResolveSymlinks);
+        if (dir.isEmpty())
+            return;
+        ui->indexFolderPaths->addItem( dir );
+    });
+    ui->addIndexPath->setToolTip("Adds a path the user selects to the list of index folder paths");
+
     resetOptionsToDefaults();
 
     setupResultsTable();
@@ -268,11 +282,14 @@ void MainWindow::resetOptionsToDefaults()
 {
 
 #if defined(Q_OS_OSX)
-    ui->setPathsAutomatically->setCurrentIndex(1);
+    if(QFile("/usr/local/bin/solve-field").exists())
+        ui->setPathsAutomatically->setCurrentIndex(2);
+    else
+        ui->setPathsAutomatically->setCurrentIndex(3);
 #elif defined(Q_OS_LINUX)
     ui->setPathsAutomatically->setCurrentIndex(0);
 #else //Windows
-    ui->setPathsAutomatically->setCurrentIndex(3);
+    ui->setPathsAutomatically->setCurrentIndex(4);
 #endif
 
     ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
@@ -379,10 +396,9 @@ void MainWindow::resetOptionsToDefaults()
         ui->logLevel->setCurrentIndex(logLevel);
 
     //Astrometry Index File Paths to Search
-    indexFilePaths.clear();
     ui->indexFolderPaths->clear();
 
-    indexFilePaths = temp.getDefaultIndexFolderPaths();
+    QStringList indexFilePaths = temp.getDefaultIndexFolderPaths();
 
     foreach(QString pathName, indexFilePaths)
     {
@@ -776,6 +792,11 @@ void MainWindow::setSextractorSettings()
 void MainWindow::setSolverSettings()
 {
     //Settings that usually get set by the config file
+    QStringList indexFilePaths;
+    for(int i = 0; i < ui->indexFolderPaths->count(); i++)
+    {
+        indexFilePaths << ui->indexFolderPaths->itemText(i);
+    }
     sexySolver->setIndexFolderPaths(indexFilePaths);
     sexySolver->maxwidth = maxwidth;
     sexySolver->minwidth = minwidth;

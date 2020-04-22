@@ -56,6 +56,7 @@ public:
 
     //Methods to Set File Paths Automatically
     void setLinuxDefaultPaths();
+    void setLinuxInternalPaths();
     void setMacHomebrewPaths();
     void setMacInternalPaths();
     void setWinANSVRPaths();
