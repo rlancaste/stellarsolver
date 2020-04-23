@@ -553,7 +553,8 @@ QStringList ExternalSextractorSolver::getClassicSolverArgsList()
     solverArgs << "--no-verify";
 
     // downsample
-    solverArgs << "--downsample" << QString::number(downsample);
+    if(downsample > 1)
+        solverArgs << "--downsample" << QString::number(downsample);
 
     if (use_scale)
         solverArgs << "-L" << QString::number(scalelo) << "-H" << QString::number(scalehi) << "-u" << units;
