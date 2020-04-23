@@ -412,7 +412,9 @@ void SexySolver::downSampleImageType(int d)
         numChannels = 1;
     else
         numChannels = 3;
-    uint8_t * newBuffer =new uint8_t[stats.samples_per_channel * numChannels * stats.bytesPerPixel / d];
+    uint32_t oldBufferSize = stats.samples_per_channel * numChannels * stats.bytesPerPixel;
+    uint32_t newBufferSize = oldBufferSize / d;
+    uint8_t * newBuffer =new uint8_t[newBufferSize];
     auto * sourceBuffer = reinterpret_cast<T *>(m_ImageBuffer);
     auto * destinationBuffer = reinterpret_cast<T *>(newBuffer);
 
@@ -441,11 +443,23 @@ void SexySolver::downSampleImageType(int d)
                 auto *bSample = bSource + currentLine + sampleSpot;
                 for(int x2 = 0; x2 < d; x2++)
                 {
+                    if(*rSample > oldBufferSize)
+                    {
+                        emit logNeedsUpdating("Downsampling failed, solving without downsample");
+                        delete[] newBuffer;
+                        return;
+                    }
                      //This iterates the sample spots to the right,
                     total += *rSample++;
                     //This only samples frome the G and B spots if it is an RGB image
                     if(numChannels == 3)
                     {
+                        if(*gSample > oldBufferSize || *bSample > oldBufferSize)
+                        {
+                            emit logNeedsUpdating("RGB Downsampling failed, solving without downsample");
+                            delete[] newBuffer;
+                            return;
+                        }
                         total += *gSample++;
                         total += *bSample++;
                     }
