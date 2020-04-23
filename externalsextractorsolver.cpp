@@ -12,8 +12,6 @@
 
 ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SexySolver(imagestats, imageBuffer, parent)
 {
-    stats = imagestats;
-
     //This sets the base name used for the temp files.
     srand(time(NULL));
     baseName = "externalSextractorSolver_" + QString::number(rand());
@@ -786,6 +784,9 @@ bool ExternalSextractorSolver::getSolutionInformation()
                 parity = (key_value[1].toInt() == 0) ? "pos" : "neg";
         }
     }
+
+    if(usingDownsampledImage)
+        pixscale /= downsample;
     solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient,pixscale, parity};
     return true;
 }

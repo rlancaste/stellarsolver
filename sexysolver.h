@@ -43,7 +43,7 @@ class SexySolver : public QThread
     Q_OBJECT
 public:
     explicit SexySolver(Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
-
+    ~SexySolver();
 
     //These are the parameters used by the Internal SexySolver Sextractor and Internal SexySolver Astrometry Solver
     //These parameters are public so that they can be changed by the program using the solver
@@ -90,7 +90,10 @@ public:
 
     //Sextractor & Astrometry Parameters
     bool resort = true; //Whether to resort the stars based on magnitude NOTE: This is REQUIRED to be true for the filters above
-    int downsample = 1; //Factor to use for downsampling the image for sextraction or solving.  Can speed it up.
+    int downsample = 1; //Factor to use for downsampling the image before SEP for plate solving.  Can speed it up.
+    //NOTE:  If you downsample for regular sextraction, it will report the star positions in the downsampled image, not the original
+    //and the object sizes, fluxes, and magnitudes are not going to be as accurate.  So, I would recommend only using this for solving.
+    //If justSextract is true, it will ignore the downsampling.
 
     //Astrometry Config/Engine Parameters
     QStringList indexFolderPaths; //This is the list of folder paths that the solver will use to search for index files
@@ -155,13 +158,21 @@ public:
     // The generic data buffer containing the image data
     uint8_t *m_ImageBuffer { nullptr };
 
+    //This boolean gets set internally if we are using a downsampled image buffer for SEP
+    bool usingDownsampledImage = false;
+
+    // This is information about the image
+    Statistic stats;
+
 private:
+
+    // The generic data buffer containing the image data
+    uint8_t *downSampledBuffer { nullptr };
 
     // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
     QString cancelfn; //Filename whose creation signals the process to stop
      QString solvedfn; //Filename whose creation tells astrometry.net it already solved the field.
-    // This is information about the image
-    Statistic stats;
+
 
 
 
@@ -176,6 +187,10 @@ private:
     //This is used by the sextractor
     template <typename T>
     void getFloatBuffer(float * buffer, int x, int y, int w, int h);
+
+    void downsampleImage(int d);
+    template <typename T>
+    void downSampleImageType(int d);
 
 signals:
 

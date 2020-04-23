@@ -761,6 +761,7 @@ bool MainWindow::sextractorComplete(int error)
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         ui->resultsTable->insertRow(ui->resultsTable->rowCount());
         addSextractionToTable();
+        QTimer::singleShot(100 , [this](){ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());});
         return true;
     }
     else
@@ -787,6 +788,7 @@ bool MainWindow::solverComplete(int error)
         ui->resultsTable->insertRow(ui->resultsTable->rowCount());
         addSextractionToTable();
         addSolutionToTable(sexySolver->solution);
+        QTimer::singleShot(100 , [this](){ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());});
         return true;
     }
     else

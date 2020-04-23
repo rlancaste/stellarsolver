@@ -18,6 +18,12 @@ SexySolver::SexySolver(Statistic imagestats, uint8_t *imageBuffer, QObject *pare
      baseName = "internalSextractorSolver_" + QString::number(rand());
 }
 
+SexySolver::~SexySolver()
+{
+    if(usingDownsampledImage)
+        delete downSampledBuffer;
+}
+
 //This is the method you want to use to just sextract the image
 void SexySolver::sextract()
 {
@@ -87,6 +93,10 @@ bool SexySolver::runSEPSextractor()
     }
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Starting Internal SexySolver Sextractor. . .");
+
+    //Only downsample images before SEP if the Sextraction is being used for plate solving
+    if(!justSextract && downsample != 1)
+        downsampleImage(downsample);
 
     int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
 
@@ -358,6 +368,100 @@ void SexySolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
             *floatPtr++ = rawBuffer[offset + x1];
         }
     }
+}
+
+void SexySolver::downsampleImage(int d)
+{
+    switch (stats.dataType)
+    {
+        case SEP_TBYTE:
+            downSampleImageType<uint8_t>(d);
+            break;
+        case TSHORT:
+            downSampleImageType<int16_t>(d);
+            break;
+        case TUSHORT:
+            downSampleImageType<uint16_t>(d);
+            break;
+        case TLONG:
+            downSampleImageType<int32_t>(d);
+            break;
+        case TULONG:
+            downSampleImageType<uint32_t>(d);
+            break;
+        case TFLOAT:
+            downSampleImageType<float>(d);
+            break;
+        case TDOUBLE:
+            downSampleImageType<double>(d);
+            break;
+        default:
+            return;
+    }
+
+}
+
+template <typename T>
+void SexySolver::downSampleImageType(int d)
+{
+    int w = stats.width;
+    int h = stats.height;
+
+    int numChannels;
+    if (stats.ndim < 3)
+        numChannels = 1;
+    else
+        numChannels = 3;
+    uint8_t * newBuffer =new uint8_t[stats.samples_per_channel * numChannels * stats.bytesPerPixel / d];
+    auto * sourceBuffer = reinterpret_cast<T *>(m_ImageBuffer);
+    auto * destinationBuffer = reinterpret_cast<T *>(newBuffer);
+
+    //The G pixels are after all the R pixels, Same for the B pixels
+    auto * rSource = sourceBuffer;
+    auto * gSource = sourceBuffer + (w * h);
+    auto * bSource = sourceBuffer + (w * h * 2);
+
+    for(int y = 0; y < h - d; y+=d)
+    {
+        for (int x = 0; x < w - d; x+=d)
+        {
+            //The sum of all the pixels in the sample
+            double total = 0;
+            //The location of the starting pixel in the source image to start sampling to calculate the value for the new pixel
+            int sampleSpot = x + y * w;
+
+            for(int y2 = 0; y2 < d; y2++)
+            {
+                //The offset for the current line of the sample to take
+                int currentLine = w * 3 * y2;
+
+                //This offsets the R, G, and B pointers based on the sample spot and current line in the sample
+                auto *rSample = rSource + currentLine + sampleSpot;
+                auto *gSample = gSource + currentLine + sampleSpot;
+                auto *bSample = bSource + currentLine + sampleSpot;
+                for(int x2 = 0; x2 < d; x2++)
+                {
+                     //This iterates the sample spots to the right,
+                    total += *rSample++;
+                    //This only samples frome the G and B spots if it is an RGB image
+                    if(numChannels == 3)
+                    {
+                        total += *gSample++;
+                        total += *bSample++;
+                    }
+                }
+            }
+            //This calculates the average pixel value and puts it in the new downsampled image.
+            destinationBuffer[(x/d) + (y/d) * (w/d)] = total / (d * d) / numChannels;
+        }
+    }
+
+    m_ImageBuffer = newBuffer;
+    stats.width /= d;
+    stats.height /= d;
+    scalelo *= d;
+    scalehi *= d;
+    usingDownsampledImage = true;
 }
 
 
@@ -693,7 +797,10 @@ int SexySolver::runInternalSolver()
         // Note, negative determinant = positive parity.
         double det = sip_det_cd(wcs);
         parity = (det < 0 ? "pos" : "neg");
-        pixscale = sip_pixel_scale(wcs);
+        if(usingDownsampledImage)
+            pixscale = sip_pixel_scale(wcs) / downsample;
+        else
+            pixscale = sip_pixel_scale(wcs);
 
         emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         emit logNeedsUpdating(QString("Solve Log Odds:  %1").arg(bp->solver.best_logodds));

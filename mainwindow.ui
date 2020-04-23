@@ -100,7 +100,7 @@
           <x>0</x>
           <y>0</y>
           <width>273</width>
-          <height>347</height>
+          <height>333</height>
          </rect>
         </property>
         <attribute name="label">
@@ -695,7 +695,7 @@
           <x>0</x>
           <y>0</y>
           <width>261</width>
-          <height>347</height>
+          <height>333</height>
          </rect>
         </property>
         <attribute name="label">
@@ -830,7 +830,7 @@
           <x>0</x>
           <y>0</y>
           <width>225</width>
-          <height>347</height>
+          <height>333</height>
          </rect>
         </property>
         <attribute name="label">
@@ -959,7 +959,7 @@
             <number>1</number>
            </property>
            <property name="maximum">
-            <number>10</number>
+            <number>5</number>
            </property>
           </widget>
          </item>
@@ -971,7 +971,7 @@
           <x>0</x>
           <y>0</y>
           <width>225</width>
-          <height>347</height>
+          <height>333</height>
          </rect>
         </property>
         <attribute name="label">
@@ -1004,7 +1004,7 @@
               <x>0</x>
               <y>0</y>
               <width>223</width>
-              <height>345</height>
+              <height>331</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_5">
@@ -1199,7 +1199,7 @@
           <x>0</x>
           <y>0</y>
           <width>225</width>
-          <height>347</height>
+          <height>334</height>
          </rect>
         </property>
         <attribute name="label">

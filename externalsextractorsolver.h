@@ -81,8 +81,6 @@ public:
 private:
     QPointer<QProcess> solver;
     QPointer<QProcess> sextractorProcess;
-    // This is information about the image
-    Statistic stats;
 
     //These are used for reading and writing the sextractor file
     char* xcol=strdup("X_IMAGE"); //This is the column for the x-coordinates
