@@ -510,7 +510,8 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     }
 
     // downsample
-    solverArgs << "--downsample" << QString::number(downsample);
+    if(downsample > 1)
+        solverArgs << "--downsample" << QString::number(downsample);
 
     solverArgs << "--odds-to-solve" << QString::number(exp(logratio_tosolve));
     solverArgs << "--odds-to-tune-up" << QString::number(exp(logratio_totune));
