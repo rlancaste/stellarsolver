@@ -1469,12 +1469,12 @@
        <widget class="QComboBox" name="sextractorType">
         <item>
          <property name="text">
-          <string>Internal</string>
+          <string>Internal SexySolver SEP</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>External</string>
+          <string>External Sextractor</string>
          </property>
         </item>
        </widget>

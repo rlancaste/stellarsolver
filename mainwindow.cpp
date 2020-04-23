@@ -180,6 +180,7 @@ MainWindow::MainWindow() :
     ui->maxWidth->setToolTip("Sets a the maximum degree limit in the scales for Astrometry to search if the scale parameter isn't set");
 
     connect(ui->resort, &QCheckBox::stateChanged, this, [this](){ ui->resortQT->setChecked(ui->resort->isChecked()); });
+    ui->downsample->setToolTip("This downsamples or bins the image to hopefully make it solve faster.");
     ui->resort->setToolTip("This resorts the stars based on magnitude. It usually makes it solve faster.");
     ui->use_scale->setToolTip("Whether or not to use the estimated image scale below to try to speed up the solve");
     ui->scale_low->setToolTip("The minimum size for the estimated image scale");
