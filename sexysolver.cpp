@@ -443,7 +443,7 @@ void SexySolver::downSampleImageType(int d)
                 auto *bSample = bSource + currentLine + sampleSpot;
                 for(int x2 = 0; x2 < d; x2++)
                 {
-                    if(*rSample > oldBufferSize)
+                    if(*rSample > oldBufferSize || *rSample < 0)
                     {
                         emit logNeedsUpdating("Downsampling failed, solving without downsample");
                         delete[] newBuffer;
@@ -454,7 +454,7 @@ void SexySolver::downSampleImageType(int d)
                     //This only samples frome the G and B spots if it is an RGB image
                     if(numChannels == 3)
                     {
-                        if(*gSample > oldBufferSize || *bSample > oldBufferSize)
+                        if(*gSample > oldBufferSize || *bSample > oldBufferSize || *gSample < 0 || *bSample < 0)
                         {
                             emit logNeedsUpdating("RGB Downsampling failed, solving without downsample");
                             delete[] newBuffer;
@@ -466,7 +466,14 @@ void SexySolver::downSampleImageType(int d)
                 }
             }
             //This calculates the average pixel value and puts it in the new downsampled image.
-            destinationBuffer[(x/d) + (y/d) * (w/d)] = total / (d * d) / numChannels;
+            uint32_t pixel = (x/d) + (y/d) * (w/d);
+            if(pixel > newBufferSize)
+            {
+                emit logNeedsUpdating("RGB Downsampling failed, solving without downsample");
+                delete[] newBuffer;
+                return;
+            }
+            destinationBuffer[pixel] = total / (d * d) / numChannels;
         }
     }
 
