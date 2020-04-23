@@ -475,7 +475,7 @@ bool MainWindow::solveImage()
 
         case 2: //Int. SEP Ext. Solver
             #ifdef _WIN32
-                if(inParallel)
+                if(ui->inParallel->isChecked())
                 {
                     logOutput("The external ANSVR solver on windows does not handle the inparallel option well, please disable it to use the external solver.");
                     return false;
