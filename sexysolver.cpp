@@ -412,8 +412,8 @@ void SexySolver::downSampleImageType(int d)
         numChannels = 1;
     else
         numChannels = 3;
-    uint32_t oldBufferSize = stats.samples_per_channel * numChannels * stats.bytesPerPixel;
-    uint32_t newBufferSize = oldBufferSize / d;
+    int oldBufferSize = stats.samples_per_channel * numChannels * stats.bytesPerPixel;
+    int newBufferSize = oldBufferSize / d;
     uint8_t * newBuffer =new uint8_t[newBufferSize];
     auto * sourceBuffer = reinterpret_cast<T *>(m_ImageBuffer);
     auto * destinationBuffer = reinterpret_cast<T *>(newBuffer);
@@ -436,43 +436,22 @@ void SexySolver::downSampleImageType(int d)
             {
                 //The offset for the current line of the sample to take
                 int currentLine = w * 3 * y2;
-
-                //This offsets the R, G, and B pointers based on the sample spot and current line in the sample
-                auto *rSample = rSource + currentLine + sampleSpot;
-                auto *gSample = gSource + currentLine + sampleSpot;
-                auto *bSample = bSource + currentLine + sampleSpot;
+                //The total offset for the sample line
+                int offset = currentLine + sampleSpot;
                 for(int x2 = 0; x2 < d; x2++)
                 {
-                    if(*rSample > oldBufferSize || *rSample < 0)
-                    {
-                        emit logNeedsUpdating("Downsampling failed, solving without downsample");
-                        delete[] newBuffer;
-                        return;
-                    }
                      //This iterates the sample spots to the right,
-                    total += *rSample++;
+                    total += rSource[offset + x2];
                     //This only samples frome the G and B spots if it is an RGB image
                     if(numChannels == 3)
                     {
-                        if(*gSample > oldBufferSize || *bSample > oldBufferSize || *gSample < 0 || *bSample < 0)
-                        {
-                            emit logNeedsUpdating("RGB Downsampling failed, solving without downsample");
-                            delete[] newBuffer;
-                            return;
-                        }
-                        total += *gSample++;
-                        total += *bSample++;
+                        total += gSource[offset + x2];
+                        total += bSource[offset + x2];
                     }
                 }
             }
             //This calculates the average pixel value and puts it in the new downsampled image.
-            uint32_t pixel = (x/d) + (y/d) * (w/d);
-            if(pixel > newBufferSize)
-            {
-                emit logNeedsUpdating("RGB Downsampling failed, solving without downsample");
-                delete[] newBuffer;
-                return;
-            }
+            int pixel = (x/d) + (y/d) * (w/d);
             destinationBuffer[pixel] = total / (d * d) / numChannels;
         }
     }
