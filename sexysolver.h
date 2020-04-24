@@ -148,7 +148,7 @@ public:
     // This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
     QList<Star> stars;
     int getNumStarsFound(){return stars.size();};
-    QList<Star> getStarList(){return stars;}
+    QList<Star> getStarTable(){return stars;}
     //This is the solution that comes back from the Solver
     Solution solution;
 

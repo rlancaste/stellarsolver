@@ -31,9 +31,10 @@
 #include <QProcess>
 #include <QPointer>
 #include <QScrollBar>
-#include <QTime>
 #include <QThread>
 #include <QLineEdit>
+#include <QElapsedTimer>
+#include <QTimer>
 
 //CFitsio Includes
 #include "longnam.h"
@@ -122,7 +123,8 @@ private:
     BayerParams debayerParams;
     bool checkDebayer();
 
-    QTime solverTimer;
+    QElapsedTimer processTimer;
+    QTimer timerMonitor;
     double elapsed;
 
     void setupResultsTable();
@@ -133,6 +135,8 @@ public slots:
 
     bool prepareForProcesses();
     void logOutput(QString text);
+    void startProcessMonitor();
+    void stopProcessMonitor();
     void clearAll();
     void resetOptionsToDefaults();
 

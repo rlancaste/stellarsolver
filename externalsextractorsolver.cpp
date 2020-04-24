@@ -658,7 +658,6 @@ bool ExternalSextractorSolver::getSextractorTable()
         /* read each column, row by row */
         val = value;
         for (jj = 1; jj <= nrows && !status; jj++) {
-               // ui->starList->setItem(jj,0,new QTableWidgetItem(QString::number(jj)));
             float starx = 0;
             float stary = 0;
             float mag = 0;

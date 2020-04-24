@@ -73,9 +73,10 @@ MainWindow::MainWindow() :
     connect(ui->exportTable,&QAbstractButton::clicked, this, &MainWindow::saveResultsTable);
     ui->exportTable->setToolTip("Exports the log of processes executed during this session to a CSV file for further analysis");
 
-    //Behaviors for the StarList
-    ui->starList->setSelectionBehavior(QAbstractItemView::SelectRows);
-    connect(ui->starList,&QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
+    //Behaviors for the StarTable
+    ui->starTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    connect(ui->starTable,&QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
+    ui->starTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     //Behaviors for the Mouse over the Image to interact with the StartList and the UI
     connect(ui->Image,&ImageLabel::mouseHovered,this, &MainWindow::mouseMovedOverImage);
@@ -218,6 +219,8 @@ MainWindow::MainWindow() :
     resetOptionsToDefaults();
 
     setupResultsTable();
+    ui->resultsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->resultsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     debayerParams.method  = DC1394_BAYER_METHOD_NEAREST;
     debayerParams.filter  = DC1394_COLOR_FILTER_RGGB;
@@ -225,6 +228,11 @@ MainWindow::MainWindow() :
 
     setWindowTitle(QString("SexySolver Library Tester %1, build: %2").arg(SexySolver_VERSION).arg(SexySolver_BUILD_TS));
 
+    ui->progressBar->setTextVisible(false);
+    timerMonitor.setInterval(1000); //1 sec intervals
+    connect(&timerMonitor, &QTimer::timeout, this, [this](){
+        ui->status->setText(QString("Processing: %1 s").arg((int)processTimer.elapsed()/1000) + 1);
+    });
 }
 
 void MainWindow::resetOptionsToDefaults()
@@ -328,7 +336,7 @@ MainWindow::~MainWindow()
 void MainWindow::clearAll()
 {
     ui->logDisplay->clear();
-    ui->starList->clearContents();
+    ui->starTable->clearContents();
     ui->resultsTable->clearContents();
     ui->resultsTable->setRowCount(0);
     stars.clear();
@@ -340,6 +348,22 @@ void MainWindow::logOutput(QString text)
 {
      ui->logDisplay->append(text);
      ui->logDisplay->show();
+}
+
+void MainWindow::startProcessMonitor()
+{
+    ui->status->setText("Processing");
+    ui->progressBar->setRange(0,0);
+    timerMonitor.start();
+    processTimer.start();
+}
+
+void MainWindow::stopProcessMonitor()
+{
+    elapsed = processTimer.elapsed()/1000.0;
+    timerMonitor.stop();
+    ui->progressBar->setRange(0,10);
+    ui->status->setText("No Process Running");
 }
 
 //I wrote this method because we really want to do this before all 4 processes
@@ -529,8 +553,7 @@ bool MainWindow::classicSolve()
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
-    solverTimer.start();
-    ui->progressBar->setRange(0,0);
+    startProcessMonitor();
     extSolver->classicSolve();
 
     return true;
@@ -548,8 +571,7 @@ bool MainWindow::astapSolve()
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
-    solverTimer.start();
-    ui->progressBar->setRange(0,0);
+    startProcessMonitor();
     extSolver->astapSolve();
 
     return true;
@@ -566,8 +588,7 @@ bool MainWindow::sextractExternally()
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
 
-    solverTimer.start();
-    ui->progressBar->setRange(0,0);
+    startProcessMonitor();
     extSolver->sextract();
 
     return true;
@@ -584,8 +605,7 @@ bool MainWindow::sextractAndSolveExternally()
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
-    solverTimer.start();
-    ui->progressBar->setRange(0,0);
+    startProcessMonitor();
     extSolver->sextractAndSolve();
     return true;
 }
@@ -601,8 +621,7 @@ bool MainWindow::SEPAndSolveExternally()
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
-    solverTimer.start();
-    ui->progressBar->setRange(0,0);
+    startProcessMonitor();
     extSolver->SEPAndSolve();
     return true;
 }
@@ -619,8 +638,7 @@ bool MainWindow::sextractInternally()
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
 
-    solverTimer.start();
-    ui->progressBar->setRange(0,0);
+    startProcessMonitor();
     sexySolver->sextract();
     return true;
 }
@@ -637,8 +655,7 @@ bool MainWindow::sextractAndSolveInternally()
 
       connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
-      solverTimer.start();
-      ui->progressBar->setRange(0,0);
+      startProcessMonitor();
       sexySolver->sextractAndSolve();
       return true;
 }
@@ -750,11 +767,10 @@ void MainWindow::setSolverSettings()
 //It reports the time taken, prints a message, loads the sextraction stars to the startable, and adds the sextraction stats to the results table.
 bool MainWindow::sextractorComplete(int error)
 {
-    ui->progressBar->setRange(0,10);
+    stopProcessMonitor();
     if(error == 0)
     {
-        elapsed = solverTimer.elapsed() / 1000.0;
-        stars = sexySolver->getStarList();
+        stars = sexySolver->getStarTable();
         displayTable();
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
@@ -767,7 +783,6 @@ bool MainWindow::sextractorComplete(int error)
     }
     else
     {
-        elapsed = solverTimer.elapsed() / 1000.0;
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput(QString("Sextractor failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -778,10 +793,9 @@ bool MainWindow::sextractorComplete(int error)
 //This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the results table.
 bool MainWindow::solverComplete(int error)
 {
-    ui->progressBar->setRange(0,10);
+    stopProcessMonitor();
     if(error == 0)
     {
-        elapsed = solverTimer.elapsed() / 1000.0;
         ui->progressBar->setRange(0,10);
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput(QString(sexySolver->command + " took a total of: %1 second(s).").arg( elapsed));
@@ -794,7 +808,6 @@ bool MainWindow::solverComplete(int error)
     }
     else
     {
-        elapsed = solverTimer.elapsed() / 1000.0;
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput(QString(sexySolver->command + "failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -866,7 +879,7 @@ bool MainWindow::imageLoad()
     if(loadSuccess)
     {
         imageLoaded = true;
-        ui->starList->clear();
+        ui->starTable->clear();
         stars.clear();
         selectedStar = 0;
         ui->splitter_2->setSizes(QList<int>() << ui->optionsBox->width() << ui->splitter_2->width() << 0 );
@@ -1603,7 +1616,7 @@ void MainWindow::mouseClickedOnStar(QPoint location)
     {
         QRect starInImage = getStarSizeInImage(stars.at(i));
         if(starInImage.contains(location))
-            ui->starList->selectRow(i);
+            ui->starTable->selectRow(i);
     }
 }
 
@@ -1611,10 +1624,10 @@ void MainWindow::mouseClickedOnStar(QPoint location)
 //THis method responds to row selections in the table and higlights the star you select in the image
 void MainWindow::starClickedInTable()
 {
-    if(ui->starList->selectedItems().count() > 0)
+    if(ui->starTable->selectedItems().count() > 0)
     {
-        QTableWidgetItem *currentItem = ui->starList->selectedItems().first();
-        selectedStar = ui->starList->row(currentItem);
+        QTableWidgetItem *currentItem = ui->starTable->selectedItems().first();
+        selectedStar = ui->starTable->row(currentItem);
         Star star = stars.at(selectedStar);
         double starx = star.x * currentWidth / stats.width ;
         double stary = star.y * currentHeight / stats.height;
@@ -1676,7 +1689,7 @@ bool setItemInColumn(QTableWidget *table, QString colName, QString value)
 //This copies the stars into the table
 void MainWindow::updateStarTableFromList()
 {
-    QTableWidget *table = ui->starList;
+    QTableWidget *table = ui->starTable;
     table->clearContents();
     table->setRowCount(0);
     table->setColumnCount(0);
@@ -1717,7 +1730,7 @@ void MainWindow::updateStarTableFromList()
 
 void MainWindow::updateHiddenStarTableColumns()
 {
-    QTableWidget *table = ui->starList;
+    QTableWidget *table = ui->starTable;
 
     setColumnHidden(table,"FLUX_AUTO", !showFluxInfo);
     setColumnHidden(table,"PEAK", !showFluxInfo);
@@ -1950,6 +1963,7 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table,"Scale?");
     addColumnToTable(table,"Resort?");
     addColumnToTable(table,"Down");
+    addColumnToTable(table,"in ||");
     //Results
     addColumnToTable(table,"RA");
     addColumnToTable(table,"DEC");
@@ -1959,8 +1973,6 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table,"PixScale");
     addColumnToTable(table,"Parity");
     addColumnToTable(table,"Field");
-
-    table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     updateHiddenResultsTableColumns();
 }
@@ -2034,6 +2046,7 @@ void MainWindow::addSolutionToTable(Solution solution)
     setItemInColumn(table, "Scale?", QVariant(sexySolver->use_scale).toString());
     setItemInColumn(table, "Resort?", QVariant(sexySolver->resort).toString());
     setItemInColumn(table, "Down", QVariant(sexySolver->downsample).toString());
+    setItemInColumn(table, "in ||", QVariant(sexySolver->inParallel).toString());
 
     //Results
     setItemInColumn(table, "RA", solution.rastr);
@@ -2072,6 +2085,7 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table,"Scale?", !showAstrometryParams);
     setColumnHidden(table,"Resort?", !showAstrometryParams);
     setColumnHidden(table,"Down", !showAstrometryParams);
+    setColumnHidden(table,"in ||", !showAstrometryParams);
     //Results
     setColumnHidden(table,"RA", !showSolutionDetails);
     setColumnHidden(table,"DEC", !showSolutionDetails);
