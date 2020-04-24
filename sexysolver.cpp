@@ -413,7 +413,7 @@ void SexySolver::downSampleImageType(int d)
     else
         numChannels = 3;
     int oldBufferSize = stats.samples_per_channel * numChannels * stats.bytesPerPixel;
-    int newBufferSize = oldBufferSize / d;
+    int newBufferSize = oldBufferSize / (d * d); //It is d times smaller in width and height
     downSampledBuffer =new uint8_t[newBufferSize];
     auto * sourceBuffer = reinterpret_cast<T *>(m_ImageBuffer);
     auto * destinationBuffer = reinterpret_cast<T *>(downSampledBuffer);
@@ -425,10 +425,6 @@ void SexySolver::downSampleImageType(int d)
 
     for(int y = 0; y < h - d; y+=d)
     {
-        //Shifts each pointer by a whole line, d times
-        rSource += w * d;
-        gSource += w * d;
-        bSource += w * d;
         for (int x = 0; x < w - d; x+=d)
         {
             //The sum of all the pixels in the sample
@@ -436,15 +432,16 @@ void SexySolver::downSampleImageType(int d)
 
             for(int y2 = 0; y2 < d; y2++)
             {
-                //The offset for the current line of the sample to take
+                //The offset for the current line of the sample to take, since we have to sample different rows
                 int currentLine = w * y2;
 
+                //Shifting the R, G, and B Pointers to the sample location
                 auto *rSample = rSource + currentLine + x;
                 auto *gSample = gSource + currentLine + x;
                 auto *bSample = bSource + currentLine + x;
                 for(int x2 = 0; x2 < d; x2++)
                 {
-                     //This iterates the sample spots to the right,
+                     //This iterates the sample x2 spots to the right,
                     total += *rSample++;
                     //This only samples frome the G and B spots if it is an RGB image
                     if(numChannels == 3)
@@ -458,6 +455,10 @@ void SexySolver::downSampleImageType(int d)
             int pixel = (x/d) + (y/d) * (w/d);
             destinationBuffer[pixel] = total / (d * d) / numChannels;
         }
+        //Shifts each pointer by a whole line, d times
+        rSource += w * d;
+        gSource += w * d;
+        bSource += w * d;
     }
 
     m_ImageBuffer = downSampledBuffer;
