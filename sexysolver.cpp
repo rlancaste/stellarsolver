@@ -425,28 +425,32 @@ void SexySolver::downSampleImageType(int d)
 
     for(int y = 0; y < h - d; y+=d)
     {
+        //Shifts each pointer by a whole line, d times
+        rSource += w * d;
+        gSource += w * d;
+        bSource += w * d;
         for (int x = 0; x < w - d; x+=d)
         {
             //The sum of all the pixels in the sample
             double total = 0;
-            //The location of the starting pixel in the source image to start sampling to calculate the value for the new pixel
-            int sampleSpot = x + y * w;
 
             for(int y2 = 0; y2 < d; y2++)
             {
                 //The offset for the current line of the sample to take
-                int currentLine = w * 3 * y2;
-                //The total offset for the sample line
-                int offset = currentLine + sampleSpot;
+                int currentLine = w * y2;
+
+                auto *rSample = rSource + currentLine + x;
+                auto *gSample = gSource + currentLine + x;
+                auto *bSample = bSource + currentLine + x;
                 for(int x2 = 0; x2 < d; x2++)
                 {
                      //This iterates the sample spots to the right,
-                    total += rSource[offset + x2];
+                    total += *rSample++;
                     //This only samples frome the G and B spots if it is an RGB image
                     if(numChannels == 3)
                     {
-                        total += gSource[offset + x2];
-                        total += bSource[offset + x2];
+                        total += *gSample++;
+                        total += *bSample++;
                     }
                 }
             }
