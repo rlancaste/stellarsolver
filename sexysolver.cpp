@@ -414,9 +414,9 @@ void SexySolver::downSampleImageType(int d)
         numChannels = 3;
     int oldBufferSize = stats.samples_per_channel * numChannels * stats.bytesPerPixel;
     int newBufferSize = oldBufferSize / d;
-    uint8_t * newBuffer =new uint8_t[newBufferSize];
+    downSampledBuffer =new uint8_t[newBufferSize];
     auto * sourceBuffer = reinterpret_cast<T *>(m_ImageBuffer);
-    auto * destinationBuffer = reinterpret_cast<T *>(newBuffer);
+    auto * destinationBuffer = reinterpret_cast<T *>(downSampledBuffer);
 
     //The G pixels are after all the R pixels, Same for the B pixels
     auto * rSource = sourceBuffer;
@@ -460,7 +460,7 @@ void SexySolver::downSampleImageType(int d)
         }
     }
 
-    m_ImageBuffer = newBuffer;
+    m_ImageBuffer = downSampledBuffer;
     stats.width /= d;
     stats.height /= d;
     scalelo *= d;
