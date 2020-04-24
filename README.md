@@ -1,6 +1,8 @@
 # SexySolver
 ## The Cross Platform Sextractor and Astrometry.net-Based Internal Astrometric Solver
 
+![SexySolver Pretty](/SexySolverPretty.png "SexySolver solving a pretty image.")
+
  - An Astrometric Plate Solver for Mac, Linux, and hopefully Windows
  - Meant to be an internal library for use in a program like KStars for internal plate solving on Mac, Windows, and Linux
  - Python is not required for the library
