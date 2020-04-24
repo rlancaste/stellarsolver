@@ -233,6 +233,8 @@ MainWindow::MainWindow() :
     connect(&timerMonitor, &QTimer::timeout, this, [this](){
         ui->status->setText(QString("Processing: %1 s").arg((int)processTimer.elapsed()/1000) + 1);
     });
+
+    setWindowIcon(QIcon(":/SexySolverIcon.png"));
 }
 
 void MainWindow::resetOptionsToDefaults()

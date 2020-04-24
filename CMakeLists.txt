@@ -16,6 +16,7 @@ configure_file(
 )
 
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
 if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13)
@@ -274,6 +275,7 @@ set(SexySolver_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/stretch.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/dms.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/bayer.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/resources.qrc
    )
 
 qt5_wrap_ui(SexySolverui_SRCS
