@@ -1,7 +1,7 @@
 # SexySolver
 ## The Cross Platform Sextractor and Astrometry.net-Based Internal Astrometric Solver
 
-![SexySolver Pretty](/SexySolverPretty.png "SexySolver solving a pretty image.")
+![SexySolver Pretty](/images/SexySolverPretty.png "SexySolver solving a pretty image.")
 
  - An Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net and SEP (sextractor)
  - Meant to be an internal library for use in a program like KStars for internal plate solving on all supported operating systems
@@ -14,7 +14,7 @@
  - The Index Files are still required for solving images, but the program or the user can specify the folder locations rather than putting them in the config file.
  - Note: The executable created by MainWindow is only meant for testing purposes.  It is for developing and improving SexySolver.cpp and the included libraries in the astrometry and sep folders.  It can be used to compare the library to an existing installation of astrometry.net on the computer to perfect the settings.
 
-![SexySolver In Action](/SexySolverInAction2.png "SexySolver running the same solve on different platforms.")
+![SexySolver In Action](/images/SexySolverInAction2.png "SexySolver running the same solve on different platforms.")
 ## Based on:
  - Astrometry.net [Astrometry README](http://astrometry.net/doc/readme.html)
  - Sextractor [Sextractor Documentation](https://sextractor.readthedocs.io/en/latest/)
@@ -78,7 +78,7 @@ When you do the sextraction, the program will load the results into the star tab
 We want the Sextractor to be fairly fast, accurately detect stars (or other objects) for various purposes, and report things like Magnitude and Flux.
 One goal is to use the sextracted stars to solve images, the other is to use the sextracted stars for other reasons like guiding and photometry.
 
-![SexySolver Sextractor](/Sextractor.png "SexySolver sextracting stars into the star table.")
+![SexySolver Sextractor](/images/Sextractor.png "SexySolver sextracting stars into the star table.")
 
 ## Solving Images
 You can use the Internal Solver or the External Solver(s).  There are numerous options like using internal sextractor and external astrometry.net, or using ASTAP to solve images.
@@ -86,7 +86,7 @@ We want to support various methods of solving images because different systems w
 There are a number of settings in the left panel of options that you can set for solving images.  We want to solve images quickly but accurately.
 So please play around with the settings and find out what can work the best.
 
-![SexySolver Solver](/Solver.png "SexySolver solving an image using different methods.")
+![SexySolver Solver](/images/Solver.png "SexySolver solving an image using different methods.")
 
 # Building the program
 
