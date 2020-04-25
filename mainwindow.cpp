@@ -924,6 +924,7 @@ bool MainWindow::loadFits()
     if (fits_movabs_hdu(fptr, 1, IMAGE_HDU, &status))
     {
         logOutput(QString("Could not locate image HDU."));
+        fits_close_file(fptr, &status);
         return false;
     }
 
@@ -931,6 +932,7 @@ bool MainWindow::loadFits()
     if (fits_get_img_param(fptr, 3, &fitsBitPix, &(stats.ndim), naxes, &status))
     {
         logOutput(QString("FITS file open error (fits_get_img_param)."));
+        fits_close_file(fptr, &status);
         return false;
     }
 
@@ -939,6 +941,7 @@ bool MainWindow::loadFits()
         errMessage = "1D FITS images are not supported.";
         QMessageBox::critical(nullptr,"Message",errMessage);
         logOutput(errMessage);
+        fits_close_file(fptr, &status);
         return false;
     }
 
@@ -982,6 +985,7 @@ bool MainWindow::loadFits()
             errMessage = QString("Bit depth %1 is not supported.").arg(fitsBitPix);
             QMessageBox::critical(nullptr,"Message",errMessage);
             logOutput(errMessage);
+            fits_close_file(fptr, &status);
             return false;
     }
 
@@ -1009,6 +1013,7 @@ bool MainWindow::loadFits()
     {
         logOutput(QString("FITSData: Not enough memory for image_buffer channel. Requested: %1 bytes ").arg(m_ImageBufferSize));
         clearImageBuffers();
+        fits_close_file(fptr, &status);
         return false;
     }
 
@@ -1019,6 +1024,7 @@ bool MainWindow::loadFits()
         errMessage = "Error reading image.";
         QMessageBox::critical(nullptr,"Message",errMessage);
         logOutput(errMessage);
+        fits_close_file(fptr, &status);
         return false;
     }
 
@@ -1026,6 +1032,8 @@ bool MainWindow::loadFits()
         debayer();
 
     getSolverOptionsFromFITS();
+
+    fits_close_file(fptr, &status);
 
     return true;
 }
@@ -1787,6 +1795,7 @@ bool MainWindow::getSolverOptionsFromFITS()
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
         logOutput(QString::fromUtf8(error_status));
+        fits_close_file(fptr, &status);
         return false;
     }
 
@@ -1796,6 +1805,7 @@ bool MainWindow::getSolverOptionsFromFITS()
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
         logOutput("FITS header: cannot find NAXIS1.");
+        fits_close_file(fptr, &status);
         return false;
     }
 
@@ -1805,6 +1815,7 @@ bool MainWindow::getSolverOptionsFromFITS()
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
         logOutput("FITS header: cannot find NAXIS2.");
+        fits_close_file(fptr, &status);
         return false;
     }
 
@@ -1870,7 +1881,7 @@ bool MainWindow::getSolverOptionsFromFITS()
         ui->scale_high->setText(QString::number(fov_high));
         ui->units->setCurrentText("app");
         ui->use_scale->setChecked(true);
-
+        fits_close_file(fptr, &status);
         return true;
     }
 
@@ -1882,6 +1893,7 @@ bool MainWindow::getSolverOptionsFromFITS()
             fits_report_error(stderr, status);
             fits_get_errstatus(status, error_status);
             logOutput(QString("FITS header: cannot find FOCALLEN: (%1).").arg(QString(error_status)));
+            fits_close_file(fptr, &status);
             return false;
         }
         else
@@ -1894,6 +1906,7 @@ bool MainWindow::getSolverOptionsFromFITS()
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
         logOutput(QString("FITS header: cannot find PIXSIZE1 (%1).").arg(QString(error_status)));
+        fits_close_file(fptr, &status);
         return false;
     }
 
@@ -1903,6 +1916,7 @@ bool MainWindow::getSolverOptionsFromFITS()
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
         logOutput(QString("FITS header: cannot find PIXSIZE2 (%1).").arg(QString(error_status)));
+        fits_close_file(fptr, &status);
         return false;
     }
 
@@ -1931,6 +1945,8 @@ bool MainWindow::getSolverOptionsFromFITS()
     ui->scale_high->setText(QString::number(fov_upper));
     ui->units->setCurrentText("aw");
     ui->use_scale->setChecked(true);
+
+    fits_close_file(fptr, &status);
 
     return true;
 }
