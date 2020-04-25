@@ -3,13 +3,13 @@
 
 ![SexySolver Pretty](/SexySolverPretty.png "SexySolver solving a pretty image.")
 
- - An Astrometric Plate Solver for Mac, Linux, and hopefully Windows
- - Meant to be an internal library for use in a program like KStars for internal plate solving on Mac, Windows, and Linux
+ - An Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net and SEP (sextractor)
+ - Meant to be an internal library for use in a program like KStars for internal plate solving on all supported operating systems
  - Python is not required for the library
  - Netpbm is not required for the library
  - Internal Library, so calls to external programs are not required
  - No Astrometry.cfg file is needed, the settings are internal to the program
- - Directly loads the image data into SEP star and then the xy-list internally from Sextractor into astrometry.net, so there is no need to save any files.
+ - Directly loads the image data into SEP and then takes the generated xy-list internally from Sextractor into astrometry.net, so there is no need to save any files.
  - No temporary files need to be created for solving and no WCS file needs to be created to read the solved information.  Although astrometry.net does monitor for the creation of 2 files indicating that a field is solved or a cancel was made, so these are created for now.
  - The Index Files are still required for solving images, but the program or the user can specify the folder locations rather than putting them in the config file.
  - Note: The executable created by MainWindow is only meant for testing purposes.  It is for developing and improving SexySolver.cpp and the included libraries in the astrometry and sep folders.  It can be used to compare the library to an existing installation of astrometry.net on the computer to perfect the settings.
