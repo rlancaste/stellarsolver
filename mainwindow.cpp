@@ -551,7 +551,7 @@ bool MainWindow::classicSolve()
         if(ui->inParallel->isChecked())
         {
             logOutput("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
-            sexySolver.inParallel = false;
+            sexySolver->inParallel = false;
         }
     #endif
 
@@ -627,7 +627,7 @@ bool MainWindow::SEPAndSolveExternally()
         if(ui->inParallel->isChecked())
         {
             logOutput("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
-            sexySolver.inParallel = false;
+            sexySolver->inParallel = false;
         }
     #endif
 
