@@ -1044,6 +1044,12 @@ bool ExternalSextractorSolver::saveAsFITS()
 
     fits_flush_file(fptr, &status);
 
+    if(fits_close_file(fptr, &status))
+    {
+        emit logNeedsUpdating(QString("Error closing file."));
+        return false;
+    }
+
     emit logNeedsUpdating("Saved FITS file:" + fileToProcess);
 
     return true;
