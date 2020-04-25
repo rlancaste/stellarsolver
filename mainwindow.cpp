@@ -520,7 +520,13 @@ bool MainWindow::solveImage()
         break;
 
         case 3: //Classic Astrometry.net
-
+            #ifdef _WIN32
+                if(ui->inParallel->isChecked())
+                {
+                    logOutput("The external ANSVR solver on windows does not handle the inparallel option well, please disable it to use the external solver.");
+                    return false;
+                }
+            #endif
                 if(!QFileInfo(solverPath).exists())
                 {
                     logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
