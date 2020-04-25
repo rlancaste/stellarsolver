@@ -84,11 +84,11 @@ This program has several methods of plate solving images, one is using the inter
 You don't have to install any of them, but sometimes the other methods are better for certain images and we would like to compare the methods and improve all
 of them.  The goal is not just to replace all of these other ways of plate solving with SexySolver, but to provide alternatives.  To get them all set up
 
-Astrometry - [http://astrometry.net/doc/readme.html](http://astrometry.net/doc/readme.html)
-ANSVR (Astrometry on Windows) [https://adgsoftware.com/ansvr/](https://adgsoftware.com/ansvr/)
-ASTAP - [http://www.hnsky.org/astap.htm](http://www.hnsky.org/astap.htm)
+- Astrometry - [http://astrometry.net/doc/readme.html](http://astrometry.net/doc/readme.html)
+- ANSVR (Astrometry on Windows) [https://adgsoftware.com/ansvr/](https://adgsoftware.com/ansvr/)
+- ASTAP - [http://www.hnsky.org/astap.htm](http://www.hnsky.org/astap.htm)
 
-Sextractor is a little more difficult.  It can't be installed on Windows to my knowledge.  The installation of astrometry.net on ubuntu installs 
+- Sextractor is a little more difficult.  It can't be installed on Windows to my knowledge.  The installation of astrometry.net on ubuntu installs 
 sextractor as well so it is taken care of.  And on Macs, you can either use the internal version that comes with KStars or you can install it with homebrew.
 
 NOTE:  If you have KStars installed on a Mac, you already have all of these programs in the app bundle except for ASTAP and the SexySolver program can
