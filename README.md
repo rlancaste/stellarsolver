@@ -64,6 +64,36 @@ Another thought I had in the back of my mind was that there were a copule of rea
  - Double click the exe and follow the dialogs to install the program
  - Go to your Start Menu and Open the program
 
+# What else do I need to install
+One of the big goals of the SexySolver is to eliminate all the external programs, configuration files, and setup currently required by programs like 
+Astrometry.net.  But no matter what, you will still need some index files which contain the star positions astrometry will match your stars with to get a solve.
+That being said, it would really help for the testing purposes to install the other methods of plate solving for comparison purposes.  Also note that another
+goal of this project is to try to improve the parameters and the way that we use the external programs as well for an alternative plate solving method.
+
+## Index Files
+Anybody who has used Astrometry.net is familiar with index files.  If you don't have them, or need to know more about them, you can read up on them here: 
+[Astrometry Readme document](http://astrometry.net/doc/readme.html).  You will need to download the ones that are relevant to your images.  This is mainly
+determined by the field size of your images.  You can read all about that on the website.  This program can work with the index files in whatever folder you
+put them, however the default locations it searches for the index files are the default locations on the operating systems astrometry.net looks for the files in.
+So that is where I would put them.  On Windows, it looks in the ANSVR location by default, but can also do the cygwin location.  On Mac, it can either default
+to the homebrew index file location or if you have KStars installed, it can use the KStars default location instead.  On Linux, it can either do the KStars
+"local" index file location or the Linux default location.
+
+## Alternate programs/methods for solving
+This program has several methods of plate solving images, one is using the internal SexySolver Library, but the other methods all rely on external programs.
+You don't have to install any of them, but sometimes the other methods are better for certain images and we would like to compare the methods and improve all
+of them.  The goal is not just to replace all of these other ways of plate solving with SexySolver, but to provide alternatives.  To get them all set up
+
+Astrometry - [http://astrometry.net/doc/readme.html](http://astrometry.net/doc/readme.html)
+ANSVR (Astrometry on Windows) [https://adgsoftware.com/ansvr/](https://adgsoftware.com/ansvr/)
+ASTAP - [http://www.hnsky.org/astap.htm](http://www.hnsky.org/astap.htm)
+
+Sextractor is a little more difficult.  It can't be installed on Windows to my knowledge.  The installation of astrometry.net on ubuntu installs 
+sextractor as well so it is taken care of.  And on Macs, you can either use the internal version that comes with KStars or you can install it with homebrew.
+
+NOTE:  If you have KStars installed on a Mac, you already have all of these programs in the app bundle except for ASTAP and the SexySolver program can
+utilize them just fine so you don't need to install external programs except KStars and ASTAP.
+
 # Using the SexySolver Tester Program
 Remember that the main goal of this SexySolver tester program is to perfect the internal libraries, determine what settings need to be avaiable for the user to use,
 determine what settings should be set to fixed values and hidden from the user, and to figure out what effect some settings have on the program.  With that goal in mind,
