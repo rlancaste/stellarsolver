@@ -501,13 +501,6 @@ bool MainWindow::solveImage()
         break;
 
         case 2: //Int. SEP Ext. Solver
-            #ifdef _WIN32
-                if(ui->inParallel->isChecked())
-                {
-                    logOutput("The external ANSVR solver on windows does not handle the inparallel option well, please disable it to use the external solver.");
-                    return false;
-                }
-            #endif
 
                 if(!QFileInfo(solverPath).exists())
                 {
@@ -520,13 +513,7 @@ bool MainWindow::solveImage()
         break;
 
         case 3: //Classic Astrometry.net
-            #ifdef _WIN32
-                if(ui->inParallel->isChecked())
-                {
-                    logOutput("The external ANSVR solver on windows does not handle the inparallel option well, please disable it to use the external solver.");
-                    return false;
-                }
-            #endif
+
                 if(!QFileInfo(solverPath).exists())
                 {
                     logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
@@ -559,6 +546,14 @@ bool MainWindow::classicSolve()
 
     setupExternalSextractorSolver();
     setSolverSettings(); 
+
+    #ifdef _WIN32
+        if(ui->inParallel->isChecked())
+        {
+            logOutput("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
+            sexySolver.inParallel = false;
+        }
+    #endif
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
@@ -627,6 +622,14 @@ bool MainWindow::SEPAndSolveExternally()
 
     setSextractorSettings();
     setSolverSettings();
+
+    #ifdef _WIN32
+        if(ui->inParallel->isChecked())
+        {
+            logOutput("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
+            sexySolver.inParallel = false;
+        }
+    #endif
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
