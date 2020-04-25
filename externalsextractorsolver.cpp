@@ -815,7 +815,8 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
         }
         double ra = 0, dec = 0, orient = 0;
         double fieldw = 0, fieldh = 0, pixscale = 0;
-        char rastr[32], decstr[32], parity[32];
+        char rastr[32], decstr[32];
+        QString parity = "";
 
         bool ok[4] = {false};
 
