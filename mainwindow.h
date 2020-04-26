@@ -103,6 +103,17 @@ private:
     bool showAstrometryParams = false;
     bool showSolutionDetails = true;
 
+    typedef enum {SEXYSOLVER, EXT_SEXTRACTORSOLVER, INT_SEP_EXT_SOLVER, CLASSIC_ASTROMETRY, ASTAP}SolverType;
+    SolverType solverType;
+
+    typedef enum {SEP, EXT_SEXTRACTOR}SextractorType;
+    SextractorType sextractorType;
+
+    //This allows for averaging over multiple trials
+    int currentTrial = 0;
+    int numberOfTrials = 0;
+    double totalTime = 0;
+
     //Data about the image
     bool imageLoaded = false;
     Statistic stats;
@@ -130,6 +141,7 @@ private:
     void setupResultsTable();
     void clearAstrometrySettings();
     void addSextractionToTable();
+    Solution lastSolution;
 
 public slots:
 
@@ -143,15 +155,11 @@ public slots:
     void loadIndexFilesList();
 
     //These are the functions that run when the bottom buttons are clicked
-    bool sextractImage();
-    bool solveImage();
-    bool classicSolve();
-    bool astapSolve();
-    bool sextractExternally();
-    bool sextractAndSolveExternally();
-    bool SEPAndSolveExternally();
-    bool sextractInternally();
-    bool sextractAndSolveInternally();
+    void sextractButtonClicked();
+    void sextractImage();
+    void solveButtonClicked();
+    void solveImage();
+
     void abort();
 
     //These functions are for loading and displaying the image
@@ -170,12 +178,13 @@ public slots:
     void autoScale();
     void updateImage();
 
-    //These functions are for the display of stars in the table
+    //These functions handle the star table
     void displayTable();
     void sortStars();
     void starClickedInTable();
     void updateStarTableFromList();
     void updateHiddenStarTableColumns();
+    void saveStarTable();
 
     void mouseMovedOverImage(QPoint location);
     QString getValue(int x, int y);

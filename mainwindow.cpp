@@ -57,10 +57,10 @@ MainWindow::MainWindow() :
     ui->AutoScale->setToolTip("Rescales the image based on the available space");
 
     //The Options at the bottom of the Window
-    connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractImage );
+    connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractButtonClicked );
     ui->SextractStars->setToolTip("Sextract the stars in the image using the chosen method and load them into the star table");
     ui->sextractorType->setToolTip("Lets you choose the Internal SexySolver SEP or external Sextractor program");
-    connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveImage );
+    connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveButtonClicked );
     ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box to the right");
     ui->solverType->setToolTip("Lets you choose how to solve the image");
 
@@ -70,17 +70,6 @@ MainWindow::MainWindow() :
     ui->reset->setToolTip("Resets all the options in the left option pane to defalt values");
     connect(ui->Clear,&QAbstractButton::clicked, this, &MainWindow::clearAll );
     ui->Clear->setToolTip("Clears the stars from the image, the star table, the results table, and the log at the bottom");
-    connect(ui->exportTable,&QAbstractButton::clicked, this, &MainWindow::saveResultsTable);
-    ui->exportTable->setToolTip("Exports the log of processes executed during this session to a CSV file for further analysis");
-
-    //Behaviors for the StarTable
-    ui->starTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    connect(ui->starTable,&QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
-    ui->starTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-    //Behaviors for the Mouse over the Image to interact with the StartList and the UI
-    connect(ui->Image,&ImageLabel::mouseHovered,this, &MainWindow::mouseMovedOverImage);
-    connect(ui->Image,&ImageLabel::mouseClicked,this, &MainWindow::mouseClickedOnStar);
 
     //Hides the panels into the sides and bottom
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
@@ -99,19 +88,7 @@ MainWindow::MainWindow() :
     //SexySolver Tester Options
     ui->calculateHFR->setToolTip("This is a Sextractor option, when checked it will calculate the HFR of the stars.");
     connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
-    ui->showStars->setToolTip("This toggles the stars circles on and off in the image");
-    connect(ui->starOptions,QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::updateImage);
-    ui->starOptions->setToolTip("This allows you to select different types of star circles to put on the stars.  Warning, some require HFR to have been calculated first.");
-    connect(ui->showFluxInfo, &QCheckBox::stateChanged, this, [this](){ showFluxInfo = ui->showFluxInfo->isChecked(); updateHiddenStarTableColumns(); });
-    ui->showFluxInfo->setToolTip("This toggles whether to show or hide the HFR, peak, Flux columns in the star table after Sextraction.");
-    connect(ui->showStarShapeInfo, &QCheckBox::stateChanged, this, [this](){ showStarShapeInfo = ui->showStarShapeInfo->isChecked(); updateHiddenStarTableColumns();});
-    ui->showStarShapeInfo->setToolTip("This toggles whether to show or hide the information about each star's semi-major axis, semi-minor axis, and orientation in the star table after sextraction.");
-    connect(ui->showSextractorParams, &QCheckBox::stateChanged, this, [this](){ showSextractorParams = ui->showSextractorParams->isChecked(); updateHiddenResultsTableColumns(); });
-    ui->showSextractorParams->setToolTip("This toggles whether to show or hide the Sextractor Settings in the Results table at the bottom");
-    connect(ui->showAstrometryParams, &QCheckBox::stateChanged, this, [this](){ showAstrometryParams = ui->showAstrometryParams->isChecked(); updateHiddenResultsTableColumns(); });
-    ui->showAstrometryParams->setToolTip("This toggles whether to show or hide the Astrometry Settings in the Results table at the bottom");
-    connect(ui->showSolutionDetails, &QCheckBox::stateChanged, this, [this](){ showSolutionDetails = ui->showSolutionDetails->isChecked(); updateHiddenResultsTableColumns(); });
-    ui->showSolutionDetails->setToolTip("This toggles whether to show or hide the Solution Details in the Results table at the bottom");
+
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){
         ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
 
@@ -201,7 +178,7 @@ MainWindow::MainWindow() :
     ui->logToFile->setToolTip("Whether or not the internal solver should log its output to a file for analysis");
     ui->logLevel->setToolTip("The verbosity level of the log to be saved for the internal solver.");
 
-    connect(ui->indexFolderPaths, &QComboBox::currentTextChanged, this, [this](QString item){ loadIndexFilesList(); });
+    connect(ui->indexFolderPaths, &QComboBox::currentTextChanged, this, [this](){ loadIndexFilesList(); });
     ui->indexFolderPaths->setToolTip("The paths on your compute to search for index files.  To add another, just start typing in the box.  To select one to look at, use the drop down.");
     connect(ui->removeIndexPath, &QPushButton::clicked, this, [this](){ ui->indexFolderPaths->removeItem( ui->indexFolderPaths->currentIndex()); });
     ui->removeIndexPath->setToolTip("Removes the selected path in the index folder paths dropdown so that it won't get passed to the solver");
@@ -217,11 +194,35 @@ MainWindow::MainWindow() :
     });
     ui->addIndexPath->setToolTip("Adds a path the user selects to the list of index folder paths");
 
-    resetOptionsToDefaults();
+    //Behaviors and Settings for the StarTable
+    ui->starTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    connect(ui->starTable,&QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
+    ui->starTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    connect(ui->exportStarTable,&QAbstractButton::clicked, this, &MainWindow::saveStarTable);
+    ui->showStars->setToolTip("This toggles the stars circles on and off in the image");
+    connect(ui->starOptions,QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::updateImage);
+    ui->starOptions->setToolTip("This allows you to select different types of star circles to put on the stars.  Warning, some require HFR to have been calculated first.");
+    connect(ui->showFluxInfo, &QCheckBox::stateChanged, this, [this](){ showFluxInfo = ui->showFluxInfo->isChecked(); updateHiddenStarTableColumns(); });
+    ui->showFluxInfo->setToolTip("This toggles whether to show or hide the HFR, peak, Flux columns in the star table after Sextraction.");
+    connect(ui->showStarShapeInfo, &QCheckBox::stateChanged, this, [this](){ showStarShapeInfo = ui->showStarShapeInfo->isChecked(); updateHiddenStarTableColumns();});
+    ui->showStarShapeInfo->setToolTip("This toggles whether to show or hide the information about each star's semi-major axis, semi-minor axis, and orientation in the star table after sextraction.");
 
+    //Behaviors for the Mouse over the Image to interact with the StartList and the UI
+    connect(ui->Image,&ImageLabel::mouseHovered,this, &MainWindow::mouseMovedOverImage);
+    connect(ui->Image,&ImageLabel::mouseClicked,this, &MainWindow::mouseClickedOnStar);
+
+    //Behavior and settings for the Results Table
     setupResultsTable();
     ui->resultsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->resultsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    connect(ui->exportResultsTable,&QAbstractButton::clicked, this, &MainWindow::saveResultsTable);
+    ui->exportResultsTable->setToolTip("Exports the log of processes executed during this session to a CSV file for further analysis");
+    connect(ui->showSextractorParams, &QCheckBox::stateChanged, this, [this](){ showSextractorParams = ui->showSextractorParams->isChecked(); updateHiddenResultsTableColumns(); });
+    ui->showSextractorParams->setToolTip("This toggles whether to show or hide the Sextractor Settings in the Results table at the bottom");
+    connect(ui->showAstrometryParams, &QCheckBox::stateChanged, this, [this](){ showAstrometryParams = ui->showAstrometryParams->isChecked(); updateHiddenResultsTableColumns(); });
+    ui->showAstrometryParams->setToolTip("This toggles whether to show or hide the Astrometry Settings in the Results table at the bottom");
+    connect(ui->showSolutionDetails, &QCheckBox::stateChanged, this, [this](){ showSolutionDetails = ui->showSolutionDetails->isChecked(); updateHiddenResultsTableColumns(); });
+    ui->showSolutionDetails->setToolTip("This toggles whether to show or hide the Solution Details in the Results table at the bottom");
 
     debayerParams.method  = DC1394_BAYER_METHOD_NEAREST;
     debayerParams.filter  = DC1394_COLOR_FILTER_RGGB;
@@ -232,10 +233,12 @@ MainWindow::MainWindow() :
     ui->progressBar->setTextVisible(false);
     timerMonitor.setInterval(1000); //1 sec intervals
     connect(&timerMonitor, &QTimer::timeout, this, [this](){
-        ui->status->setText(QString("Processing: %1 s").arg((int)processTimer.elapsed()/1000) + 1);
+        ui->status->setText(QString("Processing Trial %1: %2 s").arg(currentTrial).arg((int)processTimer.elapsed()/1000) + 1);
     });
 
     setWindowIcon(QIcon(":/SexySolverIcon.png"));
+
+    resetOptionsToDefaults();
 }
 
 void MainWindow::resetOptionsToDefaults()
@@ -287,6 +290,7 @@ void MainWindow::resetOptionsToDefaults()
         ui->fwhm->setText(QString::number(temp.fwhm));
 
     //Star Filter Settings
+
         ui->maxEllipse->setText(QString::number(temp.maxEllipse));
         ui->brightestPercent->setText(QString::number(temp.removeBrightest));
         ui->dimmestPercent->setText(QString::number(temp.removeDimmest));
@@ -355,7 +359,7 @@ void MainWindow::logOutput(QString text)
 
 void MainWindow::startProcessMonitor()
 {
-    ui->status->setText("Processing");
+    ui->status->setText(QString("Processing Trial %1").arg(currentTrial));
     ui->progressBar->setRange(0,0);
     timerMonitor.start();
     processTimer.start();
@@ -363,7 +367,6 @@ void MainWindow::startProcessMonitor()
 
 void MainWindow::stopProcessMonitor()
 {
-    elapsed = processTimer.elapsed()/1000.0;
     timerMonitor.stop();
     ui->progressBar->setRange(0,10);
     ui->status->setText("No Process Running");
@@ -389,13 +392,14 @@ bool MainWindow::prepareForProcesses()
         running = true;
     if(running)
     {
-        int r = QMessageBox::question(this, "Abort?", "A Process is currently running. Abort it?");
-        if (r == QMessageBox::No)
-            return false;
-        sexySolver->abort();
+        if(QMessageBox::question(this, "Abort?", "A Process is currently running. Abort it?") == QMessageBox::Yes)
+            sexySolver->abort();
+        return false;
     }
-    sexySolver.clear();
-    extSolver.clear();
+    numberOfTrials = ui->trials->value();
+    totalTime = 0;
+    currentTrial = 0;
+    lastSolution = Solution();
     return true;
 }
 
@@ -428,253 +432,161 @@ void MainWindow::loadIndexFilesList()
 }
 
 
-
 //The following methods are meant for starting the sextractor and image solving.
 //The methods run when the buttons are clicked.  They call the methods inside SexySolver and ExternalSextractorSovler
 
 //This method responds when the user clicks the Sextract Button
-bool MainWindow::sextractImage()
+void MainWindow::sextractButtonClicked()
 {
+    if(!prepareForProcesses())
+        return;
+
     QString sextractorBinaryPath = ui->sextractorPath->text();
 
-    if(!prepareForProcesses())
-        return false;
+    sextractorType = (SextractorType) ui->sextractorType->currentIndex();
 
-    if(ui->sextractorType->currentIndex() == 0) //Internal
-        return sextractInternally();
-    else
+    if(sextractorType == EXT_SEXTRACTOR)
     {
-        #ifdef _WIN32
-        logOutput("An External Sextractor is not easily installed on Windows, try the Internal Sextractor please.");
-        return false;
+        #ifdef _WIN32 //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
+            logOutput("An External Sextractor is not easily installed on Windows, try the Internal Sextractor please.");
+        #endif
+        if(!QFileInfo(sextractorBinaryPath).exists())
+        {
+            logOutput("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
+            return;
+        }
+    }
+    sextractImage();
+}
+
+void MainWindow::sextractImage()
+{
+    currentTrial++;
+
+    if(sextractorType == SEP )
+        setupInternalSexySolver();
+    else
+        setupExternalSextractorSolver();
+
+    setSextractorSettings();
+    connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
+
+    startProcessMonitor();
+
+    switch(sextractorType)
+    {
+        case SEP:
+            sexySolver->sextract();
+            break;
+
+        case EXT_SEXTRACTOR:
+            extSolver->sextract();
+            break;
+    }
+}
+
+void MainWindow::solveButtonClicked()
+{
+    if(!prepareForProcesses())
+        return;
+
+    QString sextractorBinaryPath = ui->sextractorPath->text();
+    QString solverPath = ui->solverPath->text();
+    QString astapPath = ui->astapPath->text();
+
+    solverType = (SolverType) ui->solverType->currentIndex();
+
+    if(solverType == EXT_SEXTRACTORSOLVER)
+    {
+        #ifdef _WIN32  //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
+            logOutput("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
         #endif
 
         if(!QFileInfo(sextractorBinaryPath).exists())
         {
             logOutput("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
-            return false;
+            return;
         }
-
-        sextractExternally();
-        return true;
     }
+
+    //These are the solvers that use External Astrometry.
+    if(solverType == EXT_SEXTRACTORSOLVER || solverType == INT_SEP_EXT_SOLVER || solverType == CLASSIC_ASTROMETRY)
+    {
+        if(!QFileInfo(solverPath).exists())
+        {
+            logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
+            return;
+        }
+        #ifdef _WIN32
+            if(ui->inParallel->isChecked())
+            {
+                logOutput("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
+                sexySolver->inParallel = false;
+            }
+        #endif
+    }
+    else if(solverType == ASTAP)
+    {
+        if(!QFileInfo(astapPath).exists())
+        {
+            logOutput("There is no ASTAP solver at " + astapPath + ", Aborting");
+            return;
+        }
+    }
+
+    solveImage();
 }
 
 //This method runs when the user clicks the Sextract and Solve buttton
-bool MainWindow::solveImage()
+void MainWindow::solveImage()
 {
-    QString sextractorBinaryPath = ui->sextractorPath->text();
-    QString solverPath = ui->solverPath->text();
-    QString astapPath = ui->astapPath->text();
+    currentTrial++;
 
-    if(!prepareForProcesses())
-        return false;
+    if(solverType == SEXYSOLVER )
+        setupInternalSexySolver();
+    else
+        setupExternalSextractorSolver();
+
+    //These are the types of solvers that use a Sextractor, so they need the Sextractor Settings
+    if(solverType == SEXYSOLVER || solverType == EXT_SEXTRACTORSOLVER || solverType == INT_SEP_EXT_SOLVER)
+        setSextractorSettings();
+
+    //All the Solvers need Solver settings set.
+    setSolverSettings();
+    connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
+
+    startProcessMonitor();
 
     //Select the type of Solve
-    switch(ui->solverType->currentIndex())
+    switch(solverType)
     {
-        case 0: //Internal SexySolver
-            return sextractAndSolveInternally();
-        break;
+        case SEXYSOLVER: //This method will use the internal SexySolver to Sextract and to solve the image.
+            sexySolver->sextractAndSolve();
+            break;
 
-        case 1: //External Sextractor and Solver
+        case EXT_SEXTRACTORSOLVER: //This method uses external Sextractor to get the stars, then feeds it to external astrometry.net.
+            extSolver->sextractAndSolve();
+            break;
 
-            #ifdef _WIN32
-                logOutput("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
-            #endif
+        case INT_SEP_EXT_SOLVER: //This method runs the Internal SexySolver to sextract the stars, then feeds it to external astrometry.net
+            extSolver->SEPAndSolve();
+            break;
 
-                if(!QFileInfo(sextractorBinaryPath).exists())
-                {
-                    logOutput("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
-                    return false;
-                }
+        case CLASSIC_ASTROMETRY: //This is meant to run the traditional solve KStars used to do using python and astrometry.net
+            extSolver->classicSolve();
+            break;
 
-                if(!QFileInfo(solverPath).exists())
-                {
-                    logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
-                    return false;
-                }
-
-            sextractAndSolveExternally();
-            return true;
-
-        break;
-
-        case 2: //Int. SEP Ext. Solver
-
-                if(!QFileInfo(solverPath).exists())
-                {
-                    logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
-                    return false;
-                }
-
-            return SEPAndSolveExternally();
-
-        break;
-
-        case 3: //Classic Astrometry.net
-
-                if(!QFileInfo(solverPath).exists())
-                {
-                    logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
-                    return false;
-                }
-
-            return classicSolve();
-
-        break;
-
-        case 4: //ASTAP Solver
-            if(!QFileInfo(astapPath).exists())
-            {
-                logOutput("There is no ASTAP solver at " + astapPath + ", Aborting");
-                return false;
-            }
-             astapSolve();
-             return true;
-        break;
-
+        case ASTAP: //This method runs the external program ASTAP to solve the image, a fairly new KStars option
+            extSolver->astapSolve();
+            break;
     }
-}
-
-//This method runs when the user selects the Classic Solve Option
-//It is meant to run the traditional solve KStars used to do using python and astrometry.net
-bool MainWindow::classicSolve()
-{
-    if(!prepareForProcesses())
-        return false;
-
-    setupExternalSextractorSolver();
-    setSolverSettings(); 
-
-    #ifdef _WIN32
-        if(ui->inParallel->isChecked())
-        {
-            logOutput("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
-            sexySolver->inParallel = false;
-        }
-    #endif
-
-    connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
-
-    startProcessMonitor();
-    extSolver->classicSolve();
-
-    return true;
-}
-
-//This method runs when the user selects the Classic Solve Option
-//It is meant to run the traditional solve KStars used to do using python and astrometry.net
-bool MainWindow::astapSolve()
-{
-    if(!prepareForProcesses())
-        return false;
-
-    setupExternalSextractorSolver();
-    setSolverSettings();
-
-    connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
-
-    startProcessMonitor();
-    extSolver->astapSolve();
-
-    return true;
-}
-
-//I wrote this method to call the external sextractor program.
-//It then will load the results into a table to the right of the image
-//It times the entire process and prints out how long it took
-bool MainWindow::sextractExternally()
-{
-    setupExternalSextractorSolver();
-
-    setSextractorSettings();
-
-    connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
-
-    startProcessMonitor();
-    extSolver->sextract();
-
-    return true;
-}
-
-//I wrote this method to call the external sextractor and solver program.
-//It times the entire process and prints out how long it took
-bool MainWindow::sextractAndSolveExternally()
-{
-    setupExternalSextractorSolver();
-
-    setSextractorSettings();
-    setSolverSettings();
-
-    connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
-
-    startProcessMonitor();
-    extSolver->sextractAndSolve();
-    return true;
-}
-
-//I wrote this method to call the internal sextractor and external solver program.
-//It times the entire process and prints out how long it took
-bool MainWindow::SEPAndSolveExternally()
-{
-    setupExternalSextractorSolver();
-
-    setSextractorSettings();
-    setSolverSettings();
-
-    #ifdef _WIN32
-        if(ui->inParallel->isChecked())
-        {
-            logOutput("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
-            sexySolver->inParallel = false;
-        }
-    #endif
-
-    connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
-
-    startProcessMonitor();
-    extSolver->SEPAndSolve();
-    return true;
-}
-
-//I wrote this method to call the internal sextractor in the SexySolver.
-//It runs in a separate thread so that it is nonblocking
-//It then will load the results into a table to the right of the image
-//It times the entire process and prints out how long it took
-bool MainWindow::sextractInternally()
-{
-    setupInternalSexySolver();
-
-    setSextractorSettings();
-
-    connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
-
-    startProcessMonitor();
-    sexySolver->sextract();
-    return true;
-}
-
-//I wrote this method to start the internal solver in the SexySolver.
-//It runs in a separate thread so that it is nonblocking
-//It times the entire process and prints out how long it took
-bool MainWindow::sextractAndSolveInternally()
-{
-      setupInternalSexySolver();
-
-      setSextractorSettings();
-      setSolverSettings();
-
-      connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
-
-      startProcessMonitor();
-      sexySolver->sextractAndSolve();
-      return true;
 }
 
 //This sets up the External Sextractor and Solver and sets settings specific to them
 void MainWindow::setupExternalSextractorSolver()
 {
+    extSolver.clear();
+    sexySolver.clear();
     //Creates the External Sextractor/Solver Object
     extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
     sexySolver = extSolver;
@@ -699,6 +611,8 @@ void MainWindow::setupExternalSextractorSolver()
 //This sets up the Internal SexySolver and sets settings specific to it
 void MainWindow::setupInternalSexySolver()
 {
+    extSolver.clear();
+    sexySolver.clear();
     //Creates the SexySolver
     sexySolver = new SexySolver(stats ,m_ImageBuffer, this);
 
@@ -779,57 +693,83 @@ void MainWindow::setSolverSettings()
 //It reports the time taken, prints a message, loads the sextraction stars to the startable, and adds the sextraction stats to the results table.
 bool MainWindow::sextractorComplete(int error)
 {
-    stopProcessMonitor();
+    elapsed = processTimer.elapsed()/1000.0;
+    totalTime += elapsed;
+
     if(error == 0)
     {
-        stars = sexySolver->getStarTable();
-        displayTable();
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
         logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        ui->resultsTable->insertRow(ui->resultsTable->rowCount());
-        addSextractionToTable();
-        QTimer::singleShot(100 , [this](){ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());});
-        return true;
+        if(currentTrial<numberOfTrials)
+        {
+            sextractImage();
+            return true;
+        }
+        stopProcessMonitor();
     }
     else
     {
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput(QString("Sextractor failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        return false;
+        stopProcessMonitor();
+        if(currentTrial == 1)
+            return false;
     }
+
+    stars = sexySolver->getStarList();
+    displayTable();
+    ui->resultsTable->insertRow(ui->resultsTable->rowCount());
+    addSextractionToTable();
+    QTimer::singleShot(100 , [this](){ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());});
+    return true;
 }
 
 //This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the results table.
 bool MainWindow::solverComplete(int error)
 {
-    stopProcessMonitor();
+    elapsed = processTimer.elapsed()/1000.0;
+    totalTime += elapsed;
     if(error == 0)
     {
         ui->progressBar->setRange(0,10);
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput(QString(sexySolver->command + " took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        ui->resultsTable->insertRow(ui->resultsTable->rowCount());
-        addSextractionToTable();
-        addSolutionToTable(sexySolver->solution);
-        QTimer::singleShot(100 , [this](){ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());});
-        return true;
+        lastSolution = sexySolver->getSolution();
+        if(currentTrial<numberOfTrials)
+        {
+            solveImage();
+            return true;
+        }
+        stopProcessMonitor();
     }
     else
     {
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput(QString(sexySolver->command + "failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        return false;
+        stopProcessMonitor();
+        if(currentTrial == 1)
+            return false;
     }
+
+    ui->resultsTable->insertRow(ui->resultsTable->rowCount());
+    addSextractionToTable();
+    if(sexySolver->solvingDone())
+        addSolutionToTable(sexySolver->getSolution());
+    else
+        addSolutionToTable(lastSolution);
+    QTimer::singleShot(100 , [this](){ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());});
+    return true;
 }
 
 //This method will attempt to abort the sextractor, sovler, and any other processes currently being run, no matter which type
 void MainWindow::abort()
 {
+    numberOfTrials = currentTrial;
     if(!sexySolver.isNull() && sexySolver->isRunning())
     {
         sexySolver->abort();
@@ -1965,7 +1905,8 @@ void MainWindow::setupResultsTable()
 
     //These are in the order that they will appear in the table.
 
-    addColumnToTable(table,"Time");
+    addColumnToTable(table,"Avg Time");
+    addColumnToTable(table,"# Trials");
     addColumnToTable(table,"Int?");
     addColumnToTable(table,"Command");
     addColumnToTable(table,"Stars");
@@ -2008,10 +1949,11 @@ void MainWindow::setupResultsTable()
 //This adds a Sextraction to the Results Table
 //To add, remove, or change the way certain columns are filled when a sextraction is finished, edit them here.
 void MainWindow::addSextractionToTable()
-{
+{       
     QTableWidget *table = ui->resultsTable;
 
-    setItemInColumn(table, "Time", QString::number(elapsed));
+    setItemInColumn(table, "Avg Time", QString::number(totalTime / numberOfTrials));
+    setItemInColumn(table, "# Trials", QString::number(numberOfTrials));
     if(extSolver.isNull())
         setItemInColumn(table, "Int?", "Internal");
     else
@@ -2061,7 +2003,8 @@ void MainWindow::addSextractionToTable()
 void MainWindow::addSolutionToTable(Solution solution)
 {
     QTableWidget *table = ui->resultsTable;
-    setItemInColumn(table, "Time", QString::number(elapsed));
+    setItemInColumn(table, "Avg Time", QString::number(totalTime / numberOfTrials));
+    setItemInColumn(table, "# Trials", QString::number(numberOfTrials));
     if(extSolver.isNull())
         setItemInColumn(table, "Int?", "Internal");
     else
@@ -2185,7 +2128,72 @@ void MainWindow::saveResultsTable()
         }
         outstream << endl;
     }
-    QMessageBox::information(this, "Message", QString("Solution Points Saved as: %1").arg(path));
+    QMessageBox::information(this, "Message", QString("Results Table Saved as: %1").arg(path));
+    file.close();
+}
+
+//This will write the Star table to a csv file if the user desires
+//Then the user can analyze the solution information in more detail to try to analyze the stars found or try to perfect sextractor parameters
+void MainWindow::saveStarTable()
+{
+    if (ui->starTable->rowCount() == 0)
+        return;
+
+    QUrl exportFile = QFileDialog::getSaveFileUrl(this, "Export Star Table", dirPath,
+                      "CSV File (*.csv)");
+    if (exportFile.isEmpty()) // if user presses cancel
+        return;
+    if (exportFile.toLocalFile().endsWith(QLatin1String(".csv")) == false)
+        exportFile.setPath(exportFile.toLocalFile() + ".csv");
+
+    QString path = exportFile.toLocalFile();
+
+    if (QFile::exists(path))
+    {
+        int r = QMessageBox::question(this, "Overwrite it?",
+                QString("A file named \"%1\" already exists. Do you want to overwrite it?").arg(exportFile.fileName()));
+        if (r == QMessageBox::No)
+            return;
+    }
+
+    if (!exportFile.isValid())
+    {
+        QString message = QString("Invalid URL: %1").arg(exportFile.url());
+        QMessageBox::warning(this, "Invalid URL", message);
+        return;
+    }
+
+    QFile file;
+    file.setFileName(path);
+    if (!file.open(QIODevice::WriteOnly))
+    {
+        QString message = QString("Unable to write to file %1").arg(path);
+        QMessageBox::warning(this, "Could Not Open File", message);
+        return;
+    }
+
+    QTextStream outstream(&file);
+
+    for (int c = 0; c < ui->starTable->columnCount(); c++)
+    {
+        outstream << ui->starTable->horizontalHeaderItem(c)->text() << ',';
+    }
+    outstream << "\n";
+
+    for (int r = 0; r < ui->starTable->rowCount(); r++)
+    {
+        for (int c = 0; c < ui->starTable->columnCount(); c++)
+        {
+            QTableWidgetItem *cell = ui->starTable->item(r, c);
+
+            if (cell)
+                outstream << cell->text() << ',';
+            else
+                outstream << " " << ',';
+        }
+        outstream << endl;
+    }
+    QMessageBox::information(this, "Message", QString("Star Table Saved as: %1").arg(path));
     file.close();
 }
 

@@ -34,28 +34,28 @@ typedef struct
 
 typedef struct
 {
-    float x;
-    float y;
-    float mag;
-    float flux;
-    float peak;
-    float HFR;
-    float a;
-    float b;
-    float theta;
+    float x;        //The x position of the star in Pixels
+    float y;        //The y position of the star in Pixels
+    float mag;      //The magnitude of the star
+    float flux;     //The calculated total flux
+    float peak;     //The peak value of the star
+    float HFR;      //The half flux radius
+    float a;        //The semi-major axis of the star
+    float b;        //The semi-minor axis of the star
+    float theta;    //The angle of orientation of the star
 } Star;
 
 typedef struct
 {
-    double fieldWidth;
-    double fieldHeight;
-    double ra;
-    double dec;
-    QString rastr;
-    QString decstr;
-    double orientation;
-    double pixscale;
-    QString parity;
+    double fieldWidth;  //The Calculated width of the field
+    double fieldHeight; //The Calculated height of the field
+    double ra;          //The Right Ascension of the center of the field
+    double dec;         //The Declination of the center of the field
+    QString rastr;      //A String for The Right Ascension of the center of the field
+    QString decstr;     //A string for The Declination of the center of the field
+    double orientation; //The orientation angle of the image from North in degrees
+    double pixscale;    //The pixel scale of the image
+    QString parity;     //The parity of the image
 
 } Solution;
 

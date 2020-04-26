@@ -323,7 +323,7 @@ bool SexySolver::runSEPSextractor()
     }
 
     emit logNeedsUpdating(QString("Stars Found after Filtering: %1").arg(stars.size()));
-
+    hasSextracted = true;
     if(justSextract)
         emit finished(0);
     return true;
@@ -821,6 +821,7 @@ int SexySolver::runInternalSolver()
         emit logNeedsUpdating(QString("Field parity: %1\n").arg( parity));
 
         solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient, pixscale, parity};
+        hasSolved = true;
         emit finished(0);
         return 0;
     }
