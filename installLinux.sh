@@ -1,6 +1,11 @@
 #!/bin/bash
 
-sudo apt -y install git cmake qt5-default libcfitsio-dev libgsl-dev
+if [ -f /usr/lib/fedora-release ]; then
+  sudo dnf -y install git cmake qt5 cfitsio-devel gsl-devel
+else
+  sudo apt -y install git cmake qt5-default libcfitsio-dev libgsl-dev
+fi
+
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
@@ -11,7 +16,7 @@ cp ../SexySolverIcon.png $HOME/Pictures/
 
 # This will create a shortcut on the desktop for launching SexySolver
 ##################
-cat > $HOME/Desktop/SexySolver.desktop <<- EOF
+cat >$HOME/Desktop/SexySolver.desktop <<-EOF
 [Desktop Entry]
 Version=1.0
 Type=Application
