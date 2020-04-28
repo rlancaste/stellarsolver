@@ -96,6 +96,7 @@ private:
     int selectedStar;
 
     QList<SexySolver::Parameters> optionsList;
+    SexySolver::Parameters currentOptions;
 
     //Options for SexySolver Tester
     QString dirPath = QDir::homePath();
@@ -212,6 +213,11 @@ public slots:
     void addSolutionToTable(Solution solution);
     void updateHiddenResultsTableColumns();
     void saveResultsTable();
+
+    //These functions save and load the settings of the program.
+    void saveOptionsProfiles();
+    void loadOptionsProfiles();
+    void closeEvent(QCloseEvent *event);
 
 };
 

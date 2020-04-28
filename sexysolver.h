@@ -14,6 +14,8 @@
 //QT Includes
 #include <QDir>
 #include <QThread>
+#include <QMap>
+#include <QVariant>
 
 //CFitsio Includes
 #include "fitsio.h"
@@ -53,7 +55,7 @@ public:
 
     QString command;                        //This is a string in which to store the name of the command being run for later access
 
-    typedef struct
+    typedef struct Parameters
     {
         QString listName = "Default";       //This is the name of this particular profile of options for SexySolver
 
@@ -61,15 +63,15 @@ public:
         Shape apertureShape = SHAPE_CIRCLE; //Whether to use the SEP_SUM_ELLIPSE method or the SEP_SUM_CIRCLE method
         double kron_fact = 2.5;             //This sets the Kron Factor for use with the kron radius for flux calculations.
         int subpix = 5;                     //The subpix setting.  The instructions say to make it 5
-        float r_min = 3.5;                  //The minimum radius for stars for flux calculations.
+        double r_min = 3.5;                  //The minimum radius for stars for flux calculations.
         short inflags;                      //Note sure if we need them?
 
         //Sextractor Extraction Parameters
         bool calculateHFR = false;          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
-        float magzero = 20;                 //This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.
-        float minarea = 5;                  //This is the minimum area in pixels for a star detection, smaller stars are ignored.
+        double magzero = 20;                 //This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.
+        double minarea = 5;                  //This is the minimum area in pixels for a star detection, smaller stars are ignored.
         int deblend_thresh = 32;            //The number of thresholds the intensity range is divided up into.
-        float deblend_contrast = 1;         //The percentage of flux a separate peak must # have to be considered a separate object.
+        double deblend_contrast = 1;         //The percentage of flux a separate peak must # have to be considered a separate object.
         int clean = 1;                      //Attempts to 'clean' the image to remove artifacts caused by bright objects
         double clean_param = 1;             //The cleaning parameter, not sure what it does.
         double fwhm = 2;                    //A variable to store the fwhm used to generate the conv filter, changing this WILL NOT change the conv filter, you can use the method below to create the conv filter based on the fwhm
@@ -107,7 +109,50 @@ public:
         double logratio_tosolve = log(1e9); //Odds ratio at which to consider a field solved (default: 1e9)
         double logratio_tokeep  = log(1e9); //Odds ratio at which to keep a solution (default: 1e9)
         double logratio_totune  = log(1e6); //Odds ratio at which to try tuning up a match that isn't good enough to solve (default: 1e6)
-    } Parameters;
+
+        bool operator==(const Parameters& o)
+        {
+            //We will skip the list name, since we want to see if the contents are the same.
+            return  apertureShape == o.apertureShape &&
+                    kron_fact == o.kron_fact &&
+                    subpix == o.subpix &&
+                    r_min == o.r_min &&
+                    //skip inflags??  Not sure we even need them
+
+                    calculateHFR == o.calculateHFR &&
+                    magzero == o.magzero &&
+                    deblend_thresh == o.deblend_thresh &&
+                    deblend_contrast == o.deblend_contrast &&
+                    clean == o.clean &&
+                    clean_param == o.clean_param &&
+                    fwhm == o.fwhm &&
+                    //skip conv filter?? This might be hard to compare
+
+                    maxSize == o.maxSize &&
+                    maxEllipse == o.maxEllipse &&
+                    removeBrightest == o.removeBrightest &&
+                    removeDimmest == o.removeDimmest &&
+                    saturationLimit == o.saturationLimit &&
+
+                    inParallel == o.inParallel &&
+                    solverTimeLimit == o.solverTimeLimit &&
+                    minwidth == o.minwidth &&
+                    maxwidth == o.maxwidth &&
+
+                    resort == o.resort &&
+                    downsample == o.downsample &&
+                    search_parity == o.search_parity &&
+                    search_radius == o.search_radius &&
+                    logToFile == o.logToFile &&
+                    logLevel == o.logLevel &&
+                    //They need to be turned into a qstring because they are sometimes very close but not exactly the same
+                    QString::number(logratio_tosolve) == QString::number(o.logratio_tosolve) &&
+                    QString::number(logratio_tokeep) == QString::number(o.logratio_tokeep) &&
+                    QString::number(logratio_totune) == QString::number(o.logratio_totune);
+        }
+    } ;
+
+
 
     //These are for creating temporary files
     QString baseName;                   //This is the base name used for all temporary files.  It uses a random name based on the type of solver/sextractor.
@@ -141,6 +186,8 @@ public:
     Parameters getCurrentParameters(){return params;};
     bool isUsingScale(){return use_scale;};
     bool isUsingPosition(){return use_position;};
+    static QMap<QString,QVariant> convertToMap(Parameters params);
+    static Parameters convertFromMap(QMap<QString,QVariant> settingsMap);
 
 
 

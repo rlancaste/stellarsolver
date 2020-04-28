@@ -63,7 +63,7 @@ MainWindow::MainWindow() :
     ui->SextractStars->setToolTip("Sextract the stars in the image using the chosen method and load them into the star table");
     ui->sextractorType->setToolTip("Lets you choose the Internal SexySolver SEP or external Sextractor program");
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveButtonClicked );
-    ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box to the right");
+    ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box");
     ui->solverType->setToolTip("Lets you choose how to solve the image");
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     ui->Abort->setToolTip("Aborts the current process if one is running.");
@@ -88,6 +88,7 @@ MainWindow::MainWindow() :
             params.listName = name;
             optionsList.append(params);
             ui->optionsProfile->addItem(name);
+            currentOptions = params;
             ui->optionsProfile->setCurrentText(name);
         }
     });
@@ -102,6 +103,10 @@ MainWindow::MainWindow() :
         ui->optionsProfile->removeItem(item);
         optionsList.removeAt(item - 2);
     });
+    ui->saveSettings->setToolTip("Saves a file with Options Profiles to a desired location");
+    connect(ui->saveSettings, &QPushButton::clicked, this, &MainWindow::saveOptionsProfiles);
+    ui->loadSettings->setToolTip("Loads a file with Options Profiles from a saved location");
+    connect(ui->loadSettings, &QPushButton::clicked, this, &MainWindow::loadOptionsProfiles);
 
     QWidget *sextractorOptions = ui->optionsBox->widget(2);
     QWidget *starFilterOptions = ui->optionsBox->widget(3);
@@ -304,44 +309,56 @@ MainWindow::MainWindow() :
 
     setWindowIcon(QIcon(":/SexySolverIcon.png"));
 
-    //These Load the Default settings from the ExternalSextractorSolver
+    //This Load the saved settings for the SexySolver
+    QSettings programSettings("Astrometry Freeware", "SexySolver");
 
-#if defined(Q_OS_OSX)
-    if(QFile("/usr/local/bin/solve-field").exists())
-        ui->setPathsAutomatically->setCurrentIndex(2);
-    else
-        ui->setPathsAutomatically->setCurrentIndex(3);
-#elif defined(Q_OS_LINUX)
-    ui->setPathsAutomatically->setCurrentIndex(0);
-#else //Windows
-    ui->setPathsAutomatically->setCurrentIndex(4);
-#endif
+    //These will set the index
+    int index = 0;
+    #if defined(Q_OS_OSX)
+        if(QFile("/usr/local/bin/solve-field").exists())
+           index = 2;
+        else
+           index = 3;
+    #elif defined(Q_OS_LINUX)
+        index = 0;
+    #else //Windows
+        index = 4;
+    #endif
 
+    index = programSettings.value("setPathsIndex", index).toInt();
+     ui->setPathsAutomatically->setCurrentIndex(index);
+
+    //This gets a temporary ExternalSextractorSolver to get the defaults
+    //It tries to load from the saved settings if possible as well.
     ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
-
-    ui->sextractorPath->setText(extTemp.sextractorBinaryPath);
-    ui->configFilePath->setText(extTemp.confPath);
-    ui->solverPath->setText(extTemp.solverPath);
-    ui->astapPath->setText(extTemp.astapBinaryPath);
-    ui->wcsPath->setText(extTemp.wcsPath);
-    ui->cleanupTemp->setChecked(extTemp.cleanupTemporaryFiles);
-    ui->generateAstrometryConfig->setChecked(extTemp.autoGenerateAstroConfig);
+    ui->sextractorPath->setText(programSettings.value("sextractorBinaryPath", extTemp.sextractorBinaryPath).toString());
+    ui->configFilePath->setText(programSettings.value("confPath", extTemp.confPath).toString());
+    ui->solverPath->setText(programSettings.value("solverPath", extTemp.solverPath).toString());
+    ui->astapPath->setText(programSettings.value("astapBinaryPath", extTemp.astapBinaryPath).toString());
+    ui->wcsPath->setText(programSettings.value("wcsPath", extTemp.wcsPath).toString());
+    ui->cleanupTemp->setChecked(programSettings.value("cleanupTemporaryFiles", extTemp.cleanupTemporaryFiles).toBool());
+    ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig", extTemp.autoGenerateAstroConfig).toBool());
 
     //These load the settings from the SexySolver
 
     SexySolver temp(stats, m_ImageBuffer, this);
     ui->basePath->setText(temp.basePath);
-    sendSettingsToUI(temp.getCurrentParameters());
+    currentOptions = temp.getCurrentParameters();
+    sendSettingsToUI(currentOptions);
     optionsList = temp.getOptionsProfiles();
     foreach(SexySolver::Parameters param, optionsList)
         ui->optionsProfile->addItem(param.listName);
     ui->optionsProfile->setCurrentIndex(1); //This is default
 
-    QStringList indexFilePaths = temp.getDefaultIndexFolderPaths();
+    QString storedPaths = programSettings.value("indexFolderPaths", "").toString();
+    QStringList indexFilePaths;
+    if(storedPaths == "")
+        indexFilePaths = temp.getDefaultIndexFolderPaths();
+    else
+        indexFilePaths = storedPaths.split(",");
     foreach(QString pathName, indexFilePaths)
         ui->indexFolderPaths->addItem(pathName);
     loadIndexFilesList();
-
 }
 
 void MainWindow::settingJustChanged()
@@ -355,10 +372,23 @@ void MainWindow::loadOptionsProfile()
     if(ui->optionsProfile->currentIndex() == 0)
         return;
 
+    SexySolver::Parameters oldOptions = getSettingsFromUI();
+    SexySolver::Parameters newOptions;
     if(ui->optionsProfile->currentIndex() == 1)
-        sendSettingsToUI(SexySolver::Parameters());
+        newOptions = SexySolver::Parameters();
     else
-        sendSettingsToUI(optionsList.at(ui->optionsProfile->currentIndex() - 2));
+        newOptions = optionsList.at(ui->optionsProfile->currentIndex() - 2);
+
+    if(! (oldOptions == currentOptions) )
+    {
+        if(QMessageBox::question(this, "Abort?", "You made unsaved changes in the settings, do you really wish to overwrite them?") == QMessageBox::No)
+        {
+            ui->optionsProfile->setCurrentIndex(0);
+            return;
+        }
+    }
+    sendSettingsToUI(newOptions);
+    currentOptions = newOptions;
 }
 
 MainWindow::~MainWindow()
@@ -713,7 +743,7 @@ SexySolver::Parameters MainWindow::getSettingsFromUI()
     params.maxwidth = ui->maxWidth->text().toDouble();
     params.minwidth = ui->minWidth->text().toDouble();
     params.inParallel = ui->inParallel->isChecked();
-    params.solverTimeLimit = ui->solverTimeLimit->text().toDouble();
+    params.solverTimeLimit = ui->solverTimeLimit->text().toInt();
 
     params.resort = ui->resort->isChecked();
     params.downsample = ui->downsample->value();
@@ -2303,8 +2333,86 @@ void MainWindow::saveStarTable()
     file.close();
 }
 
+void MainWindow::saveOptionsProfiles()
+{
+    QString fileURL = QFileDialog::getSaveFileName(nullptr, "Save Options Profiles", dirPath,
+                                               "INI files(*.ini)");
+    if (fileURL.isEmpty())
+        return;
+    QSettings settings(fileURL, QSettings::IniFormat);
+    for(int i = 0 ; i < optionsList.count(); i++)
+    {
+        SexySolver::Parameters params = optionsList.at(i);
+        settings.beginGroup(params.listName);
+        QMap<QString, QVariant> map = SexySolver::convertToMap(params);
+        QMapIterator<QString, QVariant> it(map);
+        while(it.hasNext())
+        {
+            it.next();
+            settings.setValue(it.key(), it.value());
+        }
+        settings.endGroup();
+    }
 
+}
 
+void MainWindow::loadOptionsProfiles()
+{
+    QString fileURL = QFileDialog::getOpenFileName(nullptr, "Load Options Profiles File", dirPath,
+                                               "INI files(*.ini)");
+    if (fileURL.isEmpty())
+        return;
+    if(!QFileInfo(fileURL).exists())
+    {
+        QMessageBox::warning(this, "Message", "The file doesn't exist");
+        return;
+    }
+    QSettings settings(fileURL, QSettings::IniFormat);
+    QStringList groups = settings.childGroups();
+    foreach(QString group, groups)
+    {
+        settings.beginGroup(group);
+        QStringList keys = settings.childKeys();
+        QMap<QString, QVariant> map;
+        foreach(QString key, keys)
+            map.insert(key, settings.value(key));
+        SexySolver::Parameters newParams = SexySolver::convertFromMap(map);
+        bool alreadyInThere = false;
+        foreach(SexySolver::Parameters params, optionsList)
+            if(params == newParams  && group == params.listName)
+                alreadyInThere = true;
+        if(!alreadyInThere)
+        {
+            optionsList.append(newParams);
+            ui->optionsProfile->addItem(group);
+        }
+    }
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    QSettings programSettings("Astrometry Freeware", "SexySolver");
+
+    programSettings.setValue("setPathsIndex", ui->setPathsAutomatically->currentIndex());
+
+    programSettings.setValue("sextractorBinaryPath", ui->sextractorPath->text());
+    programSettings.setValue("confPath", ui->configFilePath->text());
+    programSettings.setValue("solverPath", ui->solverPath->text());
+    programSettings.setValue("astapBinaryPath", ui->astapPath->text());
+    programSettings.setValue("wcsPath", ui->wcsPath->text());
+    programSettings.setValue("cleanupTemporaryFiles",  ui->cleanupTemp->isChecked());
+    programSettings.setValue("autoGenerateAstroConfig", ui->generateAstrometryConfig->isChecked());
+
+    QStringList items;
+    for(int i = 0; i < ui->indexFolderPaths->count(); i++)
+    {
+        items << ui->indexFolderPaths->itemText(i);
+    }
+    programSettings.setValue("indexFolderPaths", items.join(","));
+
+    programSettings.sync();
+    event->accept();
+}
 
 
 
