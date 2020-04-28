@@ -8,6 +8,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+
 #include <QUuid>
 #include <QDebug>
 #include <QImageReader>
@@ -32,6 +33,7 @@
 #include <assert.h>
 
 #include <QThread>
+#include <QInputDialog>
 #include <QtConcurrent>
 #include <QToolTip>
 #include <QtGlobal>
@@ -63,13 +65,68 @@ MainWindow::MainWindow() :
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveButtonClicked );
     ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box to the right");
     ui->solverType->setToolTip("Lets you choose how to solve the image");
-
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     ui->Abort->setToolTip("Aborts the current process if one is running.");
-    connect(ui->reset, &QPushButton::clicked, this, &MainWindow::resetOptionsToDefaults);
-    ui->reset->setToolTip("Resets all the options in the left option pane to defalt values");
-    connect(ui->Clear,&QAbstractButton::clicked, this, &MainWindow::clearAll );
-    ui->Clear->setToolTip("Clears the stars from the image, the star table, the results table, and the log at the bottom");
+    connect(ui->ClearStars,&QAbstractButton::clicked, this, &MainWindow::clearStars );
+    ui->ClearStars->setToolTip("Clears the star table and the stars from the image");
+
+    connect(ui->ClearResults,&QAbstractButton::clicked, this, &MainWindow::clearResults );
+    ui->ClearResults->setToolTip("Clears the Results Table");
+
+    //The Options for the SexySolver Options
+    ui->optionsProfile->setToolTip("The Profile to use for Sextracting and Solving, Current uses whatever values are in the options in the left panel. Selecting any other profile will reload all the settings, with an option to save your current settings.");
+    connect(ui->optionsProfile, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::loadOptionsProfile);
+    ui->addOptionProfile->setToolTip("Adds the current options in the left option pane to a new profile");
+    connect(ui->addOptionProfile,&QAbstractButton::clicked, this, [this](){
+        bool ok;
+        QString name = QInputDialog::getText(this, tr("New Options Profile"),
+                              tr("What would you like your profile to be called?"), QLineEdit::Normal,
+                              "", &ok);
+        if (ok && !name.isEmpty())
+        {
+            SexySolver::Parameters params = getSettingsFromUI();
+            params.listName = name;
+            optionsList.append(params);
+            ui->optionsProfile->addItem(name);
+            ui->optionsProfile->setCurrentText(name);
+        }
+    });
+    ui->removeOptionProfile->setToolTip("Removes the selected profile from the list of profiles");
+    connect(ui->removeOptionProfile,&QAbstractButton::clicked, this, [this](){
+        int item = ui->optionsProfile->currentIndex();
+        if(item < 2)
+        {
+            QMessageBox::critical(nullptr,"Message","You can't delete this profile");
+            return;
+        }
+        ui->optionsProfile->removeItem(item);
+        optionsList.removeAt(item - 2);
+    });
+
+    QWidget *sextractorOptions = ui->optionsBox->widget(2);
+    QWidget *starFilterOptions = ui->optionsBox->widget(3);
+    QWidget *astrometryOptions = ui->optionsBox->widget(5);
+
+    QList<QLineEdit *> lines;
+    lines = sextractorOptions->findChildren<QLineEdit *>();
+    lines.append(starFilterOptions->findChildren<QLineEdit *>());
+    lines.append(astrometryOptions->findChildren<QLineEdit *>());
+    foreach(QLineEdit *line, lines)
+        connect(line, &QLineEdit::textEdited, this, &MainWindow::settingJustChanged);
+
+    QList<QCheckBox *> checks;
+    checks = sextractorOptions->findChildren<QCheckBox *>();
+    checks.append(starFilterOptions->findChildren<QCheckBox *>());
+    checks.append(astrometryOptions->findChildren<QCheckBox *>());
+    foreach(QCheckBox *check, checks)
+        connect(check, &QCheckBox::stateChanged, this, &MainWindow::settingJustChanged);
+
+    QList<QComboBox *> combos;
+    combos = sextractorOptions->findChildren<QComboBox *>();
+    combos.append(starFilterOptions->findChildren<QComboBox *>());
+    combos.append(astrometryOptions->findChildren<QComboBox *>());
+    foreach(QComboBox *combo, combos)
+        connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
 
     //Hides the panels into the sides and bottom
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
@@ -147,6 +204,7 @@ MainWindow::MainWindow() :
     //Star Filter Settings
     connect(ui->resortQT, &QCheckBox::stateChanged, this, [this](){ ui->resort->setChecked(ui->resortQT->isChecked());});
     ui->resortQT->setToolTip("This resorts the stars based on magnitude.  It MUST be checked for the next couple of filters to be enabled.");
+    ui->maxSize->setToolTip("This is the maximum diameter of stars to include in pixels");
     ui->maxEllipse->setToolTip("Stars are typically round, this filter divides stars' semi major and minor axes and rejects stars with distorted shapes greater than this number (1 is perfectly round)");
     ui->brightestPercent->setToolTip("Removes the brightest % of stars from the image");
     ui->dimmestPercent->setToolTip("Removes the dimmest % of stars from the image");
@@ -238,11 +296,7 @@ MainWindow::MainWindow() :
 
     setWindowIcon(QIcon(":/SexySolverIcon.png"));
 
-    resetOptionsToDefaults();
-}
-
-void MainWindow::resetOptionsToDefaults()
-{
+    //These Load the Default settings from the ExternalSextractorSolver
 
 #if defined(Q_OS_OSX)
     if(QFile("/usr/local/bin/solve-field").exists())
@@ -257,81 +311,46 @@ void MainWindow::resetOptionsToDefaults()
 
     ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
 
-        ui->sextractorPath->setText(extTemp.sextractorBinaryPath);
-        ui->configFilePath->setText(extTemp.confPath);
-        ui->solverPath->setText(extTemp.solverPath);
-        ui->astapPath->setText(extTemp.astapBinaryPath);
-        ui->wcsPath->setText(extTemp.wcsPath);
-        ui->cleanupTemp->setChecked(extTemp.cleanupTemporaryFiles);
-        ui->generateAstrometryConfig->setChecked(extTemp.autoGenerateAstroConfig);
+    ui->sextractorPath->setText(extTemp.sextractorBinaryPath);
+    ui->configFilePath->setText(extTemp.confPath);
+    ui->solverPath->setText(extTemp.solverPath);
+    ui->astapPath->setText(extTemp.astapBinaryPath);
+    ui->wcsPath->setText(extTemp.wcsPath);
+    ui->cleanupTemp->setChecked(extTemp.cleanupTemporaryFiles);
+    ui->generateAstrometryConfig->setChecked(extTemp.autoGenerateAstroConfig);
+
+    //These load the settings from the SexySolver
 
     SexySolver temp(stats, m_ImageBuffer, this);
-
-    //Basic Settings
-    QString basePath = temp.basePath;
-
-        ui->showStars->setChecked(true);
-        ui->basePath->setText(basePath);
-
-    //Sextractor Settings
-
-        ui->calculateHFR->setChecked(temp.calculateHFR);
-        ui->apertureShape->setCurrentIndex(temp.apertureShape);
-        ui->kron_fact->setText(QString::number(temp.kron_fact));
-        ui->subpix->setText(QString::number(temp.subpix));
-        ui->r_min->setText(QString::number(temp.r_min));
-
-        ui->magzero->setText(QString::number(temp.magzero));
-        ui->minarea->setText(QString::number(temp.minarea));
-        ui->deblend_thresh->setText(QString::number(temp.deblend_thresh));
-        ui->deblend_contrast->setText(QString::number(temp.deblend_contrast));
-        ui->cleanCheckBox->setChecked(temp.clean == 1);
-        ui->clean_param->setText(QString::number(temp.clean_param));
-        ui->fwhm->setText(QString::number(temp.fwhm));
-
-    //Star Filter Settings
-
-        ui->maxEllipse->setText(QString::number(temp.maxEllipse));
-        ui->brightestPercent->setText(QString::number(temp.removeBrightest));
-        ui->dimmestPercent->setText(QString::number(temp.removeDimmest));
-        ui->saturationLimit->setText(QString::number(temp.saturationLimit));
-
-    //Astrometry Settings
-
-        ui->downsample->setValue(temp.downsample);
-        ui->inParallel->setChecked(temp.inParallel);
-        ui->solverTimeLimit->setText(QString::number(temp.solverTimeLimit));
-        ui->minWidth->setText(QString::number(temp.minwidth));
-        ui->maxWidth->setText(QString::number(temp.maxwidth));
-        ui->radius->setText(QString::number(temp.search_radius));
-
-    clearAstrometrySettings(); //Resets the Position and Scale settings
-
-        ui->resort->setChecked(temp.resort);
-
-    //Astrometry Log Ratio Settings
-
-        ui->oddsToKeep->setText(QString::number(temp.logratio_tokeep));
-        ui->oddsToSolve->setText(QString::number(temp.logratio_tosolve));
-        ui->oddsToTune->setText(QString::number(temp.logratio_totune));
-
-    //Astrometry Logging Settings
-
-        ui->logToFile->setChecked(temp.logToFile);
-        ui->logLevel->setCurrentIndex(temp.logLevel);
-
-    //Astrometry Index File Paths to Search
-    ui->indexFolderPaths->clear();
+    ui->basePath->setText(temp.basePath);
+    sendSettingsToUI(temp.getCurrentParameters());
+    optionsList = temp.getOptionsProfiles();
+    foreach(SexySolver::Parameters param, optionsList)
+        ui->optionsProfile->addItem(param.listName);
+    ui->optionsProfile->setCurrentIndex(1); //This is default
 
     QStringList indexFilePaths = temp.getDefaultIndexFolderPaths();
-
     foreach(QString pathName, indexFilePaths)
-    {
         ui->indexFolderPaths->addItem(pathName);
-    }
-
     loadIndexFilesList();
 
+}
+
+void MainWindow::settingJustChanged()
+{
+    if(ui->optionsProfile->currentIndex() !=0 )
+        ui->optionsProfile->setCurrentIndex(0);
+}
+
+void MainWindow::loadOptionsProfile()
+{
+    if(ui->optionsProfile->currentIndex() == 0)
+        return;
+
+    if(ui->optionsProfile->currentIndex() == 1)
+        sendSettingsToUI(SexySolver::Parameters());
+    else
+        sendSettingsToUI(optionsList.at(ui->optionsProfile->currentIndex() - 2));
 }
 
 MainWindow::~MainWindow()
@@ -340,14 +359,20 @@ MainWindow::~MainWindow()
 }
 
 //This method clears the tables and displays when the user requests it.
-void MainWindow::clearAll()
+void MainWindow::clearStars()
 {
-    ui->logDisplay->clear();
     ui->starTable->clearContents();
-    ui->resultsTable->clearContents();
-    ui->resultsTable->setRowCount(0);
+    ui->starTable->setRowCount(0);
     stars.clear();
     updateImage();
+}
+
+//This method clears the tables and displays when the user requests it.
+void MainWindow::clearResults()
+{
+    ui->logDisplay->clear();
+    ui->resultsTable->clearContents();
+    ui->resultsTable->setRowCount(0);
 }
 
 //These methods are for the logging of information to the textfield at the bottom of the window.
@@ -468,7 +493,13 @@ void MainWindow::sextractImage()
     else
         setupExternalSextractorSolver();
 
-    setSextractorSettings();
+    if(ui->optionsProfile->currentIndex() == 0)
+        sexySolver->setParameters(getSettingsFromUI());
+    else if(ui->optionsProfile->currentIndex() == 1)
+        sexySolver->setParameters(SexySolver::Parameters());
+    else
+        sexySolver->setParameters(optionsList.at(ui->optionsProfile->currentIndex() - 2));
+
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
 
     startProcessMonitor();
@@ -547,12 +578,28 @@ void MainWindow::solveImage()
     else
         setupExternalSextractorSolver();
 
-    //These are the types of solvers that use a Sextractor, so they need the Sextractor Settings
-    if(solverType == SEXYSOLVER || solverType == EXT_SEXTRACTORSOLVER || solverType == INT_SEP_EXT_SOLVER)
-        setSextractorSettings();
+    QStringList indexFolderPaths;
+    for(int i = 0; i < ui->indexFolderPaths->count(); i++)
+    {
+        indexFolderPaths << ui->indexFolderPaths->itemText(i);
+    }
+    sexySolver->setIndexFolderPaths(indexFolderPaths);
 
-    //All the Solvers need Solver settings set.
-    setSolverSettings();
+    if(ui->optionsProfile->currentIndex() == 0)
+        sexySolver->setParameters(getSettingsFromUI());
+    else if(ui->optionsProfile->currentIndex() == 1)
+        sexySolver->setParameters(SexySolver::Parameters());
+    else
+        sexySolver->setParameters(optionsList.at(ui->optionsProfile->currentIndex() - 2));
+
+    //Setting the initial search scale settings
+    if(ui->use_scale->isChecked())
+        sexySolver->setSearchScale(ui->scale_low->text().toDouble(), ui->scale_high->text().toDouble(), ui->units->currentText());
+
+    //Setting the initial search location settings
+    if(ui->use_position->isChecked())
+        sexySolver->setSearchPosition(ui->ra->text().toDouble(), ui->dec->text().toDouble());
+
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
     startProcessMonitor();
@@ -626,68 +673,104 @@ void MainWindow::setupInternalSexySolver()
 //This sets all the settings for either the internal or external sextractor
 //based on the requested settings in the mainwindow interface.
 //If you are implementing the SexySolver Library in your progra, you may choose to change some or all of these settings or use the defaults.
-void MainWindow::setSextractorSettings()
+SexySolver::Parameters MainWindow::getSettingsFromUI()
 { 
+    SexySolver::Parameters params;
+    params.listName = "Custom";
     //These are to pass the parameters to the internal sextractor
-    sexySolver->calculateHFR = ui->calculateHFR->isChecked();
-    sexySolver->apertureShape = (Shape) ui->apertureShape->currentIndex();
-    sexySolver->kron_fact = ui->kron_fact->text().toDouble();
-    sexySolver->subpix = ui->subpix->text().toInt() ;
-    sexySolver->r_min = ui->r_min->text().toFloat();
-    //sexySolver->inflags
-    sexySolver->magzero = ui->magzero->text().toFloat();
-    sexySolver->minarea = ui->minarea->text().toFloat();
-    sexySolver->deblend_thresh = ui->deblend_thresh->text().toInt();
-    sexySolver->deblend_contrast = ui->deblend_contrast->text().toFloat();
-    sexySolver->clean = (ui->cleanCheckBox->isChecked()) ? 1 : 0;
-    sexySolver->clean_param = ui->clean_param->text().toDouble();
-    sexySolver->createConvFilterFromFWHM(ui->fwhm->text().toDouble());
+    params.calculateHFR = ui->calculateHFR->isChecked();
+    params.apertureShape = (Shape) ui->apertureShape->currentIndex();
+    params.kron_fact = ui->kron_fact->text().toDouble();
+    params.subpix = ui->subpix->text().toInt() ;
+    params.r_min = ui->r_min->text().toFloat();
+    //params.inflags
+    params.magzero = ui->magzero->text().toFloat();
+    params.minarea = ui->minarea->text().toFloat();
+    params.deblend_thresh = ui->deblend_thresh->text().toInt();
+    params.deblend_contrast = ui->deblend_contrast->text().toFloat();
+    params.clean = (ui->cleanCheckBox->isChecked()) ? 1 : 0;
+    params.clean_param = ui->clean_param->text().toDouble();
+    SexySolver::createConvFilterFromFWHM(&params, ui->fwhm->text().toDouble());
 
     //Star Filter Settings
-    sexySolver->resort = ui->resort->isChecked();
-    sexySolver->removeBrightest = ui->brightestPercent->text().toDouble();;
-    sexySolver->removeDimmest = ui->dimmestPercent->text().toDouble();;
-    sexySolver->maxEllipse = ui->maxEllipse->text().toDouble();;
-    sexySolver->saturationLimit = ui->saturationLimit->text().toDouble();;
-}
+    params.resort = ui->resort->isChecked();
+    params.maxSize = ui->maxSize->text().toDouble();
+    params.maxEllipse = ui->maxEllipse->text().toDouble();
+    params.removeBrightest = ui->brightestPercent->text().toDouble();
+    params.removeDimmest = ui->dimmestPercent->text().toDouble();
+    params.saturationLimit = ui->saturationLimit->text().toDouble();
 
-//This sets all the settings for either the internal or external astrometry.net solver
-//based on the requested settings in the mainwindow interface.
-//If you are implementing the SexySolver Library in your progra, you may choose to change some or all of these settings or use the defaults.
-void MainWindow::setSolverSettings()
-{
     //Settings that usually get set by the config file
-    QStringList indexFilePaths;
-    for(int i = 0; i < ui->indexFolderPaths->count(); i++)
-    {
-        indexFilePaths << ui->indexFolderPaths->itemText(i);
-    }
-    sexySolver->setIndexFolderPaths(indexFilePaths);
-    sexySolver->maxwidth = ui->maxWidth->text().toDouble();
-    sexySolver->minwidth = ui->minWidth->text().toDouble();
-    sexySolver->inParallel = ui->inParallel->isChecked();
-    sexySolver->solverTimeLimit = ui->solverTimeLimit->text().toDouble();
 
-    sexySolver->resort = ui->resort->isChecked();
-    sexySolver->downsample = ui->downsample->value();
+    params.maxwidth = ui->maxWidth->text().toDouble();
+    params.minwidth = ui->minWidth->text().toDouble();
+    params.inParallel = ui->inParallel->isChecked();
+    params.solverTimeLimit = ui->solverTimeLimit->text().toDouble();
 
-    //Setting the scale settings
-    if(ui->use_scale->isChecked())
-        sexySolver->setSearchScale(ui->scale_low->text().toDouble(), ui->scale_high->text().toDouble(), ui->units->currentText());
-
-    //Setting the initial search location settings
-    if(ui->use_position->isChecked())
-        sexySolver->setSearchPosition(ui->ra->text().toDouble(), ui->dec->text().toDouble(), ui->radius->text().toDouble());
+    params.resort = ui->resort->isChecked();
+    params.downsample = ui->downsample->value();
+    params.search_radius = ui->radius->text().toDouble();
 
     //Setting the settings to know when to stop or keep searching for solutions
-    sexySolver->logratio_tokeep = ui->oddsToKeep->text().toDouble();
-    sexySolver->logratio_totune = ui->oddsToTune->text().toDouble();
-    sexySolver->logratio_tosolve = ui->oddsToSolve->text().toDouble();
+    params.logratio_tokeep = ui->oddsToKeep->text().toDouble();
+    params.logratio_totune = ui->oddsToTune->text().toDouble();
+    params.logratio_tosolve = ui->oddsToSolve->text().toDouble();
 
     //Setting the logging settings
-    sexySolver->logToFile = ui->logToFile->isChecked();
-    sexySolver->logLevel = ui->logLevel->currentIndex();
+    params.logToFile = ui->logToFile->isChecked();
+    params.logLevel = ui->logLevel->currentIndex();
+
+    return params;
 }
+
+void MainWindow::sendSettingsToUI(SexySolver::Parameters a)
+{
+    //Sextractor Settings
+
+        ui->calculateHFR->setChecked(a.calculateHFR);
+        ui->apertureShape->setCurrentIndex(a.apertureShape);
+        ui->kron_fact->setText(QString::number(a.kron_fact));
+        ui->subpix->setText(QString::number(a.subpix));
+        ui->r_min->setText(QString::number(a.r_min));
+
+        ui->magzero->setText(QString::number(a.magzero));
+        ui->minarea->setText(QString::number(a.minarea));
+        ui->deblend_thresh->setText(QString::number(a.deblend_thresh));
+        ui->deblend_contrast->setText(QString::number(a.deblend_contrast));
+        ui->cleanCheckBox->setChecked(a.clean == 1);
+        ui->clean_param->setText(QString::number(a.clean_param));
+        ui->fwhm->setText(QString::number(a.fwhm));
+
+    //Star Filter Settings
+
+        ui->maxSize->setText(QString::number(a.maxSize));
+        ui->maxEllipse->setText(QString::number(a.maxEllipse));
+        ui->brightestPercent->setText(QString::number(a.removeBrightest));
+        ui->dimmestPercent->setText(QString::number(a.removeDimmest));
+        ui->saturationLimit->setText(QString::number(a.saturationLimit));
+
+    //Astrometry Settings
+
+        ui->downsample->setValue(a.downsample);
+        ui->inParallel->setChecked(a.inParallel);
+        ui->solverTimeLimit->setText(QString::number(a.solverTimeLimit));
+        ui->minWidth->setText(QString::number(a.minwidth));
+        ui->maxWidth->setText(QString::number(a.maxwidth));
+        ui->radius->setText(QString::number(a.search_radius));
+        ui->resort->setChecked(a.resort);
+
+    //Astrometry Log Ratio Settings
+
+        ui->oddsToKeep->setText(QString::number(a.logratio_tokeep));
+        ui->oddsToSolve->setText(QString::number(a.logratio_tosolve));
+        ui->oddsToTune->setText(QString::number(a.logratio_totune));
+
+    //Astrometry Logging Settings
+
+        ui->logToFile->setChecked(a.logToFile);
+        ui->logLevel->setCurrentIndex(a.logLevel);
+}
+
 
 //This runs when the sextractor is complete.
 //It reports the time taken, prints a message, loads the sextraction stars to the startable, and adds the sextraction stats to the results table.
@@ -1649,6 +1732,7 @@ bool setItemInColumn(QTableWidget *table, QString colName, QString value)
 //This copies the stars into the table
 void MainWindow::updateStarTableFromList()
 {
+    SexySolver::Parameters params = sexySolver->getCurrentParameters();
     QTableWidget *table = ui->starTable;
     table->clearContents();
     table->setRowCount(0);
@@ -1660,7 +1744,7 @@ void MainWindow::updateStarTableFromList()
 
     addColumnToTable(table,"FLUX_AUTO");
     addColumnToTable(table,"PEAK");
-    if(!sexySolver.isNull() && sexySolver->calculateHFR)
+    if(!sexySolver.isNull() && params.calculateHFR)
         addColumnToTable(table,"HFR");
 
     addColumnToTable(table,"a");
@@ -1678,7 +1762,7 @@ void MainWindow::updateStarTableFromList()
 
         setItemInColumn(table, "FLUX_AUTO", QString::number(star.flux));
         setItemInColumn(table, "PEAK", QString::number(star.peak));
-        if(!sexySolver.isNull() && sexySolver->calculateHFR)
+        if(!sexySolver.isNull() && params.calculateHFR)
             setItemInColumn(table, "HFR", QString::number(star.HFR));
 
         setItemInColumn(table, "a", QString::number(star.a));
@@ -1909,6 +1993,7 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table,"# Trials");
     addColumnToTable(table,"Int?");
     addColumnToTable(table,"Command");
+    addColumnToTable(table,"Profile");
     addColumnToTable(table,"Stars");
     //Sextractor Parameters
     addColumnToTable(table,"doHFR");
@@ -1923,6 +2008,7 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table,"clean param");
     addColumnToTable(table,"fwhm");
     //Star Filtering Parameters
+    addColumnToTable(table,"Max Size");
     addColumnToTable(table,"Max Ell");
     addColumnToTable(table,"Cut Bri");
     addColumnToTable(table,"Cut Dim");
@@ -1951,6 +2037,7 @@ void MainWindow::setupResultsTable()
 void MainWindow::addSextractionToTable()
 {       
     QTableWidget *table = ui->resultsTable;
+    SexySolver::Parameters params = sexySolver->getCurrentParameters();
 
     setItemInColumn(table, "Avg Time", QString::number(totalTime / numberOfTrials));
     setItemInColumn(table, "# Trials", QString::number(numberOfTrials));
@@ -1959,11 +2046,12 @@ void MainWindow::addSextractionToTable()
     else
         setItemInColumn(table, "Int?", "External");
     setItemInColumn(table, "Command", "Sextract");
+    setItemInColumn(table, "Profile", params.listName);
     setItemInColumn(table, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
-    setItemInColumn(table,"doHFR", QVariant(sexySolver->calculateHFR).toString());
+    setItemInColumn(table,"doHFR", QVariant(params.calculateHFR).toString());
     QString shapeName="Circle";
-    switch(sexySolver->apertureShape)
+    switch(params.apertureShape)
     {
         case SHAPE_AUTO:
             shapeName = "Auto";
@@ -1979,22 +2067,23 @@ void MainWindow::addSextractionToTable()
     }
 
     setItemInColumn(table,"Shape", shapeName);
-    setItemInColumn(table,"Kron", QString::number(sexySolver->kron_fact));
-    setItemInColumn(table,"Subpix", QString::number(sexySolver->subpix));
-    setItemInColumn(table,"r_min", QString::number(sexySolver->r_min));
-    setItemInColumn(table,"minarea", QString::number(sexySolver->minarea));
-    setItemInColumn(table,"d_thresh", QString::number(sexySolver->deblend_thresh));
-    setItemInColumn(table,"d_cont", QString::number(sexySolver->deblend_contrast));
-    setItemInColumn(table,"clean", QString::number(sexySolver->clean));
-    setItemInColumn(table,"clean param", QString::number(sexySolver->clean_param));
-    setItemInColumn(table,"fwhm", QString::number(sexySolver->fwhm));
+    setItemInColumn(table,"Kron", QString::number(params.kron_fact));
+    setItemInColumn(table,"Subpix", QString::number(params.subpix));
+    setItemInColumn(table,"r_min", QString::number(params.r_min));
+    setItemInColumn(table,"minarea", QString::number(params.minarea));
+    setItemInColumn(table,"d_thresh", QString::number(params.deblend_thresh));
+    setItemInColumn(table,"d_cont", QString::number(params.deblend_contrast));
+    setItemInColumn(table,"clean", QString::number(params.clean));
+    setItemInColumn(table,"clean param", QString::number(params.clean_param));
+    setItemInColumn(table,"fwhm", QString::number(params.fwhm));
     setItemInColumn(table, "Field", ui->fileNameDisplay->text());
 
     //StarFilter Parameters
-    setItemInColumn(table,"Max Ell", QString::number(sexySolver->maxEllipse));
-    setItemInColumn(table,"Cut Bri", QString::number(sexySolver->removeBrightest));
-    setItemInColumn(table,"Cut Dim", QString::number(sexySolver->removeDimmest));
-    setItemInColumn(table,"Sat Lim", QString::number(sexySolver->saturationLimit));
+    setItemInColumn(table,"Max Size", QString::number(params.maxSize));
+    setItemInColumn(table,"Max Ell", QString::number(params.maxEllipse));
+    setItemInColumn(table,"Cut Bri", QString::number(params.removeBrightest));
+    setItemInColumn(table,"Cut Dim", QString::number(params.removeDimmest));
+    setItemInColumn(table,"Sat Lim", QString::number(params.saturationLimit));
 
 }
 
@@ -2003,6 +2092,8 @@ void MainWindow::addSextractionToTable()
 void MainWindow::addSolutionToTable(Solution solution)
 {
     QTableWidget *table = ui->resultsTable;
+    SexySolver::Parameters params = sexySolver->getCurrentParameters();
+
     setItemInColumn(table, "Avg Time", QString::number(totalTime / numberOfTrials));
     setItemInColumn(table, "# Trials", QString::number(numberOfTrials));
     if(extSolver.isNull())
@@ -2011,13 +2102,14 @@ void MainWindow::addSolutionToTable(Solution solution)
         setItemInColumn(table, "Int?", "External");
 
     setItemInColumn(table, "Command", sexySolver->command);
+    setItemInColumn(table, "Profile", params.listName);
 
     //Astrometry Parameters
-    setItemInColumn(table, "Pos?", QVariant(sexySolver->use_position).toString());
-    setItemInColumn(table, "Scale?", QVariant(sexySolver->use_scale).toString());
-    setItemInColumn(table, "Resort?", QVariant(sexySolver->resort).toString());
-    setItemInColumn(table, "Down", QVariant(sexySolver->downsample).toString());
-    setItemInColumn(table, "in ||", QVariant(sexySolver->inParallel).toString());
+    setItemInColumn(table, "Pos?", QVariant(sexySolver->isUsingPosition()).toString());
+    setItemInColumn(table, "Scale?", QVariant(sexySolver->isUsingScale()).toString());
+    setItemInColumn(table, "Resort?", QVariant(params.resort).toString());
+    setItemInColumn(table, "Down", QVariant(params.downsample).toString());
+    setItemInColumn(table, "in ||", QVariant(params.inParallel).toString());
 
     //Results
     setItemInColumn(table, "RA", solution.rastr);
@@ -2047,6 +2139,7 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table,"clean param", !showSextractorParams);
     setColumnHidden(table,"fwhm", !showSextractorParams);
     //Star Filtering Parameters
+    setColumnHidden(table,"Max Size", !showSextractorParams);
     setColumnHidden(table,"Max Ell", !showSextractorParams);
     setColumnHidden(table,"Cut Bri", !showSextractorParams);
     setColumnHidden(table,"Cut Dim", !showSextractorParams);

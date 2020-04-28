@@ -95,6 +95,8 @@ private:
     QList<Star> stars;
     int selectedStar;
 
+    QList<SexySolver::Parameters> optionsList;
+
     //Options for SexySolver Tester
     QString dirPath = QDir::homePath();
     bool showFluxInfo = false;
@@ -149,8 +151,10 @@ public slots:
     void logOutput(QString text);
     void startProcessMonitor();
     void stopProcessMonitor();
-    void clearAll();
-    void resetOptionsToDefaults();
+    void clearStars();
+    void clearResults();
+    void loadOptionsProfile();
+    void settingJustChanged();
 
     void loadIndexFilesList();
 
@@ -194,9 +198,9 @@ public slots:
     //This function is for loading and parsing the options
     bool getSolverOptionsFromFITS();
 
-    //These functions set the settings for the Sextractors and Solvers
-    void setSextractorSettings();
-    void setSolverSettings();
+    //These functions handle the settings for the Sextractors and Solvers
+    SexySolver::Parameters getSettingsFromUI();
+    void sendSettingsToUI(SexySolver::Parameters a);
     void setupExternalSextractorSolver();
     void setupInternalSexySolver();
 

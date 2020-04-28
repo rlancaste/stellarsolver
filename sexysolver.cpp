@@ -66,10 +66,10 @@ void SexySolver::abort()
 }
 
 //This method uses a fwhm value to generate the conv filter the sextractor will use.
-void SexySolver::createConvFilterFromFWHM(double fwhm)
+void SexySolver::createConvFilterFromFWHM(Parameters *params, double fwhm)
 {
-    this->fwhm = fwhm;
-    convFilter.clear();
+    params->fwhm = fwhm;
+    params->convFilter.clear();
     double a = 1;
     int size = abs(ceil(fwhm * 0.6));
     for(int y = -size; y <= size; y++ )
@@ -77,16 +77,32 @@ void SexySolver::createConvFilterFromFWHM(double fwhm)
         for(int x = -size; x <= size; x++ )
         {
             double value = a * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x,2) + pow(y,2) ),2) ) / pow(fwhm,2));
-            convFilter.append(value);
+            params->convFilter.append(value);
         }
     }
+}
+
+QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
+{
+    QList<SexySolver::Parameters> optionsList;
+
+    SexySolver::Parameters mid;
+    mid.listName = "Mid Sized Stars";
+    mid.minarea = 20;
+    createConvFilterFromFWHM(&mid, 4);
+    mid.r_min = 5;
+    mid.removeDimmest = 50;
+    mid.maxSize = 10;
+    optionsList.append(mid);
+
+    return optionsList;
 }
 
 //The code in this section is my attempt at running an internal sextractor program based on SEP
 //I used KStars and the SEP website as a guide for creating these functions
 bool SexySolver::runSEPSextractor()
 {
-    if(convFilter.size() == 0)
+    if(params.convFilter.size() == 0)
     {
         emit logNeedsUpdating("No convFilter included.");
         return false;
@@ -95,8 +111,8 @@ bool SexySolver::runSEPSextractor()
     emit logNeedsUpdating("Starting Internal SexySolver Sextractor. . .");
 
     //Only downsample images before SEP if the Sextraction is being used for plate solving
-    if(!justSextract && downsample != 1)
-        downsampleImage(downsample);
+    if(!justSextract && params.downsample != 1)
+        downsampleImage(params.downsample);
 
     int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
 
@@ -161,7 +177,7 @@ bool SexySolver::runSEPSextractor()
 
     // #4 Source Extraction
     // Note that we set deblend_cont = 1.0 to turn off deblending.
-    status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, minarea, convFilter.data(), sqrt(convFilter.size()), sqrt(convFilter.size()), SEP_FILTER_CONV, deblend_thresh, deblend_contrast, clean, clean_param, &catalog);
+    status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, params.minarea, params.convFilter.data(), sqrt(params.convFilter.size()), sqrt(params.convFilter.size()), SEP_FILTER_CONV, params.deblend_thresh, params.deblend_contrast, params.clean, params.clean_param, &catalog);
     if (status != 0) goto exit;
 
     stars.clear();
@@ -191,7 +207,7 @@ bool SexySolver::runSEPSextractor()
         double area;
 
         //This will need to be done for both auto and ellipse
-        if(apertureShape != SHAPE_CIRCLE)
+        if(params.apertureShape != SHAPE_CIRCLE)
         {
             //Finding the kron radius for the sextraction
             sep_kron_radius(&im, xPos, yPos, a, b, theta, r, &kronrad, &flag);
@@ -199,10 +215,10 @@ bool SexySolver::runSEPSextractor()
 
         bool use_circle;
 
-        switch(apertureShape)
+        switch(params.apertureShape)
         {
             case SHAPE_AUTO:
-                use_circle = kronrad * sqrt(a * b) < r_min;
+                use_circle = kronrad * sqrt(a * b) < params.r_min;
             break;
 
             case SHAPE_CIRCLE:
@@ -217,20 +233,20 @@ bool SexySolver::runSEPSextractor()
 
         if(use_circle)
         {
-            sep_sum_circle(&im, xPos, yPos, r_min, subpix, inflags, &sum, &sumerr, &area, &flag);
+            sep_sum_circle(&im, xPos, yPos, params.r_min, params.subpix, params.inflags, &sum, &sumerr, &area, &flag);
         }
         else
         {
-            sep_sum_ellipse(&im, xPos, yPos, a, b, theta, kron_fact*kronrad, subpix, inflags, &sum, &sumerr, &area, &flag);
+            sep_sum_ellipse(&im, xPos, yPos, a, b, theta, params.kron_fact*kronrad, params.subpix, params.inflags, &sum, &sumerr, &area, &flag);
         }
 
-        float mag = magzero - 2.5 * log10(sum);
+        float mag = params.magzero - 2.5 * log10(sum);
 
         float HFR = 0;
-        if(calculateHFR)
+        if(params.calculateHFR)
         {
             //Get HFR
-            sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, subpix, 0, &flux, requested_frac, 2, flux_fractions, &flux_flag);
+            sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, params.subpix, 0, &flux, requested_frac, 2, flux_fractions, &flux_flag);
             HFR = flux_fractions[0];
         }
 
@@ -244,7 +260,7 @@ bool SexySolver::runSEPSextractor()
 
     if(stars.size() > 1)
     {
-        if(resort)
+        if(params.resort)
         {
             //Note that a star is dimmer when the mag is greater!
             //We want to sort in decreasing order though!
@@ -254,9 +270,23 @@ bool SexySolver::runSEPSextractor()
             });
         }
 
-        if(resort && removeBrightest > 0.0)
+        if(params.resort && params.maxSize > 0.0)
         {
-            int numToRemove = stars.count() * (removeBrightest/100.0);
+            emit logNeedsUpdating(QString("Removing stars wider than %1 pixels").arg(params.maxSize));
+            for(int i = 0; i<stars.size();i++)
+            {
+                Star star = stars.at(i);
+                if(star.a > params.maxSize || star.b > params.maxSize)
+                {
+                    stars.removeAt(i);
+                    i--;
+                }
+            }
+        }
+
+        if(params.resort && params.removeBrightest > 0.0)
+        {
+            int numToRemove = stars.count() * (params.removeBrightest/100.0);
             emit logNeedsUpdating(QString("Removing the %1 brightest stars").arg(numToRemove));
             if(numToRemove > 1)
             {
@@ -265,9 +295,9 @@ bool SexySolver::runSEPSextractor()
             }
         }
 
-        if(resort && removeDimmest > 0.0)
+        if(params.resort && params.removeDimmest > 0.0)
         {
-            int numToRemove = stars.count() * (removeDimmest/100.0);
+            int numToRemove = stars.count() * (params.removeDimmest/100.0);
             emit logNeedsUpdating(QString("Removing the %1 dimmest stars").arg(numToRemove));
             if(numToRemove > 1)
             {
@@ -276,14 +306,14 @@ bool SexySolver::runSEPSextractor()
             }
         }
 
-        if(maxEllipse > 1)
+        if(params.maxEllipse > 1)
         {
-            emit logNeedsUpdating(QString("Removing the stars with a/b ratios greater than %1").arg(maxEllipse));
+            emit logNeedsUpdating(QString("Removing the stars with a/b ratios greater than %1").arg(params.maxEllipse));
             for(int i = 0; i<stars.size();i++)
             {
                 Star star = stars.at(i);
                 double ratio = star.a/star.b;
-                if(ratio>maxEllipse)
+                if(ratio>params.maxEllipse)
                 {
                     stars.removeAt(i);
                     i--;
@@ -291,7 +321,7 @@ bool SexySolver::runSEPSextractor()
             }
         }
 
-        if(saturationLimit > 0.0)
+        if(params.saturationLimit > 0.0)
         {
             double maxSizeofDataType;
             if(stats.dataType == TSHORT || stats.dataType == TLONG || stats.dataType == TLONGLONG)
@@ -307,11 +337,11 @@ bool SexySolver::runSEPSextractor()
             }
             else
             {
-                emit logNeedsUpdating(QString("Removing the saturated stars with peak values greater than %1 Percent of %2").arg(saturationLimit).arg(maxSizeofDataType));
+                emit logNeedsUpdating(QString("Removing the saturated stars with peak values greater than %1 Percent of %2").arg(params.saturationLimit).arg(maxSizeofDataType));
                 for(int i = 0; i<stars.size();i++)
                 {
                     Star star = stars.at(i);
-                    if(star.peak > (saturationLimit/100.0) * maxSizeofDataType)
+                    if(star.peak > (params.saturationLimit/100.0) * maxSizeofDataType)
                     {
                         stars.removeAt(i);
                         i--;
@@ -475,7 +505,7 @@ void SexySolver::downSampleImageType(int d)
 //would not have to prepare command line options and parse them all the time.
 
 //This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.
-void SexySolver::setSearchScale(double fov_low, double fov_high, QString units)
+void SexySolver::setSearchScale(double fov_low, double fov_high, QString scaleUnits)
 {
     use_scale = true;
     //L
@@ -483,7 +513,7 @@ void SexySolver::setSearchScale(double fov_low, double fov_high, QString units)
     //H
     scalehi = fov_high;
     //u
-    this->units = units;
+    units = scaleUnits;
 
     if(units == "app" || units == "arcsecperpix")
         scaleunit = SCALE_UNITS_ARCSEC_PER_PIX;
@@ -497,21 +527,13 @@ void SexySolver::setSearchScale(double fov_low, double fov_high, QString units)
 
 //This is a convenience function used to set all the search position parameters based on the ra, dec, and radius
 //Warning!!  This method accepts the RA in decimal form and then will convert it to degrees for Astrometry.net
-void SexySolver::setSearchPosition(double ra, double dec, double rad)
+void SexySolver::setSearchPosition(double ra, double dec)
 {
     use_position = true;
     //3
     search_ra = ra * 15.0;
     //4
     search_dec = dec;
-    //5
-    search_radius = rad;
-}
-
-//This sets the folders that Astrometry.net should search for index files to a QStringList
-void SexySolver::setIndexFolderPaths(QStringList paths)
-{
-    indexFolderPaths = paths;
 }
 
 void addPathToListIfExists(QStringList *list, QString path)
@@ -544,18 +566,6 @@ QStringList SexySolver::getDefaultIndexFolderPaths()
     return indexFilePaths;
 }
 
-//This clears the folders that Astrometry.net should search for index files
-void SexySolver::clearIndexFolderPaths()
-{
-    indexFolderPaths.clear();
-}
-
-//This adds a folder that Astrometry.et should search for index files to the list
-void SexySolver::addIndexFolderPath(QString pathToAdd)
-{
-    indexFolderPaths.append(pathToAdd);
-}
-
 //This method prepares the job file.  It is based upon the methods parse_job_from_qfits_header and engine_read_job_file in engine.c of astrometry.net
 //as well as the part of the method augment_xylist in augment_xylist.c where it handles xyls files
 bool SexySolver::prepare_job() {
@@ -570,7 +580,7 @@ bool SexySolver::prepare_job() {
     {
         job->ra_center = search_ra;
         job->dec_center = search_dec;
-        job->search_radius = search_radius;
+        job->search_radius = params.search_radius;
     }
 
     //These initialize the blind and solver objects, and they MUST be in this order according to astrometry.net
@@ -589,10 +599,10 @@ bool SexySolver::prepare_job() {
     blind_set_solved_file(bp,solvedfn.toLatin1().constData());
 
     //Logratios for Solving
-    bp->logratio_tosolve = logratio_tosolve;
+    bp->logratio_tosolve = params.logratio_tosolve;
     emit logNeedsUpdating(QString("Set odds ratio to solve to %1 (log = %2)\n").arg( exp(bp->logratio_tosolve)).arg( bp->logratio_tosolve));
-    sp->logratio_tokeep = logratio_tokeep;
-    sp->logratio_totune = logratio_totune;
+    sp->logratio_tokeep = params.logratio_tokeep;
+    sp->logratio_totune = params.logratio_totune;
     sp->logratio_bail_threshold = log(DEFAULT_BAIL_THRESHOLD);
 
     bp->best_hit_only = TRUE;
@@ -601,7 +611,7 @@ bool SexySolver::prepare_job() {
     sp->logratio_tokeep = MIN(sp->logratio_tokeep, bp->logratio_tosolve);
 
     job->include_default_scales = 0;
-    sp->parity = search_parity;
+    sp->parity = params.search_parity;
 
     //These set the default tweak settings
     sp->do_tweak = TRUE;
@@ -660,21 +670,21 @@ int SexySolver::runInternalSolver()
     engine_t* engine = engine_new();
 
     //This sets some basic engine settings
-    engine->inparallel = inParallel ? TRUE : FALSE;
-    engine->minwidth = minwidth;
-    engine->maxwidth = maxwidth;
+    engine->inparallel = params.inParallel ? TRUE : FALSE;
+    engine->minwidth = params.minwidth;
+    engine->maxwidth = params.maxwidth;
 
     //This sets the logging level and log file based on the user's preferences.
-    if(logToFile)
+    if(params.logToFile)
     {
-        if(logFile == "")
-            logFile = basePath + "/" + baseName + ".log.txt";
-        if(QFile(logFile).exists())
-            QFile(logFile).remove();
-        FILE *log = fopen(logFile.toLatin1().constData(),"wb");
+        if(params.logFile == "")
+            params.logFile = basePath + "/" + baseName + ".log.txt";
+        if(QFile(params.logFile).exists())
+            QFile(params.logFile).remove();
+        FILE *log = fopen(params.logFile.toLatin1().constData(),"wb");
         if(log)
         {
-            log_init((log_level)logLevel);
+            log_init((log_level)params.logLevel);
             log_to(log);
         }
     }
@@ -755,9 +765,9 @@ int SexySolver::runInternalSolver()
     }
 
     // These set the time limits for the solver
-    bp->timelimit = solverTimeLimit;
+    bp->timelimit = params.solverTimeLimit;
 #ifndef _WIN32
-    bp->cpulimit = solverTimeLimit;
+    bp->cpulimit = params.solverTimeLimit;
 #endif
 
     // If not running inparallel, set total limits = limits.
@@ -803,7 +813,7 @@ int SexySolver::runInternalSolver()
         double det = sip_det_cd(wcs);
         parity = (det < 0 ? "pos" : "neg");
         if(usingDownsampledImage)
-            pixscale = sip_pixel_scale(wcs) / downsample;
+            pixscale = sip_pixel_scale(wcs) / params.downsample;
         else
             pixscale = sip_pixel_scale(wcs);
 
