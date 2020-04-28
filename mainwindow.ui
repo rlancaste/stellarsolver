@@ -1454,13 +1454,6 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="ClearResults">
-                  <property name="text">
-                   <string>Clear</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
                  <spacer name="horizontalSpacer">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -1700,13 +1693,6 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="5">
-       <widget class="QPushButton" name="exportResultsTable">
-        <property name="text">
-         <string>Export Results</string>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
@@ -1761,6 +1747,24 @@
           </property>
           <property name="text">
            <string>-</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="3" column="5">
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QPushButton" name="exportResultsTable">
+          <property name="text">
+           <string>Export Results</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="ClearResults">
+          <property name="text">
+           <string>Clear</string>
           </property>
          </widget>
         </item>
