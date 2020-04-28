@@ -781,6 +781,8 @@ bool MainWindow::sextractorComplete(int error)
 
     if(error == 0)
     {
+        if(currentTrial==numberOfTrials)
+            stars = sexySolver->getStarList();
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
         logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
@@ -802,7 +804,6 @@ bool MainWindow::sextractorComplete(int error)
             return false;
     }
 
-    stars = sexySolver->getStarList();
     displayTable();
     ui->resultsTable->insertRow(ui->resultsTable->rowCount());
     addSextractionToTable();
