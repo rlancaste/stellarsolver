@@ -128,6 +128,14 @@ MainWindow::MainWindow() :
     foreach(QComboBox *combo, combos)
         connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
 
+    QList<QSpinBox *> spins;
+    spins = sextractorOptions->findChildren<QSpinBox *>();
+    spins.append(starFilterOptions->findChildren<QSpinBox *>());
+    spins.append(astrometryOptions->findChildren<QSpinBox *>());
+    foreach(QSpinBox *spin, spins)
+        connect(spin, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::settingJustChanged);
+
+
     //Hides the panels into the sides and bottom
     ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
     ui->splitter_2->setSizes(QList<int>() << 100 << ui->splitter_2->width() / 2  << 0 );
@@ -728,7 +736,9 @@ void MainWindow::sendSettingsToUI(SexySolver::Parameters a)
     //Sextractor Settings
 
         ui->calculateHFR->setChecked(a.calculateHFR);
+            disconnect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
         ui->apertureShape->setCurrentIndex(a.apertureShape);
+            connect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
         ui->kron_fact->setText(QString::number(a.kron_fact));
         ui->subpix->setText(QString::number(a.subpix));
         ui->r_min->setText(QString::number(a.r_min));
@@ -768,7 +778,9 @@ void MainWindow::sendSettingsToUI(SexySolver::Parameters a)
     //Astrometry Logging Settings
 
         ui->logToFile->setChecked(a.logToFile);
+            disconnect(ui->logLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
         ui->logLevel->setCurrentIndex(a.logLevel);
+            connect(ui->logLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
 }
 
 
