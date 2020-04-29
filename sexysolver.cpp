@@ -222,8 +222,8 @@ bool SexySolver::runSEPSextractor()
         //FOR SOME REASON, I FOUND THAT THE POSITIONS WERE OFF BY 1 PIXEL??
         //This might be because of this: https://sextractor.readthedocs.io/en/latest/Param.html
         //" Following the FITS convention, in SExtractor the center of the first image pixel has coordinates (1.0,1.0). "
-        float xPos = catalog->x[i] + 1.5;
-        float yPos = catalog->y[i] + 1.5;
+        float xPos = catalog->x[i] + 1;
+        float yPos = catalog->y[i] + 1;
         float a = catalog->a[i];
         float b = catalog->b[i];
         float theta = catalog->theta[i];
