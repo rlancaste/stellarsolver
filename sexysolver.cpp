@@ -93,13 +93,13 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
 {
     QList<SexySolver::Parameters> optionsList;
 
-    SexySolver::Parameters small;
-    small.listName = "SmallSizedStars";
-    small.maxEllipse = 1.2;
-    createConvFilterFromFWHM(&small, 1);
-    small.r_min = 2;
-    small.maxSize = 5;
-    optionsList.append(small);
+    SexySolver::Parameters smallStars;
+    smallStars.listName = "SmallSizedStars";
+    smallStars.maxEllipse = 1.2;
+    createConvFilterFromFWHM(&smallStars, 1);
+    smallStars.r_min = 2;
+    smallStars.maxSize = 5;
+    optionsList.append(smallStars);
 
     SexySolver::Parameters mid;
     mid.listName = "MidSizedStars";
