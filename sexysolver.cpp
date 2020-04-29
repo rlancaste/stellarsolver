@@ -1033,7 +1033,7 @@ uint64_t SexySolver::getAvailableRAM()
     p.start("awk", QStringList() << "/MemTotal/ { print $2 }" << "/proc/meminfo");
     p.waitForFinished();
     QString memory = p.readAllStandardOutput();
-    RAM = memory.toLong() / 1024; //It is in kB on this system
+    RAM = memory.toLong() * 1024; //It is in kB on this system
     p.close();
 #else
     MEMORYSTATUSEX memory_status;
