@@ -2075,14 +2075,14 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table,"Down");
     addColumnToTable(table,"in ||");
     //Results
-    addColumnToTable(table,"RA");
-    addColumnToTable(table,"DEC");
-    addColumnToTable(table,"RA ERR");
-    addColumnToTable(table,"DEC ERR");
-    addColumnToTable(table,"Orientation");
-    addColumnToTable(table,"Field Width");
-    addColumnToTable(table,"Field Height");
-    addColumnToTable(table,"PixScale");
+    addColumnToTable(table,"RA (J2000)");
+    addColumnToTable(table,"DEC (J2000)");
+    addColumnToTable(table,"RA ERR \"");
+    addColumnToTable(table,"DEC ERR \"");
+    addColumnToTable(table,"Orientation˚");
+    addColumnToTable(table,"Field Width \'");
+    addColumnToTable(table,"Field Height \'");
+    addColumnToTable(table,"PixScale \"");
     addColumnToTable(table,"Parity");
     addColumnToTable(table,"Field");
 
@@ -2169,14 +2169,14 @@ void MainWindow::addSolutionToTable(Solution solution)
     setItemInColumn(table, "in ||", QVariant(params.inParallel).toString());
 
     //Results
-    setItemInColumn(table, "RA", solution.rastr);
-    setItemInColumn(table, "DEC", solution.decstr);
-    setItemInColumn(table, "RA ERR", QString::number(solution.raError, 'f', 2));
-    setItemInColumn(table, "DEC ERR", QString::number(solution.decError, 'f', 2));
-    setItemInColumn(table, "Orientation", QString::number(solution.orientation));
-    setItemInColumn(table, "Field Width", QString::number(solution.fieldWidth));
-    setItemInColumn(table, "Field Height", QString::number(solution.fieldHeight));
-    setItemInColumn(table, "PixScale", QString::number(solution.pixscale));
+    setItemInColumn(table, "RA (J2000)", solution.rastr);
+    setItemInColumn(table, "DEC (J2000)", solution.decstr);
+    setItemInColumn(table, "RA ERR \"", QString::number(solution.raError, 'f', 2));
+    setItemInColumn(table, "DEC ERR \"", QString::number(solution.decError, 'f', 2));
+    setItemInColumn(table, "Orientation˚", QString::number(solution.orientation));
+    setItemInColumn(table, "Field Width \'", QString::number(solution.fieldWidth));
+    setItemInColumn(table, "Field Height \'", QString::number(solution.fieldHeight));
+    setItemInColumn(table, "PixScale \"", QString::number(solution.pixscale));
     setItemInColumn(table, "Parity", solution.parity);
     setItemInColumn(table, "Field", ui->fileNameDisplay->text());
 }
@@ -2210,14 +2210,14 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table,"Down", !showAstrometryParams);
     setColumnHidden(table,"in ||", !showAstrometryParams);
     //Results
-    setColumnHidden(table,"RA", !showSolutionDetails);
-    setColumnHidden(table,"DEC", !showSolutionDetails);
-    setColumnHidden(table,"RA ERR", !showSolutionDetails);
-    setColumnHidden(table,"DEC ERR", !showSolutionDetails);
-    setColumnHidden(table,"Orientation", !showSolutionDetails);
-    setColumnHidden(table,"Field Width", !showSolutionDetails);
-    setColumnHidden(table,"Field Height", !showSolutionDetails);
-    setColumnHidden(table,"PixScale", !showSolutionDetails);
+    setColumnHidden(table,"RA (J2000)", !showSolutionDetails);
+    setColumnHidden(table,"DEC (J2000)", !showSolutionDetails);
+    setColumnHidden(table,"RA ERR \"", !showSolutionDetails);
+    setColumnHidden(table,"DEC ERR \"", !showSolutionDetails);
+    setColumnHidden(table,"Orientation˚", !showSolutionDetails);
+    setColumnHidden(table,"Field Width \'", !showSolutionDetails);
+    setColumnHidden(table,"Field Height \'", !showSolutionDetails);
+    setColumnHidden(table,"PixScale \"", !showSolutionDetails);
     setColumnHidden(table,"Parity", !showSolutionDetails);
 }
 
