@@ -99,7 +99,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>159</width>
+          <width>175</width>
           <height>333</height>
          </rect>
         </property>
@@ -600,7 +600,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>159</width>
+          <width>175</width>
           <height>333</height>
          </rect>
         </property>
@@ -750,8 +750,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>159</width>
-          <height>333</height>
+          <width>175</width>
+          <height>348</height>
          </rect>
         </property>
         <attribute name="label">
@@ -864,6 +864,16 @@
            </property>
           </widget>
          </item>
+         <item row="15" column="0" colspan="2">
+          <widget class="QLabel" name="label_31">
+           <property name="text">
+            <string>Note: These settings are not saved in the profile.  They change with every image.</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
        <widget class="QWidget" name="Astrometry">
@@ -871,7 +881,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>159</width>
+          <width>175</width>
           <height>333</height>
          </rect>
         </property>
@@ -1112,7 +1122,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>172</width>
+          <width>175</width>
           <height>334</height>
          </rect>
         </property>
@@ -1208,8 +1218,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>474</width>
-              <height>123</height>
+              <width>433</width>
+              <height>126</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -1341,8 +1351,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>476</width>
-           <height>378</height>
+           <width>435</width>
+           <height>375</height>
           </rect>
          </property>
          <property name="sizePolicy">

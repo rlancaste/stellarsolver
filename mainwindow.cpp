@@ -59,6 +59,7 @@ MainWindow::MainWindow() :
     ui->AutoScale->setToolTip("Rescales the image based on the available space");
 
     //The Options at the bottom of the Window
+    ui->trials->setToolTip("The number of times to Sextract or Solve to get an average time that it takes.");
     connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractButtonClicked );
     ui->SextractStars->setToolTip("Sextract the stars in the image using the chosen method and load them into the star table");
     ui->sextractorType->setToolTip("Lets you choose the Internal SexySolver SEP or external Sextractor program");
@@ -74,7 +75,7 @@ MainWindow::MainWindow() :
     ui->ClearResults->setToolTip("Clears the Results Table");
 
     //The Options for the SexySolver Options
-    ui->optionsProfile->setToolTip("The Profile to use for Sextracting and Solving, Current uses whatever values are in the options in the left panel. Selecting any other profile will reload all the settings, with an option to save your current settings.");
+    ui->optionsProfile->setToolTip("The Options Profile to use for Sextracting and Solving. Selecting a profile will reset all the Sextractor and Solver settings to that profile.");
     connect(ui->optionsProfile, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::loadOptionsProfile);
     ui->addOptionProfile->setToolTip("Adds the current options in the left option pane to a new profile");
     connect(ui->addOptionProfile,&QAbstractButton::clicked, this, [this](){
