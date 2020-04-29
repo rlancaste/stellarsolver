@@ -223,14 +223,15 @@ protected:  //Note: These items are not private because they are needed by Exter
 
     bool runSEPSextractor();    //This is the method that actually runs the internal sextractor
 
+    // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
+    QString cancelfn;           //Filename whose creation signals the process to stop
+    QString solvedfn;           //Filename whose creation tells astrometry.net it already solved the field.
+
 private:
 
     // The generic data buffer containing the image data
     uint8_t *downSampledBuffer { nullptr };
 
-    // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
-    QString cancelfn;           //Filename whose creation signals the process to stop
-    QString solvedfn;           //Filename whose creation tells astrometry.net it already solved the field.
 
     //Job File related stuff
     bool prepare_job();         //This prepares the job object for the solver

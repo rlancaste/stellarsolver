@@ -615,7 +615,6 @@ bool SexySolver::prepare_job() {
     sp->field_maxx = stats.width;
     sp->field_maxy = stats.height;
 
-    QDir temp(basePath);
     cancelfn       = basePath + "/" + baseName + ".cancel";
     solvedfn       = basePath + "/" + baseName + ".solved";
 

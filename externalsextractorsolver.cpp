@@ -141,6 +141,15 @@ void ExternalSextractorSolver::abort()
         solver->kill();
     if(!sextractorProcess.isNull())
         sextractorProcess->kill();
+
+    //Just in case they don't stop, we will make the cancel file too
+    QFile file(cancelfn);
+    if(QFileInfo(file).dir().exists())
+    {
+        file.open(QIODevice::WriteOnly);
+        file.write("Cancel");
+        file.close();
+    }
     emit logNeedsUpdating("Aborted");
 }
 
@@ -353,6 +362,9 @@ bool ExternalSextractorSolver::runExternalSolver()
 
     solverArgs << "--backend-config" << confPath;
 
+    cancelfn = basePath + "/" + baseName + ".cancel";
+    solverArgs << "--cancel" << cancelfn;
+
     QString solutionFile = basePath + "/" + baseName + ".wcs";
     solverArgs << "-W" << solutionFile;
 
@@ -406,6 +418,9 @@ bool ExternalSextractorSolver::runExternalClassicSolver()
         generateAstrometryConfigFile();
 
     solverArgs << "--backend-config" << confPath;
+
+    cancelfn = basePath + "/" + baseName + ".cancel";
+    solverArgs << "--cancel" << cancelfn;
 
     QString solutionFile = basePath + "/" + baseName + ".wcs";
     solverArgs << "-W" << solutionFile;
