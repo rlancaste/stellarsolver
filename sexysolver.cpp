@@ -1043,7 +1043,7 @@ uint64_t SexySolver::getAvailableRAM()
     ZeroMemory(&memory_status, sizeof(MEMORYSTATUSEX));
     memory_status.dwLength = sizeof(MEMORYSTATUSEX);
     if (GlobalMemoryStatusEx(&memory_status)) {
-      RAM = memory_status.ullAvailPhys;
+      RAM = memory_status.ullTotalPhys;
     } else {
       RAM = 0;
     }
