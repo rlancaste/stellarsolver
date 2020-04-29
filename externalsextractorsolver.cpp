@@ -355,6 +355,12 @@ bool ExternalSextractorSolver::runExternalSolver()
         emit logNeedsUpdating("Please Sextract the image first");
     }
 
+    if(params.inParallel && !enoughRAMisAvailableFor(indexFolderPaths))
+    {
+        emit logNeedsUpdating("Not enough RAM is available on this system for loading the index files you have in parallel");
+        emit logNeedsUpdating("You may want to disable the inParallel option.");
+    }
+
     QStringList solverArgs=getSolverArgsList();
 
     if(autoGenerateAstroConfig)
@@ -411,6 +417,12 @@ bool ExternalSextractorSolver::runExternalSolver()
 bool ExternalSextractorSolver::runExternalClassicSolver()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+    if(params.inParallel && !enoughRAMisAvailableFor(indexFolderPaths))
+    {
+        emit logNeedsUpdating("Not enough RAM is available on this system for loading the index files you have in parallel");
+        emit logNeedsUpdating("You may want to disable the inParallel option.");
+    }
 
     QStringList solverArgs=getClassicSolverArgsList();
 
@@ -809,7 +821,16 @@ bool ExternalSextractorSolver::getSolutionInformation()
 
     if(usingDownsampledImage)
         pixscale /= params.downsample;
-    solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient,pixscale, parity};
+
+    double raErr = 0;
+    double decErr = 0;
+    if(use_position)
+    {
+        raErr = (search_ra - ra) * 3600;
+        decErr = (search_dec - dec) * 3600;
+    }
+
+    solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient,pixscale, parity, raErr, decErr};
     return true;
 }
 
@@ -863,11 +884,22 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
             dec2dmsstring(dec, decstr);
             fieldw = stats.width * pixscale / 60;
             fieldh = stats.height * pixscale / 60;
-            solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient, pixscale, parity};
+
+            double raErr = 0;
+            double decErr = 0;
+            if(use_position)
+            {
+                raErr = (search_ra - ra) * 3600;
+                decErr = (search_dec - dec) * 3600;
+            }
+
+            solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient, pixscale, parity, raErr, decErr};
 
             emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
             emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
             emit logNeedsUpdating(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
+            if(use_position)
+                emit logNeedsUpdating(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
             emit logNeedsUpdating(QString("Field size: %1 x %2").arg( fieldw).arg( fieldh));
             emit logNeedsUpdating(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
             emit logNeedsUpdating(QString("Pixel Scale: %1\"").arg( pixscale ));

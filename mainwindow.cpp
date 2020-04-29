@@ -2077,6 +2077,8 @@ void MainWindow::setupResultsTable()
     //Results
     addColumnToTable(table,"RA");
     addColumnToTable(table,"DEC");
+    addColumnToTable(table,"RA ERR");
+    addColumnToTable(table,"DEC ERR");
     addColumnToTable(table,"Orientation");
     addColumnToTable(table,"Field Width");
     addColumnToTable(table,"Field Height");
@@ -2169,6 +2171,8 @@ void MainWindow::addSolutionToTable(Solution solution)
     //Results
     setItemInColumn(table, "RA", solution.rastr);
     setItemInColumn(table, "DEC", solution.decstr);
+    setItemInColumn(table, "RA ERR", QString::number(solution.raError, 'f', 2));
+    setItemInColumn(table, "DEC ERR", QString::number(solution.decError, 'f', 2));
     setItemInColumn(table, "Orientation", QString::number(solution.orientation));
     setItemInColumn(table, "Field Width", QString::number(solution.fieldWidth));
     setItemInColumn(table, "Field Height", QString::number(solution.fieldHeight));
@@ -2208,6 +2212,8 @@ void MainWindow::updateHiddenResultsTableColumns()
     //Results
     setColumnHidden(table,"RA", !showSolutionDetails);
     setColumnHidden(table,"DEC", !showSolutionDetails);
+    setColumnHidden(table,"RA ERR", !showSolutionDetails);
+    setColumnHidden(table,"DEC ERR", !showSolutionDetails);
     setColumnHidden(table,"Orientation", !showSolutionDetails);
     setColumnHidden(table,"Field Width", !showSolutionDetails);
     setColumnHidden(table,"Field Height", !showSolutionDetails);

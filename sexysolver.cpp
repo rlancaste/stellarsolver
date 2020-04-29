@@ -689,6 +689,18 @@ int SexySolver::runInternalSolver()
     emit logNeedsUpdating("++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Configuring SexySolver");
 
+    if(params.inParallel)
+    {
+        if(enoughRAMisAvailableFor(indexFolderPaths))
+            emit logNeedsUpdating("There should be enough RAM to load the indexes in parallel.");
+        else
+        {
+            emit logNeedsUpdating("Not enough RAM is available on this system for loading the index files you have in parallel");
+            emit logNeedsUpdating("Disabling the inParallel option.");
+            disableInparallel();
+        }
+    }
+
     //This creates and sets up the engine
     engine_t* engine = engine_new();
 
@@ -840,12 +852,22 @@ int SexySolver::runInternalSolver()
         else
             pixscale = sip_pixel_scale(wcs);
 
+        double raErr = 0;
+        double decErr = 0;
+        if(use_position)
+        {
+            raErr = (search_ra - ra) * 3600;
+            decErr = (search_dec - dec) * 3600;
+        }
+
         emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         emit logNeedsUpdating(QString("Solve Log Odds:  %1").arg(bp->solver.best_logodds));
         emit logNeedsUpdating(QString("Number of Matches:  %1").arg(match.nmatch));
         emit logNeedsUpdating(QString("Solved with index:  %1").arg(match.indexid));
         emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
         emit logNeedsUpdating(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
+        if(use_position)
+            emit logNeedsUpdating(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
         emit logNeedsUpdating(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));
         emit logNeedsUpdating(QString("Pixel Scale: %1\"").arg( pixscale));
         emit logNeedsUpdating(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
@@ -853,7 +875,9 @@ int SexySolver::runInternalSolver()
 
         emit logNeedsUpdating(QString("Field parity: %1\n").arg( parity));
 
-        solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient, pixscale, parity};
+
+
+        solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient, pixscale, parity, raErr, decErr};
         hasSolved = true;
         emit finished(0);
         return 0;
@@ -985,3 +1009,68 @@ SexySolver::Parameters SexySolver::convertFromMap(QMap<QString, QVariant> settin
     return params;
 
 }
+
+#if defined(Q_OS_OSX)
+#include <sys/sysctl.h>
+#endif
+
+uint64_t SexySolver::getAvailableRAM()
+{
+    uint64_t RAM = 0;
+
+#if defined(Q_OS_OSX)
+    int mib[2];
+    size_t length;
+    mib[0] = CTL_HW;
+    mib[1] = HW_MEMSIZE;
+    length = sizeof(int64_t);
+    if(sysctl(mib, 2, &RAM, &length, NULL, 0))
+        return 0; // On Error
+#elif defined(Q_OS_LINUX)
+    QProcess p;
+    p.start("awk", QStringList() << "/MemTotal/ { print $2 }" << "/proc/meminfo");
+    p.waitForFinished();
+    QString memory = p.readAllStandardOutput();
+    RAM = memory.toLong();
+    p.close();
+#else
+    MEMORYSTATUSEX memory_status;
+    ZeroMemory(&memory_status, sizeof(MEMORYSTATUSEX));
+    memory_status.dwLength = sizeof(MEMORYSTATUSEX);
+    if (GlobalMemoryStatusEx(&memory_status)) {
+      RAM = memory_status.ullAvailPhys;
+    } else {
+      RAM = 0;
+    }
+#endif
+    return RAM;
+}
+
+bool SexySolver::enoughRAMisAvailableFor(QStringList indexFolders)
+{
+    uint64_t totalSize = 0;
+
+    foreach(QString folder, indexFolders)
+    {
+        QDir dir(folder);
+        if(dir.exists())
+        {
+            dir.setNameFilters(QStringList()<<"*.fits"<<"*.fit");
+            QFileInfoList indexInfoList = dir.entryInfoList();
+            foreach(QFileInfo indexInfo, indexInfoList)
+                totalSize += indexInfo.size();
+        }
+
+    }
+    uint64_t availableRAM = getAvailableRAM();
+    if(availableRAM == 0)
+    {
+        emit logNeedsUpdating("Unable to determine system RAM for inParallel Option");
+        return false;
+    }
+    float bytesInGB = 1024 * 1024 * 1024; // B -> KB -> MB -> GB , float to make sure it reports the answer with any decimals
+    emit logNeedsUpdating(QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB").arg(totalSize / bytesInGB).arg(availableRAM / bytesInGB));
+    return availableRAM > totalSize;
+}
+
+

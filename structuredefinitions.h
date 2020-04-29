@@ -20,9 +20,7 @@ typedef struct
     double stddev[3] = {0};
     double median[3] = {0};
     double SNR { 0 };
-    // Superceded by dataType.
-    // int bitpix { 8 };
-    /// FITS image data type (SEP_TBYTE, TUSHORT, TINT, TFLOAT, TLONG, TDOUBLE)
+    /// FITS image data type (SEP_TBYTE, TUSHORT, TULONG, TFLOAT, TLONGLONG, TDOUBLE)
     uint32_t dataType { 0 };
     int bytesPerPixel { 1 };
     int ndim { 2 };
@@ -56,7 +54,8 @@ typedef struct
     double orientation; //The orientation angle of the image from North in degrees
     double pixscale;    //The pixel scale of the image
     QString parity;     //The parity of the image
-
+    double raError;     //The error between the search_ra position and the solution ra position in "
+    double decError;    //The error between the search_dec position and the solution dec position in "
 } Solution;
 
 enum Shape{

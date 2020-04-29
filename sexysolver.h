@@ -228,6 +228,9 @@ protected:  //Note: These items are not private because they are needed by Exter
     QString cancelfn;           //Filename whose creation signals the process to stop
     QString solvedfn;           //Filename whose creation tells astrometry.net it already solved the field.
 
+    uint64_t getAvailableRAM();
+    bool enoughRAMisAvailableFor(QStringList indexFolders);
+
 private:
 
     // The generic data buffer containing the image data
