@@ -96,7 +96,7 @@ private:
     int selectedStar;
 
     QList<SexySolver::Parameters> optionsList;
-    SexySolver::Parameters currentOptions;
+    bool optionsAreSaved = true;
 
     //Options for SexySolver Tester
     QString dirPath = QDir::homePath();

@@ -84,11 +84,12 @@ MainWindow::MainWindow() :
                               "", &ok);
         if (ok && !name.isEmpty())
         {
+            optionsAreSaved = true;
             SexySolver::Parameters params = getSettingsFromUI();
             params.listName = name;
+            ui->optionsProfile->setCurrentIndex(0); //So we don't trigger any loading of any other profiles
             optionsList.append(params);
             ui->optionsProfile->addItem(name);
-            currentOptions = params;
             ui->optionsProfile->setCurrentText(name);
         }
     });
@@ -100,8 +101,10 @@ MainWindow::MainWindow() :
             QMessageBox::critical(nullptr,"Message","You can't delete this profile");
             return;
         }
+        ui->optionsProfile->setCurrentIndex(0); //So we don't trigger any loading of any other profiles
         ui->optionsProfile->removeItem(item);
         optionsList.removeAt(item - 2);
+
     });
     ui->saveSettings->setToolTip("Saves a file with Options Profiles to a desired location");
     connect(ui->saveSettings, &QPushButton::clicked, this, &MainWindow::saveOptionsProfiles);
@@ -343,11 +346,11 @@ MainWindow::MainWindow() :
 
     SexySolver temp(stats, m_ImageBuffer, this);
     ui->basePath->setText(temp.basePath);
-    currentOptions = temp.getCurrentParameters();
-    sendSettingsToUI(currentOptions);
+    sendSettingsToUI(temp.getCurrentParameters());
     optionsList = temp.getOptionsProfiles();
     foreach(SexySolver::Parameters param, optionsList)
         ui->optionsProfile->addItem(param.listName);
+    optionsAreSaved = true;  //This way the next command won't trigger the unsaved warning.
     ui->optionsProfile->setCurrentIndex(1); //This is default
 
     QString storedPaths = programSettings.value("indexFolderPaths", "").toString();
@@ -359,12 +362,14 @@ MainWindow::MainWindow() :
     foreach(QString pathName, indexFilePaths)
         ui->indexFolderPaths->addItem(pathName);
     loadIndexFilesList();
+
 }
 
 void MainWindow::settingJustChanged()
 {
     if(ui->optionsProfile->currentIndex() !=0 )
         ui->optionsProfile->setCurrentIndex(0);
+    optionsAreSaved = false;
 }
 
 void MainWindow::loadOptionsProfile()
@@ -373,22 +378,28 @@ void MainWindow::loadOptionsProfile()
         return;
 
     SexySolver::Parameters oldOptions = getSettingsFromUI();
-    SexySolver::Parameters newOptions;
-    if(ui->optionsProfile->currentIndex() == 1)
-        newOptions = SexySolver::Parameters();
-    else
-        newOptions = optionsList.at(ui->optionsProfile->currentIndex() - 2);
 
-    if(! (oldOptions == currentOptions) )
+    if( !optionsAreSaved )
     {
         if(QMessageBox::question(this, "Abort?", "You made unsaved changes in the settings, do you really wish to overwrite them?") == QMessageBox::No)
         {
             ui->optionsProfile->setCurrentIndex(0);
             return;
         }
+        optionsAreSaved = true; //They just got overwritten
     }
+
+    SexySolver::Parameters newOptions;
+    if(ui->optionsProfile->currentIndex() == 1)
+        newOptions = SexySolver::Parameters();
+    else
+        newOptions = optionsList.at(ui->optionsProfile->currentIndex() - 2);
+    QList<QWidget *> controls = ui->optionsBox->findChildren<QWidget *>();
+    foreach(QWidget *control, controls)
+        control->blockSignals(true);
     sendSettingsToUI(newOptions);
-    currentOptions = newOptions;
+    foreach(QWidget *control, controls)
+        control->blockSignals(false);
 }
 
 MainWindow::~MainWindow()
