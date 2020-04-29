@@ -171,6 +171,7 @@ public:
     void setIndexFolderPaths(QStringList indexPaths){indexFolderPaths = indexPaths;};
     void setSearchScale(double fov_low, double fov_high, QString scaleUnits);                              //This sets the scale range for the image to speed up the solver
     void setSearchPosition(double ra, double dec);                                                    //This sets the search RA/DEC/Radius to speed up the solver
+    void disableInparallel(){params.inParallel = false;};
 
     //These static methods can be used by classes to configure parameters or paths
     static void createConvFilterFromFWHM(Parameters *params, double fwhm);                      //This creates the conv filter from a fwhm
