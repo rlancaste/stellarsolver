@@ -7,7 +7,6 @@
 */
 #include "sexysolver.h"
 #include "qmath.h"
-#include <QProcess>
 
 SexySolver::SexySolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : QThread(parent)
 {
@@ -1013,6 +1012,8 @@ SexySolver::Parameters SexySolver::convertFromMap(QMap<QString, QVariant> settin
 
 #if defined(Q_OS_OSX)
 #include <sys/sysctl.h>
+#elif defined(Q_OS_LINUX)
+#include <QProcess>
 #endif
 
 uint64_t SexySolver::getAvailableRAM()
@@ -1032,7 +1033,7 @@ uint64_t SexySolver::getAvailableRAM()
     p.start("awk", QStringList() << "/MemTotal/ { print $2 }" << "/proc/meminfo");
     p.waitForFinished();
     QString memory = p.readAllStandardOutput();
-    RAM = memory.toLong();
+    RAM = memory.toLong() / 1024; //It is in kB on this system
     p.close();
 #else
     MEMORYSTATUSEX memory_status;
