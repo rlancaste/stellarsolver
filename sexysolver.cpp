@@ -308,7 +308,7 @@ bool SexySolver::runSEPSextractor()
             }
         }
 
-        if(params.resort && params.removeBrightest > 0.0)
+        if(params.resort && params.removeBrightest > 0.0 && params.removeBrightest < 100.0)
         {
             int numToRemove = stars.count() * (params.removeBrightest/100.0);
             emit logNeedsUpdating(QString("Removing the %1 brightest stars").arg(numToRemove));
@@ -319,7 +319,7 @@ bool SexySolver::runSEPSextractor()
             }
         }
 
-        if(params.resort && params.removeDimmest > 0.0)
+        if(params.resort && params.removeDimmest > 0.0 && params.removeDimmest < 100.0)
         {
             int numToRemove = stars.count() * (params.removeDimmest/100.0);
             emit logNeedsUpdating(QString("Removing the %1 dimmest stars").arg(numToRemove));
@@ -345,7 +345,7 @@ bool SexySolver::runSEPSextractor()
             }
         }
 
-        if(params.saturationLimit > 0.0)
+        if(params.saturationLimit > 0.0 && params.saturationLimit < 100.0)
         {
             double maxSizeofDataType;
             if(stats.dataType == TSHORT || stats.dataType == TLONG || stats.dataType == TLONGLONG)

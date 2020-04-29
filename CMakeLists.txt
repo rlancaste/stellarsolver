@@ -8,7 +8,7 @@ string(TIMESTAMP SexySolver_BUILD_TS UTC)
 
 # SexySolver Version 0.8
 set (SexySolver_VERSION_MAJOR 0)
-set (SexySolver_VERSION_MINOR 8)
+set (SexySolver_VERSION_MINOR 9)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/version.h.cmake
