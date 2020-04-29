@@ -7,6 +7,7 @@
 */
 #include "sexysolver.h"
 #include "qmath.h"
+#include <QProcess>
 
 SexySolver::SexySolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : QThread(parent)
 {
