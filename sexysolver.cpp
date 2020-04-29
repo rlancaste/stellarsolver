@@ -5,6 +5,13 @@
     License as published by the Free Software Foundation; either
     version 2 of the License, or (at your option) any later version.
 */
+#if defined(__APPLE__)
+#include <sys/sysctl.h>
+#elif defined(_WIN32)
+#include "windows.h"
+#else //Linux
+#include <QProcess>
+#endif
 #include "sexysolver.h"
 #include "qmath.h"
 
@@ -1010,12 +1017,8 @@ SexySolver::Parameters SexySolver::convertFromMap(QMap<QString, QVariant> settin
 
 }
 
-#if defined(Q_OS_OSX)
-#include <sys/sysctl.h>
-#elif defined(Q_OS_LINUX)
-#include <QProcess>
-#endif
-
+//This function should get the system RAM in bytes.  I may revise it later to get the currently available RAM
+//But from what I read, getting the Available RAM is inconsistent and buggy on many systems.
 uint64_t SexySolver::getAvailableRAM()
 {
     uint64_t RAM = 0;
@@ -1048,6 +1051,7 @@ uint64_t SexySolver::getAvailableRAM()
     return RAM;
 }
 
+//This should determine if enough RAM is available to load all the index files in parallel
 bool SexySolver::enoughRAMisAvailableFor(QStringList indexFolders)
 {
     uint64_t totalSize = 0;
