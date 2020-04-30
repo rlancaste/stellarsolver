@@ -682,8 +682,8 @@ void MainWindow::solveImage()
 //This sets up the External Sextractor and Solver and sets settings specific to them
 void MainWindow::setupExternalSextractorSolver()
 {
-    extSolver.clear();
-    sexySolver.clear();
+    if(!extSolver.isNull())
+        delete extSolver;
     //Creates the External Sextractor/Solver Object
     extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
     sexySolver = extSolver;
@@ -708,8 +708,8 @@ void MainWindow::setupExternalSextractorSolver()
 //This sets up the Internal SexySolver and sets settings specific to it
 void MainWindow::setupInternalSexySolver()
 {
-    extSolver.clear();
-    sexySolver.clear();
+    if(!sexySolver.isNull())
+        delete sexySolver;
     //Creates the SexySolver
     sexySolver = new SexySolver(stats ,m_ImageBuffer, this);
 
