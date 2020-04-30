@@ -835,6 +835,11 @@ int SexySolver::runInternalSolver()
 
     //This deletes the engine object since it is no longer needed.
     engine_free(engine);
+    bl_free(job->scales);
+    dl_free(job->depths);
+    free(fieldToSolve);
+    delete[] xArray;
+    delete[] yArray;
 
     //This deletes the temporary files
     QDir temp(basePath);
