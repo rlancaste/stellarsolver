@@ -437,7 +437,7 @@ void solver_set_field_bounds(solver_t* s, double xlo, double xhi, double ylo, do
 
 void solver_cleanup_field(solver_t* solver) {
     solver_reset_best_match(solver);
-    //solver_free_field(solver); //# Modified by Robert Lancaster for the SexySolver Internal Library
+    solver_free_field(solver);
     solver->fieldxy = NULL;
     solver_reset_counters(solver);
 }
@@ -1623,7 +1623,7 @@ void solver_clear_indexes(solver_t* solver) {
 }
 
 void solver_cleanup(solver_t* solver) {
-    //solver_free_field(solver);  //# Modified by Robert Lancaster for the SexySolver Internal Library
+    solver_free_field(solver);
     pl_free(solver->indexes);
     solver->indexes = NULL;
     if (solver->have_best_match) {
