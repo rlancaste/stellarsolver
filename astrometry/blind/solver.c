@@ -648,9 +648,10 @@ void solver_preprocess_field(solver_t* solver) {
 }
 
 void solver_free_field(solver_t* solver) {
-    if (solver->fieldxy)
-        starxy_free(solver->fieldxy);
-    solver->fieldxy = NULL;
+    //# Modified by Robert Lancaster for the SexySolver Internal Library
+    //if (solver->fieldxy)
+    //    starxy_free(solver->fieldxy);
+    //solver->fieldxy = NULL;
     if (solver->vf)
         verify_field_free(solver->vf);
     solver->vf = NULL;

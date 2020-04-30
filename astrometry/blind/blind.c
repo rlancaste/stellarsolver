@@ -1068,7 +1068,7 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
             }
         }
 
-        //solver_free_field(sp); //# Modified by Robert Lancaster for the SexySolver Internal Library
+        solver_free_field(sp);
 
         get_resource_stats(&utime, &stime, NULL);
         gettimeofday(&wtime, NULL);
