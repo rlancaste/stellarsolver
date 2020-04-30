@@ -34,6 +34,16 @@ ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t
 
 }
 
+ExternalSextractorSolver::~ExternalSextractorSolver()
+{
+    delete xcol;
+    delete ycol;
+    delete magcol;
+    delete colFormat;
+    delete colUnits;
+    delete magUnits;
+}
+
 //The following methods are available to set the default paths for different operating systems and configurations.
 
 void ExternalSextractorSolver::setLinuxDefaultPaths()

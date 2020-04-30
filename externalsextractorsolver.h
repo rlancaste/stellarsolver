@@ -18,6 +18,7 @@ class ExternalSextractorSolver : public SexySolver
     Q_OBJECT
 public:
     explicit ExternalSextractorSolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent);
+    ~ExternalSextractorSolver();
 
     //These are the methods that you can use for the External Programs to Sextract or Solve
     void sextract();
