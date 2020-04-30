@@ -387,6 +387,15 @@ bool SexySolver::runSEPSextractor()
     hasSextracted = true;
     if(justSextract)
         emit finished(0);
+
+    if (stats.dataType != TFLOAT)
+        delete [] data;
+    sep_bkg_free(bkg);
+    sep_catalog_free(catalog);
+    free(imback);
+    free(fluxerr);
+    free(area);
+    free(flag);
     return true;
 
 exit:
