@@ -833,7 +833,7 @@ int SexySolver::runInternalSolver()
     if (engine_run_job(engine, job))
         emit logNeedsUpdating("Failed to run_job()\n");
 
-    //This deletes the engine object since it is no longer needed.
+    //This deletes or frees the items that are no longer needed.
     engine_free(engine);
     bl_free(job->scales);
     dl_free(job->depths);
@@ -846,10 +846,12 @@ int SexySolver::runInternalSolver()
     temp.remove(cancelfn);
     temp.remove(solvedfn);
 
-    //Note: I can only get these items after the solve because I made a small change to the
-    //Astrometry.net Code.  I made it return in solve_fields in blind.c before it ran "cleanup"
+    //Note: I can only get these items after the solve because I made a couple of small changes to the Astrometry.net Code.
+    //I made it return in solve_fields in blind.c before it ran "cleanup".  I also had it wait to clean up solutions, blind and solver in engine.c.  We will do that after we get the solution information.
     MatchObj match =bp->solver.best_match;
     sip_t *wcs = match.sip;
+    
+    int returnCode = 0;
 
     if(wcs)
     {
@@ -892,23 +894,30 @@ int SexySolver::runInternalSolver()
         emit logNeedsUpdating(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));
         emit logNeedsUpdating(QString("Pixel Scale: %1\"").arg( pixscale));
         emit logNeedsUpdating(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
-
-
         emit logNeedsUpdating(QString("Field parity: %1\n").arg( parity));
-
-
 
         solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient, pixscale, parity, raErr, decErr};
         hasSolved = true;
-        emit finished(0);
-        return 0;
     }
     else
     {
         emit logNeedsUpdating("Solver was aborted, timed out, or failed, so no solution was found");
-        emit finished(-1);
-        return -1;
     }
+    
+    //This code was taken from engine.c and blind.c so that we can clean up all of the allocated memory after we get the solution information out of it so that we can prevent memory leaks.
+    
+    for (size_t i=0; i<bl_size(bp->solutions); i++) {
+        MatchObj* mo = (MatchObj*)bl_access(bp->solutions, i);
+        verify_free_matchobj(mo);
+        blind_free_matchobj(mo);
+    }
+    bl_remove_all(bp->solutions);
+    blind_clear_solutions(bp);
+    solver_cleanup(&bp->solver);
+    blind_cleanup(bp);
+    
+    emit finished(returnCode);
+    return returnCode;
 }
 
 QMap<QString, QVariant> SexySolver::convertToMap(Parameters params)
