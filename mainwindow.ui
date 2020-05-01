@@ -335,90 +335,29 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>178</width>
-          <height>497</height>
+          <width>175</width>
+          <height>474</height>
          </rect>
         </property>
         <attribute name="label">
          <string>Sextractor</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_8">
-         <item row="16" column="3">
-          <widget class="QLineEdit" name="r_min">
-           <property name="text">
-            <string>3.5</string>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="1">
-          <widget class="QLabel" name="label_18">
-           <property name="text">
-            <string>Thresh</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1" colspan="3">
-          <widget class="QCheckBox" name="calculateHFR">
-           <property name="text">
-            <string>Calculate HFR</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="3">
-          <widget class="QLineEdit" name="clean_param">
-           <property name="text">
-            <string>1</string>
-           </property>
-          </widget>
-         </item>
-         <item row="17" column="3">
-          <widget class="QLineEdit" name="magzero">
-           <property name="text">
-            <string>20</string>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="1">
-          <widget class="QLabel" name="label_19">
-           <property name="text">
-            <string>Min Cont.</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
+         <item row="4" column="1">
           <widget class="QLabel" name="label_17">
            <property name="text">
             <string>Thresh</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1" colspan="3">
-          <widget class="QLabel" name="label_38">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
+         <item row="3" column="1">
+          <widget class="QLabel" name="label_24">
            <property name="text">
-            <string>&lt;a href = &quot;https://sep.readthedocs.io/en/v1.0.x/api/sep.extract.html&quot; &gt;Extraction Params&lt;/a&gt;</string>
-           </property>
-           <property name="openExternalLinks">
-            <bool>true</bool>
+            <string>Sub Pix</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="3">
-          <widget class="QLineEdit" name="minarea">
-           <property name="text">
-            <string>5</string>
-           </property>
-          </widget>
-         </item>
-         <item row="15" column="3">
+         <item row="14" column="2">
           <widget class="QComboBox" name="apertureShape">
            <property name="currentIndex">
             <number>1</number>
@@ -440,7 +379,40 @@
            </item>
           </widget>
          </item>
-         <item row="13" column="1" colspan="3">
+         <item row="11" column="2">
+          <widget class="QLineEdit" name="fwhm">
+           <property name="text">
+            <string>2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1" colspan="2">
+          <widget class="QLabel" name="label_20">
+           <property name="text">
+            <string>&lt;a href=&quot;https://sep.readthedocs.io/en/v1.0.x/api/sep.extract.html&quot;&gt;Deblending Params&lt;/a&gt;</string>
+           </property>
+           <property name="openExternalLinks">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1" colspan="2">
+          <widget class="QLabel" name="label_38">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>&lt;a href = &quot;https://sep.readthedocs.io/en/v1.0.x/api/sep.extract.html&quot; &gt;Extraction Params&lt;/a&gt;</string>
+           </property>
+           <property name="openExternalLinks">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="1" colspan="2">
           <widget class="QLabel" name="label_14">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -456,14 +428,87 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="3">
-          <widget class="QLineEdit" name="subpix">
+         <item row="11" column="1">
+          <widget class="QLabel" name="label_23">
+           <property name="text">
+            <string>FWHM</string>
+           </property>
+          </widget>
+         </item>
+         <item row="15" column="2">
+          <widget class="QLineEdit" name="r_min">
+           <property name="text">
+            <string>3.5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="1">
+          <widget class="QLabel" name="label_12">
+           <property name="text">
+            <string>Shape</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QCheckBox" name="cleanCheckBox">
+           <property name="text">
+            <string>Clean?</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="2">
+          <widget class="QLineEdit" name="deblend_contrast">
+           <property name="text">
+            <string>1</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLineEdit" name="minarea">
            <property name="text">
             <string>5</string>
            </property>
           </widget>
          </item>
-         <item row="11" column="1" colspan="3">
+         <item row="13" column="1">
+          <widget class="QLabel" name="label_25">
+           <property name="text">
+            <string>Kron Facy</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="1">
+          <widget class="QLabel" name="label_18">
+           <property name="text">
+            <string>Thresh</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="2">
+          <widget class="QLineEdit" name="deblend_thresh">
+           <property name="text">
+            <string>32</string>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="2">
+          <widget class="QLineEdit" name="kron_fact">
+           <property name="text">
+            <string>3.5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="16" column="2">
+          <widget class="QLineEdit" name="magzero">
+           <property name="text">
+            <string>20</string>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="1" colspan="2">
           <widget class="QLabel" name="label_22">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -476,14 +521,7 @@
            </property>
           </widget>
          </item>
-         <item row="12" column="1">
-          <widget class="QLabel" name="label_23">
-           <property name="text">
-            <string>FWHM</string>
-           </property>
-          </widget>
-         </item>
-         <item row="18" column="3">
+         <item row="17" column="2">
           <spacer name="verticalSpacer_4">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -496,100 +534,52 @@
            </property>
           </spacer>
          </item>
-         <item row="12" column="3">
-          <widget class="QLineEdit" name="fwhm">
+         <item row="3" column="2">
+          <widget class="QLineEdit" name="subpix">
            <property name="text">
-            <string>2</string>
+            <string>5</string>
            </property>
           </widget>
          </item>
-         <item row="9" column="3">
-          <widget class="QLineEdit" name="deblend_thresh">
-           <property name="text">
-            <string>32</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
+         <item row="2" column="1">
           <widget class="QLabel" name="label_21">
            <property name="text">
             <string>Min Area</string>
            </property>
           </widget>
          </item>
-         <item row="5" column="3">
-          <widget class="QLineEdit" name="detect_thresh">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="8" column="1" colspan="3">
-          <widget class="QLabel" name="label_20">
-           <property name="text">
-            <string>&lt;a href=&quot;https://sep.readthedocs.io/en/v1.0.x/api/sep.extract.html&quot;&gt;Deblending Params&lt;/a&gt;</string>
-           </property>
-           <property name="openExternalLinks">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QCheckBox" name="cleanCheckBox">
-           <property name="text">
-            <string>Clean?</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="16" column="1">
-          <widget class="QLabel" name="label_13">
-           <property name="text">
-            <string>r_min</string>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="3">
-          <widget class="QLineEdit" name="deblend_contrast">
+         <item row="5" column="2">
+          <widget class="QLineEdit" name="clean_param">
            <property name="text">
             <string>1</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
-          <widget class="QLabel" name="label_24">
+         <item row="9" column="1">
+          <widget class="QLabel" name="label_19">
            <property name="text">
-            <string>Sub Pix</string>
+            <string>Min Cont.</string>
            </property>
           </widget>
          </item>
-         <item row="15" column="1">
-          <widget class="QLabel" name="label_12">
-           <property name="text">
-            <string>Shape</string>
-           </property>
-          </widget>
-         </item>
-         <item row="17" column="1">
+         <item row="16" column="1">
           <widget class="QLabel" name="label_15">
            <property name="text">
             <string>magzero</string>
            </property>
           </widget>
          </item>
-         <item row="14" column="1">
-          <widget class="QLabel" name="label_25">
+         <item row="4" column="2">
+          <widget class="QLineEdit" name="detect_thresh">
            <property name="text">
-            <string>Kron Facy</string>
+            <string/>
            </property>
           </widget>
          </item>
-         <item row="14" column="3">
-          <widget class="QLineEdit" name="kron_fact">
+         <item row="15" column="1">
+          <widget class="QLabel" name="label_13">
            <property name="text">
-            <string>3.5</string>
+            <string>r_min</string>
            </property>
           </widget>
          </item>
@@ -1595,7 +1585,17 @@
         </item>
         <item>
          <property name="text">
+          <string>Internal Sextractor w/ HFR</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
           <string>External Sextractor</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>External Sextractor w/ HFR</string>
          </property>
         </item>
        </widget>

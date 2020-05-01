@@ -113,6 +113,14 @@ void ExternalSextractorSolver::sextract()
     runExternalSextractor();
 }
 
+//This is the method you want to run to just sextract the image
+void ExternalSextractorSolver::sextractWithHFR()
+{
+    justSextract = true;
+    calculateHFR = true;
+    runExternalSextractor();
+}
+
 //This is the method you want to use to both sextract and solve an image
 void ExternalSextractorSolver::sextractAndSolve()
 {
@@ -252,7 +260,7 @@ bool ExternalSextractorSolver::runExternalSextractor()
             out << "CXX_IMAGE\n";//                Cxx object ellipse parameter                              [pixel**(-2)]
             out << "CYY_IMAGE\n";//                Cyy object ellipse parameter                              [pixel**(-2)]
             out << "CXY_IMAGE\n";//                Cxy object ellipse parameter                              [pixel**(-2)]
-            if(params.calculateHFR)
+            if(calculateHFR)
                 out << "FLUX_RADIUS\n";//              Fraction-of-light radii                                   [pixel]
         }
         paramFile.close();
@@ -735,7 +743,7 @@ bool ExternalSextractorSolver::getSextractorTable()
                         yy = QString(value).trimmed().toFloat();
                     if(ii == 8)
                         xy = QString(value).trimmed().toFloat();
-                    if(params.calculateHFR && ii == 9)
+                    if(calculateHFR && ii == 9)
                         HFR = QString(value).trimmed().toFloat();
                 }
             }

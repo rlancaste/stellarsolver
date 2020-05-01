@@ -100,6 +100,7 @@ private:
 
     //Options for SexySolver Tester
     QString dirPath = QDir::homePath();
+    bool hasHFRData = false;
     bool showFluxInfo = false;
     bool showStarShapeInfo = false;
     bool showSextractorParams = false;
@@ -109,7 +110,7 @@ private:
     typedef enum {SEXYSOLVER, EXT_SEXTRACTORSOLVER, INT_SEP_EXT_SOLVER, CLASSIC_ASTROMETRY, ASTAP}SolverType;
     SolverType solverType;
 
-    typedef enum {SEP, EXT_SEXTRACTOR}SextractorType;
+    typedef enum {SEP, SEP_HFR, EXT_SEXTRACTOR, EXT_SEXTRACTOR_HFR}SextractorType;
     SextractorType sextractorType;
 
     //This allows for averaging over multiple trials

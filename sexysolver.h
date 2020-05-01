@@ -55,7 +55,7 @@ public:
 
     QString command;                        //This is a string in which to store the name of the command being run for later access
 
-    typedef struct Parameters
+    struct Parameters
     {
         QString listName = "Default";       //This is the name of this particular profile of options for SexySolver
 
@@ -67,7 +67,6 @@ public:
         short inflags;                      //Note sure if we need them?
 
         //Sextractor Extraction Parameters
-        bool calculateHFR = false;          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
         double magzero = 20;                 //This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.
         double minarea = 5;                  //This is the minimum area in pixels for a star detection, smaller stars are ignored.
         int deblend_thresh = 32;            //The number of thresholds the intensity range is divided up into.
@@ -119,7 +118,6 @@ public:
                     r_min == o.r_min &&
                     //skip inflags??  Not sure we even need them
 
-                    calculateHFR == o.calculateHFR &&
                     magzero == o.magzero &&
                     deblend_thresh == o.deblend_thresh &&
                     deblend_contrast == o.deblend_contrast &&
@@ -163,6 +161,7 @@ public:
 
     //These are the most important methods that you can use for the SexySolver
     void sextract();                    //This will run the Internal SexySolver (SEP) Sextractor
+    void sextractWithHFR();             //This will run the Internal SexySolver (SEP) Sextractor with the option to get HFR data turned on.
     void sextractAndSolve();            //This will run both the Internal SexySolver Sextractor (SEP) and Solver (astrometry.net)
     void abort();                       //This will abort the solver
 
@@ -184,6 +183,7 @@ public:
     Solution getSolution(){return solution;};
     bool sextractionDone(){return hasSextracted;};
     bool solvingDone(){return hasSolved;};
+    bool isCalculatingHFR(){return calculateHFR;};
     Parameters getCurrentParameters(){return params;};
     bool isUsingScale(){return use_scale;};
     bool isUsingPosition(){return use_position;};
@@ -211,6 +211,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     double search_dec = HUGE_VAL;       //DEC of field center for search, format: decimal degrees
 
     //SexySolver Internal settings that are needed by ExternalSextractorSolver as well
+    bool calculateHFR = false;          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
     bool justSextract = false;          //This boolean determines whether the solver should proceeed to solve the image, or just sextract
     bool hasSextracted = false;         //This boolean is set when the sextraction is done
     bool hasSolved = false;             //This boolean is set when the solving is done

@@ -160,7 +160,6 @@ MainWindow::MainWindow() :
     ui->generateAstrometryConfig->setToolTip("Determines whether to generate an astrometry.cfg file based on the options in the options panel or to use the external config file above.");
 
     //SexySolver Tester Options
-    ui->calculateHFR->setToolTip("This is a Sextractor option, when checked it will calculate the HFR of the stars.");
     connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
 
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){
@@ -558,10 +557,22 @@ void MainWindow::sextractImage()
     {
         case SEP:
             sexySolver->sextract();
+            hasHFRData = false;
+            break;
+
+        case SEP_HFR:
+            sexySolver->sextractWithHFR();
+            hasHFRData = true;
             break;
 
         case EXT_SEXTRACTOR:
             extSolver->sextract();
+            hasHFRData = false;
+            break;
+
+        case EXT_SEXTRACTOR_HFR:
+            extSolver->sextractWithHFR();
+            hasHFRData = true;
             break;
     }
 }
@@ -728,7 +739,6 @@ SexySolver::Parameters MainWindow::getSettingsFromUI()
     SexySolver::Parameters params;
     params.listName = "Custom";
     //These are to pass the parameters to the internal sextractor
-    params.calculateHFR = ui->calculateHFR->isChecked();
     params.apertureShape = (Shape) ui->apertureShape->currentIndex();
     params.kron_fact = ui->kron_fact->text().toDouble();
     params.subpix = ui->subpix->text().toInt() ;
@@ -777,8 +787,6 @@ void MainWindow::sendSettingsToUI(SexySolver::Parameters a)
 {
     //Sextractor Settings
 
-        ui->calculateHFR->setChecked(a.calculateHFR);
-            disconnect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
         ui->apertureShape->setCurrentIndex(a.apertureShape);
             connect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
         ui->kron_fact->setText(QString::number(a.kron_fact));
@@ -1637,7 +1645,7 @@ void MainWindow::mouseMovedOverImage(QPoint location)
             if(starInImage.contains(location))
             {
                 QString text;
-                if(ui->calculateHFR->isChecked())
+                if(hasHFRData)
                     text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5, peak:%6, HFR: %7").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.peak).arg(star.HFR);
                  else
                     text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5, peak:%6").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.peak);
@@ -1799,7 +1807,7 @@ void MainWindow::updateStarTableFromList()
 
     addColumnToTable(table,"FLUX_AUTO");
     addColumnToTable(table,"PEAK");
-    if(!sexySolver.isNull() && params.calculateHFR)
+    if(!sexySolver.isNull() && sexySolver->isCalculatingHFR())
         addColumnToTable(table,"HFR");
 
     addColumnToTable(table,"a");
@@ -1817,7 +1825,7 @@ void MainWindow::updateStarTableFromList()
 
         setItemInColumn(table, "FLUX_AUTO", QString::number(star.flux));
         setItemInColumn(table, "PEAK", QString::number(star.peak));
-        if(!sexySolver.isNull() && params.calculateHFR)
+        if(!sexySolver.isNull() && sexySolver->isCalculatingHFR())
             setItemInColumn(table, "HFR", QString::number(star.HFR));
 
         setItemInColumn(table, "a", QString::number(star.a));
@@ -1833,7 +1841,6 @@ void MainWindow::updateHiddenStarTableColumns()
 
     setColumnHidden(table,"FLUX_AUTO", !showFluxInfo);
     setColumnHidden(table,"PEAK", !showFluxInfo);
-    setColumnHidden(table,"HFR", !showFluxInfo);
 
     setColumnHidden(table,"a", !showStarShapeInfo);
     setColumnHidden(table,"b", !showStarShapeInfo);
@@ -2106,7 +2113,7 @@ void MainWindow::addSextractionToTable()
     setItemInColumn(table, "Profile", params.listName);
     setItemInColumn(table, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
-    setItemInColumn(table,"doHFR", QVariant(params.calculateHFR).toString());
+    setItemInColumn(table,"doHFR", QVariant(sexySolver->isCalculatingHFR()).toString());
     QString shapeName="Circle";
     switch(params.apertureShape)
     {

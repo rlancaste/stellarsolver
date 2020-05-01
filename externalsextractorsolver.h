@@ -22,6 +22,7 @@ public:
 
     //These are the methods that you can use for the External Programs to Sextract or Solve
     void sextract();
+    void sextractWithHFR();
     void sextractAndSolve();
     void SEPAndSolve();
     void classicSolve();

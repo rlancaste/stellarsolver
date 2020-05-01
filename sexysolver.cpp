@@ -38,6 +38,13 @@ void SexySolver::sextract()
     this->start();
 }
 
+void SexySolver::sextractWithHFR()
+{
+    justSextract = true;
+    calculateHFR = true;
+    this->start();
+}
+
 //This is the method you want to use to sextract and solve the image
 void SexySolver::sextractAndSolve()
 {
@@ -274,7 +281,7 @@ bool SexySolver::runSEPSextractor()
         float mag = params.magzero - 2.5 * log10(sum);
 
         float HFR = 0;
-        if(params.calculateHFR)
+        if(calculateHFR)
         {
             //Get HFR
             sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, params.subpix, 0, &flux, requested_frac, 2, flux_fractions, &flux_flag);
@@ -926,7 +933,6 @@ QMap<QString, QVariant> SexySolver::convertToMap(Parameters params)
     settingsMap.insert("listName", QVariant(params.listName));
 
     //These are to pass the parameters to the internal sextractor
-    settingsMap.insert("calculateHFR", QVariant(params.calculateHFR));
     settingsMap.insert("apertureShape", QVariant(params.apertureShape));
     settingsMap.insert("kron_fact", QVariant(params.kron_fact));
     settingsMap.insert("subpix", QVariant(params.subpix));
@@ -985,7 +991,6 @@ SexySolver::Parameters SexySolver::convertFromMap(QMap<QString, QVariant> settin
 
     //These are to pass the parameters to the internal sextractor
 
-    params.calculateHFR = settingsMap.value("calculateHFR", params.listName).toDouble();
     params.apertureShape = (Shape)settingsMap.value("apertureShape", params.listName).toInt();
     params.kron_fact = settingsMap.value("kron_fact", params.listName).toDouble();
     params.subpix = settingsMap.value("subpix", params.listName).toInt();
