@@ -846,7 +846,10 @@ bool MainWindow::sextractorComplete(int error)
         if(currentTrial==numberOfTrials)
             stars = sexySolver->getStarList();
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
+        if(sexySolver->isCalculatingHFR())
+            logOutput(QString("Successfully sextracted and calculated HFR for %1 stars.").arg(stars.size()));
+        else
+            logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
         logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         if(currentTrial<numberOfTrials)
@@ -2109,7 +2112,10 @@ void MainWindow::addSextractionToTable()
         setItemInColumn(table, "Int?", "Internal");
     else
         setItemInColumn(table, "Int?", "External");
-    setItemInColumn(table, "Command", "Sextract");
+    if(sexySolver->isCalculatingHFR())
+        setItemInColumn(table, "Command", "Sextract w/ HFR");
+    else
+         setItemInColumn(table, "Command", "Sextract");
     setItemInColumn(table, "Profile", params.listName);
     setItemInColumn(table, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
