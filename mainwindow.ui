@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>921</width>
+    <width>1055</width>
     <height>769</height>
    </rect>
   </property>
@@ -99,7 +99,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>175</width>
+          <width>201</width>
           <height>333</height>
          </rect>
         </property>
@@ -335,7 +335,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>175</width>
+          <width>201</width>
           <height>474</height>
          </rect>
         </property>
@@ -590,7 +590,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>175</width>
+          <width>201</width>
           <height>333</height>
          </rect>
         </property>
@@ -740,8 +740,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>175</width>
-          <height>348</height>
+          <width>201</width>
+          <height>333</height>
          </rect>
         </property>
         <attribute name="label">
@@ -871,7 +871,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>175</width>
+          <width>201</width>
           <height>333</height>
          </rect>
         </property>
@@ -1112,7 +1112,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>175</width>
+          <width>201</width>
           <height>334</height>
          </rect>
         </property>
@@ -1208,7 +1208,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>433</width>
+              <width>499</width>
               <height>126</height>
              </rect>
             </property>
@@ -1341,7 +1341,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>435</width>
+           <width>501</width>
            <height>375</height>
           </rect>
          </property>
@@ -1565,7 +1565,17 @@
          </layout>
         </item>
         <item>
-         <widget class="QTableWidget" name="starTable"/>
+         <widget class="QTableWidget" name="starTable">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="showDropIndicator" stdset="0">
+           <bool>false</bool>
+          </property>
+          <property name="dragDropOverwriteMode">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -1576,44 +1586,6 @@
       <property name="topMargin">
        <number>0</number>
       </property>
-      <item row="3" column="2">
-       <widget class="QComboBox" name="sextractorType">
-        <item>
-         <property name="text">
-          <string>Internal Sextractor</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Internal Sextractor w/ HFR</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>External Sextractor</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>External Sextractor w/ HFR</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="5" column="2">
-       <widget class="QPushButton" name="SextractStars">
-        <property name="text">
-         <string>Sextract</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="3">
-       <widget class="QPushButton" name="SolveImage">
-        <property name="text">
-         <string>Solve</string>
-        </property>
-       </widget>
-      </item>
       <item row="5" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
@@ -1666,42 +1638,6 @@
          </widget>
         </item>
        </layout>
-      </item>
-      <item row="3" column="3">
-       <widget class="QComboBox" name="solverType">
-        <item>
-         <property name="text">
-          <string>Internal SexySolver</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Ext. Sextractor Ext. Solver</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Int. Sextractor Ext. Solver</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Classic Astrometry.net</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>ASTAP Solver</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="5" column="5">
-       <widget class="QPushButton" name="Abort">
-        <property name="text">
-         <string>Abort</string>
-        </property>
-       </widget>
       </item>
       <item row="3" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -1762,7 +1698,14 @@
         </item>
        </layout>
       </item>
-      <item row="3" column="5">
+      <item row="5" column="6">
+       <widget class="QPushButton" name="Abort">
+        <property name="text">
+         <string>Abort</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="6">
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
          <widget class="QPushButton" name="exportResultsTable">
@@ -1779,6 +1722,85 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item row="3" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_10">
+        <item>
+         <widget class="QComboBox" name="sextractorType">
+          <item>
+           <property name="text">
+            <string>Internal Sextractor</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>External Sextractor</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="withHFR">
+          <property name="text">
+           <string>w/ HFR</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="5" column="2">
+       <widget class="QPushButton" name="SextractStars">
+        <property name="text">
+         <string>Sextract</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="5">
+       <layout class="QHBoxLayout" name="horizontalLayout_11">
+        <item>
+         <widget class="QComboBox" name="solverType">
+          <item>
+           <property name="text">
+            <string>Internal SexySolver</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Ext. Sextractor Ext. Solver</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Int. Sextractor Ext. Solver</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Classic Astrometry.net</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>ASTAP Solver</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="withWCS">
+          <property name="text">
+           <string>w/ WCS</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="5" column="5">
+       <widget class="QPushButton" name="SolveImage">
+        <property name="text">
+         <string>Solve</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

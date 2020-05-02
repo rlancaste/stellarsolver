@@ -779,10 +779,12 @@ int SexySolver::runInternalSolver()
     double *xArray = new double[stars.size()];
     double *yArray = new double[stars.size()];
 
-    for (int i = 0; i < stars.size(); i++)
+    int i = 0;
+    foreach(Star star, stars)
     {
-        xArray[i] = stars.at(i).x;
-        yArray[i] = stars.at(i).y;
+        xArray[i] = star.x;
+        yArray[i] = star.y;
+        i++;
     }
 
     starxy_t* fieldToSolve = (starxy_t*)calloc(1, sizeof(starxy_t));
@@ -874,6 +876,22 @@ int SexySolver::runInternalSolver()
         sip_get_radec_center_hms_string(wcs, rastr, decstr);
         sip_get_field_size(wcs, &fieldw, &fieldh, &fieldunits);
         orient = sip_get_orientation(wcs);
+        if(loadWCS)
+        {
+            loadWCSDataForStars(wcs);
+            loadWCSDataForImageDisplay(wcs);
+            //Restore Star positions, width and height for the star table and display
+            stats.width *= params.downsample;
+            stats.height *= params.downsample;
+            for(int i=0; i<stars.count(); i++)
+            {
+                stars[i].x *= params.downsample;
+                stars[i].y *= params.downsample;
+                stars[i].a *= params.downsample;
+                stars[i].b *= params.downsample;
+                //hfr is not an option, but would be here too
+            }
+        }
         // Note, negative determinant = positive parity.
         double det = sip_det_cd(wcs);
         parity = (det < 0 ? "pos" : "neg");
@@ -925,6 +943,46 @@ int SexySolver::runInternalSolver()
     
     emit finished(returnCode);
     return returnCode;
+}
+
+void SexySolver::loadWCSDataForImageDisplay(sip_t *wcs)
+{
+    int w = stats.width;
+    int h = stats.height;
+
+    delete[] wcs_coord;
+    wcs_coord = new wcs_point[w * h];
+    wcs_point * p = wcs_coord;
+
+    for (int y = 0; y < h; y++)
+    {
+        for (int x = 0; x < w; x++)
+        {
+            double ra;
+            double dec;
+            sip_pixelxy2radec(wcs, x, y, &ra, &dec);
+            p->ra = ra;
+            p->dec = dec;
+            p++;
+        }
+    }
+}
+
+void SexySolver::loadWCSDataForStars(sip_t *wcs)
+{
+    for(int i=0; i<stars.count(); i++)
+    {
+        double ra;
+        double dec;
+        sip_pixelxy2radec(wcs, stars[i].x, stars[i].y, &ra, &dec);
+        char rastr[32], decstr[32];
+        ra2hmsstring(ra, rastr);
+        dec2dmsstring(dec, decstr);
+        stars[i].ra = ra;
+        stars[i].dec = dec;
+        stars[i].rastr = rastr;
+        stars[i].decstr = decstr;
+    }
 }
 
 QMap<QString, QVariant> SexySolver::convertToMap(Parameters params)

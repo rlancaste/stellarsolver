@@ -171,6 +171,7 @@ public:
     void setSearchScale(double fov_low, double fov_high, QString scaleUnits);                              //This sets the scale range for the image to speed up the solver
     void setSearchPosition(double ra, double dec);                                                    //This sets the search RA/DEC/Radius to speed up the solver
     void disableInparallel(){params.inParallel = false;};
+    void setLoadWCS(bool set){loadWCS = set;};
 
     //These static methods can be used by classes to configure parameters or paths
     static void createConvFilterFromFWHM(Parameters *params, double fwhm);                      //This creates the conv filter from a fwhm
@@ -184,9 +185,12 @@ public:
     bool sextractionDone(){return hasSextracted;};
     bool solvingDone(){return hasSolved;};
     bool isCalculatingHFR(){return calculateHFR;};
+    bool isLoadingWCS(){return loadWCS;};
     Parameters getCurrentParameters(){return params;};
     bool isUsingScale(){return use_scale;};
     bool isUsingPosition(){return use_position;};
+    wcs_point * getWCSCoord(){return wcs_coord; };
+
     static QMap<QString,QVariant> convertToMap(Parameters params);
     static Parameters convertFromMap(QMap<QString,QVariant> settingsMap);
 
@@ -224,6 +228,10 @@ protected:  //Note: These items are not private because they are needed by Exter
     Solution solution;          //This is the solution that comes back from the Solver
 
     bool runSEPSextractor();    //This is the method that actually runs the internal sextractor
+    void loadWCSDataForImageDisplay(sip_t *wcs);
+    void loadWCSDataForStars(sip_t *wcs);
+    bool loadWCS = true;
+
 
     // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
     QString cancelfn;           //Filename whose creation signals the process to stop
@@ -255,6 +263,9 @@ private:
     void downsampleImage(int d);
     template <typename T>
     void downSampleImageType(int d);
+
+    /// Pointer to WCS coordinate data, if any.
+    wcs_point *wcs_coord { nullptr };
 
 signals:
 

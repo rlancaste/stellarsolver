@@ -63,9 +63,11 @@ MainWindow::MainWindow() :
     connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractButtonClicked );
     ui->SextractStars->setToolTip("Sextract the stars in the image using the chosen method and load them into the star table");
     ui->sextractorType->setToolTip("Lets you choose the Internal SexySolver SEP or external Sextractor program");
+    ui->withHFR->setToolTip("Sextract the image and get the Stars' HFR too. Warning, this takes more processing power.");
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveButtonClicked );
     ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box");
     ui->solverType->setToolTip("Lets you choose how to solve the image");
+    ui->withWCS->setToolTip("When Solving, save the WCS info into the image and starTable so that the RA and DEC can be displayed");
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     ui->Abort->setToolTip("Aborts the current process if one is running.");
     connect(ui->ClearStars,&QAbstractButton::clicked, this, &MainWindow::clearStars );
@@ -407,7 +409,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-//This method clears the tables and displays when the user requests it.
+//This method clears the stars and star displays
 void MainWindow::clearStars()
 {
     ui->starTable->clearContents();
@@ -474,6 +476,9 @@ bool MainWindow::prepareForProcesses()
     totalTime = 0;
     currentTrial = 0;
     lastSolution = Solution();
+    hasWCSData = ui->withWCS->isChecked();
+    hasHFRData = ui->withHFR->isChecked();
+    clearStars();
     return true;
 }
 
@@ -556,23 +561,18 @@ void MainWindow::sextractImage()
     switch(sextractorType)
     {
         case SEP:
-            sexySolver->sextract();
-            hasHFRData = false;
-            break;
 
-        case SEP_HFR:
-            sexySolver->sextractWithHFR();
-            hasHFRData = true;
+            if(hasHFRData)
+                sexySolver->sextractWithHFR();
+            else
+                sexySolver->sextract();
             break;
 
         case EXT_SEXTRACTOR:
-            extSolver->sextract();
-            hasHFRData = false;
-            break;
-
-        case EXT_SEXTRACTOR_HFR:
-            extSolver->sextractWithHFR();
-            hasHFRData = true;
+            if(hasHFRData)
+                extSolver->sextractWithHFR();
+            else
+                extSolver->sextract();
             break;
     }
 }
@@ -662,6 +662,11 @@ void MainWindow::solveImage()
         sexySolver->setSearchPosition(ui->ra->text().toDouble(), ui->dec->text().toDouble());
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
+
+    if(solverType != SEXYSOLVER)  //For now, until I implement this on the external solvers
+        hasWCSData = false;
+
+    sexySolver->setLoadWCS(hasWCSData);
 
     startProcessMonitor();
 
@@ -865,6 +870,8 @@ bool MainWindow::sextractorComplete(int error)
         logOutput(QString("Sextractor failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         stopProcessMonitor();
+        hasHFRData = false;
+        hasWCSData = false;
         if(currentTrial == 1)
             return false;
     }
@@ -894,6 +901,15 @@ bool MainWindow::solverComplete(int error)
             return true;
         }
         stopProcessMonitor();
+        if(hasWCSData)
+        {
+            if(currentTrial==numberOfTrials)
+                stars = sexySolver->getStarList();
+            displayTable();
+            delete [] wcs_coord;
+            wcs_coord = sexySolver->getWCSCoord();
+            wcsDown = sexySolver->getCurrentParameters().downsample;
+        }
     }
     else
     {
@@ -901,6 +917,8 @@ bool MainWindow::solverComplete(int error)
         logOutput(QString(sexySolver->command + "failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         stopProcessMonitor();
+        hasHFRData = false;
+        hasWCSData = false;
         if(currentTrial == 1)
             return false;
     }
@@ -1638,7 +1656,16 @@ void MainWindow::mouseMovedOverImage(QPoint location)
         double x = location.x() * stats.width / currentWidth;
         double y = location.y() * stats.height / currentHeight;
 
-        ui->mouseInfo->setText(QString("X: %1, Y: %2, Value: %3").arg(x).arg(y).arg(getValue(x,y)));
+        if(hasWCSData)
+        {
+            int index = (x/wcsDown) + (y/wcsDown) * (stats.width/wcsDown);
+            char rastr[32], decstr[32];
+            ra2hmsstring(wcs_coord[index].ra, rastr);
+            dec2dmsstring(wcs_coord[index].dec, decstr);
+            ui->mouseInfo->setText(QString("RA: %1, DEC: %2, Value: %3").arg(rastr).arg(decstr).arg(getValue(x,y)));
+        }
+        else
+            ui->mouseInfo->setText(QString("X: %1, Y: %2, Value: %3").arg(x).arg(y).arg(getValue(x,y)));
 
         bool starFound = false;
         for(int i = 0 ; i < stars.size() ; i ++)
@@ -1647,11 +1674,11 @@ void MainWindow::mouseMovedOverImage(QPoint location)
             QRect starInImage = getStarSizeInImage(star);
             if(starInImage.contains(location))
             {
-                QString text;
+                QString text =QString("Star: %1, x: %2, y: %3\nmag: %4, flux: %5, peak:%6").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.peak);
                 if(hasHFRData)
-                    text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5, peak:%6, HFR: %7").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.peak).arg(star.HFR);
-                 else
-                    text = QString("Star: %1, x: %2, y: %3, mag: %4, flux: %5, peak:%6").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.peak);
+                    text += ", " + QString("HFR: %1").arg(star.HFR);
+                if(hasWCSData)
+                    text += "\n" + QString("RA: %1, DEC: %2").arg(star.rastr).arg(star.decstr);
                 QToolTip::showText(QCursor::pos(), text, ui->Image);
                 selectedStar = i;
                 starFound = true;
@@ -1805,8 +1832,11 @@ void MainWindow::updateStarTableFromList()
     table->setColumnCount(0);
     selectedStar = 0;
     addColumnToTable(table,"MAG_AUTO");
+    addColumnToTable(table,"RA (J2000)");
+    addColumnToTable(table,"DEC (J2000)");
     addColumnToTable(table,"X_IMAGE");
     addColumnToTable(table,"Y_IMAGE");
+
 
     addColumnToTable(table,"FLUX_AUTO");
     addColumnToTable(table,"PEAK");
@@ -1825,6 +1855,11 @@ void MainWindow::updateStarTableFromList()
         setItemInColumn(table, "MAG_AUTO", QString::number(star.mag));
         setItemInColumn(table, "X_IMAGE", QString::number(star.x));
         setItemInColumn(table, "Y_IMAGE", QString::number(star.y));
+        if(hasWCSData)
+        {
+            setItemInColumn(table, "RA (J2000)", star.rastr);
+            setItemInColumn(table, "DEC (J2000)", star.decstr);
+        }
 
         setItemInColumn(table, "FLUX_AUTO", QString::number(star.flux));
         setItemInColumn(table, "PEAK", QString::number(star.peak));
@@ -1844,7 +1879,8 @@ void MainWindow::updateHiddenStarTableColumns()
 
     setColumnHidden(table,"FLUX_AUTO", !showFluxInfo);
     setColumnHidden(table,"PEAK", !showFluxInfo);
-
+    setColumnHidden(table,"RA (J2000)", !hasWCSData);
+    setColumnHidden(table,"DEC (J2000)", !hasWCSData);
     setColumnHidden(table,"a", !showStarShapeInfo);
     setColumnHidden(table,"b", !showStarShapeInfo);
     setColumnHidden(table,"theta", !showStarShapeInfo);
@@ -2079,6 +2115,7 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table,"Cut Dim");
     addColumnToTable(table,"Sat Lim");
     //Astrometry Parameters
+    addColumnToTable(table,"withWCS");
     addColumnToTable(table,"Pos?");
     addColumnToTable(table,"Scale?");
     addColumnToTable(table,"Resort?");
@@ -2175,6 +2212,7 @@ void MainWindow::addSolutionToTable(Solution solution)
     setItemInColumn(table, "Profile", params.listName);
 
     //Astrometry Parameters
+    setItemInColumn(table, "withWCS", QVariant(sexySolver->isLoadingWCS()).toString());
     setItemInColumn(table, "Pos?", QVariant(sexySolver->isUsingPosition()).toString());
     setItemInColumn(table, "Scale?", QVariant(sexySolver->isUsingScale()).toString());
     setItemInColumn(table, "Resort?", QVariant(params.resort).toString());
@@ -2217,6 +2255,7 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table,"Cut Dim", !showSextractorParams);
     setColumnHidden(table,"Sat Lim", !showSextractorParams);
     //Astrometry Parameters
+    setColumnHidden(table,"withWCS", !showAstrometryParams);
     setColumnHidden(table,"Pos?", !showAstrometryParams);
     setColumnHidden(table,"Scale?", !showAstrometryParams);
     setColumnHidden(table,"Resort?", !showAstrometryParams);

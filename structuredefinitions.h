@@ -41,6 +41,10 @@ typedef struct
     float a;        //The semi-major axis of the star
     float b;        //The semi-minor axis of the star
     float theta;    //The angle of orientation of the star
+    float ra;       //The right ascension of the star
+    float dec;      //The declination of the star
+    QString rastr;       //The right ascension of the star
+    QString decstr;      //The declination of the star
 } Star;
 
 typedef struct
@@ -57,6 +61,12 @@ typedef struct
     double raError;     //The error between the search_ra position and the solution ra position in "
     double decError;    //The error between the search_dec position and the solution dec position in "
 } Solution;
+
+typedef struct
+{
+    float ra;
+    float dec;
+} wcs_point;
 
 enum Shape{
     SHAPE_AUTO,

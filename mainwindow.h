@@ -101,6 +101,7 @@ private:
     //Options for SexySolver Tester
     QString dirPath = QDir::homePath();
     bool hasHFRData = false;
+    bool hasWCSData = false;
     bool showFluxInfo = false;
     bool showStarShapeInfo = false;
     bool showSextractorParams = false;
@@ -110,7 +111,7 @@ private:
     typedef enum {SEXYSOLVER, EXT_SEXTRACTORSOLVER, INT_SEP_EXT_SOLVER, CLASSIC_ASTROMETRY, ASTAP}SolverType;
     SolverType solverType;
 
-    typedef enum {SEP, SEP_HFR, EXT_SEXTRACTOR, EXT_SEXTRACTOR_HFR}SextractorType;
+    typedef enum {SEP, EXT_SEXTRACTOR}SextractorType;
     SextractorType sextractorType;
 
     //This allows for averaging over multiple trials
@@ -146,6 +147,9 @@ private:
     void clearAstrometrySettings();
     void addSextractionToTable();
     Solution lastSolution;
+
+    wcs_point *wcs_coord { nullptr };
+    int wcsDown = 1;
 
 public slots:
 
