@@ -149,7 +149,6 @@ private:
     Solution lastSolution;
 
     wcs_point *wcs_coord { nullptr };
-    int wcsDown = 1;
 
 public slots:
 

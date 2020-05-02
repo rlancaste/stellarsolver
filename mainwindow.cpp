@@ -476,8 +476,12 @@ bool MainWindow::prepareForProcesses()
     totalTime = 0;
     currentTrial = 0;
     lastSolution = Solution();
-    hasWCSData = ui->withWCS->isChecked();
-    hasHFRData = ui->withHFR->isChecked();
+    hasHFRData = false;
+    if(hasWCSData)
+    {
+        hasWCSData = false;
+        delete [] wcs_coord;
+    }
     clearStars();
     return true;
 }
@@ -562,14 +566,14 @@ void MainWindow::sextractImage()
     {
         case SEP:
 
-            if(hasHFRData)
+            if(ui->withHFR->isChecked())
                 sexySolver->sextractWithHFR();
             else
                 sexySolver->sextract();
             break;
 
         case EXT_SEXTRACTOR:
-            if(hasHFRData)
+            if(ui->withHFR->isChecked())
                 extSolver->sextractWithHFR();
             else
                 extSolver->sextract();
@@ -664,9 +668,7 @@ void MainWindow::solveImage()
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
     if(solverType != SEXYSOLVER)  //For now, until I implement this on the external solvers
-        hasWCSData = false;
-
-    sexySolver->setLoadWCS(hasWCSData);
+        ui->withWCS->setChecked(false);
 
     startProcessMonitor();
 
@@ -863,6 +865,7 @@ bool MainWindow::sextractorComplete(int error)
             return true;
         }
         stopProcessMonitor();
+        hasHFRData = sexySolver->isCalculatingHFR();
     }
     else
     {
@@ -870,8 +873,6 @@ bool MainWindow::sextractorComplete(int error)
         logOutput(QString("Sextractor failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         stopProcessMonitor();
-        hasHFRData = false;
-        hasWCSData = false;
         if(currentTrial == 1)
             return false;
     }
@@ -901,14 +902,12 @@ bool MainWindow::solverComplete(int error)
             return true;
         }
         stopProcessMonitor();
-        if(hasWCSData)
+        if(ui->withWCS->isChecked())
         {
-            if(currentTrial==numberOfTrials)
-                stars = sexySolver->getStarList();
+            hasWCSData = true;
+            stars = sexySolver->getStarsWithRAandDEC();
             displayTable();
-            delete [] wcs_coord;
             wcs_coord = sexySolver->getWCSCoord();
-            wcsDown = sexySolver->getCurrentParameters().downsample;
         }
     }
     else
@@ -917,8 +916,6 @@ bool MainWindow::solverComplete(int error)
         logOutput(QString(sexySolver->command + "failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         stopProcessMonitor();
-        hasHFRData = false;
-        hasWCSData = false;
         if(currentTrial == 1)
             return false;
     }
@@ -988,6 +985,11 @@ bool MainWindow::imageLoad()
     fileToProcess = newFileURL;
 
     clearAstrometrySettings();
+    if(hasWCSData)
+    {
+        delete [] wcs_coord;
+        hasWCSData = false;
+    }
 
     bool loadSuccess;
     if(newFileInfo.suffix()=="fits"||newFileInfo.suffix()=="fit")
@@ -1658,7 +1660,7 @@ void MainWindow::mouseMovedOverImage(QPoint location)
 
         if(hasWCSData)
         {
-            int index = (x/wcsDown) + (y/wcsDown) * (stats.width/wcsDown);
+            int index = x + y * stats.width;
             char rastr[32], decstr[32];
             ra2hmsstring(wcs_coord[index].ra, rastr);
             dec2dmsstring(wcs_coord[index].dec, decstr);
@@ -2115,7 +2117,6 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table,"Cut Dim");
     addColumnToTable(table,"Sat Lim");
     //Astrometry Parameters
-    addColumnToTable(table,"withWCS");
     addColumnToTable(table,"Pos?");
     addColumnToTable(table,"Scale?");
     addColumnToTable(table,"Resort?");
@@ -2212,7 +2213,6 @@ void MainWindow::addSolutionToTable(Solution solution)
     setItemInColumn(table, "Profile", params.listName);
 
     //Astrometry Parameters
-    setItemInColumn(table, "withWCS", QVariant(sexySolver->isLoadingWCS()).toString());
     setItemInColumn(table, "Pos?", QVariant(sexySolver->isUsingPosition()).toString());
     setItemInColumn(table, "Scale?", QVariant(sexySolver->isUsingScale()).toString());
     setItemInColumn(table, "Resort?", QVariant(params.resort).toString());
@@ -2255,7 +2255,6 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table,"Cut Dim", !showSextractorParams);
     setColumnHidden(table,"Sat Lim", !showSextractorParams);
     //Astrometry Parameters
-    setColumnHidden(table,"withWCS", !showAstrometryParams);
     setColumnHidden(table,"Pos?", !showAstrometryParams);
     setColumnHidden(table,"Scale?", !showAstrometryParams);
     setColumnHidden(table,"Resort?", !showAstrometryParams);

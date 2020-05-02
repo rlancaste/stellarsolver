@@ -857,13 +857,12 @@ int SexySolver::runInternalSolver()
 
     //Note: I can only get these items after the solve because I made a couple of small changes to the Astrometry.net Code.
     //I made it return in solve_fields in blind.c before it ran "cleanup".  I also had it wait to clean up solutions, blind and solver in engine.c.  We will do that after we get the solution information.
-    MatchObj match =bp->solver.best_match;
-    sip_t *wcs = match.sip;
-    
-    int returnCode = 0;
 
-    if(wcs)
+    match = bp->solver.best_match;
+    int returnCode = 0;
+    if(match.sip)
     {
+        wcs = *match.sip;
         double ra, dec, fieldw, fieldh, pixscale;
         char rastr[32], decstr[32];
         QString parity;
@@ -872,33 +871,18 @@ int SexySolver::runInternalSolver()
         // print info about the field.
 
         double orient;
-        sip_get_radec_center(wcs, &ra, &dec);
-        sip_get_radec_center_hms_string(wcs, rastr, decstr);
-        sip_get_field_size(wcs, &fieldw, &fieldh, &fieldunits);
-        orient = sip_get_orientation(wcs);
-        if(loadWCS)
-        {
-            loadWCSDataForStars(wcs);
-            loadWCSDataForImageDisplay(wcs);
-            //Restore Star positions, width and height for the star table and display
-            stats.width *= params.downsample;
-            stats.height *= params.downsample;
-            for(int i=0; i<stars.count(); i++)
-            {
-                stars[i].x *= params.downsample;
-                stars[i].y *= params.downsample;
-                stars[i].a *= params.downsample;
-                stars[i].b *= params.downsample;
-                //hfr is not an option, but would be here too
-            }
-        }
+        sip_get_radec_center(&wcs, &ra, &dec);
+        sip_get_radec_center_hms_string(&wcs, rastr, decstr);
+        sip_get_field_size(&wcs, &fieldw, &fieldh, &fieldunits);
+        orient = sip_get_orientation(&wcs);
+
         // Note, negative determinant = positive parity.
-        double det = sip_det_cd(wcs);
+        double det = sip_det_cd(&wcs);
         parity = (det < 0 ? "pos" : "neg");
         if(usingDownsampledImage)
-            pixscale = sip_pixel_scale(wcs) / params.downsample;
+            pixscale = sip_pixel_scale(&wcs) / params.downsample;
         else
-            pixscale = sip_pixel_scale(wcs);
+            pixscale = sip_pixel_scale(&wcs);
 
         double raErr = 0;
         double decErr = 0;
@@ -923,10 +907,12 @@ int SexySolver::runInternalSolver()
 
         solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient, pixscale, parity, raErr, decErr};
         hasSolved = true;
+        returnCode = 0;
     }
     else
     {
         emit logNeedsUpdating("Solver was aborted, timed out, or failed, so no solution was found");
+        returnCode = -1;
     }
     
     //This code was taken from engine.c and blind.c so that we can clean up all of the allocated memory after we get the solution information out of it so that we can prevent memory leaks.
@@ -945,13 +931,15 @@ int SexySolver::runInternalSolver()
     return returnCode;
 }
 
-void SexySolver::loadWCSDataForImageDisplay(sip_t *wcs)
+wcs_point * SexySolver::getWCSCoord()
 {
-    int w = stats.width;
-    int h = stats.height;
+    //We have to upscale back to the full size image
+    int d = params.downsample;
+    int w = stats.width * d;
+    int h = stats.height * d;
 
-    delete[] wcs_coord;
-    wcs_coord = new wcs_point[w * h];
+
+    wcs_point *wcs_coord = new wcs_point[w * h];
     wcs_point * p = wcs_coord;
 
     for (int y = 0; y < h; y++)
@@ -960,29 +948,36 @@ void SexySolver::loadWCSDataForImageDisplay(sip_t *wcs)
         {
             double ra;
             double dec;
-            sip_pixelxy2radec(wcs, x, y, &ra, &dec);
+            sip_pixelxy2radec(&wcs, x/d, y/d, &ra, &dec);
             p->ra = ra;
             p->dec = dec;
             p++;
         }
     }
+    return wcs_coord;
 }
 
-void SexySolver::loadWCSDataForStars(sip_t *wcs)
+QList<Star> SexySolver::getStarsWithRAandDEC()
 {
-    for(int i=0; i<stars.count(); i++)
+    if(!hasSolved)
+        return stars;
+
+    int d = params.downsample;
+    QList<Star> refinedStars;
+    foreach(Star star, stars)
     {
-        double ra;
-        double dec;
-        sip_pixelxy2radec(wcs, stars[i].x, stars[i].y, &ra, &dec);
+        double ra = HUGE_VAL;
+        double dec = HUGE_VAL;
+        sip_pixelxy2radec(&wcs, star.x, star.y, &ra, &dec);
         char rastr[32], decstr[32];
         ra2hmsstring(ra, rastr);
         dec2dmsstring(dec, decstr);
-        stars[i].ra = ra;
-        stars[i].dec = dec;
-        stars[i].rastr = rastr;
-        stars[i].decstr = decstr;
+
+        //We do need to correct for all the downsampling as well as add RA/DEC info
+        Star refinedStar = {star.x * d , star.y * d , star.mag, star.flux, star.peak, star.HFR * d, star.a * d, star.b * d, star.theta, (float)ra, (float)dec, rastr, decstr};
+        refinedStars.append(refinedStar);
     }
+    return refinedStars;
 }
 
 QMap<QString, QVariant> SexySolver::convertToMap(Parameters params)
