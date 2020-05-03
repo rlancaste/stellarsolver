@@ -338,10 +338,10 @@ bool ExternalSextractorSolver::runExternalSextractor()
     emit logNeedsUpdating(sextractorBinaryPath + " " + sextractorArgs.join(' '));
     sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
     if(justSextract)
-        connect(sextractorProcess, QOverload<int>::of(&QProcess::finished), this, [this](int x){
+        connect(sextractorProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),this, [this](int exitCode, QProcess::ExitStatus exitStatus){
             printSextractorOutput();
-            if(x!=0)
-                emit finished(x);
+            if(exitCode!=0 || exitStatus == QProcess::CrashExit)
+                emit finished(-1);
              if(getSextractorTable())
                  emit finished(0);
              else
@@ -401,9 +401,9 @@ bool ExternalSextractorSolver::runExternalSolver()
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
-    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){
-        if(x!=0)
-            emit finished(x);
+    connect(solver, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),this, [this](int exitCode, QProcess::ExitStatus exitStatus){
+        if(exitCode!=0 || exitStatus == QProcess::CrashExit)
+            emit finished(-1);
         else if(getSextractorTable())
         {
            if(getSolutionInformation())
@@ -474,9 +474,9 @@ bool ExternalSextractorSolver::runExternalClassicSolver()
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
-    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){
-        if(x!=0)
-            emit finished(x);
+    connect(solver, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),this, [this](int exitCode, QProcess::ExitStatus exitStatus){
+        if(exitCode!=0 || exitStatus == QProcess::CrashExit)
+            emit finished(-1);
         else if(getSolutionInformation())
         {
             if(loadWCS())
@@ -541,9 +541,9 @@ bool ExternalSextractorSolver::runExternalASTAPSolver()
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
-    connect(solver, QOverload<int>::of(&QProcess::finished), this, [this](int x){
-        if(x!=0)
-            emit finished(x);
+    connect(solver, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),this, [this](int exitCode, QProcess::ExitStatus exitStatus){
+        if(exitCode!=0 || exitStatus == QProcess::CrashExit)
+            emit finished(-1);
         else if(getASTAPSolutionInformation())
         {
             if(loadWCS())
@@ -788,7 +788,7 @@ bool ExternalSextractorSolver::getSextractorTable()
             float b = sqrt(lambda2);
             float theta = qRadiansToDegrees(atan(xy / (lambda1 - yy)));
 
-            Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta};
+            Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta, HUGE_VAL, HUGE_VAL,"",""};
 
             stars.append(star);
         }
