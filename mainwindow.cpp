@@ -859,10 +859,14 @@ bool MainWindow::solverComplete(int error)
         stopProcessMonitor();
         if(ui->withWCS->isChecked())
         {
-            hasWCSData = true;
-            wcs_coord = sexySolver->getWCSCoord();
-            stars = sexySolver->getStarsWithRAandDEC();
-            displayTable();
+            wcs_point * coord = sexySolver->getWCSCoord();
+            if(coord)
+            {
+                hasWCSData = true;
+                wcs_coord = coord;
+                stars = sexySolver->getStarsWithRAandDEC();
+                displayTable();
+            }
         }
     }
     else
