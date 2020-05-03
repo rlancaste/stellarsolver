@@ -17,24 +17,16 @@ class ExternalSextractorSolver : public SexySolver
 {
     Q_OBJECT
 public:
-    explicit ExternalSextractorSolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent);
+    typedef enum {EXT_SEXTRACTORSOLVER, INT_SEP_EXT_SOLVER, CLASSIC_ASTROMETRY, ASTAP}ExternalSolverType;
+    ExternalSolverType extSolverType;
+
+    explicit ExternalSextractorSolver(ExternalSolverType solverType, Statistic imagestats, uint8_t *imageBuffer, QObject *parent);
     ~ExternalSextractorSolver();
 
-    //These are the methods that you can use for the External Programs to Sextract or Solve
-    void sextract();
-    void sextractWithHFR();
-    void sextractAndSolve();
-    void SEPAndSolve();
-    void classicSolve();
-    void astapSolve();
+    void abort() override;
 
-    void abort();
     bool isRunning();
 
-    bool runExternalSextractor();
-    bool runExternalSolver();
-    bool runExternalClassicSolver();
-    bool runExternalASTAPSolver();
     QStringList getSolverArgsList();
     QStringList getClassicSolverArgsList();
     bool generateAstrometryConfigFile();
@@ -71,18 +63,16 @@ public:
     void logSolver();
     void logSextractor();
 
-
-    void printSextractorOutput();
-    bool writeSextractorTable();
-    bool getSextractorTable();
+    int writeSextractorTable();
+    int getSextractorTable();
     bool getSolutionInformation();
     bool getASTAPSolutionInformation();
-    bool saveAsFITS();
+    int saveAsFITS();
     void cleanupTempFiles();
 
-    bool loadWCS();
-    wcs_point * getWCSCoord();
-    QList<Star> getStarsWithRAandDEC();
+    int loadWCS();
+    wcs_point * getWCSCoord() override;
+    QList<Star> getStarsWithRAandDEC() override;
     /// WCS Struct
     struct wcsprm *m_wcs
     {
@@ -93,6 +83,13 @@ public:
 private:
     QPointer<QProcess> solver;
     QPointer<QProcess> sextractorProcess;
+
+    void run() override; //This starts the ExternalSextractorSolver in a separate thread.  Note, ExternalSextractorSolver uses QProcess
+
+    int runExternalSextractor();
+    int runExternalSolver();
+    int runExternalClassicSolver();
+    int runExternalASTAPSolver();
 
     //These are used for reading and writing the sextractor file
     char* xcol=strdup("X_IMAGE"); //This is the column for the x-coordinates

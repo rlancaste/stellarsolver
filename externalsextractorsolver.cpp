@@ -12,8 +12,10 @@
 #include <wcshdr.h>
 #include <wcsfix.h>
 
-ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SexySolver(imagestats, imageBuffer, parent)
+ExternalSextractorSolver::ExternalSextractorSolver(ExternalSolverType solverType, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SexySolver(imagestats, imageBuffer, parent)
 {
+    extSolverType = solverType;
+
     //This sets the base name used for the temp files.
     srand(time(NULL));
     baseName = "externalSextractorSolver_" + QString::number(rand());
@@ -108,50 +110,46 @@ void ExternalSextractorSolver::setWinCygwinPaths()
     wcsPath = "C:/cygwin64/bin/wcsinfo";
 }
 
-//This is the method you want to run to just sextract the image
-void ExternalSextractorSolver::sextract()
+void ExternalSextractorSolver::run()
 {
-    justSextract = true;
-    runExternalSextractor();
-}
-
-//This is the method you want to run to just sextract the image
-void ExternalSextractorSolver::sextractWithHFR()
-{
-    justSextract = true;
-    calculateHFR = true;
-    runExternalSextractor();
-}
-
-//This is the method you want to use to both sextract and solve an image
-void ExternalSextractorSolver::sextractAndSolve()
-{
-    justSextract = false;
-    if(runExternalSextractor())
-        runExternalSolver();
-}
-
-//This is the method you want to use to both sextract and solve an image
-void ExternalSextractorSolver::SEPAndSolve()
-{
-    justSextract = false;
-    if(runSEPSextractor())
+    if(justSextract)
+        emit finished(runExternalSextractor());
+    else
     {
-        writeSextractorTable();
-        runExternalSolver();
+        switch(extSolverType)
+        {
+            case EXT_SEXTRACTORSOLVER: //This method uses external Sextractor to get the stars, then feeds it to external astrometry.net.
+                {
+                    int success = runExternalSextractor();
+                    if( success == 0)
+                        emit finished(runExternalSolver());
+                    else
+                        emit finished(success);
+                }
+                break;
+
+            case INT_SEP_EXT_SOLVER: //This method runs the Internal SexySolver to sextract the stars, then feeds it to external astrometry.net
+                if(runSEPSextractor())
+                {
+                    int success = writeSextractorTable();
+                    if(success == 0)
+                        emit finished(runExternalSolver());
+                    else
+                        emit finished(success);
+                }
+                else
+                    emit finished(-1);
+                break;
+
+            case CLASSIC_ASTROMETRY: //This is meant to run the traditional solve KStars used to do using python and astrometry.net
+                emit finished(runExternalClassicSolver());
+                break;
+
+            case ASTAP: //This method runs the external program ASTAP to solve the image, a fairly new KStars option
+                emit finished(runExternalASTAPSolver());
+                break;
+        }
     }
-}
-
-//This is the method you want to use to solve the image externally using traditional astrometry.net
-void ExternalSextractorSolver::classicSolve()
-{
-    this->runExternalClassicSolver();
-}
-
-//This is the method yu want to use to solve the image externally with ASTAP
-void ExternalSextractorSolver::astapSolve()
-{
-   runExternalASTAPSolver();
 }
 
 //This is the abort method.  For the external sextractor and solver, it uses the kill method to abort the processes
@@ -209,16 +207,16 @@ void ExternalSextractorSolver::cleanupTempFiles()
 
 //This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
 //It creates key files needed to run Sextractor from the desired options, then runs the sextractor program using the options.
-bool ExternalSextractorSolver::runExternalSextractor()
+int ExternalSextractorSolver::runExternalSextractor()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     QFileInfo file(fileToProcess);
     if(!file.exists())
-        return false;
+        return -1;
     if(file.suffix() != "fits" && file.suffix() != "fit")
     {
         if(!saveAsFITS())
-            return false;
+            return -1;
     }
 
     if(sextractorFilePath == "")
@@ -247,7 +245,7 @@ bool ExternalSextractorSolver::runExternalSextractor()
     if (paramFile.open(QIODevice::WriteOnly) == false)
     {
         QMessageBox::critical(nullptr,"Message","Sextractor file write error.");
-        return false;
+        return -1;
     }
     else
     {
@@ -255,16 +253,13 @@ bool ExternalSextractorSolver::runExternalSextractor()
         out << "X_IMAGE\n";//                  Object position along x                                   [pixel]
         out << "Y_IMAGE\n";//                  Object position along y                                   [pixel]
         out << "MAG_AUTO\n";//                 Kron-like elliptical aperture magnitude                   [mag]
-        if(justSextract)
-        {
-            out << "FLUX_AUTO\n";//                Flux within a Kron-like elliptical aperture               [count]
-            out << "FLUX_MAX\n";//                 Peak flux above background                                [count]
-            out << "CXX_IMAGE\n";//                Cxx object ellipse parameter                              [pixel**(-2)]
-            out << "CYY_IMAGE\n";//                Cyy object ellipse parameter                              [pixel**(-2)]
-            out << "CXY_IMAGE\n";//                Cxy object ellipse parameter                              [pixel**(-2)]
-            if(calculateHFR)
-                out << "FLUX_RADIUS\n";//              Fraction-of-light radii                                   [pixel]
-        }
+        out << "FLUX_AUTO\n";//                Flux within a Kron-like elliptical aperture               [count]
+        out << "FLUX_MAX\n";//                 Peak flux above background                                [count]
+        out << "CXX_IMAGE\n";//                Cxx object ellipse parameter                              [pixel**(-2)]
+        out << "CYY_IMAGE\n";//                Cyy object ellipse parameter                              [pixel**(-2)]
+        out << "CXY_IMAGE\n";//                Cxy object ellipse parameter                              [pixel**(-2)]
+        if(calculateHFR)
+            out << "FLUX_RADIUS\n";//              Fraction-of-light radii                                   [pixel]
         paramFile.close();
     }
     sextractorArgs << "-PARAMETERS_NAME" << paramPath;
@@ -278,7 +273,7 @@ bool ExternalSextractorSolver::runExternalSextractor()
     if (convFile.open(QIODevice::WriteOnly) == false)
     {
         QMessageBox::critical(nullptr,"Message","Sextractor CONV filter write error.");
-        return false;
+        return -1;
     }
     else
     {
@@ -334,39 +329,24 @@ bool ExternalSextractorSolver::runExternalSextractor()
     sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
     connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSextractor);
 
+    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Starting external sextractor...");
     emit logNeedsUpdating(sextractorBinaryPath + " " + sextractorArgs.join(' '));
+
     sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
-    if(justSextract)
-        connect(sextractorProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),this, [this](int exitCode, QProcess::ExitStatus exitStatus){
-            printSextractorOutput();
-            if(exitCode!=0 || exitStatus == QProcess::CrashExit)
-                emit finished(-1);
-             if(getSextractorTable())
-                 emit finished(0);
-             else
-                 emit finished(-1);
-        });
-    else
-    {
-        sextractorProcess->waitForFinished();
-        printSextractorOutput();
-    }
-
-    return true;
-
-}
-
-//This method prints the output from the external sextractor
-void ExternalSextractorSolver::printSextractorOutput()
-{
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    sextractorProcess->waitForFinished();
     emit logNeedsUpdating(sextractorProcess->readAllStandardError().trimmed());
+
+    if(sextractorProcess->exitCode()!=0 || sextractorProcess->exitStatus() == QProcess::CrashExit)
+        return sextractorProcess->exitCode();
+
+    return getSextractorTable(); //0 or exit code depending on its success
+
 }
 
 //The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
 //It runs the astrometry.net external program using the options selected.
-bool ExternalSextractorSolver::runExternalSolver()
+int ExternalSextractorSolver::runExternalSolver()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     QFile sextractorFile(sextractorFilePath);
@@ -401,27 +381,6 @@ bool ExternalSextractorSolver::runExternalSolver()
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
-    connect(solver, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),this, [this](int exitCode, QProcess::ExitStatus exitStatus){
-        if(exitCode!=0 || exitStatus == QProcess::CrashExit)
-            emit finished(-1);
-        else if(getSextractorTable())
-        {
-           if(getSolutionInformation())
-           {
-                if(loadWCS())
-                {
-                    hasSolved = true;
-                    emit finished(0);
-                }
-                else
-                    finished(-1);
-           }
-           else
-               emit finished(-1);
-        }
-        else
-            emit finished(-1);
-    });
 
 #ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work
         QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
@@ -439,12 +398,24 @@ bool ExternalSextractorSolver::runExternalSolver()
     emit logNeedsUpdating("Starting external Astrometry.net solver...");
     emit logNeedsUpdating("Command: " + solverPath + " " + solverArgs.join(" "));
 
-    return true;
+    solver->waitForFinished();
+
+    if(solver->exitCode() != 0)
+        return solver->exitCode();
+    if(solver->exitStatus() == QProcess::CrashExit)
+        return -1;
+    if(!getSolutionInformation())
+        return -1;
+    int ret = loadWCS();
+    if(ret != 0)
+        return ret;
+    hasSolved = true;
+    return 0;
 }
 
 //The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
 //It runs the astrometry.net external program using the options selected.
-bool ExternalSextractorSolver::runExternalClassicSolver()
+int ExternalSextractorSolver::runExternalClassicSolver()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
@@ -474,24 +445,8 @@ bool ExternalSextractorSolver::runExternalClassicSolver()
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
-    connect(solver, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),this, [this](int exitCode, QProcess::ExitStatus exitStatus){
-        if(exitCode!=0 || exitStatus == QProcess::CrashExit)
-            emit finished(-1);
-        else if(getSolutionInformation())
-        {
-            if(loadWCS())
-            {
-                hasSolved = true;
-                emit finished(0);
-            }
-            else
-                finished(-1);
-        }
-        else
-            emit finished(-1);
-    });
 
-#ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work
+    #ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work
         QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
         QString path            = env.value("Path", "");
         QString ansvrPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/";
@@ -500,30 +455,39 @@ bool ExternalSextractorSolver::runExternalClassicSolver()
         pathsToInsert += ansvrPath + "lib/astrometry/bin;";
         env.insert("Path", pathsToInsert + path);
         solver->setProcessEnvironment(env);
-#endif
+    #endif
 
-#ifdef Q_OS_OSX
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    QString path            = env.value("PATH", "");
-    QString pythonExecPath = "/usr/local/opt/python/libexec/bin";
-
-    env.insert("PATH", "/Applications/KStars.app/Contents/MacOS/netpbm/bin:" + pythonExecPath + ":/usr/local/bin:" + path);
-
-    solver->setProcessEnvironment(env);
-
-#endif
+    #ifdef Q_OS_OSX
+        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+        QString path            = env.value("PATH", "");
+        QString pythonExecPath = "/usr/local/opt/python/libexec/bin";
+        env.insert("PATH", "/Applications/KStars.app/Contents/MacOS/netpbm/bin:" + pythonExecPath + ":/usr/local/bin:" + path);
+        solver->setProcessEnvironment(env);
+    #endif
 
     solver->start(solverPath, solverArgs);
 
     emit logNeedsUpdating("Starting external Astrometry.net solver using python and without Sextractor first...");
     emit logNeedsUpdating("Command: " + solverPath + " " + solverArgs.join(" "));
 
-    return true;
+    solver->waitForFinished();
+
+    if(solver->exitCode() != 0)
+        return solver->exitCode();
+    if(solver->exitStatus() == QProcess::CrashExit)
+        return -1;
+    if(!getSolutionInformation())
+        return -1;
+    int ret = loadWCS();
+    if(ret != 0)
+        return ret;
+    hasSolved = true;
+    return 0;
 }
 
 //The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
 //It runs the astrometry.net external program using the options selected.
-bool ExternalSextractorSolver::runExternalASTAPSolver()
+int ExternalSextractorSolver::runExternalASTAPSolver()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
@@ -541,29 +505,25 @@ bool ExternalSextractorSolver::runExternalASTAPSolver()
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
-    connect(solver, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),this, [this](int exitCode, QProcess::ExitStatus exitStatus){
-        if(exitCode!=0 || exitStatus == QProcess::CrashExit)
-            emit finished(-1);
-        else if(getASTAPSolutionInformation())
-        {
-            if(loadWCS())
-            {
-                hasSolved = true;
-                emit finished(0);
-            }
-            else
-                emit finished(-1);
-        }
-        else
-            emit finished(-1);
-    });
 
     solver->start(astapBinaryPath, solverArgs);
 
     emit logNeedsUpdating("Starting external ASTAP Solver...");
     emit logNeedsUpdating("Command: " + astapBinaryPath + " " + solverArgs.join(" "));
 
-    return true;
+    solver->waitForFinished();
+
+    if(solver->exitCode()!=0)
+        return solver->exitCode();
+    if(solver->exitStatus() == QProcess::CrashExit)
+        return -1;
+    if(!getASTAPSolutionInformation())
+        return -1;
+    int ret = loadWCS();
+    if(ret != 0)
+        return ret;
+    hasSolved = true;
+    return 0;
 }
 
 
@@ -687,13 +647,13 @@ void ExternalSextractorSolver::logSolver()
 
 //This method is copied and pasted and modified from tablist.c in astrometry.net
 //This is needed to load in the stars sextracted by an extrnal sextractor to get them into the table
-bool ExternalSextractorSolver::getSextractorTable()
+int ExternalSextractorSolver::getSextractorTable()
 {
      QFile sextractorFile(sextractorFilePath);
      if(!sextractorFile.exists())
      {
-         emit logNeedsUpdating("Can't display sextractor file since it doesn't exist.");
-         return false;
+         emit logNeedsUpdating("Can't get sextractor file since it doesn't exist.");
+         return -1;
      }
 
     fitsfile * new_fptr;
@@ -711,7 +671,7 @@ bool ExternalSextractorSolver::getSextractorTable()
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
         emit logNeedsUpdating(QString::fromUtf8(error_status));
-        return false;
+        return status;
     }
 
     if ( fits_get_hdu_num(new_fptr, &hdunum) == 1 )
@@ -723,7 +683,7 @@ bool ExternalSextractorSolver::getSextractorTable()
 
     if (!(hdutype == ASCII_TBL || hdutype == BINARY_TBL)) {
         emit logNeedsUpdating("Wrong type of file");
-        return false;
+        return -1;
     }
 
     fits_get_num_rows(new_fptr, &nrows, &status);
@@ -795,7 +755,8 @@ bool ExternalSextractorSolver::getSextractorTable()
     fits_close_file(new_fptr, &status);
 
     if (status) fits_report_error(stderr, status); /* print any error message */
-    return true;
+
+    return 0;
 }
 
 //This method was based on a method in KStars.
@@ -965,7 +926,7 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
 //Now it is just used on Windows for the external solving because it needs to use the internal sextractor and the external solver.
 //https://heasarc.gsfc.nasa.gov/docs/software/fitsio/quick/node10.html
 //https://heasarc.gsfc.nasa.gov/docs/software/fitsio/cookbook/node16.html
-bool ExternalSextractorSolver::writeSextractorTable()
+int ExternalSextractorSolver::writeSextractorTable()
 {
 
     if(sextractorFilePath == "")
@@ -985,7 +946,7 @@ bool ExternalSextractorSolver::writeSextractorTable()
     if (fits_create_file(&new_fptr, sextractorFilePath.toLatin1(), &status))
     {
         fits_report_error(stderr, status);
-        return false;
+        return status;
     }
 
     int tfields=3;
@@ -1013,7 +974,7 @@ bool ExternalSextractorSolver::writeSextractorTable()
         ttype, tform, tunit, extfile, &status))
     {
         emit logNeedsUpdating(QString("Could not create binary table."));
-        return false;
+        return status;
     }
 
     int firstrow  = 1;  /* first row in table to write   */
@@ -1023,39 +984,39 @@ bool ExternalSextractorSolver::writeSextractorTable()
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, xArray, &status))
     {
         emit logNeedsUpdating(QString("Could not write x pixels in binary table."));
-        return false;
+        return status;
     }
 
     column = 2;
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, yArray, &status))
     {
         emit logNeedsUpdating(QString("Could not write y pixels in binary table."));
-        return false;
+        return status;
     }
 
     column = 3;
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, magArray, &status))
     {
         emit logNeedsUpdating(QString("Could not write magnitudes in binary table."));
-        return false;
+        return status;
     }
 
     if(fits_close_file(new_fptr, &status))
     {
         emit logNeedsUpdating(QString("Error closing file."));
-        return false;
+        return status;
     }
 
     free(xArray);
     free(yArray);
     free(magArray);
 
-    return true;
+    return 0;
 }
 
 //This is very necessary for solving non-fits images with external Sextractor
 //This was copied and pasted and modified from ImageToFITS in fitsdata in KStars
-bool ExternalSextractorSolver::saveAsFITS()
+int ExternalSextractorSolver::saveAsFITS()
 {
     QFileInfo fileInfo(fileToProcess.toLatin1());
     QString newFilename = basePath + "/" + baseName + "_solve.fits";
@@ -1092,7 +1053,7 @@ bool ExternalSextractorSolver::saveAsFITS()
     if (fits_create_file(&new_fptr, newFilename.toLatin1(), &status))
     {
         fits_report_error(stderr, status);
-        return false;
+        return status;
     }
 
     fitsfile *fptr = new_fptr;
@@ -1103,14 +1064,14 @@ bool ExternalSextractorSolver::saveAsFITS()
         status = 0;
         fits_flush_file(fptr, &status);
         fits_close_file(fptr, &status);
-        return false;
+        return status;
     }
 
     /* Write Data */
     if (fits_write_img(fptr, stats.dataType, 1, nelements, m_ImageBuffer, &status))
     {
         fits_report_error(stderr, status);
-        return false;
+        return status;
     }
 
     /* Write keywords */
@@ -1122,21 +1083,21 @@ bool ExternalSextractorSolver::saveAsFITS()
     if (fits_update_key(fptr, TUSHORT, "NAXIS1", &(stats.width), "length of data axis 1", &status))
     {
         fits_report_error(stderr, status);
-        return false;
+        return status;
     }
 
     // NAXIS2
     if (fits_update_key(fptr, TUSHORT, "NAXIS2", &(stats.height), "length of data axis 2", &status))
     {
         fits_report_error(stderr, status);
-        return false;
+        return status;
     }
 
     // ISO Date
     if (fits_write_date(fptr, &status))
     {
         fits_report_error(stderr, status);
-        return false;
+        return status;
     }
 
     fileToProcess = newFilename;
@@ -1147,16 +1108,16 @@ bool ExternalSextractorSolver::saveAsFITS()
     if(fits_close_file(fptr, &status))
     {
         emit logNeedsUpdating(QString("Error closing file."));
-        return false;
+        return status;
     }
 
     emit logNeedsUpdating("Saved FITS file:" + fileToProcess);
 
-    return true;
+    return 0;
 }
 
 //This was essentially copied from KStars' loadWCS method and split in half with some modifications.
-bool ExternalSextractorSolver::loadWCS()
+int ExternalSextractorSolver::loadWCS()
 {
     QString solutionFile = basePath + "/" + baseName + ".wcs";
 
@@ -1171,7 +1132,7 @@ bool ExternalSextractorSolver::loadWCS()
     if (fits_open_diskfile(&fptr, fileToProcess.toLatin1(), READONLY, &status))
     {
         emit logNeedsUpdating(QString("Error opening fits file %1").arg(fileToProcess));
-        return false;
+        return status;
     }
 
     if (fits_hdr2str(fptr, 1, nullptr, 0, &header, &nkeyrec, &status))
@@ -1179,7 +1140,7 @@ bool ExternalSextractorSolver::loadWCS()
         char errmsg[512];
         fits_get_errstatus(status, errmsg);
         emit logNeedsUpdating(QString("ERROR %1: %2.").arg(status).arg(wcshdr_errmsg[status]));
-        return false;
+        return status;
     }
 
     if ((status = wcspih(header, nkeyrec, WCSHDR_all, -3, &nreject, &nwcs, &m_wcs)) != 0)
@@ -1188,7 +1149,7 @@ bool ExternalSextractorSolver::loadWCS()
         wcsvfree(&m_nwcs, &m_wcs);
         m_wcs = nullptr;
         emit logNeedsUpdating(QString("wcspih ERROR %1: %2.").arg(status).arg(wcshdr_errmsg[status]));
-        return false;
+        return status;
     }
 
     free(header);
@@ -1196,7 +1157,7 @@ bool ExternalSextractorSolver::loadWCS()
     if (m_wcs == nullptr)
     {
         emit logNeedsUpdating("No world coordinate systems found.");
-        return false;
+        return status;
     }
 
     // FIXME: Call above goes through EVEN if no WCS is present, so we're adding this to return for now.
@@ -1205,7 +1166,7 @@ bool ExternalSextractorSolver::loadWCS()
         wcsvfree(&m_nwcs, &m_wcs);
         m_wcs = nullptr;
         emit logNeedsUpdating("No world coordinate systems found.");
-        return false;
+        return status;
     }
 
     if ((status = wcsset(m_wcs)) != 0)
@@ -1213,12 +1174,12 @@ bool ExternalSextractorSolver::loadWCS()
         wcsvfree(&m_nwcs, &m_wcs);
         m_wcs = nullptr;
         emit logNeedsUpdating(QString("wcsset error %1: %2.").arg(status).arg(wcs_errmsg[status]));
-        return false;
+        return status;
     }
 
     emit logNeedsUpdating("Finished Loading WCS...");
 
-    return true;
+    return 0;
 }
 
 //This was essentially copied from KStars' loadWCS method and split in half with some modifications
@@ -1278,6 +1239,7 @@ QList<Star> ExternalSextractorSolver::getStarsWithRAandDEC()
         if ((status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0])) != 0)
         {
             emit logNeedsUpdating(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+            return stars;
         }
         else
         {

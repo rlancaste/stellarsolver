@@ -165,7 +165,7 @@ MainWindow::MainWindow() :
     connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
 
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){
-        ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
+        ExternalSextractorSolver extTemp(ExternalSextractorSolver::EXT_SEXTRACTORSOLVER, stats, m_ImageBuffer, this);
 
         switch(num)
         {
@@ -335,7 +335,7 @@ MainWindow::MainWindow() :
 
     //This gets a temporary ExternalSextractorSolver to get the defaults
     //It tries to load from the saved settings if possible as well.
-    ExternalSextractorSolver extTemp(stats, m_ImageBuffer, this);
+    ExternalSextractorSolver extTemp(ExternalSextractorSolver::EXT_SEXTRACTORSOLVER, stats, m_ImageBuffer, this);
     ui->sextractorPath->setText(programSettings.value("sextractorBinaryPath", extTemp.sextractorBinaryPath).toString());
     ui->configFilePath->setText(programSettings.value("confPath", extTemp.confPath).toString());
     ui->solverPath->setText(programSettings.value("solverPath", extTemp.solverPath).toString());
@@ -461,12 +461,7 @@ bool MainWindow::prepareForProcesses()
         logOutput("Please Load an Image First");
         return false;
     }
-    bool running = false;
     if(!sexySolver.isNull() && sexySolver->isRunning())
-        running = true;
-    if(!extSolver.isNull() && extSolver->isRunning())
-        running = true;
-    if(running)
     {
         if(QMessageBox::question(this, "Abort?", "A Process is currently running. Abort it?") == QMessageBox::Yes)
             sexySolver->abort();
@@ -551,6 +546,8 @@ void MainWindow::sextractImage()
     else
         setupExternalSextractorSolver();
 
+    sexySolver->command = ui->sextractorType->currentText();
+
     if(ui->optionsProfile->currentIndex() == 0)
         sexySolver->setParameters(getSettingsFromUI());
     else if(ui->optionsProfile->currentIndex() == 1)
@@ -559,26 +556,14 @@ void MainWindow::sextractImage()
         sexySolver->setParameters(optionsList.at(ui->optionsProfile->currentIndex() - 2));
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
+    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput);
 
     startProcessMonitor();
 
-    switch(sextractorType)
-    {
-        case SEP:
-
-            if(ui->withHFR->isChecked())
-                sexySolver->sextractWithHFR();
-            else
-                sexySolver->sextract();
-            break;
-
-        case EXT_SEXTRACTOR:
-            if(ui->withHFR->isChecked())
-                extSolver->sextractWithHFR();
-            else
-                extSolver->sextract();
-            break;
-    }
+    if(ui->withHFR->isChecked())
+        sexySolver->sextractWithHFR();
+    else
+        sexySolver->sextract();
 }
 
 void MainWindow::solveButtonClicked()
@@ -643,6 +628,8 @@ void MainWindow::solveImage()
     else
         setupExternalSextractorSolver();
 
+    sexySolver->command = ui->solverType->currentText();
+
     QStringList indexFolderPaths;
     for(int i = 0; i < ui->indexFolderPaths->count(); i++)
     {
@@ -666,45 +653,21 @@ void MainWindow::solveImage()
         sexySolver->setSearchPosition(ui->ra->text().toDouble(), ui->dec->text().toDouble());
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
+    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput);
 
     startProcessMonitor();
 
-    //Select the type of Solve
-    switch(solverType)
-    {
-        case SEXYSOLVER: //This method will use the internal SexySolver to Sextract and to solve the image.
-            sexySolver->sextractAndSolve();
-            break;
-
-        case EXT_SEXTRACTORSOLVER: //This method uses external Sextractor to get the stars, then feeds it to external astrometry.net.
-            extSolver->sextractAndSolve();
-            break;
-
-        case INT_SEP_EXT_SOLVER: //This method runs the Internal SexySolver to sextract the stars, then feeds it to external astrometry.net
-            extSolver->SEPAndSolve();
-            break;
-
-        case CLASSIC_ASTROMETRY: //This is meant to run the traditional solve KStars used to do using python and astrometry.net
-            extSolver->classicSolve();
-            break;
-
-        case ASTAP: //This method runs the external program ASTAP to solve the image, a fairly new KStars option
-            extSolver->astapSolve();
-            break;
-    }
+    sexySolver->solve();
 }
 
 //This sets up the External Sextractor and Solver and sets settings specific to them
 void MainWindow::setupExternalSextractorSolver()
 {
-    if(!extSolver.isNull())
-        delete extSolver;
+    if(!sexySolver.isNull())
+        delete sexySolver;
     //Creates the External Sextractor/Solver Object
-    extSolver = new ExternalSextractorSolver(stats, m_ImageBuffer, this);
-    sexySolver = extSolver;
-
-    //Connects the External Sextractor/Solver Object for logging
-    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput);
+    ExternalSextractorSolver::ExternalSolverType extType = (ExternalSextractorSolver::ExternalSolverType)((int)solverType - 1);
+    ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(extType, stats, m_ImageBuffer, this);
 
     //Sets the file settings and other items specific to the external solver programs
     extSolver->fileToProcess = fileToProcess;
@@ -717,7 +680,7 @@ void MainWindow::setupExternalSextractorSolver()
     extSolver->cleanupTemporaryFiles = ui->cleanupTemp->isChecked();
     extSolver->autoGenerateAstroConfig = ui->generateAstrometryConfig->isChecked();
 
-    extSolver->command = ui->solverType->currentText();
+    sexySolver = extSolver;
 }
 
 //This sets up the Internal SexySolver and sets settings specific to it
@@ -727,11 +690,6 @@ void MainWindow::setupInternalSexySolver()
         delete sexySolver;
     //Creates the SexySolver
     sexySolver = new SexySolver(stats ,m_ImageBuffer, this);
-
-    //Connects the SexySolver for logging
-    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput, Qt::QueuedConnection);
-
-    sexySolver->command = ui->solverType->currentText();
 
 }
 
@@ -851,9 +809,9 @@ bool MainWindow::sextractorComplete(int error)
             stars = sexySolver->getStarList();
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         if(sexySolver->isCalculatingHFR())
-            logOutput(QString("Successfully sextracted and calculated HFR for %1 stars.").arg(stars.size()));
+            logOutput(QString(sexySolver->command + " with HFR success! Got %1 stars").arg(stars.size()));
         else
-            logOutput(QString("Successfully sextracted %1 stars.").arg(stars.size()));
+            logOutput(QString(sexySolver->command + " success! Got %1 stars").arg(stars.size()));
         logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         if(currentTrial<numberOfTrials)
@@ -867,7 +825,7 @@ bool MainWindow::sextractorComplete(int error)
     else
     {
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString("Sextractor failed after %1 second(s).").arg( elapsed));
+        logOutput(QString(sexySolver->command + "failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         stopProcessMonitor();
         if(currentTrial == 1)
@@ -902,16 +860,8 @@ bool MainWindow::solverComplete(int error)
         if(ui->withWCS->isChecked())
         {
             hasWCSData = true;
-            if(!extSolver.isNull())
-            {
-                wcs_coord = extSolver->getWCSCoord();
-                stars = extSolver->getStarsWithRAandDEC();
-            }
-            else
-            {
-                wcs_coord = sexySolver->getWCSCoord();
-                stars = sexySolver->getStarsWithRAandDEC();
-            }
+            wcs_coord = sexySolver->getWCSCoord();
+            stars = sexySolver->getStarsWithRAandDEC();
             displayTable();
         }
     }
@@ -942,12 +892,7 @@ void MainWindow::abort()
     if(!sexySolver.isNull() && sexySolver->isRunning())
     {
         sexySolver->abort();
-        logOutput("Aborting Internal Process. . .");
-    }
-    else if(!extSolver.isNull() && extSolver->isRunning())
-    {
-        extSolver->abort();
-        logOutput("Aborting External Process. . .");
+        logOutput("Aborting Process. . .");
     }
     else
         logOutput("No Processes Running.");
@@ -2099,7 +2044,6 @@ void MainWindow::setupResultsTable()
 
     addColumnToTable(table,"Avg Time");
     addColumnToTable(table,"# Trials");
-    addColumnToTable(table,"Int?");
     addColumnToTable(table,"Command");
     addColumnToTable(table,"Profile");
     addColumnToTable(table,"Stars");
@@ -2151,14 +2095,10 @@ void MainWindow::addSextractionToTable()
 
     setItemInColumn(table, "Avg Time", QString::number(totalTime / numberOfTrials));
     setItemInColumn(table, "# Trials", QString::number(numberOfTrials));
-    if(extSolver.isNull())
-        setItemInColumn(table, "Int?", "Internal");
-    else
-        setItemInColumn(table, "Int?", "External");
     if(sexySolver->isCalculatingHFR())
-        setItemInColumn(table, "Command", "Sextract w/ HFR");
+        setItemInColumn(table, "Command", sexySolver->command + " w/HFR");
     else
-         setItemInColumn(table, "Command", "Sextract");
+        setItemInColumn(table, "Command", sexySolver->command);
     setItemInColumn(table, "Profile", params.listName);
     setItemInColumn(table, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
@@ -2209,11 +2149,6 @@ void MainWindow::addSolutionToTable(Solution solution)
 
     setItemInColumn(table, "Avg Time", QString::number(totalTime / numberOfTrials));
     setItemInColumn(table, "# Trials", QString::number(numberOfTrials));
-    if(extSolver.isNull())
-        setItemInColumn(table, "Int?", "Internal");
-    else
-        setItemInColumn(table, "Int?", "External");
-
     setItemInColumn(table, "Command", sexySolver->command);
     setItemInColumn(table, "Profile", params.listName);
 

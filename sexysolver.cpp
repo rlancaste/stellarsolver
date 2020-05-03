@@ -35,21 +35,21 @@ SexySolver::~SexySolver()
 void SexySolver::sextract()
 {
     justSextract = true;
-    this->start();
+    start();
 }
 
 void SexySolver::sextractWithHFR()
 {
     justSextract = true;
     calculateHFR = true;
-    this->start();
+    start();
 }
 
 //This is the method you want to use to sextract and solve the image
-void SexySolver::sextractAndSolve()
+void SexySolver::solve()
 {
     justSextract = false;
-    this->start();
+    start();
 }
 
 //This is the method that runs the solver or sextractor.  Do not call it, use the methods above instead, so that it can start a new thread.
@@ -420,7 +420,7 @@ exit:
         char errorMessage[512];
         sep_get_errmsg(status, errorMessage);
         emit logNeedsUpdating(errorMessage);
-        emit finished(-1);
+        emit finished(status);
         return false;
     }
 

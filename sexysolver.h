@@ -160,10 +160,10 @@ public:
     //The public methods here are for you to start, stop, setup, and get results from the SexySolver
 
     //These are the most important methods that you can use for the SexySolver
-    void sextract();                    //This will run the Internal SexySolver (SEP) Sextractor
-    void sextractWithHFR();             //This will run the Internal SexySolver (SEP) Sextractor with the option to get HFR data turned on.
-    void sextractAndSolve();            //This will run both the Internal SexySolver Sextractor (SEP) and Solver (astrometry.net)
-    void abort();                       //This will abort the solver
+    virtual void sextract();                    //This will run the Internal SexySolver (SEP) Sextractor
+    virtual void sextractWithHFR();             //This will run the Internal SexySolver (SEP) Sextractor with the option to get HFR data turned on.
+    virtual void solve();            //This will run both the Internal SexySolver Sextractor (SEP) and Solver (astrometry.net)
+    virtual void abort();                       //This will abort the solver
 
     //These set the settings for the SexySolver
     void setParameters(Parameters parameters){params = parameters;};
@@ -187,8 +187,8 @@ public:
     Parameters getCurrentParameters(){return params;};
     bool isUsingScale(){return use_scale;};
     bool isUsingPosition(){return use_position;};
-    wcs_point *getWCSCoord();
-    QList<Star> getStarsWithRAandDEC();
+    virtual wcs_point *getWCSCoord();
+    virtual QList<Star> getStarsWithRAandDEC();
 
     static QMap<QString,QVariant> convertToMap(Parameters params);
     static Parameters convertFromMap(QMap<QString,QVariant> settingsMap);
@@ -251,7 +251,7 @@ private:
     job_t* job = &thejob;       //This is a pointer to that job file
 
     //These are the key internal methods for the internal SexySolver solver
-    void run() override;        //This starts the sexysolver in a separate thread.  Note, ExternalSextractorSolver uses QProcess
+    void run() override;        //This starts the SexySolver in a separate thread.  Note, ExternalSextractorSolver uses QProcess
     int runInternalSolver();    //This is the method that actually runs the internal solver
 
     //This is used by the sextractor, it gets a new representation of the buffer that SEP can understand

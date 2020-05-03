@@ -90,7 +90,6 @@ private:
     Ui::MainWindow *ui;
 
     QPointer<SexySolver> sexySolver;
-    QPointer<ExternalSextractorSolver> extSolver;
     QString fileToProcess;
     QList<Star> stars;
     int selectedStar;
