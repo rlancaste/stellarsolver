@@ -1208,7 +1208,10 @@ int ExternalSextractorSolver::loadWCS()
 wcs_point *ExternalSextractorSolver::getWCSCoord()
 {
     if(!m_wcs)
+    {
+        emit logNeedsUpdating("There is no WCS Data");
         return nullptr;
+    }
 
     int w  = stats.width;
     int h = stats.height;
@@ -1243,8 +1246,11 @@ wcs_point *ExternalSextractorSolver::getWCSCoord()
 
 QList<Star> ExternalSextractorSolver::getStarsWithRAandDEC()
 {
-    if(!m_wcs)
+    if(!hasSolved)
+    {
+        emit logNeedsUpdating("You need to solve the image first");
         return stars;
+    }
 
     double imgcrd[2], phi = 0, pixcrd[2], theta = 0, world[2];
     int status;

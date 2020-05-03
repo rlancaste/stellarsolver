@@ -933,6 +933,11 @@ int SexySolver::runInternalSolver()
 
 wcs_point * SexySolver::getWCSCoord()
 {
+    if(!hasSolved)
+    {
+        emit logNeedsUpdating("You need to solve the image first.");
+        return nullptr;
+    }
     //We have to upscale back to the full size image
     int d = params.downsample;
     int w = stats.width * d;
@@ -960,7 +965,10 @@ wcs_point * SexySolver::getWCSCoord()
 QList<Star> SexySolver::getStarsWithRAandDEC()
 {
     if(!hasSolved)
+    {
+        emit logNeedsUpdating("You need to solve the image first");
         return stars;
+    }
 
     int d = params.downsample;
     QList<Star> refinedStars;
