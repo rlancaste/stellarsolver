@@ -210,13 +210,15 @@ void ExternalSextractorSolver::cleanupTempFiles()
 int ExternalSextractorSolver::runExternalSextractor()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logNeedsUpdating("Configuring external Sextractor");
     QFileInfo file(fileToProcess);
     if(!file.exists())
         return -1;
     if(file.suffix() != "fits" && file.suffix() != "fit")
     {
-        if(!saveAsFITS())
-            return -1;
+        int ret = saveAsFITS();
+        if(ret != 0)
+            return ret;
     }
 
     if(sextractorFilePath == "")
@@ -334,7 +336,7 @@ int ExternalSextractorSolver::runExternalSextractor()
     emit logNeedsUpdating(sextractorBinaryPath + " " + sextractorArgs.join(' '));
 
     sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
-    sextractorProcess->waitForFinished();
+    sextractorProcess->waitForFinished(30000); //Will timeout after 30 seconds
     emit logNeedsUpdating(sextractorProcess->readAllStandardError().trimmed());
 
     if(sextractorProcess->exitCode()!=0 || sextractorProcess->exitStatus() == QProcess::CrashExit)
@@ -349,6 +351,8 @@ int ExternalSextractorSolver::runExternalSextractor()
 int ExternalSextractorSolver::runExternalSolver()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logNeedsUpdating("Configuring external Astrometry.net solver");
+
     QFile sextractorFile(sextractorFilePath);
     if(!sextractorFile.exists())
     {
@@ -398,8 +402,13 @@ int ExternalSextractorSolver::runExternalSolver()
     emit logNeedsUpdating("Starting external Astrometry.net solver...");
     emit logNeedsUpdating("Command: " + solverPath + " " + solverArgs.join(" "));
 
-    solver->waitForFinished();
-
+    solver->waitForFinished(params.solverTimeLimit * 1000 * 1.2); //Set to timeout in a little longer than the timeout
+    if(solver->error()==QProcess::Timedout)
+    {
+        emit logNeedsUpdating("Solver timed out, aborting");
+        abort();
+        return solver->exitCode();
+    }
     if(solver->exitCode() != 0)
         return solver->exitCode();
     if(solver->exitStatus() == QProcess::CrashExit)
@@ -418,6 +427,7 @@ int ExternalSextractorSolver::runExternalSolver()
 int ExternalSextractorSolver::runExternalClassicSolver()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logNeedsUpdating("Configuring external Astrometry.net solver classically: using python and without Sextractor first");
 
     if(params.inParallel && !enoughRAMisAvailableFor(indexFolderPaths))
     {
@@ -466,12 +476,17 @@ int ExternalSextractorSolver::runExternalClassicSolver()
     #endif
 
     solver->start(solverPath, solverArgs);
-
-    emit logNeedsUpdating("Starting external Astrometry.net solver using python and without Sextractor first...");
+    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logNeedsUpdating("Starting external Astrometry.net solver classically: using python and without Sextractor first...");
     emit logNeedsUpdating("Command: " + solverPath + " " + solverArgs.join(" "));
 
-    solver->waitForFinished();
-
+    solver->waitForFinished(params.solverTimeLimit * 1000 * 1.2); //Set to timeout in a little longer than the timeout
+    if(solver->error()==QProcess::Timedout)
+    {
+        emit logNeedsUpdating("Solver timed out, aborting");
+        abort();
+        return solver->exitCode();
+    }
     if(solver->exitCode() != 0)
         return solver->exitCode();
     if(solver->exitStatus() == QProcess::CrashExit)
@@ -490,6 +505,7 @@ int ExternalSextractorSolver::runExternalClassicSolver()
 int ExternalSextractorSolver::runExternalASTAPSolver()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logNeedsUpdating("Configuring external ASTAP solver");
 
     QStringList solverArgs;
 
@@ -508,11 +524,17 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
 
     solver->start(astapBinaryPath, solverArgs);
 
+    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Starting external ASTAP Solver...");
     emit logNeedsUpdating("Command: " + astapBinaryPath + " " + solverArgs.join(" "));
 
-    solver->waitForFinished();
-
+    solver->waitForFinished(params.solverTimeLimit * 1000 * 1.2); //Set to timeout in a little longer than the timeout
+    if(solver->error()==QProcess::Timedout)
+    {
+        emit logNeedsUpdating("Solver timed out, aborting");
+        abort();
+        return solver->exitCode();
+    }
     if(solver->exitCode()!=0)
         return solver->exitCode();
     if(solver->exitStatus() == QProcess::CrashExit)
@@ -784,7 +806,7 @@ bool ExternalSextractorSolver::getSolutionInformation()
 #endif
 
     wcsProcess.start(wcsPath, QStringList(solutionFile));
-    wcsProcess.waitForFinished();
+    wcsProcess.waitForFinished(30000); //Will timeout after 30 seconds
     QString wcsinfo_stdout = wcsProcess.readAllStandardOutput();
 
     //This is a quick way to find out what keys are available
@@ -1019,7 +1041,7 @@ int ExternalSextractorSolver::writeSextractorTable()
 int ExternalSextractorSolver::saveAsFITS()
 {
     QFileInfo fileInfo(fileToProcess.toLatin1());
-    QString newFilename = basePath + "/" + baseName + "_solve.fits";
+    QString newFilename = basePath + "/" + baseName + ".fits";
 
     int status = 0;
     fitsfile * new_fptr;
@@ -1129,7 +1151,7 @@ int ExternalSextractorSolver::loadWCS()
 
     fitsfile *fptr { nullptr };
 
-    if (fits_open_diskfile(&fptr, fileToProcess.toLatin1(), READONLY, &status))
+    if (fits_open_diskfile(&fptr, solutionFile.toLatin1(), READONLY, &status))
     {
         emit logNeedsUpdating(QString("Error opening fits file %1").arg(fileToProcess));
         return status;

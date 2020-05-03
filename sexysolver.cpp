@@ -709,7 +709,7 @@ bool SexySolver::prepare_job() {
 //This method was adapted from the main method in engine-main.c in astrometry.net
 int SexySolver::runInternalSolver()
 {
-    emit logNeedsUpdating("++++++++++++++++++++++++++++++++++++++++++++++");
+   emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Configuring SexySolver");
 
     if(params.inParallel)
@@ -835,7 +835,7 @@ int SexySolver::runInternalSolver()
         bp->total_timelimit = bp->timelimit;
         bp->total_cpulimit  = bp->cpulimit ;
     }
-
+    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Starting Internal SexySolver Astrometry.net based Engine. . .");
 
     //This runs the job in the engine in the file engine.c
