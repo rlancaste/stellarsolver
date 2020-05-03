@@ -9,6 +9,8 @@
 #include <QTextStream>
 #include <QMessageBox>
 #include <qmath.h>
+#include <wcshdr.h>
+#include <wcsfix.h>
 
 ExternalSextractorSolver::ExternalSextractorSolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SexySolver(imagestats, imageBuffer, parent)
 {
@@ -404,8 +406,18 @@ bool ExternalSextractorSolver::runExternalSolver()
             emit finished(x);
         else if(getSextractorTable())
         {
-            if(getSolutionInformation())
-                emit finished(0);
+           if(getSolutionInformation())
+           {
+                if(loadWCS())
+                {
+                    hasSolved = true;
+                    emit finished(0);
+                }
+                else
+                    finished(-1);
+           }
+           else
+               emit finished(-1);
         }
         else
             emit finished(-1);
@@ -466,7 +478,15 @@ bool ExternalSextractorSolver::runExternalClassicSolver()
         if(x!=0)
             emit finished(x);
         else if(getSolutionInformation())
-            emit finished(0);
+        {
+            if(loadWCS())
+            {
+                hasSolved = true;
+                emit finished(0);
+            }
+            else
+                finished(-1);
+        }
         else
             emit finished(-1);
     });
@@ -525,7 +545,15 @@ bool ExternalSextractorSolver::runExternalASTAPSolver()
         if(x!=0)
             emit finished(x);
         else if(getASTAPSolutionInformation())
-            emit finished(0);
+        {
+            if(loadWCS())
+            {
+                hasSolved = true;
+                emit finished(0);
+            }
+            else
+                emit finished(-1);
+        }
         else
             emit finished(-1);
     });
@@ -1125,6 +1153,147 @@ bool ExternalSextractorSolver::saveAsFITS()
     emit logNeedsUpdating("Saved FITS file:" + fileToProcess);
 
     return true;
+}
+
+//This was essentially copied from KStars' loadWCS method and split in half with some modifications.
+bool ExternalSextractorSolver::loadWCS()
+{
+    QString solutionFile = basePath + "/" + baseName + ".wcs";
+
+    emit logNeedsUpdating("Loading WCS from file...");
+
+    int status = 0;
+    char * header;
+    int nkeyrec, nreject, nwcs;
+
+    fitsfile *fptr { nullptr };
+
+    if (fits_open_diskfile(&fptr, fileToProcess.toLatin1(), READONLY, &status))
+    {
+        emit logNeedsUpdating(QString("Error opening fits file %1").arg(fileToProcess));
+        return false;
+    }
+
+    if (fits_hdr2str(fptr, 1, nullptr, 0, &header, &nkeyrec, &status))
+    {
+        char errmsg[512];
+        fits_get_errstatus(status, errmsg);
+        emit logNeedsUpdating(QString("ERROR %1: %2.").arg(status).arg(wcshdr_errmsg[status]));
+        return false;
+    }
+
+    if ((status = wcspih(header, nkeyrec, WCSHDR_all, -3, &nreject, &nwcs, &m_wcs)) != 0)
+    {
+        free(header);
+        wcsvfree(&m_nwcs, &m_wcs);
+        m_wcs = nullptr;
+        emit logNeedsUpdating(QString("wcspih ERROR %1: %2.").arg(status).arg(wcshdr_errmsg[status]));
+        return false;
+    }
+
+    free(header);
+
+    if (m_wcs == nullptr)
+    {
+        emit logNeedsUpdating("No world coordinate systems found.");
+        return false;
+    }
+
+    // FIXME: Call above goes through EVEN if no WCS is present, so we're adding this to return for now.
+    if (m_wcs->crpix[0] == 0)
+    {
+        wcsvfree(&m_nwcs, &m_wcs);
+        m_wcs = nullptr;
+        emit logNeedsUpdating("No world coordinate systems found.");
+        return false;
+    }
+
+    if ((status = wcsset(m_wcs)) != 0)
+    {
+        wcsvfree(&m_nwcs, &m_wcs);
+        m_wcs = nullptr;
+        emit logNeedsUpdating(QString("wcsset error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+        return false;
+    }
+
+    emit logNeedsUpdating("Finished Loading WCS...");
+
+    return true;
+}
+
+//This was essentially copied from KStars' loadWCS method and split in half with some modifications
+wcs_point *ExternalSextractorSolver::getWCSCoord()
+{
+    if(!m_wcs)
+        return nullptr;
+
+    int w  = stats.width;
+    int h = stats.height;
+    wcs_point * wcs_coord = new wcs_point[w * h];
+    wcs_point * p = wcs_coord;
+    double imgcrd[2], phi = 0, pixcrd[2], theta = 0, world[2];
+    int status;
+    int stat[2];
+
+    for (int i = 0; i < h; i++)
+    {
+        for (int j = 0; j < w; j++)
+        {
+            pixcrd[0] = j;
+            pixcrd[1] = i;
+
+            if ((status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0])) != 0)
+            {
+                emit logNeedsUpdating(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+            }
+            else
+            {
+                p->ra  = world[0];
+                p->dec = world[1];
+
+                p++;
+            }
+        }
+    }
+    return wcs_coord;
+}
+
+QList<Star> ExternalSextractorSolver::getStarsWithRAandDEC()
+{
+    if(!m_wcs)
+        return stars;
+
+    double imgcrd[2], phi = 0, pixcrd[2], theta = 0, world[2];
+    int status;
+    int stat[2];
+
+    QList<Star> refinedStars;
+    foreach(Star star, stars)
+    {
+        double ra = HUGE_VAL;
+        double dec = HUGE_VAL;
+        pixcrd[0] = star.x;
+        pixcrd[1] = star.y;
+
+        if ((status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0])) != 0)
+        {
+            emit logNeedsUpdating(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+        }
+        else
+        {
+            ra  = world[0];
+            dec = world[1];
+        }
+
+        char rastr[32], decstr[32];
+        ra2hmsstring(ra, rastr);
+        dec2dmsstring(dec, decstr);
+
+        //We do need to correct for all the downsampling as well as add RA/DEC info
+        Star refinedStar = {star.x, star.y, star.mag, star.flux, star.peak, star.HFR, star.a, star.b, star.theta, (float)ra, (float)dec, rastr, decstr};
+        refinedStars.append(refinedStar);
+    }
+    return refinedStars;
 }
 
 

@@ -667,9 +667,6 @@ void MainWindow::solveImage()
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
-    if(solverType != SEXYSOLVER)  //For now, until I implement this on the external solvers
-        ui->withWCS->setChecked(false);
-
     startProcessMonitor();
 
     //Select the type of Solve
@@ -905,9 +902,17 @@ bool MainWindow::solverComplete(int error)
         if(ui->withWCS->isChecked())
         {
             hasWCSData = true;
-            stars = sexySolver->getStarsWithRAandDEC();
+            if(!extSolver.isNull())
+            {
+                wcs_coord = extSolver->getWCSCoord();
+                stars = extSolver->getStarsWithRAandDEC();
+            }
+            else
+            {
+                wcs_coord = sexySolver->getWCSCoord();
+                stars = sexySolver->getStarsWithRAandDEC();
+            }
             displayTable();
-            wcs_coord = sexySolver->getWCSCoord();
         }
     }
     else

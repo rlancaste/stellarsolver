@@ -84,6 +84,7 @@ file(APPEND "${config_FN}" "#define HAVE_NETPBM 0")
 
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
+find_package(WCSLIB REQUIRED)
 find_package(Qt5 5.4 REQUIRED COMPONENTS Gui Widgets Core Concurrent)
 
 if (NOT CFITSIO_FOUND OR CFITSIO_VERSION_MAJOR LESS 3)
@@ -97,6 +98,10 @@ endif (CFITSIO_FOUND)
 if (GSL_FOUND)
   include_directories(${GSL_INCLUDE_DIR})
 endif (GSL_FOUND)
+
+if(WCSLIB_FOUND)
+    include_directories( ${WCSLIB_INCLUDE_DIR} )
+endif(WCSLIB_FOUND)
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an")
 set(qfits_SRCS
@@ -303,6 +308,7 @@ target_link_libraries(SexySolver sep astrometry)
 target_link_libraries(SexySolver
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
+    ${WCSLIB_LIBRARIES}
 
     Qt5::Gui
     Qt5::Widgets

@@ -80,6 +80,16 @@ public:
     bool saveAsFITS();
     void cleanupTempFiles();
 
+    bool loadWCS();
+    wcs_point * getWCSCoord();
+    QList<Star> getStarsWithRAandDEC();
+    /// WCS Struct
+    struct wcsprm *m_wcs
+    {
+        nullptr
+    };
+    int m_nwcs = 0;
+
 private:
     QPointer<QProcess> solver;
     QPointer<QProcess> sextractorProcess;
