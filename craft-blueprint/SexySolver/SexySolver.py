@@ -20,6 +20,7 @@ class subinfo(info.infoclass):
         self.runtimeDependencies["libs/cfitsio"] = "default"
         self.runtimeDependencies["libs/zlib"] = "default"
         self.runtimeDependencies["boost-regex"] = "default"
+        self.runtimeDependencies["libs/wcslib"] = "default"
 
 
 
