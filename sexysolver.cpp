@@ -288,7 +288,7 @@ bool SexySolver::runSEPSextractor()
             HFR = flux_fractions[0];
         }
 
-        Star star = {xPos , yPos , mag, (float)sum, (float)peak, HFR, a, b, qRadiansToDegrees(theta), HUGE_VAL, HUGE_VAL,"",""};
+        Star star = {xPos , yPos , mag, (float)sum, (float)peak, HFR, a, b, qRadiansToDegrees(theta), 0, 0,"",""};
 
         stars.append(star);
 

@@ -770,7 +770,7 @@ int ExternalSextractorSolver::getSextractorTable()
             float b = sqrt(lambda2);
             float theta = qRadiansToDegrees(atan(xy / (lambda1 - yy)));
 
-            Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta, HUGE_VAL, HUGE_VAL,"",""};
+            Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta, 0, 0,"",""};
 
             stars.append(star);
         }
