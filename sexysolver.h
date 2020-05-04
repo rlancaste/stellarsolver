@@ -44,7 +44,7 @@ class SexySolver : public QThread
 {
     Q_OBJECT
 public:
-    typedef enum {INT_SEP, SEXYSOLVER, EXT_SEXTRACTOR, EXT_SEXTRACTORSOLVER, INT_SEP_EXT_SOLVER, CLASSIC_ASTROMETRY, ASTAP}ProcessType;
+    typedef enum {INT_SEP, SEXYSOLVER, EXT_SEXTRACTOR, EXT_SEXTRACTORSOLVER, INT_SEP_EXT_SOLVER, CLASSIC_ASTROMETRY, ASTAP, ONLINE_ASTROMETRY_NET, ONLINE_ANSVR}ProcessType;
     ProcessType processType;
 
     explicit SexySolver(ProcessType type, Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);

@@ -12,6 +12,7 @@
 #include "structuredefinitions.h"
 #include "sexysolver.h"
 #include "externalsextractorsolver.h"
+#include "onlinesolver.h"
 
 //system includes
 #include "math.h"
@@ -203,6 +204,7 @@ public slots:
     void sendSettingsToUI(SexySolver::Parameters a);
     void setupExternalSextractorSolver();
     void setupInternalSexySolver();
+    void setupOnlineSolver();
 
     //These functions get called when the sextractor or solver finishes
     bool sextractorComplete(int error);

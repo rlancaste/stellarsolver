@@ -1784,6 +1784,16 @@
             <string>ASTAP Solver</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Online Solver</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>ANSVR Solver</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>

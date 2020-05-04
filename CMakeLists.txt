@@ -85,7 +85,7 @@ file(APPEND "${config_FN}" "#define HAVE_NETPBM 0")
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
 find_package(WCSLIB REQUIRED)
-find_package(Qt5 5.4 REQUIRED COMPONENTS Gui Widgets Core Concurrent)
+find_package(Qt5 5.4 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
 
 if (NOT CFITSIO_FOUND OR CFITSIO_VERSION_MAJOR LESS 3)
   message(FATAL_ERROR "CFITSIO version too old, Please install cfitsio 3.x and try again. http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html")
@@ -276,6 +276,7 @@ set(SexySolver_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/imagelabel.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/externalsextractorsolver.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/onlinesolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/stretch.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/dms.cpp
@@ -313,6 +314,7 @@ target_link_libraries(SexySolver
     Qt5::Gui
     Qt5::Widgets
     Qt5::Core
+    Qt5::Network
     Qt5::Concurrent
     )
 

@@ -121,6 +121,7 @@ void ExternalSextractorSolver::run()
         if(!QFileInfo(sextractorBinaryPath).exists())
         {
             emit logNeedsUpdating("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
+            emit finished(-1);
             return;
         }
     }
@@ -131,6 +132,7 @@ void ExternalSextractorSolver::run()
         if(!QFileInfo(solverPath).exists())
         {
             emit logNeedsUpdating("There is no astrometry solver at " + solverPath + ", Aborting");
+            emit finished(-1);
             return;
         }
         #ifdef _WIN32
@@ -147,6 +149,7 @@ void ExternalSextractorSolver::run()
         if(!QFileInfo(astapBinaryPath).exists())
         {
             emit logNeedsUpdating("There is no ASTAP solver at " + astapBinaryPath + ", Aborting");
+            emit finished(-1);
             return;
         }
     }
@@ -456,9 +459,7 @@ int ExternalSextractorSolver::runExternalSolver()
         return -1;
     if(!getSolutionInformation())
         return -1;
-    int ret = loadWCS();
-    if(ret != 0)
-        return ret;
+    loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
     hasSolved = true;
     return 0;
 }
@@ -542,9 +543,7 @@ int ExternalSextractorSolver::runExternalClassicSolver()
         return -1;
     if(!getSolutionInformation())
         return -1;
-    int ret = loadWCS();
-    if(ret != 0)
-        return ret;
+    loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
     hasSolved = true;
     return 0;
 }
@@ -568,12 +567,16 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
 
     QString solutionFile = basePath + "/" + baseName + ".ini";
     solverArgs << "-o" << solutionFile;
-    solverArgs << "-r" << QString::number(params.search_radius);
     solverArgs << "-speed" << "auto";
     solverArgs << "-f" << fileToProcess;
-    solverArgs << "-z" << QString::number(params.downsample);
-    solverArgs << "-ra" << QString::number(search_ra / 15.0); //Convert ra to hours
-    solverArgs << "-spd" << QString::number(search_dec + 90); //Convert dec to spd
+    if(params.downsample > 1)
+        solverArgs << "-z" << QString::number(params.downsample);
+    if(use_position)
+    {
+        solverArgs << "-ra" << QString::number(search_ra / 15.0); //Convert ra to hours
+        solverArgs << "-spd" << QString::number(search_dec + 90); //Convert dec to spd
+        solverArgs << "-r" << QString::number(params.search_radius);
+    }
 
     solver.clear();
     solver = new QProcess();
@@ -600,9 +603,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
         return -1;
     if(!getASTAPSolutionInformation())
         return -1;
-    int ret = loadWCS();
-    if(ret != 0)
-        return ret;
+    loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
     hasSolved = true;
     return 0;
 }
@@ -938,6 +939,11 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
         QString line = in.readLine();
 
         QStringList ini = line.split("=");
+        if(ini.count() <= 1)
+        {
+            emit logNeedsUpdating("Results file is empty, try again.");
+            return false;
+        }
         if (ini[1] == "F")
         {
             emit logNeedsUpdating("Solver failed. Try again.");
@@ -1203,6 +1209,41 @@ int ExternalSextractorSolver::loadWCS()
     QString solutionFile = basePath + "/" + baseName + ".wcs";
 
     emit logNeedsUpdating("Loading WCS from file...");
+
+    QFile solution(solutionFile);
+    if(!solution.exists())
+    {
+        emit logNeedsUpdating("WCS File does not exist.");
+        return -1;
+    }
+
+    /**
+    //ASTAP seems to save its WCS files with returns that make it unreadable to CFITSIO.  This correction didn't work
+    if(processType == ASTAP)
+    {
+        QString text;
+        if(!solution.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
+            emit logNeedsUpdating("Cannot read the WCS file from ASTAP.");
+            return -1;
+        }
+
+        text=solution.readAll();
+        solution.close();
+        text = text.remove("\n").remove("\r");
+        emit logNeedsUpdating(text);
+
+        if(!solution.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            emit logNeedsUpdating("Cannot write to the ASTAP WCS file.");
+            return -1;
+        }
+        QTextStream out(&solution);
+        out << text;
+        solution.close();
+        emit logNeedsUpdating("ASTAP Processing done");
+    }
+    **/
 
     int status = 0;
     char * header;

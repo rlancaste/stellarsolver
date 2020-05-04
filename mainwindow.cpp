@@ -583,6 +583,9 @@ void MainWindow::solveButtonClicked()
             break;
         case 4:
             processType = SexySolver::ASTAP;
+        case 5:
+            processType = SexySolver::ONLINE_ASTROMETRY_NET;
+            break;
         default: break;
     }
 
@@ -596,6 +599,8 @@ void MainWindow::solveImage()
 
     if(processType == SexySolver::SEXYSOLVER )
         setupInternalSexySolver();
+    else if(processType == SexySolver::ONLINE_ASTROMETRY_NET)
+        setupOnlineSolver();
     else
         setupExternalSextractorSolver();
 
@@ -649,6 +654,23 @@ void MainWindow::setupExternalSextractorSolver()
     extSolver->wcsPath = ui->wcsPath->text();
     extSolver->cleanupTemporaryFiles = ui->cleanupTemp->isChecked();
     extSolver->autoGenerateAstroConfig = ui->generateAstrometryConfig->isChecked();
+
+    sexySolver = extSolver;
+}
+
+//This sets up the External Sextractor and Solver and sets settings specific to them
+void MainWindow::setupOnlineSolver()
+{
+    if(!sexySolver.isNull())
+        delete sexySolver;
+    //Creates the External Sextractor/Solver Object
+    OnlineSolver *extSolver = new OnlineSolver(processType, stats, m_ImageBuffer, this);
+
+    //Sets the file settings and other items specific to the external solver programs
+    extSolver->fileToProcess = fileToProcess;
+    extSolver->basePath = ui->basePath->text();
+    extSolver->astrometryAPIKey = "iczikaqstszeptgs";
+    extSolver->astrometryAPIURL = "http://nova.astrometry.net";
 
     sexySolver = extSolver;
 }
