@@ -48,10 +48,8 @@ void OnlineSolver::solve()
         authenticate();
     else
         uploadFile();
-
-    //start();
 }
-/**
+
 void OnlineSolver::run()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -64,10 +62,14 @@ void OnlineSolver::run()
         emit timeToCheckJobs();
         elapsed = static_cast<uint32_t>(round(solverTimer.elapsed() / 1000.0));
     }
-    emit logNeedsUpdating("Solver left the loop");
-    emit finished(-1);
+    if(elapsed > params.solverTimeLimit)
+    {
+        emit logNeedsUpdating("Solver timed out");
+        emit finished(-1);
+    }
+
 }
-**/
+
 
 void OnlineSolver::abort()
 {
@@ -138,8 +140,15 @@ void OnlineSolver::uploadFile()
     // Are we sending scale?
     if (use_scale)
     {
+        QString onlineUnits;
+        if (scaleunit == SCALE_UNITS_ARCMIN_WIDTH)
+            onlineUnits = "arcminwidth";
+        if (scaleunit == SCALE_UNITS_DEG_WIDTH)
+            onlineUnits = "degwidth";
+        if (scaleunit == SCALE_UNITS_ARCSEC_PER_PIX)
+            onlineUnits = "arcsecperpix";
         uploadReq.insert("scale_type", "ul");
-        uploadReq.insert("scale_units", units);
+        uploadReq.insert("scale_units", onlineUnits);
         uploadReq.insert("scale_lower", scalelo);
         uploadReq.insert("scale_upper", scalehi);
     }
@@ -340,7 +349,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             }
 
             job_retries = 0;
-            emit jobIDFinished();
+            start();
             break;
 
         case JOB_STATUS_STAGE:
@@ -365,6 +374,8 @@ void OnlineSolver::onResult(QNetworkReply *reply)
 
         case JOB_CALIBRATION_STAGE:
         {
+            if(hasSolved) //Just in case it was already done
+                return;
             parity = result["parity"].toInt(&ok);
             if (ok == false)
             {
@@ -420,8 +431,9 @@ void OnlineSolver::onResult(QNetworkReply *reply)
                 raErr = (search_ra - ra) * 3600;
                 decErr = (search_dec - dec) * 3600;
             }
-            QString par = (parity < 0) ? "neg" : "pos";
+            QString par = (parity > 0) ? "neg" : "pos";
             solution = {fieldw,fieldh,ra,dec,rastr,decstr,orientation, pixscale, par, raErr, decErr};
+            hasSolved = true;
             emit finished(0);
         }
             break;

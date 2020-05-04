@@ -58,7 +58,7 @@ public slots:
 private:
     void authenticate();
 
-    //void run() override;
+    void run() override;
     bool aborted = false;
 
     const int INVALID_VALUE = -1e6;
