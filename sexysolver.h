@@ -44,7 +44,10 @@ class SexySolver : public QThread
 {
     Q_OBJECT
 public:
-    explicit SexySolver(Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
+    typedef enum {INT_SEP, SEXYSOLVER, EXT_SEXTRACTOR, EXT_SEXTRACTORSOLVER, INT_SEP_EXT_SOLVER, CLASSIC_ASTROMETRY, ASTAP}ProcessType;
+    ProcessType processType;
+
+    explicit SexySolver(ProcessType type, Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
     ~SexySolver();
 
     //SEXYSOLVER PARAMETERS
@@ -171,6 +174,8 @@ public:
     void setSearchScale(double fov_low, double fov_high, QString scaleUnits);                              //This sets the scale range for the image to speed up the solver
     void setSearchPosition(double ra, double dec);                                                    //This sets the search RA/DEC/Radius to speed up the solver
     void disableInparallel(){params.inParallel = false;};
+    void setCalculateHFR(){calculateHFR = true;};
+    void setProcessType(ProcessType type){processType = type;};
 
     //These static methods can be used by classes to configure parameters or paths
     static void createConvFilterFromFWHM(Parameters *params, double fwhm);                      //This creates the conv filter from a fwhm
@@ -215,7 +220,6 @@ protected:  //Note: These items are not private because they are needed by Exter
 
     //SexySolver Internal settings that are needed by ExternalSextractorSolver as well
     bool calculateHFR = false;          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
-    bool justSextract = false;          //This boolean determines whether the solver should proceeed to solve the image, or just sextract
     bool hasSextracted = false;         //This boolean is set when the sextraction is done
     bool hasSolved = false;             //This boolean is set when the solving is done
     Statistic stats;                    //This is information about the image

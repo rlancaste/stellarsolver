@@ -17,10 +17,7 @@ class ExternalSextractorSolver : public SexySolver
 {
     Q_OBJECT
 public:
-    typedef enum {EXT_SEXTRACTORSOLVER, INT_SEP_EXT_SOLVER, CLASSIC_ASTROMETRY, ASTAP}ExternalSolverType;
-    ExternalSolverType extSolverType;
-
-    explicit ExternalSextractorSolver(ExternalSolverType solverType, Statistic imagestats, uint8_t *imageBuffer, QObject *parent);
+    explicit ExternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent);
     ~ExternalSextractorSolver();
 
     void abort() override;

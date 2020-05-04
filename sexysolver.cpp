@@ -15,8 +15,9 @@
 #include "sexysolver.h"
 #include "qmath.h"
 
-SexySolver::SexySolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : QThread(parent)
+SexySolver::SexySolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : QThread(parent)
 {
+     processType = type;
      stats=imagestats;
      m_ImageBuffer=imageBuffer;
 
@@ -34,13 +35,12 @@ SexySolver::~SexySolver()
 //This is the method you want to use to just sextract the image
 void SexySolver::sextract()
 {
-    justSextract = true;
     start();
 }
 
+//This is the method you want to use to just sextract the image and get HFR
 void SexySolver::sextractWithHFR()
 {
-    justSextract = true;
     calculateHFR = true;
     start();
 }
@@ -48,21 +48,24 @@ void SexySolver::sextractWithHFR()
 //This is the method you want to use to sextract and solve the image
 void SexySolver::solve()
 {
-    justSextract = false;
     start();
 }
 
 //This is the method that runs the solver or sextractor.  Do not call it, use the methods above instead, so that it can start a new thread.
 void SexySolver::run()
 {
-    if(justSextract)
-        runSEPSextractor();
-    else
+    switch(processType)
     {
-        if(runSEPSextractor())
-        {
-            runInternalSolver();
-        }
+        case INT_SEP:
+            runSEPSextractor();
+        break;
+
+        case SEXYSOLVER:
+            if(runSEPSextractor())
+                runInternalSolver();
+        break;
+
+        default: break;
     }
 }
 
@@ -133,6 +136,13 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
     down.removeDimmest = 50;
     optionsList.append(down);
 
+    SexySolver::Parameters downStars;
+    downStars.listName = "Down2Stars";
+    downStars.maxEllipse = 1.2;
+    downStars.downsample = 2;
+    downStars.removeDimmest = 50;
+    optionsList.append(downStars);
+
     return optionsList;
 }
 
@@ -149,7 +159,7 @@ bool SexySolver::runSEPSextractor()
     emit logNeedsUpdating("Starting Internal SexySolver Sextractor. . .");
 
     //Only downsample images before SEP if the Sextraction is being used for plate solving
-    if(!justSextract && params.downsample != 1)
+    if(processType == SEXYSOLVER && params.downsample != 1)
         downsampleImage(params.downsample);
 
     int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
@@ -392,7 +402,7 @@ bool SexySolver::runSEPSextractor()
 
     emit logNeedsUpdating(QString("Stars Found after Filtering: %1").arg(stars.size()));
     hasSextracted = true;
-    if(justSextract)
+    if(processType == INT_SEP)
         emit finished(0);
 
     if (stats.dataType != TFLOAT)

@@ -335,7 +335,7 @@ MainWindow::MainWindow() :
 
     //This gets a temporary ExternalSextractorSolver to get the defaults
     //It tries to load from the saved settings if possible as well.
-    ExternalSextractorSolver extTemp(ExternalSextractorSolver::EXT_SEXTRACTORSOLVER, stats, m_ImageBuffer, this);
+    ExternalSextractorSolver extTemp(processType, stats, m_ImageBuffer, this);
     ui->sextractorPath->setText(programSettings.value("sextractorBinaryPath", extTemp.sextractorBinaryPath).toString());
     ui->configFilePath->setText(programSettings.value("confPath", extTemp.confPath).toString());
     ui->solverPath->setText(programSettings.value("solverPath", extTemp.solverPath).toString());
@@ -344,9 +344,8 @@ MainWindow::MainWindow() :
     ui->cleanupTemp->setChecked(programSettings.value("cleanupTemporaryFiles", extTemp.cleanupTemporaryFiles).toBool());
     ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig", extTemp.autoGenerateAstroConfig).toBool());
 
-    //These load the settings from the SexySolver
-
-    SexySolver temp(stats, m_ImageBuffer, this);
+    //These load the default settings from the SexySolver usting a temporary object
+    SexySolver temp(processType, stats, m_ImageBuffer, this);
     ui->basePath->setText(temp.basePath);
     sendSettingsToUI(temp.getCurrentParameters());
     optionsList = temp.getOptionsProfiles();
@@ -364,7 +363,6 @@ MainWindow::MainWindow() :
     foreach(QString pathName, indexFilePaths)
         ui->indexFolderPaths->addItem(pathName);
     loadIndexFilesList();
-
 }
 
 void MainWindow::settingJustChanged()
@@ -521,19 +519,17 @@ void MainWindow::sextractButtonClicked()
 
     QString sextractorBinaryPath = ui->sextractorPath->text();
 
-    sextractorType = (SextractorType) ui->sextractorType->currentIndex();
-
-    if(sextractorType == EXT_SEXTRACTOR)
+    switch(ui->sextractorType->currentIndex())
     {
-        #ifdef _WIN32 //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
-            logOutput("An External Sextractor is not easily installed on Windows, try the Internal Sextractor please.");
-        #endif
-        if(!QFileInfo(sextractorBinaryPath).exists())
-        {
-            logOutput("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
-            return;
-        }
+        case 0:
+            processType = SexySolver::INT_SEP;
+            break;
+        case 1:
+            processType = SexySolver::EXT_SEXTRACTOR;
+            break;
+        default: break;
     }
+
     sextractImage();
 }
 
@@ -541,7 +537,7 @@ void MainWindow::sextractImage()
 {
     currentTrial++;
 
-    if(sextractorType == SEP )
+    if(processType == SexySolver::INT_SEP )
         setupInternalSexySolver();
     else
         setupExternalSextractorSolver();
@@ -571,48 +567,23 @@ void MainWindow::solveButtonClicked()
     if(!prepareForProcesses())
         return;
 
-    QString sextractorBinaryPath = ui->sextractorPath->text();
-    QString solverPath = ui->solverPath->text();
-    QString astapPath = ui->astapPath->text();
-
-    solverType = (SolverType) ui->solverType->currentIndex();
-
-    if(solverType == EXT_SEXTRACTORSOLVER)
+    switch(ui->solverType->currentIndex())
     {
-        #ifdef _WIN32  //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
-            logOutput("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
-        #endif
-
-        if(!QFileInfo(sextractorBinaryPath).exists())
-        {
-            logOutput("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
-            return;
-        }
-    }
-
-    //These are the solvers that use External Astrometry.
-    if(solverType == EXT_SEXTRACTORSOLVER || solverType == INT_SEP_EXT_SOLVER || solverType == CLASSIC_ASTROMETRY)
-    {
-        if(!QFileInfo(solverPath).exists())
-        {
-            logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
-            return;
-        }
-        #ifdef _WIN32
-            if(ui->inParallel->isChecked())
-            {
-                logOutput("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
-                sexySolver->disableInparallel();
-            }
-        #endif
-    }
-    else if(solverType == ASTAP)
-    {
-        if(!QFileInfo(astapPath).exists())
-        {
-            logOutput("There is no ASTAP solver at " + astapPath + ", Aborting");
-            return;
-        }
+        case 0:
+            processType = SexySolver::SEXYSOLVER;
+            break;
+        case 1:
+            processType = SexySolver::EXT_SEXTRACTORSOLVER;
+            break;
+        case 2:
+            processType = SexySolver::INT_SEP_EXT_SOLVER;
+            break;
+        case 3:
+            processType = SexySolver::CLASSIC_ASTROMETRY;
+            break;
+        case 4:
+            processType = SexySolver::ASTAP;
+        default: break;
     }
 
     solveImage();
@@ -623,7 +594,7 @@ void MainWindow::solveImage()
 {
     currentTrial++;
 
-    if(solverType == SEXYSOLVER )
+    if(processType == SexySolver::SEXYSOLVER )
         setupInternalSexySolver();
     else
         setupExternalSextractorSolver();
@@ -666,8 +637,7 @@ void MainWindow::setupExternalSextractorSolver()
     if(!sexySolver.isNull())
         delete sexySolver;
     //Creates the External Sextractor/Solver Object
-    ExternalSextractorSolver::ExternalSolverType extType = (ExternalSextractorSolver::ExternalSolverType)((int)solverType - 1);
-    ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(extType, stats, m_ImageBuffer, this);
+    ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(processType, stats, m_ImageBuffer, this);
 
     //Sets the file settings and other items specific to the external solver programs
     extSolver->fileToProcess = fileToProcess;
@@ -689,7 +659,7 @@ void MainWindow::setupInternalSexySolver()
     if(!sexySolver.isNull())
         delete sexySolver;
     //Creates the SexySolver
-    sexySolver = new SexySolver(stats ,m_ImageBuffer, this);
+    sexySolver = new SexySolver(processType, stats ,m_ImageBuffer, this);
 
 }
 
@@ -932,11 +902,10 @@ bool MainWindow::imageLoad()
     QFileInfo fileInfo(fileURL);
     if(!fileInfo.exists())
         return false;
-    QString newFileURL=ui->basePath->text() + "/" + fileInfo.fileName().remove(" ");
-    QFile::copy(fileURL, newFileURL);
-    QFileInfo newFileInfo(newFileURL);
+
+    QFileInfo newFileInfo(fileURL);
     dirPath = fileInfo.absolutePath();
-    fileToProcess = newFileURL;
+    fileToProcess = fileURL;
 
     clearAstrometrySettings();
     if(hasWCSData)

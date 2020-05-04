@@ -12,9 +12,8 @@
 #include <wcshdr.h>
 #include <wcsfix.h>
 
-ExternalSextractorSolver::ExternalSextractorSolver(ExternalSolverType solverType, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SexySolver(imagestats, imageBuffer, parent)
+ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SexySolver(type, imagestats, imageBuffer, parent)
 {
-    extSolverType = solverType;
 
     //This sets the base name used for the temp files.
     srand(time(NULL));
@@ -112,43 +111,84 @@ void ExternalSextractorSolver::setWinCygwinPaths()
 
 void ExternalSextractorSolver::run()
 {
-    if(justSextract)
-        emit finished(runExternalSextractor());
-    else
+    //These processes use the external sextractor
+    if(processType == EXT_SEXTRACTORSOLVER || processType == EXT_SEXTRACTOR)
     {
-        switch(extSolverType)
+        #ifdef _WIN32  //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
+            logOutput("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
+        #endif
+
+        if(!QFileInfo(sextractorBinaryPath).exists())
         {
-            case EXT_SEXTRACTORSOLVER: //This method uses external Sextractor to get the stars, then feeds it to external astrometry.net.
-                {
-                    int success = runExternalSextractor();
-                    if( success == 0)
-                        emit finished(runExternalSolver());
-                    else
-                        emit finished(success);
-                }
-                break;
-
-            case INT_SEP_EXT_SOLVER: //This method runs the Internal SexySolver to sextract the stars, then feeds it to external astrometry.net
-                if(runSEPSextractor())
-                {
-                    int success = writeSextractorTable();
-                    if(success == 0)
-                        emit finished(runExternalSolver());
-                    else
-                        emit finished(success);
-                }
-                else
-                    emit finished(-1);
-                break;
-
-            case CLASSIC_ASTROMETRY: //This is meant to run the traditional solve KStars used to do using python and astrometry.net
-                emit finished(runExternalClassicSolver());
-                break;
-
-            case ASTAP: //This method runs the external program ASTAP to solve the image, a fairly new KStars option
-                emit finished(runExternalASTAPSolver());
-                break;
+            emit logNeedsUpdating("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
+            return;
         }
+    }
+
+    //These are the solvers that use External Astrometry.
+    if(processType == EXT_SEXTRACTORSOLVER || processType == INT_SEP_EXT_SOLVER || processType == CLASSIC_ASTROMETRY)
+    {
+        if(!QFileInfo(solverPath).exists())
+        {
+            emit logNeedsUpdating("There is no astrometry solver at " + solverPath + ", Aborting");
+            return;
+        }
+        #ifdef _WIN32
+            if(ui->inParallel->isChecked())
+            {
+                emit logNeedsUpdating("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
+                disableInparallel();
+            }
+        #endif
+    }
+    //This is the only process that uses ASTAP
+    else if(processType == ASTAP)
+    {
+        if(!QFileInfo(astapBinaryPath).exists())
+        {
+            emit logNeedsUpdating("There is no ASTAP solver at " + astapBinaryPath + ", Aborting");
+            return;
+        }
+    }
+
+    switch(processType)
+    {
+        case EXT_SEXTRACTOR:
+            emit finished(runExternalSextractor());
+            break;
+
+        case EXT_SEXTRACTORSOLVER: //This method uses external Sextractor to get the stars, then feeds it to external astrometry.net.
+            {
+                int success = runExternalSextractor();
+                if( success == 0)
+                    emit finished(runExternalSolver());
+                else
+                    emit finished(success);
+            }
+            break;
+
+        case INT_SEP_EXT_SOLVER: //This method runs the Internal SexySolver to sextract the stars, then feeds it to external astrometry.net
+            if(runSEPSextractor())
+            {
+                int success = writeSextractorTable();
+                if(success == 0)
+                    emit finished(runExternalSolver());
+                else
+                    emit finished(success);
+            }
+            else
+                emit finished(-1);
+            break;
+
+        case CLASSIC_ASTROMETRY: //This is meant to run the traditional solve KStars used to do using python and astrometry.net
+            emit finished(runExternalClassicSolver());
+            break;
+
+        case ASTAP: //This method runs the external program ASTAP to solve the image, a fairly new KStars option
+            emit finished(runExternalASTAPSolver());
+            break;
+
+        default: break;
     }
 }
 
@@ -196,6 +236,7 @@ void ExternalSextractorSolver::cleanupTempFiles()
         temp.remove(baseName + ".corr");
         temp.remove(baseName + ".wcs");
         temp.remove(baseName + ".solved");
+        temp.remove(baseName + ".new");
         temp.remove(baseName + ".match");
         temp.remove(baseName + "-indx.xyls");
         if(sextractorFilePathIsTempFile)
@@ -435,6 +476,14 @@ int ExternalSextractorSolver::runExternalClassicSolver()
         emit logNeedsUpdating("You may want to disable the inParallel option.");
     }
 
+    QFileInfo file(fileToProcess);
+    if(!file.exists())
+        return -1;
+
+    QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
+    QFile::copy(fileToProcess, newFileURL);
+    fileToProcess = newFileURL;
+
     QStringList solverArgs=getClassicSolverArgsList();
 
     if(autoGenerateAstroConfig)
@@ -507,14 +556,24 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Configuring external ASTAP solver");
 
-    QStringList solverArgs;
+    QFileInfo file(fileToProcess);
+    if(!file.exists())
+        return -1;
 
+    QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
+    QFile::copy(fileToProcess, newFileURL);
+    fileToProcess = newFileURL;
+
+    QStringList solverArgs;
 
     QString solutionFile = basePath + "/" + baseName + ".ini";
     solverArgs << "-o" << solutionFile;
     solverArgs << "-r" << QString::number(params.search_radius);
     solverArgs << "-speed" << "auto";
     solverArgs << "-f" << fileToProcess;
+    solverArgs << "-z" << QString::number(params.downsample);
+    solverArgs << "-ra" << QString::number(search_ra / 15.0); //Convert ra to hours
+    solverArgs << "-spd" << QString::number(search_dec + 90); //Convert dec to spd
 
     solver.clear();
     solver = new QProcess();
@@ -1153,7 +1212,9 @@ int ExternalSextractorSolver::loadWCS()
 
     if (fits_open_diskfile(&fptr, solutionFile.toLatin1(), READONLY, &status))
     {
-        emit logNeedsUpdating(QString("Error opening fits file %1").arg(fileToProcess));
+        char errmsg[512];
+        fits_get_errstatus(status, errmsg);
+        emit logNeedsUpdating(QString("Error opening fits file %1, %2").arg(solutionFile).arg(errmsg));
         return status;
     }
 

@@ -107,11 +107,7 @@ private:
     bool showAstrometryParams = false;
     bool showSolutionDetails = true;
 
-    typedef enum {SEXYSOLVER, EXT_SEXTRACTORSOLVER, INT_SEP_EXT_SOLVER, CLASSIC_ASTROMETRY, ASTAP}SolverType;
-    SolverType solverType;
-
-    typedef enum {SEP, EXT_SEXTRACTOR}SextractorType;
-    SextractorType sextractorType;
+    SexySolver::ProcessType processType;
 
     //This allows for averaging over multiple trials
     int currentTrial = 0;
