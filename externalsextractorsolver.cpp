@@ -1040,7 +1040,7 @@ int ExternalSextractorSolver::writeSextractorTable()
     int nrows=stars.size();
     QString extname="Sextractor_File";
 
-    //Columns: X_IMAGE, double, pixels, Y_IMAGE, double, pixels
+    //Columns: X_IMAGE, double, pixels, Y_IMAGE, double, pixels, MAG_AUTO, double, mag
     char* ttype[] = { xcol, ycol, magcol };
     char* tform[] = { colFormat, colFormat, colFormat };
     char* tunit[] = { colUnits, colUnits, magUnits };

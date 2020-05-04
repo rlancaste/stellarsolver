@@ -77,6 +77,14 @@ public:
     };
     int m_nwcs = 0;
 
+    //These are used for reading and writing the sextractor file
+    char* xcol=strdup("X_IMAGE"); //This is the column for the x-coordinates
+    char* ycol=strdup("Y_IMAGE"); //This is the column for the y-coordinates
+    char* magcol=strdup("MAG_AUTO"); //This is the column for the magnitude
+    char* colFormat=strdup("1E"); //This Format means a decimal number
+    char* colUnits=strdup("pixels"); //This is the unit for the xy columns in the file
+    char* magUnits=strdup("magnitude"); //This is the unit for the magnitude in the file
+
 private:
     QPointer<QProcess> solver;
     QPointer<QProcess> sextractorProcess;
@@ -87,14 +95,6 @@ private:
     int runExternalSolver();
     int runExternalClassicSolver();
     int runExternalASTAPSolver();
-
-    //These are used for reading and writing the sextractor file
-    char* xcol=strdup("X_IMAGE"); //This is the column for the x-coordinates
-    char* ycol=strdup("Y_IMAGE"); //This is the column for the y-coordinates
-    char* magcol=strdup("MAG_AUTO"); //This is the column for the magnitude
-    char* colFormat=strdup("1E"); //This Format means a decimal number
-    char* colUnits=strdup("pixels"); //This is the unit for the xy columns in the file
-    char* magUnits=strdup("magnitude"); //This is the unit for the magnitude in the file
 
 };
 

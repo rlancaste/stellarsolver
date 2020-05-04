@@ -1791,7 +1791,7 @@
           </item>
           <item>
            <property name="text">
-            <string>ANSVR Solver</string>
+            <string>Int. SEP Online Solver</string>
            </property>
           </item>
          </widget>

@@ -1,7 +1,7 @@
 #ifndef ONLINESOLVER_H
 #define ONLINESOLVER_H
 
-#include "sexysolver.h"
+#include "externalsextractorsolver.h"
 
 #include <QFile>
 #include <QHttpMultiPart>
@@ -17,7 +17,7 @@
 #define JOB_RETRY_ATTEMPTS    90
 #define SOLVER_RETRY_DURATION 2000 /* 2000 ms */
 
-class OnlineSolver : public SexySolver
+class OnlineSolver : public ExternalSextractorSolver
 {
     Q_OBJECT
 public:
@@ -58,6 +58,7 @@ public slots:
 private:
     void authenticate();
 
+    void setupOnlineSolver();
     void run() override;
     bool aborted = false;
 

@@ -586,6 +586,9 @@ void MainWindow::solveButtonClicked()
         case 5:
             processType = SexySolver::ONLINE_ASTROMETRY_NET;
             break;
+        case 6:
+            processType = SexySolver::INT_SEP_ONLINE_ASTROMETRY_NET;
+            break;
         default: break;
     }
 
@@ -599,7 +602,7 @@ void MainWindow::solveImage()
 
     if(processType == SexySolver::SEXYSOLVER )
         setupInternalSexySolver();
-    else if(processType == SexySolver::ONLINE_ASTROMETRY_NET)
+    else if(processType == SexySolver::ONLINE_ASTROMETRY_NET || processType == SexySolver::INT_SEP_ONLINE_ASTROMETRY_NET)
         setupOnlineSolver();
     else
         setupExternalSextractorSolver();

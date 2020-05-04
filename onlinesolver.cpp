@@ -2,7 +2,7 @@
 #include <QTimer>
 #include <QEventLoop>
 
-OnlineSolver::OnlineSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SexySolver(type, imagestats, imageBuffer, parent)
+OnlineSolver::OnlineSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : ExternalSextractorSolver(type, imagestats, imageBuffer, parent)
 {
 
     parity = INVALID_VALUE;
@@ -29,7 +29,28 @@ OnlineSolver::~OnlineSolver()
 
 void OnlineSolver::solve()
 {
+    if(processType == ONLINE_ASTROMETRY_NET)
+        setupOnlineSolver();
 
+    if(processType == INT_SEP_ONLINE_ASTROMETRY_NET)
+    {
+        delete xcol;
+        delete ycol;
+        xcol=strdup("X"); //This is the column for the x-coordinates
+        ycol=strdup("Y"); //This is the column for the y-coordinates
+        if(runSEPSextractor())
+        {
+            int success = writeSextractorTable();
+            if(success == 0)
+                setupOnlineSolver();
+        }
+        else
+            emit finished(-1);
+    }
+}
+
+void OnlineSolver::setupOnlineSolver()
+{
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Configuring Online Solver");
 
@@ -115,7 +136,11 @@ void OnlineSolver::uploadFile()
 {
     QNetworkRequest request;
 
-    QFile *fitsFile = new QFile(fileToProcess);
+    QFile *fitsFile;
+    if(processType == ONLINE_ASTROMETRY_NET)
+        fitsFile = new QFile(fileToProcess);
+    else
+        fitsFile = new QFile(sextractorFilePath);
     bool rc         = fitsFile->open(QIODevice::ReadOnly);
     if (rc == false)
     {
@@ -136,6 +161,12 @@ void OnlineSolver::uploadFile()
     uploadReq.insert("allow_modifications", "n");
     uploadReq.insert("session", sessionKey);
     uploadReq.insert("allow_commercial_use", "n");
+
+    if(processType == INT_SEP_ONLINE_ASTROMETRY_NET)
+    {
+        uploadReq.insert("image_width", stats.width);
+        uploadReq.insert("image_height", stats.height);
+    }
 
     // Are we sending scale?
     if (use_scale)
