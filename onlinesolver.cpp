@@ -4,22 +4,10 @@
 
 OnlineSolver::OnlineSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : ExternalSextractorSolver(type, imagestats, imageBuffer, parent)
 {
-
-    parity = INVALID_VALUE;
-
     connect(this, SIGNAL(authenticateFinished()), this, SLOT(uploadFile()));
     connect(this, SIGNAL(uploadFinished()), this, SLOT(getJobID()));
     connect(this, SIGNAL(timeToCheckJobs()), this, SLOT(checkJobs()));
     connect(this, SIGNAL(jobFinished()), this, SLOT(checkJobCalibration()));
-
-    // Reset parity on solver failure
-    //connect(this, &OnlineSolver::solverFailed, this, [&]()
-    //{
-     //   parity = INVALID_VALUE;
-    //});
-
-    //connect(this, SIGNAL(finished(-1)), this, SLOT(resetSolver()));
-    //connect(this, SIGNAL(solverFinished(double, double, double, double)), this, SLOT(resetSolver()));
 }
 
 OnlineSolver::~OnlineSolver()
@@ -76,13 +64,16 @@ void OnlineSolver::run()
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Starting Online Solver");
 
-    uint32_t elapsed = 0;
+    int elapsed = 0;
     while(!hasSolved && !aborted && elapsed < params.solverTimeLimit)
     {
         msleep(SOLVER_RETRY_DURATION);
         emit timeToCheckJobs();
-        elapsed = static_cast<uint32_t>(round(solverTimer.elapsed() / 1000.0));
+        elapsed = static_cast<int>(round(solverTimer.elapsed() / 1000.0));
     }
+
+    disconnect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onResult(QNetworkReply*)));
+
     if(elapsed > params.solverTimeLimit)
     {
         emit logNeedsUpdating("Solver timed out");
@@ -95,9 +86,6 @@ void OnlineSolver::run()
 void OnlineSolver::abort()
 {
     workflowStage  = NO_STAGE;
-    solver_retries = 0;
-
-    disconnect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(onResult(QNetworkReply*)));
     emit finished(-1);
     aborted = true;
 }
@@ -168,7 +156,6 @@ void OnlineSolver::uploadFile()
         uploadReq.insert("image_height", stats.height);
     }
 
-    // Are we sending scale?
     if (use_scale)
     {
         QString onlineUnits;
@@ -184,7 +171,6 @@ void OnlineSolver::uploadFile()
         uploadReq.insert("scale_upper", scalehi);
     }
 
-    // Do we send RA/DE?
     if (use_position)
     {
         uploadReq.insert("center_ra", search_ra);
@@ -198,12 +184,7 @@ void OnlineSolver::uploadFile()
     if (params.downsample != 1)
         uploadReq.insert("downsample_factor", params.downsample);
 
-    // If we have parity and option is valid and this is NOT a blind solve (if ra or units exist then it is not a blind solve)
-    // then we send parity
-    //if (Options::astrometryDetectParity() && parity != INVALID_VALUE &&
-    if (parity != INVALID_VALUE &&
-            (search_ra != INVALID_VALUE || units.isEmpty() == false))
-        uploadReq.insert("parity", parity);
+    uploadReq.insert("parity", params.search_parity);
 
     QJsonObject json = QJsonObject::fromVariantMap(uploadReq);
     QJsonDocument json_doc(json);
@@ -281,7 +262,6 @@ void OnlineSolver::onResult(QNetworkReply *reply)
     QJsonParseError parseError;
     QString status;
     QList<QVariant> jsonArray;
-    uint32_t elapsed = 0;
 
     if (workflowStage == NO_STAGE)
     {
@@ -302,7 +282,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
 
     if (parseError.error != QJsonParseError::NoError)
     {
-        emit logNeedsUpdating(("JSON error during parsing (%1).", parseError.errorString()));
+        emit logNeedsUpdating(QString("JSON error during parsing (%1).").arg(parseError.errorString()));
         emit finished(-1);
         return;
     }
@@ -380,23 +360,21 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             }
 
             job_retries = 0;
+
+            //This starts the online solver monitoring thread
             start();
             break;
 
         case JOB_STATUS_STAGE:
             status = result["status"].toString();
-            elapsed = static_cast<uint32_t>(round(solverTimer.elapsed() / 1000.0));
             if (status == "success")
                 emit jobFinished();
             else if (status == "solving" || status == "processing")
             {
-                //if (status == "solving" && solver_retries++ < SOLVER_RETRY_ATTEMPTS)
                 return;
             }
             else if (status == "failure")
             {
-                //align->appendLogText(
-                    //i18np("Solver failed after %1 second.", "Solver failed after %1 seconds.", elapsed));
                 emit logNeedsUpdating("Solver Failed");
                 abort();
                 return;
@@ -405,16 +383,28 @@ void OnlineSolver::onResult(QNetworkReply *reply)
 
         case JOB_CALIBRATION_STAGE:
         {
-            if(hasSolved) //Just in case it was already done
+            double fieldw = result["width_arcsec"].toDouble(&ok) / 60.0;
+            if (ok == false)
+            {
+                emit logNeedsUpdating(("Error parsing width."));
+                emit finished(-1);
                 return;
-            parity = result["parity"].toInt(&ok);
+            }
+            double fieldh = result["height_arcsec"].toDouble(&ok) / 60.0;
+            if (ok == false)
+            {
+                emit logNeedsUpdating(("Error parsing width."));
+                emit finished(-1);
+                return;
+            }
+            int parity = result["parity"].toInt(&ok);
             if (ok == false)
             {
                 emit logNeedsUpdating(("Error parsing parity."));
                 emit finished(-1);
                 return;
             }
-            orientation = result["orientation"].toDouble(&ok);
+            double orientation = result["orientation"].toDouble(&ok);
             if (ok == false)
             {
                 emit logNeedsUpdating(("Error parsing orientation."));
@@ -422,14 +412,14 @@ void OnlineSolver::onResult(QNetworkReply *reply)
                 return;
             }
             orientation *= parity;
-            ra = result["ra"].toDouble(&ok);
+            double ra = result["ra"].toDouble(&ok);
             if (ok == false)
             {
                 emit logNeedsUpdating(("Error parsing RA."));
                 emit finished(-1);
                 return;
             }
-            dec = result["dec"].toDouble(&ok);
+            double dec = result["dec"].toDouble(&ok);
             if (ok == false)
             {
                 emit logNeedsUpdating(("Error parsing DEC."));
@@ -437,7 +427,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
                 return;
             }
 
-            pixscale = result["pixscale"].toDouble(&ok);
+            double pixscale = result["pixscale"].toDouble(&ok);
             if (ok == false)
             {
                 emit logNeedsUpdating(("Error parsing DEC."));
@@ -445,16 +435,9 @@ void OnlineSolver::onResult(QNetworkReply *reply)
                 return;
             }
 
-            elapsed = (int)round(solverTimer.elapsed() / 1000.0);
-            //emit logNeedsUpdating(QString("Solver completed in %1 second.", "Solver completed in %1 seconds.", elapsed));
-            //emit solverFinished(orientation, ra, dec, pixscale);
-
-            double fieldw = 0, fieldh = 0;
             char rastr[32], decstr[32];
             ra2hmsstring(ra, rastr);
             dec2dmsstring(dec, decstr);
-            fieldw = stats.width * pixscale / 60;
-            fieldh = stats.height * pixscale / 60;
             float raErr = 0;
             float decErr = 0;
             if(use_position)

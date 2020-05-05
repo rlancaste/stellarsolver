@@ -12,6 +12,7 @@
 #include <QUrl>
 #include <QVariantMap>
 #include <QTime>
+#include <QElapsedTimer>
 
 #define JOB_RETRY_DURATION    2000 /* 2000 ms */
 #define JOB_RETRY_ATTEMPTS    90
@@ -24,18 +25,12 @@ public:
     explicit OnlineSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent);
     ~OnlineSolver();
 
-    QString IP;
     QString astrometryAPIKey;
     QString astrometryAPIURL;
     QString fileToProcess;
 
     void solve() override;
     void abort() override;
-
-    //virtual bool init();
-    //virtual void verifyIndexFiles(double fov_x, double fov_y);
-    //virtual bool startSovler(const QString &filename, const QStringList &args, bool generated = true);
-    //virtual bool stopSolver();
 
     typedef enum
     {
@@ -62,27 +57,15 @@ private:
     void run() override;
     bool aborted = false;
 
-    const int INVALID_VALUE = -1e6;
-
     WorkflowStage workflowStage { NO_STAGE };
     QNetworkAccessManager *networkManager { nullptr };
     QString sessionKey;
     int subID { 0 };
     int jobID { 0 };
     int job_retries { 0 };
-    int solver_retries { 0 };
-    QTime solverTimer;
+    QElapsedTimer solverTimer;
 
-    double ra{0};
-    double dec{0};
-    double pixscale { 0 };
     bool useWCSCenter { false };
-    int parity { 0 };
-
-    double orientation { 0 };
-
-    bool isGenerated { true };
-    //Align *align { nullptr };
 
 signals:
     void authenticateFinished();

@@ -583,6 +583,7 @@ void MainWindow::solveButtonClicked()
             break;
         case 4:
             processType = SexySolver::ASTAP;
+            break;
         case 5:
             processType = SexySolver::ONLINE_ASTROMETRY_NET;
             break;
