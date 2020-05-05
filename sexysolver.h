@@ -192,6 +192,7 @@ public:
     Parameters getCurrentParameters(){return params;};
     bool isUsingScale(){return use_scale;};
     bool isUsingPosition(){return use_position;};
+    bool hasWCSData(){return hasWCS;};
     virtual wcs_point *getWCSCoord();
     virtual QList<Star> getStarsWithRAandDEC();
 
@@ -233,6 +234,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     bool runSEPSextractor();    //This is the method that actually runs the internal sextractor
 
     sip_t wcs;                  //This is where the WCS data gets saved once the solving is done
+    bool hasWCS;
     MatchObj match;             //This is where the match object gets stored once the solving is done.
 
 

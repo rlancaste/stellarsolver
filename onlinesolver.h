@@ -16,14 +16,13 @@
 
 #define JOB_RETRY_DURATION    2000 /* 2000 ms */
 #define JOB_RETRY_ATTEMPTS    90
-#define SOLVER_RETRY_DURATION 2000 /* 2000 ms */
+#define STATUS_CHECK_INTERVAL 2000 /* 2000 ms */
 
 class OnlineSolver : public ExternalSextractorSolver
 {
     Q_OBJECT
 public:
     explicit OnlineSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent);
-    ~OnlineSolver();
 
     QString astrometryAPIKey;
     QString astrometryAPIURL;
@@ -37,26 +36,31 @@ public:
         NO_STAGE,
         AUTH_STAGE,
         UPLOAD_STAGE,
-        JOB_ID_STAGE,
-        JOB_STATUS_STAGE,
+        JOB_PROCESSING_STAGE,
+        JOB_QUEUE_STAGE,
+        JOB_MONITORING_STAGE,
         JOB_CALIBRATION_STAGE,
         WCS_LOADING_STAGE
     } WorkflowStage;
 
 public slots:
+
     void onResult(QNetworkReply *reply);
-    void uploadFile();
-    void getJobID();
     void checkJobs();
-    void checkJobCalibration();
-    //void resetSolver();
 
 private:
-    void authenticate();
 
-    void setupOnlineSolver();
+    void runOnlineSolver();
     void run() override;
     bool aborted = false;
+
+    void authenticate();        //Starts Stage 1
+    void uploadFile();          //Starts Stage 2
+    void waitForProcessing();   //Starts Stage 3
+    void getJobID();            //Starts Stage 4
+    void startMonitoring();     //Starts Stage 5
+    void checkJobCalibration(); //Starts Stage 6
+    void getJobWCSFile();       //Starts Stage 7
 
     WorkflowStage workflowStage { NO_STAGE };
     QNetworkAccessManager *networkManager { nullptr };
@@ -69,10 +73,6 @@ private:
     bool useWCSCenter { false };
 
 signals:
-    void authenticateFinished();
-    void uploadFinished();
-    void jobIDFinished();
-    void jobFinished();
     void timeToCheckJobs();
 
 };

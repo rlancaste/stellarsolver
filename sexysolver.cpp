@@ -873,6 +873,7 @@ int SexySolver::runInternalSolver()
     if(match.sip)
     {
         wcs = *match.sip;
+        hasWCS = true;
         double ra, dec, fieldw, fieldh, pixscale;
         char rastr[32], decstr[32];
         QString parity;
@@ -943,9 +944,9 @@ int SexySolver::runInternalSolver()
 
 wcs_point * SexySolver::getWCSCoord()
 {
-    if(!hasSolved)
+    if(!hasWCS)
     {
-        emit logNeedsUpdating("You need to solve the image first.");
+        emit logNeedsUpdating("There is no WCS Data.");
         return nullptr;
     }
     //We have to upscale back to the full size image
@@ -974,9 +975,9 @@ wcs_point * SexySolver::getWCSCoord()
 
 QList<Star> SexySolver::getStarsWithRAandDEC()
 {
-    if(!hasSolved)
+    if(!hasWCS)
     {
-        emit logNeedsUpdating("You need to solve the image first");
+        emit logNeedsUpdating("There is no WCS Data");
         return stars;
     }
 

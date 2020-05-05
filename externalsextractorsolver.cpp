@@ -1204,6 +1204,7 @@ int ExternalSextractorSolver::loadWCS()
         free(header);
         wcsvfree(&m_nwcs, &m_wcs);
         m_wcs = nullptr;
+        hasWCS = false;
         emit logNeedsUpdating(QString("wcspih ERROR %1: %2.").arg(status).arg(wcshdr_errmsg[status]));
         return status;
     }
@@ -1213,14 +1214,18 @@ int ExternalSextractorSolver::loadWCS()
     if (m_wcs == nullptr)
     {
         emit logNeedsUpdating("No world coordinate systems found.");
+        hasWCS = false;
         return status;
     }
+    else
+        hasWCS = true;
 
     // FIXME: Call above goes through EVEN if no WCS is present, so we're adding this to return for now.
     if (m_wcs->crpix[0] == 0)
     {
         wcsvfree(&m_nwcs, &m_wcs);
         m_wcs = nullptr;
+        hasWCS = false;
         emit logNeedsUpdating("No world coordinate systems found.");
         return status;
     }
@@ -1229,6 +1234,7 @@ int ExternalSextractorSolver::loadWCS()
     {
         wcsvfree(&m_nwcs, &m_wcs);
         m_wcs = nullptr;
+        hasWCS = false;
         emit logNeedsUpdating(QString("wcsset error %1: %2.").arg(status).arg(wcs_errmsg[status]));
         return status;
     }
@@ -1241,9 +1247,9 @@ int ExternalSextractorSolver::loadWCS()
 //This was essentially copied from KStars' loadWCS method and split in half with some modifications
 wcs_point *ExternalSextractorSolver::getWCSCoord()
 {
-    if(!m_wcs)
+    if(!hasWCS)
     {
-        emit logNeedsUpdating("There is no WCS Data");
+        emit logNeedsUpdating("There is no WCS Data.  Did you solve the image first?");
         return nullptr;
     }
 
@@ -1280,9 +1286,9 @@ wcs_point *ExternalSextractorSolver::getWCSCoord()
 
 QList<Star> ExternalSextractorSolver::getStarsWithRAandDEC()
 {
-    if(!hasSolved)
+    if(!hasWCS)
     {
-        emit logNeedsUpdating("You need to solve the image first");
+        emit logNeedsUpdating("There is no WCS Data.  Did you solve the image first?");
         return stars;
     }
 
