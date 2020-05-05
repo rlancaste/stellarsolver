@@ -184,7 +184,7 @@ void ExternalSextractorSolver::run()
             break;
 
         case CLASSIC_ASTROMETRY: //This is meant to run the traditional solve KStars used to do using python and astrometry.net
-            emit finished(runExternalClassicSolver());
+            emit finished(runExternalSolver());
             break;
 
         case ASTAP: //This method runs the external program ASTAP to solve the image, a fairly new KStars option
@@ -212,16 +212,6 @@ void ExternalSextractorSolver::abort()
         file.close();
     }
     emit logNeedsUpdating("Aborted");
-}
-
-//This determines whether one of the external processes is running or not.
-bool ExternalSextractorSolver::isRunning()
-{
-    if(!sextractorProcess.isNull() && sextractorProcess->state() == QProcess::Running)
-        return true;
-    if(!solver.isNull() && solver->state() == QProcess::Running)
-        return true;
-    return false;
 }
 
 void ExternalSextractorSolver::cleanupTempFiles()
@@ -395,34 +385,48 @@ int ExternalSextractorSolver::runExternalSextractor()
 int ExternalSextractorSolver::runExternalSolver()
 {
     emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Configuring external Astrometry.net solver");
+    if(processType == CLASSIC_ASTROMETRY)
+        emit logNeedsUpdating("Configuring external Astrometry.net solver classically: using python and without Sextractor first");
+    else
+        emit logNeedsUpdating("Configuring external Astrometry.net solver using an xylist input");
 
-    QFile sextractorFile(sextractorFilePath);
-    if(!sextractorFile.exists())
+    if(processType == CLASSIC_ASTROMETRY)
     {
-        emit logNeedsUpdating("Please Sextract the image first");
+        QFileInfo file(fileToProcess);
+        if(!file.exists())
+        {
+            emit logNeedsUpdating("The requested file to solve does not exist");
+            return -1;
+        }
+
+        //Making a copy of the file and putting it in the temp directory
+        //So that we can find all the temporary files and delete them later
+        //That way we don't pollute the directory the original image is located in
+        QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
+        QFile::copy(fileToProcess, newFileURL);
+        fileToProcess = newFileURL;
     }
-
-    if(params.inParallel && !enoughRAMisAvailableFor(indexFolderPaths))
+    else
     {
-        emit logNeedsUpdating("Not enough RAM is available on this system for loading the index files you have in parallel");
-        emit logNeedsUpdating("You may want to disable the inParallel option.");
+        if(params.inParallel && !enoughRAMisAvailableFor(indexFolderPaths))
+        {
+            emit logNeedsUpdating("Not enough RAM is available on this system for loading the index files you have in parallel");
+            emit logNeedsUpdating("You may want to disable the inParallel option.");
+        }
+
+        QFile sextractorFile(sextractorFilePath);
+        if(!sextractorFile.exists())
+        {
+            emit logNeedsUpdating("Please Sextract the image first");
+        }
     }
 
     QStringList solverArgs=getSolverArgsList();
 
-    if(autoGenerateAstroConfig)
-        generateAstrometryConfigFile();
-
-    solverArgs << "--backend-config" << confPath;
-
-    cancelfn = basePath + "/" + baseName + ".cancel";
-    solverArgs << "--cancel" << cancelfn;
-
-    QString solutionFile = basePath + "/" + baseName + ".wcs";
-    solverArgs << "-W" << solutionFile;
-
-    solverArgs << sextractorFilePath;
+    if(processType == CLASSIC_ASTROMETRY)
+        solverArgs << fileToProcess;
+    else
+        solverArgs << sextractorFilePath;
 
     solver.clear();
     solver = new QProcess();
@@ -430,104 +434,31 @@ int ExternalSextractorSolver::runExternalSolver()
     solver->setProcessChannelMode(QProcess::MergedChannels);
     connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
 
-#ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work
-        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-        QString path            = env.value("Path", "");
-        QString ansvrPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/";
-        QString pathsToInsert =ansvrPath + "bin;";
-        pathsToInsert += ansvrPath + "lib/lapack;";
-        pathsToInsert += ansvrPath + "lib/astrometry/bin;";
-        env.insert("Path", pathsToInsert + path);
-        solver->setProcessEnvironment(env);
-#endif
+    #ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work when started from this program.  This is needed for all types of astrometry solvers using ANSVR
+            QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+            QString path            = env.value("Path", "");
+            QString ansvrPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/";
+            QString pathsToInsert =ansvrPath + "bin;";
+            pathsToInsert += ansvrPath + "lib/lapack;";
+            pathsToInsert += ansvrPath + "lib/astrometry/bin;";
+            env.insert("Path", pathsToInsert + path);
+            solver->setProcessEnvironment(env);
+    #endif
+
+    #ifdef Q_OS_OSX //This is needed so that astrometry.net can find netpbm and python on Mac when started from this program.  It is not needed when using an alternate sextractor
+        if(processType == CLASSIC_ASTROMETRY)
+        {
+            QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+            QString path            = env.value("PATH", "");
+            QString pythonExecPath = "/usr/local/opt/python/libexec/bin";
+            env.insert("PATH", "/Applications/KStars.app/Contents/MacOS/netpbm/bin:" + pythonExecPath + ":/usr/local/bin:" + path);
+            solver->setProcessEnvironment(env);
+        }
+    #endif
 
     solver->start(solverPath, solverArgs);
-
+    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logNeedsUpdating("Starting external Astrometry.net solver...");
-    emit logNeedsUpdating("Command: " + solverPath + " " + solverArgs.join(" "));
-
-    solver->waitForFinished(params.solverTimeLimit * 1000 * 1.2); //Set to timeout in a little longer than the timeout
-    if(solver->error()==QProcess::Timedout)
-    {
-        emit logNeedsUpdating("Solver timed out, aborting");
-        abort();
-        return solver->exitCode();
-    }
-    if(solver->exitCode() != 0)
-        return solver->exitCode();
-    if(solver->exitStatus() == QProcess::CrashExit)
-        return -1;
-    if(!getSolutionInformation())
-        return -1;
-    loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
-    hasSolved = true;
-    return 0;
-}
-
-//The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
-//It runs the astrometry.net external program using the options selected.
-int ExternalSextractorSolver::runExternalClassicSolver()
-{
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Configuring external Astrometry.net solver classically: using python and without Sextractor first");
-
-    if(params.inParallel && !enoughRAMisAvailableFor(indexFolderPaths))
-    {
-        emit logNeedsUpdating("Not enough RAM is available on this system for loading the index files you have in parallel");
-        emit logNeedsUpdating("You may want to disable the inParallel option.");
-    }
-
-    QFileInfo file(fileToProcess);
-    if(!file.exists())
-        return -1;
-
-    QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
-    QFile::copy(fileToProcess, newFileURL);
-    fileToProcess = newFileURL;
-
-    QStringList solverArgs=getClassicSolverArgsList();
-
-    if(autoGenerateAstroConfig)
-        generateAstrometryConfigFile();
-
-    solverArgs << "--backend-config" << confPath;
-
-    cancelfn = basePath + "/" + baseName + ".cancel";
-    solverArgs << "--cancel" << cancelfn;
-
-    QString solutionFile = basePath + "/" + baseName + ".wcs";
-    solverArgs << "-W" << solutionFile;
-
-    solverArgs << fileToProcess;
-
-    solver.clear();
-    solver = new QProcess();
-
-    solver->setProcessChannelMode(QProcess::MergedChannels);
-    connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
-
-    #ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work
-        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-        QString path            = env.value("Path", "");
-        QString ansvrPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/";
-        QString pathsToInsert =ansvrPath + "bin;";
-        pathsToInsert += ansvrPath + "lib/lapack;";
-        pathsToInsert += ansvrPath + "lib/astrometry/bin;";
-        env.insert("Path", pathsToInsert + path);
-        solver->setProcessEnvironment(env);
-    #endif
-
-    #ifdef Q_OS_OSX
-        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-        QString path            = env.value("PATH", "");
-        QString pythonExecPath = "/usr/local/opt/python/libexec/bin";
-        env.insert("PATH", "/Applications/KStars.app/Contents/MacOS/netpbm/bin:" + pythonExecPath + ":/usr/local/bin:" + path);
-        solver->setProcessEnvironment(env);
-    #endif
-
-    solver->start(solverPath, solverArgs);
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Starting external Astrometry.net solver classically: using python and without Sextractor first...");
     emit logNeedsUpdating("Command: " + solverPath + " " + solverArgs.join(" "));
 
     solver->waitForFinished(params.solverTimeLimit * 1000 * 1.2); //Set to timeout in a little longer than the timeout
@@ -608,7 +539,6 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     return 0;
 }
 
-
 //This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
 //Then it was split in two parts (The other part is located in the MainWindow class)
 //This part generates the argument list from the options for the external solver only
@@ -616,76 +546,78 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
 {
     QStringList solverArgs;
 
-    // Start with always-used arguments
-    solverArgs << "-O"
-                << "--no-plots";
+    // Start with always-used arguments.  The way we are using Astrometry.net,
+    //We really would prefer that it always overwrite existing files, that it not waste any time
+    //writing plots to a file, and that it doesn't run the verification.
+    solverArgs << "-O" << "--no-plots" << "--no-verify";
 
-    // Now go over boolean options
-    solverArgs << "--no-verify";
-
-    if(params.resort) //We only want the resort options if they click resort.
-    {
+    //This parameter controls whether to resort the stars or not.
+    if(params.resort)
         solverArgs << "--resort";
-        solverArgs << "--sort-column" << "MAG_AUTO";
-        solverArgs << "--sort-ascending";
-    }
 
-    // downsample
-    if(params.downsample > 1)
+    //This will shrink the image so that it is easier to solve.  It is only useful if you are sending an image.
+    //It is not used if you are solving an xylist as in the classic astrometry.net solver
+    if(params.downsample > 1 && processType == CLASSIC_ASTROMETRY)
         solverArgs << "--downsample" << QString::number(params.downsample);
 
+    //I am not sure if we want to provide these options or not.  They do make a huge difference in solving time
+    //But changing them can be dangerous because it can cause false positive solves.
     solverArgs << "--odds-to-solve" << QString::number(exp(params.logratio_tosolve));
     solverArgs << "--odds-to-tune-up" << QString::number(exp(params.logratio_totune));
     //solverArgs << "--odds-to-keep" << QString::number(logratio_tokeep);  I'm not sure if this is one we need.
 
-
-    solverArgs << "--width" << QString::number(stats.width);
-    solverArgs << "--height" << QString::number(stats.height);
-    solverArgs << "--x-column" << "X_IMAGE";
-    solverArgs << "--y-column" << "Y_IMAGE";
-
-                //Note This set of items is NOT NEEDED for Sextractor, it is needed to avoid python usage
-                //This may need to be changed later, but since the goal for using sextractor is to avoid python, this is placed here.
-    solverArgs << "--no-remove-lines";
-    solverArgs << "--uniformize" << "0";
-
     if (use_scale)
         solverArgs << "-L" << QString::number(scalelo) << "-H" << QString::number(scalehi) << "-u" << units;
 
     if (use_position)
         solverArgs << "-3" << QString::number(search_ra) << "-4" << QString::number(search_dec) << "-5" << QString::number(params.search_radius);
 
+    //The following options are unnecessary if you are sending an image to Astrometry.net
+    //And not an xylist
+    if(processType != CLASSIC_ASTROMETRY)
+    {
+        //These options are required to use an xylist, so all solvers that don't send an image
+        //to Astrometry.net must send these 4 options.
+        solverArgs << "--width" << QString::number(stats.width);
+        solverArgs << "--height" << QString::number(stats.height);
+        solverArgs << "--x-column" << "X_IMAGE";
+        solverArgs << "--y-column" << "Y_IMAGE";
+
+        //These sort options are required to sort when you have an xylist input
+        //We only want to send them if the resort option is selected though.
+        if(params.resort)
+        {
+            solverArgs << "--sort-column" << "MAG_AUTO";
+            solverArgs << "--sort-ascending";
+        }
+
+        //Note This set of items is NOT NEEDED for Sextractor, it is needed to avoid python usage
+        //This may need to be changed later, but since the goal for using sextractor is to avoid python, this is placed here.
+        solverArgs << "--no-remove-lines";
+        solverArgs << "--uniformize" << "0";
+    }
+
+    if(autoGenerateAstroConfig)
+        generateAstrometryConfigFile();
+
+    //This sends the path to the config file.  Note that backend-config seems to be more universally recognized across
+    //the different solvers than config
+    solverArgs << "--backend-config" << confPath;
+
+    //This sets the cancel filename for astrometry.net.  Astrometry will monitor for the creation of this file
+    //In order to shut down and stop processing
+    cancelfn = basePath + "/" + baseName + ".cancel";
+    solverArgs << "--cancel" << cancelfn;
+
+    //This sets the wcs file for astrometry.net.  This file will be very important for reading in WCS info later on
+    QString solutionFile = basePath + "/" + baseName + ".wcs";
+    solverArgs << "-W" << solutionFile;
+
     return solverArgs;
 }
 
-//This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
-//Then it was split in two parts (The other part is located in the MainWindow class)
-//This part generates the argument list from the options for the external solver only
-//Unlike the copy of this above, the arguments for eliminating python and using sextractor have been removed.
-QStringList ExternalSextractorSolver::getClassicSolverArgsList()
-{
-    QStringList solverArgs;
-
-    // Start with always-used arguments
-    solverArgs << "-O"
-                << "--no-plots";
-
-    // Now go over boolean options
-    solverArgs << "--no-verify";
-
-    // downsample
-    if(params.downsample > 1)
-        solverArgs << "--downsample" << QString::number(params.downsample);
-
-    if (use_scale)
-        solverArgs << "-L" << QString::number(scalelo) << "-H" << QString::number(scalehi) << "-u" << units;
-
-    if (use_position)
-        solverArgs << "-3" << QString::number(search_ra) << "-4" << QString::number(search_dec) << "-5" << QString::number(params.search_radius);
-
-    return solverArgs;
-}
-
+//This will generate a temporary Astrometry.cfg file to use for solving so that we have more control over these options
+//for the external solvers from inside the program.
 bool ExternalSextractorSolver::generateAstrometryConfigFile()
 {
     confPath =  basePath + "/" + baseName + ".cfg";

@@ -22,10 +22,7 @@ public:
 
     void abort() override;
 
-    bool isRunning();
-
     QStringList getSolverArgsList();
-    QStringList getClassicSolverArgsList();
     bool generateAstrometryConfigFile();
 
     QString fileToProcess;
@@ -93,7 +90,6 @@ private:
 
     int runExternalSextractor();
     int runExternalSolver();
-    int runExternalClassicSolver();
     int runExternalASTAPSolver();
 
 };
