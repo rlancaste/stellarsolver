@@ -275,25 +275,30 @@ void OnlineSolver::onResult(QNetworkReply *reply)
         emit finished(-1);
         return;
     }
-
-    QString json = (QString)reply->readAll();
-
-    QJsonDocument json_doc = QJsonDocument::fromJson(json.toUtf8(), &parseError);
-
-    if (parseError.error != QJsonParseError::NoError)
+    QString json;
+    QJsonDocument json_doc;
+    QVariant json_result;
+    QVariantMap result;
+    if(workflowStage != WCS_LOADING_STAGE)
     {
-        emit logNeedsUpdating(QString("JSON error during parsing (%1).").arg(parseError.errorString()));
-        emit finished(-1);
-        return;
+        json = (QString)reply->readAll();
+
+        json_doc = QJsonDocument::fromJson(json.toUtf8(), &parseError);
+
+        if (parseError.error != QJsonParseError::NoError)
+        {
+            emit logNeedsUpdating(QString("JSON error during parsing (%1).").arg(parseError.errorString()));
+            emit finished(-1);
+            return;
+        }
+
+        json_result = json_doc.toVariant();
+        result   = json_result.toMap();
+
+        //if (Options::alignmentLogging())
+        //    align->appendLogText(json_doc.toJson(QJsonDocument::Compact));
+        emit logNeedsUpdating(json_doc.toJson(QJsonDocument::Compact));
     }
-
-    QVariant json_result = json_doc.toVariant();
-    QVariantMap result   = json_result.toMap();
-
-    //if (Options::alignmentLogging())
-    //    align->appendLogText(json_doc.toJson(QJsonDocument::Compact));
-    emit logNeedsUpdating(json_doc.toJson(QJsonDocument::Compact));
-
     switch (workflowStage)
     {
         case AUTH_STAGE:
@@ -448,6 +453,28 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             QString par = (parity > 0) ? "neg" : "pos";
             solution = {fieldw,fieldh,ra,dec,rastr,decstr,orientation, pixscale, par, raErr, decErr};
             hasSolved = true;
+
+            QString URL = QString("http://nova.astrometry.net/wcs_file/%1").arg(jobID);
+            networkManager->get(QNetworkRequest(QUrl(URL)));
+            workflowStage = WCS_LOADING_STAGE;
+
+        }
+            break;
+
+        case WCS_LOADING_STAGE:
+        {
+            QByteArray responseData = reply->readAll();
+            QString solutionFile = basePath + "/" + baseName + ".wcs";
+            QFile file(solutionFile);
+            if (!file.open(QIODevice::WriteOnly))
+            {
+                emit logNeedsUpdating(("WCS File Write Error"));
+                emit finished(0); //We still have the solution, this is not a failure!
+                return;
+            }
+            file.write(responseData.data(), responseData.size());
+            file.close();
+            loadWCS();
             emit finished(0);
         }
             break;

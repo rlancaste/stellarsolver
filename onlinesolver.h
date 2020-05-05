@@ -39,7 +39,8 @@ public:
         UPLOAD_STAGE,
         JOB_ID_STAGE,
         JOB_STATUS_STAGE,
-        JOB_CALIBRATION_STAGE
+        JOB_CALIBRATION_STAGE,
+        WCS_LOADING_STAGE
     } WorkflowStage;
 
 public slots:
