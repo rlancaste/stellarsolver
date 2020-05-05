@@ -259,28 +259,28 @@ void OnlineSolver::uploadFile()
     emit logNeedsUpdating(("Uploading file..."));
 }
 
-//This will start up the third stage, getting the Job ID
+//This will start up the third stage, waiting till processing is done
 void OnlineSolver::waitForProcessing()
 {
     workflowStage = JOB_PROCESSING_STAGE;
     emit logNeedsUpdating(("Waiting for Processing to complete..."));
 }
 
-//This will start up the third stage, getting the Job ID
+//This will start up the fourth stage, getting the Job ID, essentially waiting in the Job Queue
 void OnlineSolver::getJobID()
 { 
     workflowStage = JOB_QUEUE_STAGE;
     emit logNeedsUpdating(("Waiting for the Job to Start..."));
 }
 
-//This will start the fourth stage, monitoring the job to see when it's done
+//This will start the fifth stage, monitoring the job to see when it's done
 void OnlineSolver::startMonitoring()
 {
     workflowStage = JOB_MONITORING_STAGE;
     emit logNeedsUpdating(("Starting Job Monitoring..."));
 }
 
-//This will start the fifth stage, checking the results
+//This will start the sixth stage, checking the results
 void OnlineSolver::checkJobCalibration()
 {
     QNetworkRequest request;
@@ -292,7 +292,7 @@ void OnlineSolver::checkJobCalibration()
     emit logNeedsUpdating(("Requesting the results..."));
 }
 
-//This will start the sixth stage, getting the WCS File and loading it.
+//This will start the seventh stage, getting the WCS File and loading it (optional).
 void OnlineSolver::getJobWCSFile()
 {
 
