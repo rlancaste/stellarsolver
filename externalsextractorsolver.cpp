@@ -1178,7 +1178,7 @@ int ExternalSextractorSolver::loadWCS()
     **/
 
     int status = 0;
-    char * header;
+    char * header { nullptr };
     int nkeyrec, nreject, nwcs;
 
     fitsfile *fptr { nullptr };
@@ -1208,8 +1208,11 @@ int ExternalSextractorSolver::loadWCS()
         emit logNeedsUpdating(QString("wcspih ERROR %1: %2.").arg(status).arg(wcshdr_errmsg[status]));
         return status;
     }
+    fits_close_file(fptr, &status);
 
+#ifndef _WIN32 //For some very strange reason, this causes a crash on Windows??
     free(header);
+#endif
 
     if (m_wcs == nullptr)
     {

@@ -744,6 +744,13 @@ int SexySolver::runInternalSolver()
     engine->minwidth = params.minwidth;
     engine->maxwidth = params.maxwidth;
 
+#ifdef _WIN32 //Windows does not support FIFO files
+    if(!params.logToFile)
+    {
+        params.logTheOutput = false;
+    }
+#endif
+
     //If the user selects to log to file, it will only log to a file
     //If the user is on a non-windows system, it will by default log to the log Window
     if(params.logTheOutput)
@@ -758,9 +765,7 @@ int SexySolver::runInternalSolver()
         }
         else
         {
-            #ifdef _WIN32 //Windows does not support FIFO files
-                params.logTheOutput = false;
-            #else
+            #ifndef _WIN32 //Windows does not support FIFO files
                 int mkFifoSuccess = 0; //Note if the return value of the command is 0 it succeeded, -1 means it failed.
                 if ((mkFifoSuccess = mkfifo(params.logFileName.toLatin1(), S_IRUSR | S_IWUSR) < 0))
                 {
@@ -884,8 +889,16 @@ int SexySolver::runInternalSolver()
         {
             if(logMonitor)
                 logMonitor->quit();
-            while(logMonitorRunning)
-                msleep(10);
+
+            //Wait up to 10 seconds for the log to finish writing
+            int maxLogTime = 10000;
+            int time = 0;
+            int inc = 10;
+            while(logMonitorRunning && time < maxLogTime)
+            {
+                msleep(inc);
+                time+=inc;
+            }
         }
     }
 
