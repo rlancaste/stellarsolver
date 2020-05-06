@@ -644,7 +644,7 @@ void MainWindow::solveImage()
 void MainWindow::setupExternalSextractorSolver()
 {
     if(!sexySolver.isNull())
-        delete sexySolver;
+        sexySolver.clear();
     //Creates the External Sextractor/Solver Object
     ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(processType, stats, m_ImageBuffer, this);
 
@@ -666,7 +666,7 @@ void MainWindow::setupExternalSextractorSolver()
 void MainWindow::setupOnlineSolver()
 {
     if(!sexySolver.isNull())
-        delete sexySolver;
+        sexySolver.clear();
     //Creates the External Sextractor/Solver Object
     OnlineSolver *extSolver = new OnlineSolver(processType, stats, m_ImageBuffer, this);
 
@@ -683,7 +683,7 @@ void MainWindow::setupOnlineSolver()
 void MainWindow::setupInternalSexySolver()
 {
     if(!sexySolver.isNull())
-        delete sexySolver;
+        sexySolver.clear();
     //Creates the SexySolver
     sexySolver = new SexySolver(processType, stats ,m_ImageBuffer, this);
 
