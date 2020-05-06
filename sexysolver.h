@@ -235,7 +235,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     bool runSEPSextractor();    //This is the method that actually runs the internal sextractor
 
     sip_t wcs;                  //This is where the WCS data gets saved once the solving is done
-    bool hasWCS;
+    bool hasWCS = false;
     MatchObj match;             //This is where the match object gets stored once the solving is done.
 
 
@@ -272,7 +272,7 @@ private:
 
     void startLogMonitor();
     QThread* logMonitor;
-    bool logMonitorRunning;
+    bool logMonitorRunning = false;
     FILE *logFile;
 
 signals:

@@ -758,7 +758,9 @@ int SexySolver::runInternalSolver()
         }
         else
         {
-            #ifndef _WIN32 //Windows does not support FIFO files
+            #ifdef _WIN32 //Windows does not support FIFO files
+                params.logTheOutput = false;
+            #else
                 int mkFifoSuccess = 0; //Note if the return value of the command is 0 it succeeded, -1 means it failed.
                 if ((mkFifoSuccess = mkfifo(params.logFileName.toLatin1(), S_IRUSR | S_IWUSR) < 0))
                 {
@@ -873,12 +875,18 @@ int SexySolver::runInternalSolver()
 
     if(params.logTheOutput)
     {
+        //Needs to be done whether FIFO or regular file
         if(logFile)
             fclose(logFile);
-        if(logMonitor)
-            logMonitor->quit();
-        while(logMonitorRunning)
-            msleep(10);
+
+        //These things need to be done if it is running off the FIFO file
+        if(!params.logToFile)
+        {
+            if(logMonitor)
+                logMonitor->quit();
+            while(logMonitorRunning)
+                msleep(10);
+        }
     }
 
     //This deletes or frees the items that are no longer needed.
