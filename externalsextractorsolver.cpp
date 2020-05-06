@@ -115,7 +115,7 @@ void ExternalSextractorSolver::run()
     if(processType == EXT_SEXTRACTORSOLVER || processType == EXT_SEXTRACTOR)
     {
         #ifdef _WIN32  //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
-            logOutput("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
+            emit logNeedsUpdating("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
         #endif
 
         if(!QFileInfo(sextractorBinaryPath).exists())
@@ -136,7 +136,7 @@ void ExternalSextractorSolver::run()
             return;
         }
         #ifdef _WIN32
-            if(ui->inParallel->isChecked())
+            if(params.inParallel)
             {
                 emit logNeedsUpdating("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
                 disableInparallel();
