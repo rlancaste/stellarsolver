@@ -251,7 +251,7 @@ MainWindow::MainWindow() :
     ui->oddsToSolve->setToolTip("The Astrometry oddsToSolve Parameter.  This may need to be changed or removed");
     ui->oddsToTune->setToolTip("The Astrometry oddsToTune Parameter.  This may need to be changed or removed");
 
-    ui->logToFile->setToolTip("Whether or not the internal solver should log its output to a file for analysis");
+    ui->logDest->setToolTip("Where solver should log its output: not at all, to the Log Output window, or to a file");
     ui->logLevel->setToolTip("The verbosity level of the log to be saved for the internal solver.");
 
     connect(ui->indexFolderPaths, &QComboBox::currentTextChanged, this, [this](){ loadIndexFilesList(); });
@@ -735,7 +735,9 @@ SexySolver::Parameters MainWindow::getSettingsFromUI()
     params.logratio_tosolve = ui->oddsToSolve->text().toDouble();
 
     //Setting the logging settings
-    params.logToFile = ui->logToFile->isChecked();
+    int logging = ui->logDest->currentIndex();
+    params.logTheOutput = logging == 1 || logging == 2;
+    params.logToFile = logging == 2;
     params.logLevel = ui->logLevel->currentIndex();
 
     return params;
@@ -785,7 +787,14 @@ void MainWindow::sendSettingsToUI(SexySolver::Parameters a)
 
     //Astrometry Logging Settings
 
-        ui->logToFile->setChecked(a.logToFile);
+
+        if(a.logToFile)
+            ui->logDest->setCurrentIndex(2); //LOG File
+        else if(a.logTheOutput)
+            ui->logDest->setCurrentIndex(1); //LOG Output window
+        else
+            ui->logDest->setCurrentIndex(0); //NONE
+
             disconnect(ui->logLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
         ui->logLevel->setCurrentIndex(a.logLevel);
             connect(ui->logLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);

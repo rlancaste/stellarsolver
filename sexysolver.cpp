@@ -7,10 +7,12 @@
 */
 #if defined(__APPLE__)
 #include <sys/sysctl.h>
+#include <sys/stat.h>
 #elif defined(_WIN32)
 #include "windows.h"
 #else //Linux
 #include <QProcess>
+#include <sys/stat.h>
 #endif
 #include "sexysolver.h"
 #include "qmath.h"
@@ -742,18 +744,35 @@ int SexySolver::runInternalSolver()
     engine->minwidth = params.minwidth;
     engine->maxwidth = params.maxwidth;
 
-    //This sets the logging level and log file based on the user's preferences.
-    if(params.logToFile)
+    //If the user selects to log to file, it will only log to a file
+    //If the user is on a non-windows system, it will by default log to the log Window
+    if(params.logTheOutput)
     {
-        if(params.logFile == "")
-            params.logFile = basePath + "/" + baseName + ".log.txt";
-        if(QFile(params.logFile).exists())
-            QFile(params.logFile).remove();
-        FILE *log = fopen(params.logFile.toLatin1().constData(),"wb");
-        if(log)
+        if(params.logFileName == "")
+            params.logFileName = basePath + "/" + baseName + ".log.txt";
+        if(QFile(params.logFileName).exists())
+            QFile(params.logFileName).remove();
+        if(params.logToFile)
+        {
+            logFile = fopen(params.logFileName.toLatin1().constData(),"w");
+        }
+        else
+        {
+            #ifndef _WIN32 //Windows does not support FIFO files
+                int mkFifoSuccess = 0; //Note if the return value of the command is 0 it succeeded, -1 means it failed.
+                if ((mkFifoSuccess = mkfifo(params.logFileName.toLatin1(), S_IRUSR | S_IWUSR) < 0))
+                {
+                    emit logNeedsUpdating("Error making FIFO file");
+                    return -1;
+                }
+                startLogMonitor();
+                logFile = fopen(params.logFileName.toLatin1().constData(), "r+");
+            #endif
+        }
+        if(logFile)
         {
             log_init((log_level)params.logLevel);
-            log_to(log);
+            log_to(logFile);
         }
     }
 
@@ -851,6 +870,16 @@ int SexySolver::runInternalSolver()
     //This runs the job in the engine in the file engine.c
     if (engine_run_job(engine, job))
         emit logNeedsUpdating("Failed to run_job()\n");
+
+    if(params.logTheOutput)
+    {
+        if(logFile)
+            fclose(logFile);
+        if(logMonitor)
+            logMonitor->quit();
+        while(logMonitorRunning)
+            msleep(10);
+    }
 
     //This deletes or frees the items that are no longer needed.
     engine_free(engine);
@@ -1179,4 +1208,35 @@ bool SexySolver::enoughRAMisAvailableFor(QStringList indexFolders)
     return availableRAM > totalSize;
 }
 
+//This starts a monitor for the FIFO file if on a Mac or Linux Machine
+//That way the output can be logged.
+void SexySolver::startLogMonitor()
+{
+    logMonitor = new QThread();
+    connect(logMonitor, &QThread::started, [=]()
+    {
+        QString message;
+        FILE *FIFOReader = fopen(params.logFileName.toLatin1().constData(), "r");
+        if(FIFOReader)
+        {
+            char c;
+            while((c=getc(FIFOReader)) != EOF)
+            {
+                if( c != '\n')
+                    message += c;
+                else
+                {
+                    emit logNeedsUpdating(message);
+                    message = "";
+                    msleep(1);
+                }
+            }
+            fclose(FIFOReader);
+            emit logNeedsUpdating(message);
+            logMonitorRunning = false;
+        }
+    });
+    logMonitor->start();
+    logMonitorRunning = true;
+}
 

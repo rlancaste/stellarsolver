@@ -103,8 +103,9 @@ public:
         double search_radius = 15;          //Only search in indexes within 'radius' of the field center given by RA and DEC
 
         //Logging Settings for Astrometry
+        bool logTheOutput = true;           //This parameter determines whether or not the output should be logged at all.
         bool logToFile = false;             //This determines whether or not to save the output from Astrometry.net to a file
-        QString logFile;                    //This is the path to the log file that it will save.
+        QString logFileName;                    //This is the path to the log file that it will save.
         int logLevel = LOG_NONE;            //This is the level of logging getting saved to the log file
 
         //LogOdds Settings
@@ -268,6 +269,11 @@ private:
     void downsampleImage(int d);
     template <typename T>
     void downSampleImageType(int d);
+
+    void startLogMonitor();
+    QThread* logMonitor;
+    bool logMonitorRunning;
+    FILE *logFile;
 
 signals:
 

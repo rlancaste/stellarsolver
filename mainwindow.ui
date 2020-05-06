@@ -147,7 +147,7 @@
           <x>0</x>
           <y>0</y>
           <width>273</width>
-          <height>333</height>
+          <height>358</height>
          </rect>
         </property>
         <attribute name="label">
@@ -591,7 +591,7 @@
           <x>0</x>
           <y>0</y>
           <width>201</width>
-          <height>333</height>
+          <height>358</height>
          </rect>
         </property>
         <attribute name="label">
@@ -741,7 +741,7 @@
           <x>0</x>
           <y>0</y>
           <width>201</width>
-          <height>333</height>
+          <height>358</height>
          </rect>
         </property>
         <attribute name="label">
@@ -872,7 +872,7 @@
           <x>0</x>
           <y>0</y>
           <width>201</width>
-          <height>333</height>
+          <height>358</height>
          </rect>
         </property>
         <attribute name="label">
@@ -905,7 +905,7 @@
               <x>0</x>
               <y>0</y>
               <width>203</width>
-              <height>331</height>
+              <height>356</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_5">
@@ -924,7 +924,114 @@
              <property name="spacing">
               <number>-1</number>
              </property>
-             <item row="34" column="1">
+             <item row="23" column="0">
+              <widget class="QLabel" name="label_27">
+               <property name="text">
+                <string>MinWidth</string>
+               </property>
+              </widget>
+             </item>
+             <item row="20" column="0">
+              <widget class="QLabel" name="label_16">
+               <property name="text">
+                <string>DownSam</string>
+               </property>
+              </widget>
+             </item>
+             <item row="18" column="1">
+              <widget class="QCheckBox" name="resort">
+               <property name="text">
+                <string>Resort</string>
+               </property>
+              </widget>
+             </item>
+             <item row="29" column="0">
+              <widget class="QLabel" name="label_33">
+               <property name="text">
+                <string>Log Dest</string>
+               </property>
+              </widget>
+             </item>
+             <item row="20" column="1">
+              <widget class="QSpinBox" name="downsample">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>5</number>
+               </property>
+              </widget>
+             </item>
+             <item row="27" column="0">
+              <widget class="QLabel" name="label_36">
+               <property name="text">
+                <string>KeepOdds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="18" column="0">
+              <widget class="QCheckBox" name="inParallel">
+               <property name="text">
+                <string>InParallel</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="25" column="0">
+              <widget class="QLabel" name="label_9">
+               <property name="text">
+                <string>Radius</string>
+               </property>
+              </widget>
+             </item>
+             <item row="28" column="1">
+              <widget class="QLineEdit" name="oddsToTune">
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="25" column="1">
+              <widget class="QLineEdit" name="radius"/>
+             </item>
+             <item row="24" column="0">
+              <widget class="QLabel" name="label_28">
+               <property name="text">
+                <string>MaxWidth</string>
+               </property>
+              </widget>
+             </item>
+             <item row="27" column="1">
+              <widget class="QLineEdit" name="oddsToKeep">
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="21" column="0">
+              <widget class="QLabel" name="label_29">
+               <property name="text">
+                <string>MaxTime</string>
+               </property>
+              </widget>
+             </item>
+             <item row="28" column="0">
+              <widget class="QLabel" name="label_37">
+               <property name="text">
+                <string>TuneOdds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="26" column="0">
+              <widget class="QLabel" name="label_35">
+               <property name="text">
+                <string>SolveOdds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="35" column="1">
               <spacer name="verticalSpacer_7">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
@@ -944,75 +1051,10 @@
                </property>
               </widget>
              </item>
-             <item row="26" column="0">
-              <widget class="QLabel" name="label_35">
+             <item row="21" column="1">
+              <widget class="QLineEdit" name="solverTimeLimit">
                <property name="text">
-                <string>SolveOdds</string>
-               </property>
-              </widget>
-             </item>
-             <item row="23" column="0">
-              <widget class="QLabel" name="label_27">
-               <property name="text">
-                <string>MinWidth</string>
-               </property>
-              </widget>
-             </item>
-             <item row="27" column="0">
-              <widget class="QLabel" name="label_36">
-               <property name="text">
-                <string>KeepOdds</string>
-               </property>
-              </widget>
-             </item>
-             <item row="20" column="1">
-              <widget class="QSpinBox" name="downsample">
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>5</number>
-               </property>
-              </widget>
-             </item>
-             <item row="28" column="1">
-              <widget class="QLineEdit" name="oddsToTune">
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item row="21" column="0">
-              <widget class="QLabel" name="label_29">
-               <property name="text">
-                <string>MaxTime</string>
-               </property>
-              </widget>
-             </item>
-             <item row="18" column="0">
-              <widget class="QCheckBox" name="inParallel">
-               <property name="text">
-                <string>InParallel</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="20" column="0">
-              <widget class="QLabel" name="label_16">
-               <property name="text">
-                <string>DownSam</string>
-               </property>
-              </widget>
-             </item>
-             <item row="25" column="1">
-              <widget class="QLineEdit" name="radius"/>
-             </item>
-             <item row="30" column="0">
-              <widget class="QCheckBox" name="logToFile">
-               <property name="text">
-                <string>Log File</string>
+                <string>600</string>
                </property>
               </widget>
              </item>
@@ -1021,6 +1063,39 @@
                <property name="text">
                 <string>180</string>
                </property>
+              </widget>
+             </item>
+             <item row="23" column="1">
+              <widget class="QLineEdit" name="minWidth">
+               <property name="text">
+                <string>0.1</string>
+               </property>
+              </widget>
+             </item>
+             <item row="30" column="0">
+              <widget class="QLabel" name="label_34">
+               <property name="text">
+                <string>Log Level</string>
+               </property>
+              </widget>
+             </item>
+             <item row="29" column="1">
+              <widget class="QComboBox" name="logDest">
+               <item>
+                <property name="text">
+                 <string>None</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Output</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>File</string>
+                </property>
+               </item>
               </widget>
              </item>
              <item row="30" column="1">
@@ -1052,55 +1127,6 @@
                </item>
               </widget>
              </item>
-             <item row="23" column="1">
-              <widget class="QLineEdit" name="minWidth">
-               <property name="text">
-                <string>0.1</string>
-               </property>
-              </widget>
-             </item>
-             <item row="27" column="1">
-              <widget class="QLineEdit" name="oddsToKeep">
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item row="25" column="0">
-              <widget class="QLabel" name="label_9">
-               <property name="text">
-                <string>Radius</string>
-               </property>
-              </widget>
-             </item>
-             <item row="24" column="0">
-              <widget class="QLabel" name="label_28">
-               <property name="text">
-                <string>MaxWidth</string>
-               </property>
-              </widget>
-             </item>
-             <item row="28" column="0">
-              <widget class="QLabel" name="label_37">
-               <property name="text">
-                <string>TuneOdds</string>
-               </property>
-              </widget>
-             </item>
-             <item row="21" column="1">
-              <widget class="QLineEdit" name="solverTimeLimit">
-               <property name="text">
-                <string>600</string>
-               </property>
-              </widget>
-             </item>
-             <item row="18" column="1">
-              <widget class="QCheckBox" name="resort">
-               <property name="text">
-                <string>Resort</string>
-               </property>
-              </widget>
-             </item>
             </layout>
            </widget>
           </widget>
@@ -1113,7 +1139,7 @@
           <x>0</x>
           <y>0</y>
           <width>201</width>
-          <height>334</height>
+          <height>358</height>
          </rect>
         </property>
         <attribute name="label">
