@@ -25,9 +25,6 @@ endif(APPLE)
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/")
 include(GNUInstallDirs)
 
-#This one is for craft
-#include_directories("${CMAKE_INSTALL_PREFIX}/include")
-
 include_directories( "${CMAKE_CURRENT_BINARY_DIR}")
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry")
