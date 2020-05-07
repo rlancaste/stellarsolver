@@ -283,7 +283,7 @@ qt5_wrap_ui(SexySolverui_SRCS
     )
 
 If(APPLE)
-set(MACOSX_BUNDLE_ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/tester/SexySolverIcon.icns)
+set(MACOSX_BUNDLE_ICON_FILE SexySolverIcon.icns)
 set(SexySolverTesterApp_ICON ${CMAKE_CURRENT_SOURCE_DIR}/tester/SexySolverIcon.icns)
 set_source_files_properties(${SexySolverTesterApp_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 endif(APPLE)
