@@ -20,9 +20,6 @@
 //CFitsio Includes
 #include "fitsio.h"
 
-//KStars related includes
-#include "stretch.h"
-
 //Sextractor Includes
 #include "sep/sep.h"
 

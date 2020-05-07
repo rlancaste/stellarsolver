@@ -27,18 +27,20 @@ include(GNUInstallDirs)
 
 include_directories( "${CMAKE_CURRENT_BINARY_DIR}")
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}")
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry")
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/include")
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/include/astrometry")
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/tester")
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/sexysolver")
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry")
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/include")
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/include/astrometry")
 include_directories("/usr/local/include")
 include_directories("/usr/include")
 
 set(config_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/os-features-test.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/os-features-test.c
     )
 
 set(config_FN
-    "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/include/astrometry/os-features-config.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/include/astrometry/os-features-config.h"
     )
 
 file(REMOVE "${config_FN}")
@@ -100,210 +102,206 @@ if(WCSLIB_FOUND)
     include_directories( ${WCSLIB_INCLUDE_DIR} )
 endif(WCSLIB_FOUND)
 
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an")
-set(qfits_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/anqfits.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_card.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_convert.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_error.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_header.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_image.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_md5.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_table.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_time.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_tools.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_byteswap.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_memory.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_rw.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/qfits-an/qfits_float.c
-    )
-
-add_library(qfits ${qfits_SRCS})
-#install(TARGETS qfits LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
 if(WIN32)
     find_package(Boost 1.45.0 COMPONENTS regex)
     target_link_libraries(qfits ${Boost_LIBRARIES})
 endif(WIN32)
 
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd")
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an")
+set(qfits_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/anqfits.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_card.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_convert.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_error.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_header.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_image.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_md5.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_table.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_time.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_tools.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_byteswap.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_memory.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_rw.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_float.c
+    )
+
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd")
 set(kd_SRCS
     #Internals
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdint_ddd.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdint_fff.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdint_ddu.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdint_duu.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdint_dds.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdint_dss.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/kdint_ddd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/kdint_fff.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/kdint_ddu.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/kdint_duu.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/kdint_dds.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/kdint_dss.c
     #kd
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdtree.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdtree_dim.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdtree_mem.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/kdtree.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/kdtree_dim.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/kdtree_mem.c
     #kd fits
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/kdtree_fits_io.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/kdtree_fits_io.c
     #dt
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/dualtree.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/dualtree_rangesearch.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/libkd/dualtree_nearestneighbour.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/dualtree.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/dualtree_rangesearch.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/libkd/dualtree_nearestneighbour.c
     )
 
-add_library(kd ${kd_SRCS})
-target_link_libraries(kd ${CFITSIO_LIBRARIES})
-#install(TARGETS ld LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util")
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util")
 set(anbase_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/starutil.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/mathutil.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/bl-sort.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/bl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/bt.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/healpix-utils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/healpix.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/permutedsort.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/ioutils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/fileutils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/md5.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/os-features.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/an-endian.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/errors.c
-    #${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/an-opts.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/tic.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/log.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/datalog.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/sparsematrix.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/coadd.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/convolve-image.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/resample.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/intmap.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/histogram.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/histogram2d.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/starutil.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/mathutil.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/bl-sort.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/bl.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/bt.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/healpix-utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/healpix.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/permutedsort.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/ioutils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/fileutils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/md5.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/os-features.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/an-endian.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/errors.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/tic.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/log.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/datalog.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/sparsematrix.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/coadd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/convolve-image.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/resample.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/intmap.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/histogram.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/histogram2d.c
     )
-
-add_library(anbase ${anbase_SRCS})
-
-if(NOT MSVC)
-target_link_libraries(anbase -lpthread)
-endif(NOT MSVC)
-#install(TARGETS anbase LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set(anutils_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/sip-utils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/fit-wcs.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/sip.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/anwcs.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/wcs-resample.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/gslutils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/wcs-pv2sip.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/sip-utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/fit-wcs.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/sip.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/anwcs.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/wcs-resample.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/gslutils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/wcs-pv2sip.c
 
     #These get added if QFITS is to be included
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/fitsioutils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/sip_qfits.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/fitstable.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/fitsbin.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/fitsfile.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/tic.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/fitsioutils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/sip_qfits.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/fitstable.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/fitsbin.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/fitsfile.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/tic.c
     )
-
-add_library(anutils ${anutils_SRCS})
-target_link_libraries(anutils anbase qfits ${GSL_LIBRARIES})
-#install(TARGETS anutils LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set(anfiles_SRCS
     #I think thiese only get added if QFITS is to be included
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/multiindex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/index.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/codekd.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/starkd.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/rdlist.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/xylist.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/starxy.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/qidxfile.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/quadfile.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/scamp.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/scamp-catalog.c
-   # ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/tabsort.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/wcs-xy2rd.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/util/wcs-rd2xy.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/multiindex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/index.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/codekd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/starkd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/rdlist.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/xylist.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/starxy.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/qidxfile.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/quadfile.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/scamp.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/scamp-catalog.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/wcs-xy2rd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/wcs-rd2xy.c
         )
 
-add_library(anfiles ${anfiles_SRCS})
-target_link_libraries(anfiles anbase anutils qfits kd )
-#install(TARGETS anfiles LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind")
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind")
 set(engine_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/engine.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/blindutils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/blind.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/solver.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/quad-utils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/matchfile.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/matchobj.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/solvedclient.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/solvedfile.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/tweak2.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/verify.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/astrometry/blind/tweak.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind/engine.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind/blindutils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind/blind.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind/solver.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind/quad-utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind/matchfile.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind/matchobj.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind/solvedclient.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind/solvedfile.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind/tweak2.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind/verify.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/blind/tweak.c
     )
-add_library(astrometry ${engine_SRCS})
-target_link_libraries(astrometry anbase anutils anfiles)
-if(WIN32)
-target_link_libraries(astrometry wsock32)
-endif(WIN32)
-#install(TARGETS astrometry LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set (sep_SRCS
-   ${CMAKE_CURRENT_SOURCE_DIR}/sep/analyse.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/sep/aperture.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/sep/background.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/sep/convolve.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/sep/deblend.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/sep/extract.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/sep/lutz.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/sep/util.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sep/analyse.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sep/aperture.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sep/background.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sep/convolve.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sep/deblend.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sep/extract.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sep/lutz.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sep/util.c
     )
 
-add_library(sep ${sep_SRCS})
-target_link_libraries(sep ${CFITSIO_LIBRARIES})
-#install(TARGETS sep LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
 set(SexySolver_SRCS
-   ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/imagelabel.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/externalsextractorsolver.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/onlinesolver.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/stretch.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/dms.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/bayer.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/resources.qrc
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/externalsextractorsolver.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/onlinesolver.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sexysolver.cpp
    )
 
+add_library(sexysolver
+    ${SexySolver_SRCS}
+    ${sep_SRCS}
+    ${engine_SRCS}
+    ${anfiles_SRCS}
+    ${anutils_SRCS}
+    ${anbase_SRCS}
+    ${kd_SRCS}
+    ${qfits_SRCS}
+    )
+target_link_libraries(sexysolver
+    ${CFITSIO_LIBRARIES}
+    ${GSL_LIBRARIES}
+
+    Qt5::Core
+    Qt5::Network
+    Qt5::Widgets
+    )
+
+if(NOT MSVC)
+target_link_libraries(sexysolver -lpthread)
+endif(NOT MSVC)
+
+if(WIN32)
+target_link_libraries(sexysolver wsock32)
+endif(WIN32)
+
+set(SexySolverTester_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/tester/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tester/mainwindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tester/imagelabel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tester/stretch.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tester/dms.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tester/bayer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/tester/resources.qrc
+    )
+
 qt5_wrap_ui(SexySolverui_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/tester/mainwindow.ui
     )
 
 If(APPLE)
-set(MACOSX_BUNDLE_ICON_FILE SexySolverIcon.icns)
-set(SexySolverApp_ICON SexySolverIcon.icns)
-set_source_files_properties(${SexySolverApp_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+set(MACOSX_BUNDLE_ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/tester/SexySolverIcon.icns)
+set(SexySolverTesterApp_ICON ${CMAKE_CURRENT_SOURCE_DIR}/tester/SexySolverIcon.icns)
+set_source_files_properties(${SexySolverTesterApp_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 endif(APPLE)
 
 if(WIN32)
-set(SexySolverApp_ICON windowsicon.rc)
+set(SexySolverTesterApp_ICON ${CMAKE_CURRENT_SOURCE_DIR}/tester/windowsicon.rc)
 endif(WIN32)
 
-add_executable(SexySolver ${SexySolver_SRCS} ${SexySolverui_SRCS} ${SexySolverApp_ICON})
+add_executable(SexySolverTester ${SexySolverTester_SRCS} ${SexySolverui_SRCS} ${SexySolverTesterApp_ICON})
 
 if(APPLE)
-    SET_TARGET_PROPERTIES(SexySolver PROPERTIES MACOSX_BUNDLE TRUE)
+    SET_TARGET_PROPERTIES(SexySolverTester PROPERTIES MACOSX_BUNDLE TRUE)
 endif(APPLE)
 
-target_link_libraries(SexySolver sep astrometry)
+target_link_libraries(SexySolverTester sexysolver)
 
-target_link_libraries(SexySolver
+target_link_libraries(SexySolverTester
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
     ${WCSLIB_LIBRARIES}
@@ -316,13 +314,13 @@ target_link_libraries(SexySolver
     )
 
 if(APPLE)
-install(TARGETS SexySolver
+install(TARGETS SexySolverTester
     BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
     RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
     )
 else(APPLE)
 	#installation for Linux
-	install(TARGETS SexySolver RUNTIME DESTINATION bin)
+        install(TARGETS SexySolverTester RUNTIME DESTINATION bin)
 endif(APPLE)
 
 
