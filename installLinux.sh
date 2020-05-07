@@ -12,7 +12,7 @@ cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
 make -j $(expr $(nproc) + 2)
 sudo make install
 
-cp ../SexySolverIcon.png $HOME/Pictures/
+cp ../tester/SexySolverIcon.png $HOME/Pictures/
 
 # This will create a shortcut on the desktop for launching SexySolver
 ##################

@@ -16,6 +16,7 @@
 #include <QThread>
 #include <QMap>
 #include <QVariant>
+#include <QVector>
 
 //CFitsio Includes
 #include "fitsio.h"
