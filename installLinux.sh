@@ -16,15 +16,15 @@ cp ../SexySolverIcon.png $HOME/Pictures/
 
 # This will create a shortcut on the desktop for launching SexySolver
 ##################
-cat >$HOME/Desktop/SexySolver.desktop <<-EOF
+cat >$HOME/Desktop/SexySolverTester.desktop <<-EOF
 [Desktop Entry]
 Version=1.0
 Type=Application
 Terminal=false
 Icon[en_US]=$HOME/Pictures/SexySolverIcon.png
 Icon=$HOME/Pictures/SexySolverIcon.png
-Exec=/usr/bin/SexySolver
-Name[en_US]=SexySolver
-Name=SexySolver
+Exec=/usr/bin/SexySolverTester
+Name[en_US]=SexySolverTester
+Name=SexySolverTester
 EOF
 ##################
