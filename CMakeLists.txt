@@ -86,6 +86,10 @@ find_package(GSL REQUIRED)
 find_package(WCSLIB REQUIRED)
 find_package(Qt5 5.4 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
 
+if(WIN32)
+    find_package(Boost 1.45.0 COMPONENTS regex)
+endif(WIN32)
+
 if (NOT CFITSIO_FOUND OR CFITSIO_VERSION_MAJOR LESS 3)
   message(FATAL_ERROR "CFITSIO version too old, Please install cfitsio 3.x and try again. http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html")
 endif (NOT CFITSIO_FOUND OR CFITSIO_VERSION_MAJOR LESS 3)
@@ -101,11 +105,6 @@ endif (GSL_FOUND)
 if(WCSLIB_FOUND)
     include_directories( ${WCSLIB_INCLUDE_DIR} )
 endif(WCSLIB_FOUND)
-
-if(WIN32)
-    find_package(Boost 1.45.0 COMPONENTS regex)
-    target_link_libraries(qfits ${Boost_LIBRARIES})
-endif(WIN32)
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an")
 set(qfits_SRCS
@@ -266,7 +265,7 @@ target_link_libraries(sexysolver -lpthread)
 endif(NOT MSVC)
 
 if(WIN32)
-target_link_libraries(sexysolver wsock32)
+target_link_libraries(sexysolver wsock32 ${Boost_LIBRARIES})
 endif(WIN32)
 
 set(SexySolverTester_SRCS
