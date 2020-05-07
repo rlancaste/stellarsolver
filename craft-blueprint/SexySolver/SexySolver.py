@@ -36,8 +36,8 @@ class Package(CMakePackageBase):
         self.subinfo.options.configure.args = "-DCMAKE_INSTALL_PREFIX=" + root + " -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_MACOSX_RPATH=1 -DCMAKE_INSTALL_RPATH=" + craftLibDir
 
     def createPackage(self):
-        self.defines["executable"] = "bin\\SexySolver.exe"
+        self.defines["executable"] = "bin\\SexySolverTester.exe"
         self.defines["icon"] = os.path.join(self.packageDir(), "SexySolverInstallIcon.ico")
         if isinstance(self, AppxPackager):
-              self.defines["display_name"] = "SexySolver"
+              self.defines["display_name"] = "SexySolverTester"
         return TypePackager.createPackage(self)
