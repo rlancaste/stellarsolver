@@ -194,7 +194,7 @@ public slots:
     void mouseMovedOverImage(QPoint location);
     QString getValue(int x, int y);
     void mouseClickedOnStar(QPoint location);
-    QRect getStarSizeInImage(Star star);
+    QRect getStarSizeInImage(Star star, bool &accurate);
 
     //This function is for loading and parsing the options
     bool getSolverOptionsFromFITS();

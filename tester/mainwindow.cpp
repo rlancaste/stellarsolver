@@ -1467,33 +1467,53 @@ void MainWindow::autoScale()
 
 //This method is intended to get the position and size of the star for rendering purposes
 //It is used to draw circles/ellipses for the stars and to detect when the mouse is over a star
-QRect MainWindow::getStarSizeInImage(Star star)
+QRect MainWindow::getStarSizeInImage(Star star, bool &accurate)
 {
+    accurate = true;
     double width = 0;
     double height = 0;
-    switch(ui->starOptions->currentIndex())
+    double a = star.a;
+    double b = star.b;
+    double HFR = star.HFR;
+    int starOption = ui->starOptions->currentIndex();
+
+    //This is so that the star will appear on the screen even though it has invalid size info.
+    //The External Astrometry.net solver does not report star sizes, nor does the online solver.
+    if((a <= 0 || b <= 0) && (starOption == 0 || starOption == 1))
+    {
+        a = 5;
+        b = 5;
+        accurate = false;
+    }
+    if((HFR <= 0) && (starOption == 2 || starOption == 3))
+    {
+        HFR = 5;
+        accurate = false;
+    }
+
+    switch(starOption)
     {
         case 0: //Ellipse from Sextraction
-            width = 2 * star.a ;
-            height = 2 * star.b;
+            width = 2 * a ;
+            height = 2 * b;
             break;
 
         case 1: //Circle from Sextraction
             {
-                double size = 2 * sqrt( pow(star.a, 2) + pow(star.b, 2) );
+                double size = 2 * sqrt( pow(a, 2) + pow(b, 2) );
                 width = size;
                 height = size;
             }
             break;
 
         case 2: //HFD Size, based on HFR, 2 x radius is the diameter
-            width = 2 * star.HFR;
-            height = 2 * star.HFR;
+            width = 2 * HFR;
+            height = 2 * HFR;
             break;
 
         case 3: //2 x HFD size, based on HFR, 4 x radius is 2 x the diameter
-            width = 4 * star.HFR;
-            height = 4 * star.HFR;
+            width = 4 * HFR;
+            height = 4 * HFR;
             break;
     }
 
@@ -1526,7 +1546,8 @@ void MainWindow::updateImage()
         for(int starnum = 0 ; starnum < stars.size() ; starnum++)
         {
             Star star = stars.at(starnum);
-            QRect starInImage = getStarSizeInImage(star);
+            bool accurate;
+            QRect starInImage = getStarSizeInImage(star, accurate);
             p.save();
             p.translate(starInImage.center());
             p.rotate(star.theta);
@@ -1538,14 +1559,23 @@ void MainWindow::updateImage()
                 highlighter.setWidth(4);
                 p.setPen(highlighter);
                 p.setOpacity(1);
-                p.drawEllipse(starInImage);
             }
             else
             {
-                p.setPen(QColor("red"));
-                p.setOpacity(0.6);
-                p.drawEllipse(starInImage);
+                if(accurate)
+                {
+                    QPen highlighter(QColor("green"));
+                    highlighter.setWidth(2);
+                    p.setPen(highlighter);
+                    p.setOpacity(1);
+                }
+                else
+                {
+                    p.setPen(QColor("red"));
+                    p.setOpacity(0.6);
+                }
             }
+            p.drawEllipse(starInImage);
             p.restore();
         }
         p.end();
@@ -1606,7 +1636,8 @@ void MainWindow::mouseMovedOverImage(QPoint location)
         for(int i = 0 ; i < stars.size() ; i ++)
         {
             Star star = stars.at(i);
-            QRect starInImage = getStarSizeInImage(star);
+            bool accurate;
+            QRect starInImage = getStarSizeInImage(star, accurate);
             if(starInImage.contains(location))
             {
                 QString text =QString("Star: %1, x: %2, y: %3\nmag: %4, flux: %5, peak:%6").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.peak);
@@ -1685,7 +1716,8 @@ void MainWindow::mouseClickedOnStar(QPoint location)
 {
     for(int i = 0 ; i < stars.size() ; i ++)
     {
-        QRect starInImage = getStarSizeInImage(stars.at(i));
+        bool accurate;
+        QRect starInImage = getStarSizeInImage(stars.at(i), accurate);
         if(starInImage.contains(location))
             ui->starTable->selectRow(i);
     }

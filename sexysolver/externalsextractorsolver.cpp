@@ -154,6 +154,18 @@ void ExternalSextractorSolver::run()
         }
     }
 
+    if(processType != ASTAP)
+    {
+        if(sextractorFilePath == "")
+        {
+            sextractorFilePathIsTempFile = true;
+            sextractorFilePath = basePath + "/" + baseName + ".xyls";
+        }
+        QFile sextractorFile(sextractorFilePath);
+        if(sextractorFile.exists())
+            sextractorFile.remove();
+    }
+
     switch(processType)
     {
         case EXT_SEXTRACTOR:
@@ -255,15 +267,6 @@ int ExternalSextractorSolver::runExternalSextractor()
         if(ret != 0)
             return ret;
     }
-
-    if(sextractorFilePath == "")
-    {
-        sextractorFilePathIsTempFile = true;
-        sextractorFilePath = basePath + "/" + baseName + ".xyls";
-    }
-    QFile sextractorFile(sextractorFilePath);
-    if(sextractorFile.exists())
-        sextractorFile.remove();
 
     //Configuration arguments for sextractor
     QStringList sextractorArgs;
@@ -377,7 +380,7 @@ int ExternalSextractorSolver::runExternalSextractor()
     if(sextractorProcess->exitCode()!=0 || sextractorProcess->exitStatus() == QProcess::CrashExit)
         return sextractorProcess->exitCode();
 
-    return getSextractorTable(); //0 or exit code depending on its success
+    return getStarsFromXYLSFile(); //0 or exit code depending on its success
 
 }
 
@@ -425,7 +428,10 @@ int ExternalSextractorSolver::runExternalSolver()
     QStringList solverArgs=getSolverArgsList();
 
     if(processType == CLASSIC_ASTROMETRY)
+    {
+        solverArgs << "--keep-xylist" << sextractorFilePath;
         solverArgs << fileToProcess;
+    }
     else
         solverArgs << sextractorFilePath;
 
@@ -475,6 +481,8 @@ int ExternalSextractorSolver::runExternalSolver()
         return -1;
     if(!getSolutionInformation())
         return -1;
+    if(processType == CLASSIC_ASTROMETRY) //This way you can at least get the star positions and flux from the axy file in Astrometry.net since you aren't using Sextractor
+        getStarsFromXYLSFile();
     loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
     hasSolved = true;
     return 0;
@@ -551,6 +559,14 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     //We really would prefer that it always overwrite existing files, that it not waste any time
     //writing plots to a file, and that it doesn't run the verification.
     solverArgs << "-O" << "--no-plots" << "--no-verify";
+
+    //We would also prefer that it not write these temporary files, because they are a waste of
+    //resources, time, hard disk space, and memory card life since we aren't using them.
+    solverArgs << "--match" << "none";
+    solverArgs << "--corr" << "none";
+    solverArgs << "--new-fits" << "none";
+    solverArgs << "--rdls" << "none";
+    solverArgs << "--axy" << "none";
 
     //This parameter controls whether to resort the stars or not.
     if(params.resort)
@@ -662,7 +678,7 @@ void ExternalSextractorSolver::logSolver()
 
 //This method is copied and pasted and modified from tablist.c in astrometry.net
 //This is needed to load in the stars sextracted by an extrnal sextractor to get them into the table
-int ExternalSextractorSolver::getSextractorTable()
+int ExternalSextractorSolver::getStarsFromXYLSFile()
 {
      QFile sextractorFile(sextractorFilePath);
      if(!sextractorFile.exists())
@@ -730,24 +746,36 @@ int ExternalSextractorSolver::getSextractorTable()
                     if (fits_read_col_str (new_fptr,ii,jj,kk, 1, nullptrstr,
                                            &val, &anynul, &status) )
                         break;  /* jump out of loop on error */
-                    if(ii == 1)
-                        starx = QString(value).trimmed().toFloat();
-                    if(ii == 2)
-                        stary = QString(value).trimmed().toFloat();
-                    if(ii == 3)
-                        mag = QString(value).trimmed().toFloat();
-                    if(ii == 4)
-                        flux = QString(value).trimmed().toFloat();
-                    if(ii == 5)
-                        peak = QString(value).trimmed().toFloat();
-                    if(ii == 6)
-                        xx = QString(value).trimmed().toFloat();
-                    if(ii == 7)
-                        yy = QString(value).trimmed().toFloat();
-                    if(ii == 8)
-                        xy = QString(value).trimmed().toFloat();
-                    if(processType == EXT_SEXTRACTOR_HFR && ii == 9)
-                        HFR = QString(value).trimmed().toFloat();
+                    if(processType == CLASSIC_ASTROMETRY || processType == ONLINE_ASTROMETRY_NET)
+                    {
+                        if(ii == 1)
+                            starx = QString(value).trimmed().toFloat();
+                        if(ii == 2)
+                            stary = QString(value).trimmed().toFloat();
+                        if(ii == 3)
+                            flux = QString(value).trimmed().toFloat();
+                    }
+                    else
+                    {
+                        if(ii == 1)
+                            starx = QString(value).trimmed().toFloat();
+                        if(ii == 2)
+                            stary = QString(value).trimmed().toFloat();
+                        if(ii == 3)
+                            mag = QString(value).trimmed().toFloat();
+                        if(ii == 4)
+                            flux = QString(value).trimmed().toFloat();
+                        if(ii == 5)
+                            peak = QString(value).trimmed().toFloat();
+                        if(ii == 6)
+                            xx = QString(value).trimmed().toFloat();
+                        if(ii == 7)
+                            yy = QString(value).trimmed().toFloat();
+                        if(ii == 8)
+                            xy = QString(value).trimmed().toFloat();
+                        if(processType == EXT_SEXTRACTOR_HFR && ii == 9)
+                            HFR = QString(value).trimmed().toFloat();
+                    }
                 }
             }
 
@@ -756,12 +784,18 @@ int ExternalSextractorSolver::getSextractorTable()
             //Note, I got this translation from these two sources which agree:
             //https://books.google.com/books?id=JNEn23UyHuAC&pg=PA84&lpg=PA84&dq=ellipse+xx+yy+xy&source=bl&ots=ynAWge4jlb&sig=ACfU3U1pqZTkx8Teu9pBTygI9F-WcTncrg&hl=en&sa=X&ved=2ahUKEwj0s-7C3I7oAhXblnIEHacAAf0Q6AEwBHoECAUQAQ#v=onepage&q=ellipse%20xx%20yy%20xy&f=false
             //https://cookierobotics.com/007/
-            float thing = sqrt( pow(xx - yy, 2) + 4 * pow(xy, 2) );
-            float lambda1 = (xx + yy + thing) / 2;
-            float lambda2 = (xx + yy - thing) / 2;
-            float a = sqrt(lambda1);
-            float b = sqrt(lambda2);
-            float theta = qRadiansToDegrees(atan(xy / (lambda1 - yy)));
+            float a = 0;
+            float b = 0;
+            float theta = 0;
+            if(processType != CLASSIC_ASTROMETRY && processType != ONLINE_ASTROMETRY_NET)
+            {
+                float thing = sqrt( pow(xx - yy, 2) + 4 * pow(xy, 2) );
+                float lambda1 = (xx + yy + thing) / 2;
+                float lambda2 = (xx + yy - thing) / 2;
+                a = sqrt(lambda1);
+                b = sqrt(lambda2);
+                theta = qRadiansToDegrees(atan(xy / (lambda1 - yy)));
+            }
 
             Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta, 0, 0,"",""};
 

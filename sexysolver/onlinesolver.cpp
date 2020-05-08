@@ -100,26 +100,26 @@ void OnlineSolver::run()
     //Note, if it already has solved,
     //It may or may not have gotten the WCS data yet.
     //We want to wait for a little bit, but not too long.
-    bool wcsTimedOut = false;
-    double wcsTimeLimit = 10.0;
+    bool starsAndWCSTimedOut = false;
+    double starsAndWCSTimeLimit = 10.0;
 
     if(!aborted && !hasWCS)
     {
-        emit logNeedsUpdating("Waiting for WCS. . .");
-        solverTimer.start();  //Restart the timer for the WCS download
+        emit logNeedsUpdating("Waiting for Stars and WCS. . .");
+        solverTimer.start();  //Restart the timer for the Stars and WCS download
     }
 
-    //This will wait for WCS until the time limit is reached
+    //This will wait for stars and WCS until the time limit is reached
     //If it does get the file, whether or not it can read it, the stage changes to NO_STAGE and this quits
-    while(!aborted && !wcsTimedOut && workflowStage == WCS_LOADING_STAGE)
+    while(!aborted && !starsAndWCSTimedOut && (workflowStage == STAR_LOADING_STAGE || workflowStage == WCS_LOADING_STAGE))
     {
         msleep(STATUS_CHECK_INTERVAL);
-        wcsTimedOut = solverTimer.elapsed() / 1000.0 > wcsTimeLimit; //Wait 10 seconds for WCS, NO LONGER!
+        starsAndWCSTimedOut = solverTimer.elapsed() / 1000.0 > starsAndWCSTimeLimit; //Wait 10 seconds for STARS and WCS, NO LONGER!
     }
 
     disconnect(networkManager, &QNetworkAccessManager::finished, this, &OnlineSolver::onResult);
 
-    if(wcsTimedOut)
+    if(starsAndWCSTimedOut)
     {
         emit logNeedsUpdating("WCS download timed out");
         emit finished(0); //Note: It DID solve and we have results, just not WCS data, that is ok.
@@ -292,10 +292,19 @@ void OnlineSolver::checkJobCalibration()
     emit logNeedsUpdating(("Requesting the results..."));
 }
 
-//This will start the seventh stage, getting the WCS File and loading it (optional).
+//This will start the seventh stage, getting the XYLS File and loading it (optional).
+void OnlineSolver::getJobAXYFile()
+{
+    QString URL = QString("http://nova.astrometry.net/axy_file/%1").arg(jobID);
+    networkManager->get(QNetworkRequest(QUrl(URL)));
+
+    workflowStage = STAR_LOADING_STAGE;
+    emit logNeedsUpdating(("Downloading the AXY file..."));
+}
+
+//This will start the eighth stage, getting the WCS File and loading it (optional).
 void OnlineSolver::getJobWCSFile()
 {
-
     QString URL = QString("http://nova.astrometry.net/wcs_file/%1").arg(jobID);
     networkManager->get(QNetworkRequest(QUrl(URL)));
 
@@ -347,7 +356,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
     QJsonDocument json_doc;
     QVariant json_result;
     QVariantMap result;
-    if(workflowStage != WCS_LOADING_STAGE)
+    if(workflowStage != STAR_LOADING_STAGE && workflowStage != WCS_LOADING_STAGE)
     {
         json = (QString)reply->readAll();
 
@@ -519,9 +528,32 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             solution = {fieldw,fieldh,ra,dec,rastr,decstr,orientation, pixscale, par, raErr, decErr};
             hasSolved = true;
 
-            getJobWCSFile(); //Go to FINAL STAGE
+            if(processType == INT_SEP_EXT_SOLVER)
+                getJobWCSFile(); //Go to Last Stage, since we already have xyls file
+            else
+                getJobAXYFile(); //Go to next stage
         }
             break;
+
+        case STAR_LOADING_STAGE:
+        {
+            QByteArray responseData = reply->readAll();
+            QString axyFile = basePath + "/" + baseName + ".axy";
+            QFile file(axyFile);
+            if (!file.open(QIODevice::WriteOnly))
+            {
+                emit logNeedsUpdating(("AXY File Write Error"));
+                emit finished(0); //We still have the solution, this is not a failure!
+                return;
+            }
+            file.write(responseData.data(), responseData.size());
+            file.close();
+            sextractorFilePath = axyFile;
+            getStarsFromXYLSFile();
+            getJobWCSFile(); //Go to Next Stage
+            return;
+        }
+        break;
 
         case WCS_LOADING_STAGE:
         {

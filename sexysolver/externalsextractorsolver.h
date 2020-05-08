@@ -58,7 +58,7 @@ public:
     void logSextractor();
 
     int writeSextractorTable();
-    int getSextractorTable();
+    int getStarsFromXYLSFile();
     bool getSolutionInformation();
     bool getASTAPSolutionInformation();
     int saveAsFITS();
