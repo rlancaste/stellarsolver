@@ -15,6 +15,8 @@
 #include <sys/stat.h>
 #endif
 #include "sexysolver.h"
+#include "externalsextractorsolver.h"
+#include "onlinesolver.h"
 #include "qmath.h"
 
 SexySolver::SexySolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : QThread(parent)
@@ -34,23 +36,26 @@ SexySolver::~SexySolver()
         delete downSampledBuffer;
 }
 
-//This is the method you want to use to just sextract the image
-void SexySolver::sextract()
+SexySolver* SexySolver::createSexySolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent)
+{
+    SexySolver *sexySolver;
+    if(type == INT_SEP || type == INT_SEP_HFR || type == SEXYSOLVER )
+        sexySolver = new SexySolver(type, imagestats, imageBuffer, parent);
+    else if(type == ONLINE_ASTROMETRY_NET || type == INT_SEP_ONLINE_ASTROMETRY_NET)
+        sexySolver = new OnlineSolver(type, imagestats, imageBuffer, parent);
+    else
+        sexySolver = new ExternalSextractorSolver(type, imagestats, imageBuffer, parent);
+    return sexySolver;
+}
+
+void SexySolver::startProcess()
 {
     start();
 }
 
-//This is the method you want to use to just sextract the image and get HFR
-void SexySolver::sextractWithHFR()
+void SexySolver::executeProcess()
 {
-    calculateHFR = true;
-    start();
-}
-
-//This is the method you want to use to sextract and solve the image
-void SexySolver::solve()
-{
-    start();
+    run();
 }
 
 //This is the method that runs the solver or sextractor.  Do not call it, use the methods above instead, so that it can start a new thread.
@@ -59,6 +64,7 @@ void SexySolver::run()
     switch(processType)
     {
         case INT_SEP:
+        case INT_SEP_HFR:
             runSEPSextractor();
         break;
 
@@ -293,7 +299,7 @@ bool SexySolver::runSEPSextractor()
         float mag = params.magzero - 2.5 * log10(sum);
 
         float HFR = 0;
-        if(calculateHFR)
+        if(processType == INT_SEP_HFR)
         {
             //Get HFR
             sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, params.subpix, 0, &flux, requested_frac, 2, flux_fractions, &flux_flag);
@@ -404,7 +410,7 @@ bool SexySolver::runSEPSextractor()
 
     emit logNeedsUpdating(QString("Stars Found after Filtering: %1").arg(stars.size()));
     hasSextracted = true;
-    if(processType == INT_SEP)
+    if(processType == INT_SEP || processType == INT_SEP_HFR)
         emit finished(0);
 
     if (stats.dataType != TFLOAT)

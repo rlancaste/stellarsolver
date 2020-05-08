@@ -112,7 +112,7 @@ void ExternalSextractorSolver::setWinCygwinPaths()
 void ExternalSextractorSolver::run()
 {
     //These processes use the external sextractor
-    if(processType == EXT_SEXTRACTORSOLVER || processType == EXT_SEXTRACTOR)
+    if(processType == EXT_SEXTRACTORSOLVER || processType == EXT_SEXTRACTOR || processType == EXT_SEXTRACTOR_HFR)
     {
         #ifdef _WIN32  //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
             emit logNeedsUpdating("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
@@ -157,6 +157,7 @@ void ExternalSextractorSolver::run()
     switch(processType)
     {
         case EXT_SEXTRACTOR:
+        case EXT_SEXTRACTOR_HFR:
             emit finished(runExternalSextractor());
             break;
 
@@ -294,7 +295,7 @@ int ExternalSextractorSolver::runExternalSextractor()
         out << "CXX_IMAGE\n";//                Cxx object ellipse parameter                              [pixel**(-2)]
         out << "CYY_IMAGE\n";//                Cyy object ellipse parameter                              [pixel**(-2)]
         out << "CXY_IMAGE\n";//                Cxy object ellipse parameter                              [pixel**(-2)]
-        if(calculateHFR)
+        if(processType == EXT_SEXTRACTOR_HFR)
             out << "FLUX_RADIUS\n";//              Fraction-of-light radii                                   [pixel]
         paramFile.close();
     }
@@ -745,7 +746,7 @@ int ExternalSextractorSolver::getSextractorTable()
                         yy = QString(value).trimmed().toFloat();
                     if(ii == 8)
                         xy = QString(value).trimmed().toFloat();
-                    if(calculateHFR && ii == 9)
+                    if(processType == EXT_SEXTRACTOR_HFR && ii == 9)
                         HFR = QString(value).trimmed().toFloat();
                 }
             }

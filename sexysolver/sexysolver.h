@@ -42,19 +42,73 @@ class SexySolver : public QThread
 {
     Q_OBJECT
 public:
-    typedef enum {INT_SEP, SEXYSOLVER, EXT_SEXTRACTOR, EXT_SEXTRACTORSOLVER, INT_SEP_EXT_SOLVER, CLASSIC_ASTROMETRY, ASTAP, ONLINE_ASTROMETRY_NET, INT_SEP_ONLINE_ASTROMETRY_NET, ONLINE_ANSVR}ProcessType;
+    typedef enum {INT_SEP,
+                  INT_SEP_HFR,
+                  EXT_SEXTRACTOR,
+                  EXT_SEXTRACTOR_HFR,
+                  SEXYSOLVER,
+                  EXT_SEXTRACTORSOLVER,
+                  INT_SEP_EXT_SOLVER,
+                  CLASSIC_ASTROMETRY,
+                  ASTAP,
+                  ONLINE_ASTROMETRY_NET,
+                  INT_SEP_ONLINE_ASTROMETRY_NET
+    }ProcessType;
     ProcessType processType;
 
     explicit SexySolver(ProcessType type, Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
     ~SexySolver();
+
+    static SexySolver *createSexySolver(ProcessType type, Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
+
+
+    //This is a string which explains what the Command is doing for later access.
+    QString getCommandString()
+    {
+        switch(processType)
+        {
+            case SexySolver::INT_SEP:
+                return "Internal SEP";
+                break;
+            case SexySolver::INT_SEP_HFR:
+                return "Internal SEP w/ HFR";
+                break;
+            case SexySolver::EXT_SEXTRACTOR:
+                return "Ext Sextractor";
+                break;
+            case SexySolver::EXT_SEXTRACTOR_HFR:
+                return "Ext Sextractor w/ HFR";
+                break;
+            case SexySolver::SEXYSOLVER:
+                return "SexySolver";
+                break;
+            case SexySolver::EXT_SEXTRACTORSOLVER:
+                return "Ext Sextractor Ext Solver";
+                break;
+            case SexySolver::INT_SEP_EXT_SOLVER:
+                return "Int SEP Ext Solver";
+                break;
+            case SexySolver::CLASSIC_ASTROMETRY:
+                return "Classic Astrometry.net";
+                break;
+            case SexySolver::ASTAP:
+                return "ASTAP Solver";
+                break;
+            case SexySolver::ONLINE_ASTROMETRY_NET:
+                return "Online Astrometry.net";
+                break;
+            case SexySolver::INT_SEP_ONLINE_ASTROMETRY_NET:
+                return "Int SEP Online Astrometry.net";
+                break;
+            default: return ""; break;
+        }
+    };
 
     //SEXYSOLVER PARAMETERS
     //These are the parameters used by the Internal SexySolver Sextractor and Internal SexySolver Astrometry Solver
     //These parameters are public so that they can be changed by the program using the solver
     //The values here are the defaults unless they get changed.
     //If you are fine with those defaults, you don't need to set any of them.
-
-    QString command;                        //This is a string in which to store the name of the command being run for later access
 
     struct Parameters
     {
@@ -162,9 +216,8 @@ public:
     //The public methods here are for you to start, stop, setup, and get results from the SexySolver
 
     //These are the most important methods that you can use for the SexySolver
-    virtual void sextract();                    //This will run the Internal SexySolver (SEP) Sextractor
-    virtual void sextractWithHFR();             //This will run the Internal SexySolver (SEP) Sextractor with the option to get HFR data turned on.
-    virtual void solve();            //This will run both the Internal SexySolver Sextractor (SEP) and Solver (astrometry.net)
+    virtual void executeProcess();                      //This runs the process without threading.
+    virtual void startProcess();                        //This starts the process in a separate thread
     virtual void abort();                       //This will abort the solver
 
     //These set the settings for the SexySolver
@@ -173,7 +226,6 @@ public:
     void setSearchScale(double fov_low, double fov_high, QString scaleUnits);                              //This sets the scale range for the image to speed up the solver
     void setSearchPosition(double ra, double dec);                                                    //This sets the search RA/DEC/Radius to speed up the solver
     void disableInparallel(){params.inParallel = false;};
-    void setCalculateHFR(){calculateHFR = true;};
     void setProcessType(ProcessType type){processType = type;};
 
     //These static methods can be used by classes to configure parameters or paths
@@ -187,7 +239,7 @@ public:
     Solution getSolution(){return solution;};
     bool sextractionDone(){return hasSextracted;};
     bool solvingDone(){return hasSolved;};
-    bool isCalculatingHFR(){return calculateHFR;};
+    bool isCalculatingHFR(){return processType == INT_SEP_HFR || processType == EXT_SEXTRACTOR_HFR;};
     Parameters getCurrentParameters(){return params;};
     bool isUsingScale(){return use_scale;};
     bool isUsingPosition(){return use_position;};

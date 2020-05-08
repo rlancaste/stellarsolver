@@ -10,7 +10,7 @@ OnlineSolver::OnlineSolver(ProcessType type, Statistic imagestats, uint8_t *imag
     connect(networkManager, &QNetworkAccessManager::finished, this, &OnlineSolver::onResult);
 }
 
-void OnlineSolver::solve()
+void OnlineSolver::startProcess()
 {
     if(processType == ONLINE_ASTROMETRY_NET)
         runOnlineSolver();

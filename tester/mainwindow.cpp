@@ -522,10 +522,16 @@ void MainWindow::sextractButtonClicked()
     switch(ui->sextractorType->currentIndex())
     {
         case 0:
-            processType = SexySolver::INT_SEP;
+            if(ui->withHFR->isChecked())
+                processType = SexySolver::INT_SEP_HFR;
+            else
+                processType = SexySolver::INT_SEP;
             break;
         case 1:
-            processType = SexySolver::EXT_SEXTRACTOR;
+            if(ui->withHFR->isChecked())
+                processType = SexySolver::EXT_SEXTRACTOR_HFR;
+            else
+                processType = SexySolver::EXT_SEXTRACTOR;
             break;
         default: break;
     }
@@ -537,12 +543,11 @@ void MainWindow::sextractImage()
 {
     currentTrial++;
 
-    if(processType == SexySolver::INT_SEP )
-        setupInternalSexySolver();
-    else
-        setupExternalSextractorSolver();
+    if(!sexySolver.isNull())
+        sexySolver.clear();
 
-    sexySolver->command = ui->sextractorType->currentText();
+    sexySolver = SexySolver::createSexySolver(processType, stats, m_ImageBuffer, this);
+    setupExternalSextractorSolverIfNeeded();
 
     if(ui->optionsProfile->currentIndex() == 0)
         sexySolver->setParameters(getSettingsFromUI());
@@ -556,10 +561,7 @@ void MainWindow::sextractImage()
 
     startProcessMonitor();
 
-    if(ui->withHFR->isChecked())
-        sexySolver->sextractWithHFR();
-    else
-        sexySolver->sextract();
+    sexySolver->startProcess();
 }
 
 void MainWindow::solveButtonClicked()
@@ -601,14 +603,11 @@ void MainWindow::solveImage()
 {
     currentTrial++;
 
-    if(processType == SexySolver::SEXYSOLVER )
-        setupInternalSexySolver();
-    else if(processType == SexySolver::ONLINE_ASTROMETRY_NET || processType == SexySolver::INT_SEP_ONLINE_ASTROMETRY_NET)
-        setupOnlineSolver();
-    else
-        setupExternalSextractorSolver();
+    if(!sexySolver.isNull())
+        sexySolver.clear();
 
-    sexySolver->command = ui->solverType->currentText();
+    sexySolver = SexySolver::createSexySolver(processType, stats, m_ImageBuffer, this);
+    setupExternalSextractorSolverIfNeeded();
 
     QStringList indexFolderPaths;
     for(int i = 0; i < ui->indexFolderPaths->count(); i++)
@@ -637,56 +636,32 @@ void MainWindow::solveImage()
 
     startProcessMonitor();
 
-    sexySolver->solve();
+    sexySolver->startProcess();
 }
 
 //This sets up the External Sextractor and Solver and sets settings specific to them
-void MainWindow::setupExternalSextractorSolver()
+void MainWindow::setupExternalSextractorSolverIfNeeded()
 {
-    if(!sexySolver.isNull())
-        sexySolver.clear();
-    //Creates the External Sextractor/Solver Object
-    ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(processType, stats, m_ImageBuffer, this);
+    if (ExternalSextractorSolver* extSolver = dynamic_cast<ExternalSextractorSolver*>(sexySolver.data()))
+    {
+        extSolver->fileToProcess = fileToProcess;
+        extSolver->basePath = ui->basePath->text();
+        extSolver->sextractorBinaryPath = ui->sextractorPath->text();
+        extSolver->confPath = ui->configFilePath->text();
+        extSolver->solverPath = ui->solverPath->text();
+        extSolver->astapBinaryPath = ui->astapPath->text();
+        extSolver->wcsPath = ui->wcsPath->text();
+        extSolver->cleanupTemporaryFiles = ui->cleanupTemp->isChecked();
+        extSolver->autoGenerateAstroConfig = ui->generateAstrometryConfig->isChecked();
+    }
 
-    //Sets the file settings and other items specific to the external solver programs
-    extSolver->fileToProcess = fileToProcess;
-    extSolver->basePath = ui->basePath->text();
-    extSolver->sextractorBinaryPath = ui->sextractorPath->text();
-    extSolver->confPath = ui->configFilePath->text();
-    extSolver->solverPath = ui->solverPath->text();
-    extSolver->astapBinaryPath = ui->astapPath->text();
-    extSolver->wcsPath = ui->wcsPath->text();
-    extSolver->cleanupTemporaryFiles = ui->cleanupTemp->isChecked();
-    extSolver->autoGenerateAstroConfig = ui->generateAstrometryConfig->isChecked();
-
-    sexySolver = extSolver;
-}
-
-//This sets up the External Sextractor and Solver and sets settings specific to them
-void MainWindow::setupOnlineSolver()
-{
-    if(!sexySolver.isNull())
-        sexySolver.clear();
-    //Creates the External Sextractor/Solver Object
-    OnlineSolver *extSolver = new OnlineSolver(processType, stats, m_ImageBuffer, this);
-
-    //Sets the file settings and other items specific to the external solver programs
-    extSolver->fileToProcess = fileToProcess;
-    extSolver->basePath = ui->basePath->text();
-    extSolver->astrometryAPIKey = "iczikaqstszeptgs";
-    extSolver->astrometryAPIURL = "http://nova.astrometry.net";
-
-    sexySolver = extSolver;
-}
-
-//This sets up the Internal SexySolver and sets settings specific to it
-void MainWindow::setupInternalSexySolver()
-{
-    if(!sexySolver.isNull())
-        sexySolver.clear();
-    //Creates the SexySolver
-    sexySolver = new SexySolver(processType, stats ,m_ImageBuffer, this);
-
+    if (OnlineSolver* extSolver = dynamic_cast<OnlineSolver*>(sexySolver.data()))
+    {
+        extSolver->fileToProcess = fileToProcess;
+        extSolver->basePath = ui->basePath->text();
+        extSolver->astrometryAPIKey = "iczikaqstszeptgs";
+        extSolver->astrometryAPIURL = "http://nova.astrometry.net";
+    }
 }
 
 //This sets all the settings for either the internal or external sextractor
@@ -814,9 +789,9 @@ bool MainWindow::sextractorComplete(int error)
             stars = sexySolver->getStarList();
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         if(sexySolver->isCalculatingHFR())
-            logOutput(QString(sexySolver->command + " with HFR success! Got %1 stars").arg(stars.size()));
+            logOutput(QString(sexySolver->getCommandString() + " with HFR success! Got %1 stars").arg(stars.size()));
         else
-            logOutput(QString(sexySolver->command + " success! Got %1 stars").arg(stars.size()));
+            logOutput(QString(sexySolver->getCommandString() + " success! Got %1 stars").arg(stars.size()));
         logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         if(currentTrial<numberOfTrials)
@@ -830,7 +805,7 @@ bool MainWindow::sextractorComplete(int error)
     else
     {
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString(sexySolver->command + "failed after %1 second(s).").arg( elapsed));
+        logOutput(QString(sexySolver->getCommandString() + "failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         stopProcessMonitor();
         if(currentTrial == 1)
@@ -853,7 +828,7 @@ bool MainWindow::solverComplete(int error)
     {
         ui->progressBar->setRange(0,10);
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString(sexySolver->command + " took a total of: %1 second(s).").arg( elapsed));
+        logOutput(QString(sexySolver->getCommandString() + " took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         lastSolution = sexySolver->getSolution();
         if(currentTrial<numberOfTrials)
@@ -877,7 +852,7 @@ bool MainWindow::solverComplete(int error)
     else
     {
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString(sexySolver->command + "failed after %1 second(s).").arg( elapsed));
+        logOutput(QString(sexySolver->getCommandString() + "failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         stopProcessMonitor();
         if(currentTrial == 1)
@@ -2104,9 +2079,9 @@ void MainWindow::addSextractionToTable()
     setItemInColumn(table, "Avg Time", QString::number(totalTime / numberOfTrials));
     setItemInColumn(table, "# Trials", QString::number(numberOfTrials));
     if(sexySolver->isCalculatingHFR())
-        setItemInColumn(table, "Command", sexySolver->command + " w/HFR");
+        setItemInColumn(table, "Command", sexySolver->getCommandString() + " w/HFR");
     else
-        setItemInColumn(table, "Command", sexySolver->command);
+        setItemInColumn(table, "Command", sexySolver->getCommandString());
     setItemInColumn(table, "Profile", params.listName);
     setItemInColumn(table, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
@@ -2157,7 +2132,7 @@ void MainWindow::addSolutionToTable(Solution solution)
 
     setItemInColumn(table, "Avg Time", QString::number(totalTime / numberOfTrials));
     setItemInColumn(table, "# Trials", QString::number(numberOfTrials));
-    setItemInColumn(table, "Command", sexySolver->command);
+    setItemInColumn(table, "Command", sexySolver->getCommandString());
     setItemInColumn(table, "Profile", params.listName);
 
     //Astrometry Parameters

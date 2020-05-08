@@ -28,7 +28,7 @@ public:
     QString astrometryAPIURL;
     QString fileToProcess;
 
-    void solve() override;
+    void startProcess() override;
     void abort() override;
 
     typedef enum
