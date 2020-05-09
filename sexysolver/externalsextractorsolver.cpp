@@ -574,7 +574,6 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     solverArgs << "--corr" << "none";
     solverArgs << "--new-fits" << "none";
     solverArgs << "--rdls" << "none";
-    solverArgs << "--axy" << "none";
 
     //This parameter controls whether to resort the stars or not.
     if(params.resort)
