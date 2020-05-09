@@ -123,7 +123,7 @@ void ExternalSextractorSolver::run()
     if(processType == EXT_SEXTRACTORSOLVER || processType == EXT_SEXTRACTOR || processType == EXT_SEXTRACTOR_HFR)
     {
         #ifdef _WIN32  //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
-            emit logNeedsUpdating("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
+            emit logOutput("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
         #endif
 
         if(!QFileInfo(sextractorBinaryPath).exists())
@@ -146,7 +146,7 @@ void ExternalSextractorSolver::run()
         #ifdef _WIN32
             if(params.inParallel)
             {
-                emit logNeedsUpdating("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
+                emit logOutput("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
                 disableInparallel();
             }
         #endif
@@ -889,7 +889,7 @@ bool ExternalSextractorSolver::getSolutionInformation()
     QString wcsinfo_stdout = wcsProcess.readAllStandardOutput();
 
     //This is a quick way to find out what keys are available
-   // emit logNeedsUpdating(wcsinfo_stdout);
+   // emit logOutput(wcsinfo_stdout);
 
     QStringList wcskeys = wcsinfo_stdout.split(QRegExp("[\n]"));
 
@@ -1243,24 +1243,24 @@ int ExternalSextractorSolver::loadWCS()
         QString text;
         if(!solution.open(QIODevice::ReadOnly | QIODevice::Text))
         {
-            emit logNeedsUpdating("Cannot read the WCS file from ASTAP.");
+            emit logOutput("Cannot read the WCS file from ASTAP.");
             return -1;
         }
 
         text=solution.readAll();
         solution.close();
         text = text.remove("\n").remove("\r");
-        emit logNeedsUpdating(text);
+        emit logOutput(text);
 
         if(!solution.open(QIODevice::WriteOnly | QIODevice::Text))
         {
-            emit logNeedsUpdating("Cannot write to the ASTAP WCS file.");
+            emit logOutput("Cannot write to the ASTAP WCS file.");
             return -1;
         }
         QTextStream out(&solution);
         out << text;
         solution.close();
-        emit logNeedsUpdating("ASTAP Processing done");
+        emit logOutput("ASTAP Processing done");
     }
     **/
 
