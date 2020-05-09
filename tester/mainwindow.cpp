@@ -67,7 +67,8 @@ MainWindow::MainWindow() :
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveButtonClicked );
     ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box");
     ui->solverType->setToolTip("Lets you choose how to solve the image");
-    ui->withWCS->setToolTip("When Solving, save the WCS info into the image and starTable so that the RA and DEC can be displayed");
+    connect(ui->loadWCS, &QAbstractButton::clicked, this, &MainWindow::loadWCS);
+    ui->loadWCS->setToolTip("After Solving, load WCS info into the image and starTable so that the RA and DEC of everything can be displayed");
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     ui->Abort->setToolTip("Aborts the current process if one is running.");
     connect(ui->ClearStars,&QAbstractButton::clicked, this, &MainWindow::clearStars );
@@ -624,6 +625,41 @@ void MainWindow::solveImage()
     sexySolver->startProcess();
 }
 
+//This method will load the WCS info and startable if the image is done solving.
+bool MainWindow::loadWCS()
+{
+    if(sexySolver.isNull())
+    {
+        logOutput("You must load and solve an image first");
+        return false;
+    }
+    if(sexySolver->isRunning())
+    {
+        logOutput("Please wait for the solver to complete.");
+        return false;
+    }
+    if(!sexySolver->solvingDone())
+    {
+        logOutput("The solver did not solve successfully so there is no WCS data.");
+        return false;
+    }
+    if(!sexySolver->hasWCSData())
+    {
+        logOutput("The solver did not retrieve the WCS data.");
+        return false;
+    }
+    wcs_point * coord = sexySolver->getWCSCoord();
+    if(coord)
+    {
+        hasWCSData = true;
+        wcs_coord = coord;
+        stars = sexySolver->getStarsWithRAandDEC();
+        displayTable();
+        return true;
+    }
+    return false;
+}
+
 //This sets up the External Sextractor and Solver and sets settings specific to them
 void MainWindow::setupExternalSextractorSolverIfNeeded()
 {
@@ -833,17 +869,6 @@ bool MainWindow::solverComplete(int error)
             return true;
         }
         stopProcessMonitor();
-        if(ui->withWCS->isChecked())
-        {
-            wcs_point * coord = sexySolver->getWCSCoord();
-            if(coord)
-            {
-                hasWCSData = true;
-                wcs_coord = coord;
-                stars = sexySolver->getStarsWithRAandDEC();
-                displayTable();
-            }
-        }
     }
     else
     {

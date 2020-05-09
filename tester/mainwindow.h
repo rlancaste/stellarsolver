@@ -164,6 +164,7 @@ public slots:
     void sextractImage();
     void solveButtonClicked();
     void solveImage();
+    bool loadWCS();
 
     void abort();
 
