@@ -657,13 +657,13 @@ void MainWindow::setupSexySolverParameters()
     else
         sexySolver->setParameters(optionsList.at(ui->optionsProfile->currentIndex() - 2));
 
-    //Index File Paths
-    if(ui->optionsProfile->currentIndex() == 0)
-        sexySolver->setParameters(getSettingsFromUI());
-    else if(ui->optionsProfile->currentIndex() == 1)
-        sexySolver->setParameters(SexySolver::Parameters());
-    else
-        sexySolver->setParameters(optionsList.at(ui->optionsProfile->currentIndex() - 2));
+    //Index Folder Paths
+    QStringList indexFolderPaths;
+    for(int i = 0; i < ui->indexFolderPaths->count(); i++)
+    {
+        indexFolderPaths << ui->indexFolderPaths->itemText(i);
+    }
+    sexySolver->setIndexFolderPaths(indexFolderPaths);
 
     //These setup Logging if desired
     sexySolver->logToFile = ui->logToFile->isChecked();
