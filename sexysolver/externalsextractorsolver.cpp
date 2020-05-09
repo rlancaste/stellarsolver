@@ -111,6 +111,14 @@ void ExternalSextractorSolver::setWinCygwinPaths()
 
 void ExternalSextractorSolver::run()
 {
+    if(logToFile)
+    {
+        if(logFileName == "")
+            logFileName = basePath + "/" + baseName + ".log.txt";
+        if(QFile(logFileName).exists())
+            QFile(logFileName).remove();
+    }
+
     //These processes use the external sextractor
     if(processType == EXT_SEXTRACTORSOLVER || processType == EXT_SEXTRACTOR || processType == EXT_SEXTRACTOR_HFR)
     {
@@ -120,7 +128,7 @@ void ExternalSextractorSolver::run()
 
         if(!QFileInfo(sextractorBinaryPath).exists())
         {
-            emit logNeedsUpdating("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
+            emit logOutput("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
             emit finished(-1);
             return;
         }
@@ -131,7 +139,7 @@ void ExternalSextractorSolver::run()
     {
         if(!QFileInfo(solverPath).exists())
         {
-            emit logNeedsUpdating("There is no astrometry solver at " + solverPath + ", Aborting");
+            emit logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
             emit finished(-1);
             return;
         }
@@ -148,7 +156,7 @@ void ExternalSextractorSolver::run()
     {
         if(!QFileInfo(astapBinaryPath).exists())
         {
-            emit logNeedsUpdating("There is no ASTAP solver at " + astapBinaryPath + ", Aborting");
+            emit logOutput("There is no ASTAP solver at " + astapBinaryPath + ", Aborting");
             emit finished(-1);
             return;
         }
@@ -224,7 +232,7 @@ void ExternalSextractorSolver::abort()
         file.write("Cancel");
         file.close();
     }
-    emit logNeedsUpdating("Aborted");
+    emit logOutput("Aborted");
 }
 
 void ExternalSextractorSolver::cleanupTempFiles()
@@ -256,8 +264,8 @@ void ExternalSextractorSolver::cleanupTempFiles()
 //It creates key files needed to run Sextractor from the desired options, then runs the sextractor program using the options.
 int ExternalSextractorSolver::runExternalSextractor()
 {
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Configuring external Sextractor");
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Configuring external Sextractor");
     QFileInfo file(fileToProcess);
     if(!file.exists())
         return -1;
@@ -369,13 +377,13 @@ int ExternalSextractorSolver::runExternalSextractor()
     sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
     connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSextractor);
 
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Starting external sextractor...");
-    emit logNeedsUpdating(sextractorBinaryPath + " " + sextractorArgs.join(' '));
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Starting external sextractor...");
+    emit logOutput(sextractorBinaryPath + " " + sextractorArgs.join(' '));
 
     sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
     sextractorProcess->waitForFinished(30000); //Will timeout after 30 seconds
-    emit logNeedsUpdating(sextractorProcess->readAllStandardError().trimmed());
+    emit logOutput(sextractorProcess->readAllStandardError().trimmed());
 
     if(sextractorProcess->exitCode()!=0 || sextractorProcess->exitStatus() == QProcess::CrashExit)
         return sextractorProcess->exitCode();
@@ -388,18 +396,18 @@ int ExternalSextractorSolver::runExternalSextractor()
 //It runs the astrometry.net external program using the options selected.
 int ExternalSextractorSolver::runExternalSolver()
 {
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     if(processType == CLASSIC_ASTROMETRY)
-        emit logNeedsUpdating("Configuring external Astrometry.net solver classically: using python and without Sextractor first");
+        emit logOutput("Configuring external Astrometry.net solver classically: using python and without Sextractor first");
     else
-        emit logNeedsUpdating("Configuring external Astrometry.net solver using an xylist input");
+        emit logOutput("Configuring external Astrometry.net solver using an xylist input");
 
     if(processType == CLASSIC_ASTROMETRY)
     {
         QFileInfo file(fileToProcess);
         if(!file.exists())
         {
-            emit logNeedsUpdating("The requested file to solve does not exist");
+            emit logOutput("The requested file to solve does not exist");
             return -1;
         }
 
@@ -414,14 +422,14 @@ int ExternalSextractorSolver::runExternalSolver()
     {
         if(params.inParallel && !enoughRAMisAvailableFor(indexFolderPaths))
         {
-            emit logNeedsUpdating("Not enough RAM is available on this system for loading the index files you have in parallel");
-            emit logNeedsUpdating("You may want to disable the inParallel option.");
+            emit logOutput("Not enough RAM is available on this system for loading the index files you have in parallel");
+            emit logOutput("You may want to disable the inParallel option.");
         }
 
         QFile sextractorFile(sextractorFilePath);
         if(!sextractorFile.exists())
         {
-            emit logNeedsUpdating("Please Sextract the image first");
+            emit logOutput("Please Sextract the image first");
         }
     }
 
@@ -464,14 +472,14 @@ int ExternalSextractorSolver::runExternalSolver()
     #endif
 
     solver->start(solverPath, solverArgs);
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Starting external Astrometry.net solver...");
-    emit logNeedsUpdating("Command: " + solverPath + " " + solverArgs.join(" "));
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Starting external Astrometry.net solver...");
+    emit logOutput("Command: " + solverPath + " " + solverArgs.join(" "));
 
     solver->waitForFinished(params.solverTimeLimit * 1000 * 1.2); //Set to timeout in a little longer than the timeout
     if(solver->error()==QProcess::Timedout)
     {
-        emit logNeedsUpdating("Solver timed out, aborting");
+        emit logOutput("Solver timed out, aborting");
         abort();
         return solver->exitCode();
     }
@@ -492,8 +500,8 @@ int ExternalSextractorSolver::runExternalSolver()
 //It runs the astrometry.net external program using the options selected.
 int ExternalSextractorSolver::runExternalASTAPSolver()
 {
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Configuring external ASTAP solver");
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Configuring external ASTAP solver");
 
     QFileInfo file(fileToProcess);
     if(!file.exists())
@@ -526,14 +534,14 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
 
     solver->start(astapBinaryPath, solverArgs);
 
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Starting external ASTAP Solver...");
-    emit logNeedsUpdating("Command: " + astapBinaryPath + " " + solverArgs.join(" "));
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Starting external ASTAP Solver...");
+    emit logOutput("Command: " + astapBinaryPath + " " + solverArgs.join(" "));
 
     solver->waitForFinished(params.solverTimeLimit * 1000 * 1.2); //Set to timeout in a little longer than the timeout
     if(solver->error()==QProcess::Timedout)
     {
-        emit logNeedsUpdating("Solver timed out, aborting");
+        emit logOutput("Solver timed out, aborting");
         abort();
         return solver->exitCode();
     }
@@ -614,6 +622,12 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
         solverArgs << "--uniformize" << "0";
     }
 
+    //Don't need any argument for default level
+    if(logLevel == LOG_VERB)
+        solverArgs << "-v";
+    else if(logLevel == LOG_ALL)
+        solverArgs << "-vv";
+
     if(autoGenerateAstroConfig)
         generateAstrometryConfigFile();
 
@@ -667,13 +681,51 @@ bool ExternalSextractorSolver::generateAstrometryConfigFile()
 
 void ExternalSextractorSolver::logSextractor()
 {
-    QString rawText(sextractorProcess->readAll().trimmed());
-    emit logNeedsUpdating(rawText.remove("[1M>").remove("[1A"));
+    if(sextractorProcess->canReadLine())
+    {
+        QString rawText(sextractorProcess->readLine().trimmed());
+        QString cleanedString = rawText.remove("[1M>").remove("[1A");
+        if(!cleanedString.isEmpty())
+        {
+            emit logOutput(cleanedString);
+            if(logToFile)
+            {
+                QFile file(logFileName);
+                if (file.open(QIODevice::Append | QIODevice::Text))
+                {
+                    QTextStream outstream(&file);
+                    outstream << cleanedString << endl;
+                    file.close();
+                }
+                else
+                    emit logOutput(("Log File Write Error"));
+            }
+        }
+    }
 }
 
 void ExternalSextractorSolver::logSolver()
 {
-     emit logNeedsUpdating(solver->readAll().trimmed());
+    if(solver->canReadLine())
+    {
+        QString solverLine(solver->readLine().trimmed());
+        if(!solverLine.isEmpty())
+        {
+            emit logOutput(solverLine);
+            if(logToFile)
+            {
+                QFile file(logFileName);
+                if (file.open(QIODevice::Append | QIODevice::Text))
+                {
+                    QTextStream outstream(&file);
+                    outstream << solverLine << endl;
+                    file.close();
+                }
+                else
+                    emit logOutput(("Log File Write Error"));
+            }
+        }
+    }
 }
 
 //This method is copied and pasted and modified from tablist.c in astrometry.net
@@ -683,7 +735,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
      QFile sextractorFile(sextractorFilePath);
      if(!sextractorFile.exists())
      {
-         emit logNeedsUpdating("Can't get sextractor file since it doesn't exist.");
+         emit logOutput("Can't get sextractor file since it doesn't exist.");
          return -1;
      }
 
@@ -701,7 +753,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
     {
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
-        emit logNeedsUpdating(QString::fromUtf8(error_status));
+        emit logOutput(QString::fromUtf8(error_status));
         return status;
     }
 
@@ -713,7 +765,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
         fits_get_hdu_type(new_fptr, &hdutype, &status); /* Get the HDU type */
 
     if (!(hdutype == ASCII_TBL || hdutype == BINARY_TBL)) {
-        emit logNeedsUpdating("Wrong type of file");
+        emit logOutput("Wrong type of file");
         return -1;
     }
 
@@ -816,7 +868,7 @@ bool ExternalSextractorSolver::getSolutionInformation()
     QFileInfo solutionInfo(solutionFile);
     if(!solutionInfo.exists())
     {
-        emit logNeedsUpdating("Solution file doesn't exist");
+        emit logOutput("Solution file doesn't exist");
         return false;
     }
     QProcess wcsProcess;
@@ -898,7 +950,7 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
 
         if (!results.open(QIODevice::ReadOnly))
         {
-            emit logNeedsUpdating("Failed to open solution file" + basePath + "/" + baseName + ".ini");
+            emit logOutput("Failed to open solution file" + basePath + "/" + baseName + ".ini");
             return false;
         }
 
@@ -908,12 +960,12 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
         QStringList ini = line.split("=");
         if(ini.count() <= 1)
         {
-            emit logNeedsUpdating("Results file is empty, try again.");
+            emit logOutput("Results file is empty, try again.");
             return false;
         }
         if (ini[1] == "F")
         {
-            emit logNeedsUpdating("Solver failed. Try again.");
+            emit logOutput("Solver failed. Try again.");
             return false;
         }
         double ra = 0, dec = 0, orient = 0;
@@ -956,20 +1008,20 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
 
             solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient, pixscale, parity, raErr, decErr};
 
-            emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
-            emit logNeedsUpdating(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
+            emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
+            emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
             if(use_position)
-                emit logNeedsUpdating(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
-            emit logNeedsUpdating(QString("Field size: %1 x %2").arg( fieldw).arg( fieldh));
-            emit logNeedsUpdating(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
-            emit logNeedsUpdating(QString("Pixel Scale: %1\"").arg( pixscale ));
+                emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
+            emit logOutput(QString("Field size: %1 x %2").arg( fieldw).arg( fieldh));
+            emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
+            emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale ));
 
             return true;
         }
         else
         {
-            emit logNeedsUpdating("Solver failed. Try again.");
+            emit logOutput("Solver failed. Try again.");
             return false;
         }
 }
@@ -1027,7 +1079,7 @@ int ExternalSextractorSolver::writeSextractorTable()
     if(fits_create_tbl(new_fptr, BINARY_TBL, nrows, tfields,
         ttype, tform, tunit, extfile, &status))
     {
-        emit logNeedsUpdating(QString("Could not create binary table."));
+        emit logOutput(QString("Could not create binary table."));
         return status;
     }
 
@@ -1037,27 +1089,27 @@ int ExternalSextractorSolver::writeSextractorTable()
     int column = 1;
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, xArray, &status))
     {
-        emit logNeedsUpdating(QString("Could not write x pixels in binary table."));
+        emit logOutput(QString("Could not write x pixels in binary table."));
         return status;
     }
 
     column = 2;
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, yArray, &status))
     {
-        emit logNeedsUpdating(QString("Could not write y pixels in binary table."));
+        emit logOutput(QString("Could not write y pixels in binary table."));
         return status;
     }
 
     column = 3;
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, magArray, &status))
     {
-        emit logNeedsUpdating(QString("Could not write magnitudes in binary table."));
+        emit logOutput(QString("Could not write magnitudes in binary table."));
         return status;
     }
 
     if(fits_close_file(new_fptr, &status))
     {
-        emit logNeedsUpdating(QString("Error closing file."));
+        emit logOutput(QString("Error closing file."));
         return status;
     }
 
@@ -1114,7 +1166,7 @@ int ExternalSextractorSolver::saveAsFITS()
 
     if (fits_create_img(fptr, BYTE_IMG, naxis, naxes, &status))
     {
-        emit logNeedsUpdating(QString("fits_create_img failed: %1").arg(error_status));
+        emit logOutput(QString("fits_create_img failed: %1").arg(error_status));
         status = 0;
         fits_flush_file(fptr, &status);
         fits_close_file(fptr, &status);
@@ -1161,11 +1213,11 @@ int ExternalSextractorSolver::saveAsFITS()
 
     if(fits_close_file(fptr, &status))
     {
-        emit logNeedsUpdating(QString("Error closing file."));
+        emit logOutput(QString("Error closing file."));
         return status;
     }
 
-    emit logNeedsUpdating("Saved FITS file:" + fileToProcess);
+    emit logOutput("Saved FITS file:" + fileToProcess);
 
     return 0;
 }
@@ -1175,12 +1227,12 @@ int ExternalSextractorSolver::loadWCS()
 {
     QString solutionFile = basePath + "/" + baseName + ".wcs";
 
-    emit logNeedsUpdating("Loading WCS from file...");
+    emit logOutput("Loading WCS from file...");
 
     QFile solution(solutionFile);
     if(!solution.exists())
     {
-        emit logNeedsUpdating("WCS File does not exist.");
+        emit logOutput("WCS File does not exist.");
         return -1;
     }
 
@@ -1222,7 +1274,7 @@ int ExternalSextractorSolver::loadWCS()
     {
         char errmsg[512];
         fits_get_errstatus(status, errmsg);
-        emit logNeedsUpdating(QString("Error opening fits file %1, %2").arg(solutionFile).arg(errmsg));
+        emit logOutput(QString("Error opening fits file %1, %2").arg(solutionFile).arg(errmsg));
         return status;
     }
 
@@ -1230,7 +1282,7 @@ int ExternalSextractorSolver::loadWCS()
     {
         char errmsg[512];
         fits_get_errstatus(status, errmsg);
-        emit logNeedsUpdating(QString("ERROR %1: %2.").arg(status).arg(wcshdr_errmsg[status]));
+        emit logOutput(QString("ERROR %1: %2.").arg(status).arg(wcshdr_errmsg[status]));
         return status;
     }
 
@@ -1240,7 +1292,7 @@ int ExternalSextractorSolver::loadWCS()
         wcsvfree(&m_nwcs, &m_wcs);
         m_wcs = nullptr;
         hasWCS = false;
-        emit logNeedsUpdating(QString("wcspih ERROR %1: %2.").arg(status).arg(wcshdr_errmsg[status]));
+        emit logOutput(QString("wcspih ERROR %1: %2.").arg(status).arg(wcshdr_errmsg[status]));
         return status;
     }
     fits_close_file(fptr, &status);
@@ -1251,7 +1303,7 @@ int ExternalSextractorSolver::loadWCS()
 
     if (m_wcs == nullptr)
     {
-        emit logNeedsUpdating("No world coordinate systems found.");
+        emit logOutput("No world coordinate systems found.");
         hasWCS = false;
         return status;
     }
@@ -1264,7 +1316,7 @@ int ExternalSextractorSolver::loadWCS()
         wcsvfree(&m_nwcs, &m_wcs);
         m_wcs = nullptr;
         hasWCS = false;
-        emit logNeedsUpdating("No world coordinate systems found.");
+        emit logOutput("No world coordinate systems found.");
         return status;
     }
 
@@ -1273,11 +1325,11 @@ int ExternalSextractorSolver::loadWCS()
         wcsvfree(&m_nwcs, &m_wcs);
         m_wcs = nullptr;
         hasWCS = false;
-        emit logNeedsUpdating(QString("wcsset error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+        emit logOutput(QString("wcsset error %1: %2.").arg(status).arg(wcs_errmsg[status]));
         return status;
     }
 
-    emit logNeedsUpdating("Finished Loading WCS...");
+    emit logOutput("Finished Loading WCS...");
 
     return 0;
 }
@@ -1287,7 +1339,7 @@ wcs_point *ExternalSextractorSolver::getWCSCoord()
 {
     if(!hasWCS)
     {
-        emit logNeedsUpdating("There is no WCS Data.  Did you solve the image first?");
+        emit logOutput("There is no WCS Data.  Did you solve the image first?");
         return nullptr;
     }
 
@@ -1308,7 +1360,7 @@ wcs_point *ExternalSextractorSolver::getWCSCoord()
 
             if ((status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0])) != 0)
             {
-                emit logNeedsUpdating(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+                emit logOutput(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
             }
             else
             {
@@ -1326,7 +1378,7 @@ QList<Star> ExternalSextractorSolver::getStarsWithRAandDEC()
 {
     if(!hasWCS)
     {
-        emit logNeedsUpdating("There is no WCS Data.  Did you solve the image first?");
+        emit logOutput("There is no WCS Data.  Did you solve the image first?");
         return stars;
     }
 
@@ -1344,7 +1396,7 @@ QList<Star> ExternalSextractorSolver::getStarsWithRAandDEC()
 
         if ((status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0])) != 0)
         {
-            emit logNeedsUpdating(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+            emit logOutput(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
             return stars;
         }
         else

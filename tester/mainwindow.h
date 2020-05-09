@@ -203,6 +203,7 @@ public slots:
     SexySolver::Parameters getSettingsFromUI();
     void sendSettingsToUI(SexySolver::Parameters a);
     void setupExternalSextractorSolverIfNeeded();
+    void setupSexySolverParameters();
 
     //These functions get called when the sextractor or solver finishes
     bool sextractorComplete(int error);

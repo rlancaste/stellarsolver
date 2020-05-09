@@ -154,12 +154,6 @@ public:
         int search_parity = PARITY_BOTH;    //Only check for matches with positive/negative parity (default: try both)
         double search_radius = 15;          //Only search in indexes within 'radius' of the field center given by RA and DEC
 
-        //Logging Settings for Astrometry
-        bool logTheOutput = true;           //This parameter determines whether or not the output should be logged at all.
-        bool logToFile = false;             //This determines whether or not to save the output from Astrometry.net to a file
-        QString logFileName;                    //This is the path to the log file that it will save.
-        int logLevel = LOG_NONE;            //This is the level of logging getting saved to the log file
-
         //LogOdds Settings
         double logratio_tosolve = log(1e9); //Odds ratio at which to consider a field solved (default: 1e9)
         double logratio_tokeep  = log(1e9); //Odds ratio at which to keep a solution (default: 1e9)
@@ -197,8 +191,6 @@ public:
                     downsample == o.downsample &&
                     search_parity == o.search_parity &&
                     search_radius == o.search_radius &&
-                    logToFile == o.logToFile &&
-                    logLevel == o.logLevel &&
                     //They need to be turned into a qstring because they are sometimes very close but not exactly the same
                     QString::number(logratio_tosolve) == QString::number(o.logratio_tosolve) &&
                     QString::number(logratio_tokeep) == QString::number(o.logratio_tokeep) &&
@@ -206,7 +198,10 @@ public:
         }
     } ;
 
-
+    //Logging Settings for Astrometry
+    bool logToFile = false;             //This determines whether or not to save the output from Astrometry.net to a file
+    QString logFileName;                //This is the path to the log file that it will save.
+    log_level logLevel = LOG_MSG;       //This is the level of logging getting saved to the log file
 
     //These are for creating temporary files
     QString baseName;                   //This is the base name used for all temporary files.  It uses a random name based on the type of solver/sextractor.
@@ -227,6 +222,8 @@ public:
     void setSearchPosition(double ra, double dec);                                                    //This sets the search RA/DEC/Radius to speed up the solver
     void disableInparallel(){params.inParallel = false;};
     void setProcessType(ProcessType type){processType = type;};
+    void setLogToFile(bool change){logToFile = change;};
+    void setLogLevel(log_level level){logLevel = level;};
 
     //These static methods can be used by classes to configure parameters or paths
     static void createConvFilterFromFWHM(Parameters *params, double fwhm);                      //This creates the conv filter from a fwhm
@@ -323,12 +320,12 @@ private:
     void startLogMonitor();
     QThread* logMonitor;
     bool logMonitorRunning = false;
-    FILE *logFile;
+    FILE *logFile = nullptr;
 
 signals:
 
     //This signals that there is infomation that should be printed to a log file or log window
-    void logNeedsUpdating(QString logText);
+    void logOutput(QString logText);
 
     //This signals that the sextraction or image solving is complete, whether they were successful or not
     //A -1 or some positive value should signify failure, where a 0 should signify success.

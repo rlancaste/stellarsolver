@@ -251,7 +251,7 @@ MainWindow::MainWindow() :
     ui->oddsToSolve->setToolTip("The Astrometry oddsToSolve Parameter.  This may need to be changed or removed");
     ui->oddsToTune->setToolTip("The Astrometry oddsToTune Parameter.  This may need to be changed or removed");
 
-    ui->logDest->setToolTip("Where solver should log its output: not at all, to the Log Output window, or to a file");
+    ui->logToFile->setToolTip("Whether the sexysolver should just output to the log window or whether it should log to a file.");
     ui->logLevel->setToolTip("The verbosity level of the log to be saved for the internal solver.");
 
     connect(ui->indexFolderPaths, &QComboBox::currentTextChanged, this, [this](){ loadIndexFilesList(); });
@@ -547,17 +547,12 @@ void MainWindow::sextractImage()
         sexySolver.clear();
 
     sexySolver = SexySolver::createSexySolver(processType, stats, m_ImageBuffer, this);
-    setupExternalSextractorSolverIfNeeded();
 
-    if(ui->optionsProfile->currentIndex() == 0)
-        sexySolver->setParameters(getSettingsFromUI());
-    else if(ui->optionsProfile->currentIndex() == 1)
-        sexySolver->setParameters(SexySolver::Parameters());
-    else
-        sexySolver->setParameters(optionsList.at(ui->optionsProfile->currentIndex() - 2));
+    setupExternalSextractorSolverIfNeeded();
+    setupSexySolverParameters();
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
-    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput);
+    connect(sexySolver, &SexySolver::logOutput, this, &MainWindow::logOutput);
 
     startProcessMonitor();
 
@@ -607,21 +602,9 @@ void MainWindow::solveImage()
         sexySolver.clear();
 
     sexySolver = SexySolver::createSexySolver(processType, stats, m_ImageBuffer, this);
+
+    setupSexySolverParameters();
     setupExternalSextractorSolverIfNeeded();
-
-    QStringList indexFolderPaths;
-    for(int i = 0; i < ui->indexFolderPaths->count(); i++)
-    {
-        indexFolderPaths << ui->indexFolderPaths->itemText(i);
-    }
-    sexySolver->setIndexFolderPaths(indexFolderPaths);
-
-    if(ui->optionsProfile->currentIndex() == 0)
-        sexySolver->setParameters(getSettingsFromUI());
-    else if(ui->optionsProfile->currentIndex() == 1)
-        sexySolver->setParameters(SexySolver::Parameters());
-    else
-        sexySolver->setParameters(optionsList.at(ui->optionsProfile->currentIndex() - 2));
 
     //Setting the initial search scale settings
     if(ui->use_scale->isChecked())
@@ -632,7 +615,7 @@ void MainWindow::solveImage()
         sexySolver->setSearchPosition(ui->ra->text().toDouble(), ui->dec->text().toDouble());
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
-    connect(sexySolver, &SexySolver::logNeedsUpdating, this, &MainWindow::logOutput);
+    connect(sexySolver, &SexySolver::logOutput, this, &MainWindow::logOutput);
 
     startProcessMonitor();
 
@@ -662,6 +645,37 @@ void MainWindow::setupExternalSextractorSolverIfNeeded()
         extSolver->astrometryAPIKey = "iczikaqstszeptgs";
         extSolver->astrometryAPIURL = "http://nova.astrometry.net";
     }
+}
+
+void MainWindow::setupSexySolverParameters()
+{
+    //These set the Sexysolver Parameters
+    if(ui->optionsProfile->currentIndex() == 0)
+        sexySolver->setParameters(getSettingsFromUI());
+    else if(ui->optionsProfile->currentIndex() == 1)
+        sexySolver->setParameters(SexySolver::Parameters());
+    else
+        sexySolver->setParameters(optionsList.at(ui->optionsProfile->currentIndex() - 2));
+
+    //Index File Paths
+    if(ui->optionsProfile->currentIndex() == 0)
+        sexySolver->setParameters(getSettingsFromUI());
+    else if(ui->optionsProfile->currentIndex() == 1)
+        sexySolver->setParameters(SexySolver::Parameters());
+    else
+        sexySolver->setParameters(optionsList.at(ui->optionsProfile->currentIndex() - 2));
+
+    //These setup Logging if desired
+    sexySolver->logToFile = ui->logToFile->isChecked();
+
+    if(ui->logLevel->currentIndex()==0)
+        sexySolver->setLogLevel(LOG_NONE);
+    if(ui->logLevel->currentIndex()==1)
+        sexySolver->setLogLevel(LOG_MSG);
+    if(ui->logLevel->currentIndex()==2)
+        sexySolver->setLogLevel(LOG_VERB);
+    if(ui->logLevel->currentIndex()==3)
+        sexySolver->setLogLevel(LOG_ALL);
 }
 
 //This sets all the settings for either the internal or external sextractor
@@ -709,12 +723,6 @@ SexySolver::Parameters MainWindow::getSettingsFromUI()
     params.logratio_totune = ui->oddsToTune->text().toDouble();
     params.logratio_tosolve = ui->oddsToSolve->text().toDouble();
 
-    //Setting the logging settings
-    int logging = ui->logDest->currentIndex();
-    params.logTheOutput = logging == 1 || logging == 2;
-    params.logToFile = logging == 2;
-    params.logLevel = ui->logLevel->currentIndex();
-
     return params;
 }
 
@@ -759,20 +767,6 @@ void MainWindow::sendSettingsToUI(SexySolver::Parameters a)
         ui->oddsToKeep->setText(QString::number(a.logratio_tokeep));
         ui->oddsToSolve->setText(QString::number(a.logratio_tosolve));
         ui->oddsToTune->setText(QString::number(a.logratio_totune));
-
-    //Astrometry Logging Settings
-
-
-        if(a.logToFile)
-            ui->logDest->setCurrentIndex(2); //LOG File
-        else if(a.logTheOutput)
-            ui->logDest->setCurrentIndex(1); //LOG Output window
-        else
-            ui->logDest->setCurrentIndex(0); //NONE
-
-            disconnect(ui->logLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
-        ui->logLevel->setCurrentIndex(a.logLevel);
-            connect(ui->logLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
 }
 
 

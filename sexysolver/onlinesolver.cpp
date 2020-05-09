@@ -34,8 +34,16 @@ void OnlineSolver::startProcess()
 
 void OnlineSolver::runOnlineSolver()
 {
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Configuring Online Solver");
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Configuring Online Solver");
+
+    if(logToFile)
+    {
+        if(logFileName == "")
+            logFileName = basePath + "/" + baseName + ".log.txt";
+        if(QFile(logFileName).exists())
+            QFile(logFileName).remove();
+    }
 
     solverTimer.start();
 
@@ -63,7 +71,7 @@ void OnlineSolver::run()
         msleep(JOB_RETRY_DURATION);
         if (job_retries++ > JOB_RETRY_ATTEMPTS)
         {
-            emit logNeedsUpdating(("Failed to retrieve job ID, it appears to be lost in the queue."));
+            emit logOutput(("Failed to retrieve job ID, it appears to be lost in the queue."));
             abort();
         }
         else
@@ -75,8 +83,9 @@ void OnlineSolver::run()
 
     if(!hasSolved && !aborted && !timedOut)
     {
-        emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        emit logNeedsUpdating("Starting Online Solver");
+        emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        emit logOutput("Starting Online Solver");
+
     }
 
     while(!hasSolved && !aborted && !timedOut && workflowStage == JOB_MONITORING_STAGE)
@@ -92,26 +101,26 @@ void OnlineSolver::run()
     if(timedOut)
     {
         disconnect(networkManager, &QNetworkAccessManager::finished, this, &OnlineSolver::onResult);
-        emit logNeedsUpdating("Solver timed out");
+        emit logOutput("Solver timed out");
         emit finished(-1);
         return;
     }
 
     //Note, if it already has solved,
-    //It may or may not have gotten the WCS data yet.
+    //It may or may not have gotten the Stars, Log, and WCS data yet.
     //We want to wait for a little bit, but not too long.
     bool starsAndWCSTimedOut = false;
     double starsAndWCSTimeLimit = 10.0;
 
     if(!aborted && !hasWCS)
     {
-        emit logNeedsUpdating("Waiting for Stars and WCS. . .");
+        emit logOutput("Waiting for Stars and WCS. . .");
         solverTimer.start();  //Restart the timer for the Stars and WCS download
     }
 
     //This will wait for stars and WCS until the time limit is reached
     //If it does get the file, whether or not it can read it, the stage changes to NO_STAGE and this quits
-    while(!aborted && !starsAndWCSTimedOut && (workflowStage == STAR_LOADING_STAGE || workflowStage == WCS_LOADING_STAGE))
+    while(!aborted && !starsAndWCSTimedOut && (workflowStage == LOG_LOADING_STAGE || workflowStage == STAR_LOADING_STAGE || workflowStage == WCS_LOADING_STAGE))
     {
         msleep(STATUS_CHECK_INTERVAL);
         starsAndWCSTimedOut = solverTimer.elapsed() / 1000.0 > starsAndWCSTimeLimit; //Wait 10 seconds for STARS and WCS, NO LONGER!
@@ -121,7 +130,7 @@ void OnlineSolver::run()
 
     if(starsAndWCSTimedOut)
     {
-        emit logNeedsUpdating("WCS download timed out");
+        emit logOutput("WCS download timed out");
         emit finished(0); //Note: It DID solve and we have results, just not WCS data, that is ok.
     }
 }
@@ -131,7 +140,7 @@ void OnlineSolver::abort()
 {
     disconnect(networkManager, &QNetworkAccessManager::finished, this, &OnlineSolver::onResult);
     workflowStage  = NO_STAGE;
-    emit logNeedsUpdating("Online Solver aborted.");
+    emit logOutput("Online Solver aborted.");
     emit finished(-1);
     aborted = true;
 }
@@ -159,7 +168,7 @@ void OnlineSolver::authenticate()
     networkManager->post(request, json_request.toUtf8());
 
     workflowStage = AUTH_STAGE;
-    emit logNeedsUpdating("Authenticating. . .");
+    emit logOutput("Authenticating. . .");
 
 }
 
@@ -176,7 +185,7 @@ void OnlineSolver::uploadFile()
     bool rc         = fitsFile->open(QIODevice::ReadOnly);
     if (rc == false)
     {
-        emit logNeedsUpdating(QString("Failed to open the file %1: %2").arg( fileToProcess).arg( fitsFile->errorString()));
+        emit logOutput(QString("Failed to open the file %1: %2").arg( fileToProcess).arg( fitsFile->errorString()));
         delete (fitsFile);
         emit finished(-1);
         return;
@@ -256,28 +265,28 @@ void OnlineSolver::uploadFile()
     reqEntity->setParent(reply); //So that it can be deleted later
 
     workflowStage = UPLOAD_STAGE;
-    emit logNeedsUpdating(("Uploading file..."));
+    emit logOutput(("Uploading file..."));
 }
 
 //This will start up the third stage, waiting till processing is done
 void OnlineSolver::waitForProcessing()
 {
     workflowStage = JOB_PROCESSING_STAGE;
-    emit logNeedsUpdating(("Waiting for Processing to complete..."));
+    emit logOutput(("Waiting for Processing to complete..."));
 }
 
 //This will start up the fourth stage, getting the Job ID, essentially waiting in the Job Queue
 void OnlineSolver::getJobID()
 { 
     workflowStage = JOB_QUEUE_STAGE;
-    emit logNeedsUpdating(("Waiting for the Job to Start..."));
+    emit logOutput(("Waiting for the Job to Start..."));
 }
 
 //This will start the fifth stage, monitoring the job to see when it's done
 void OnlineSolver::startMonitoring()
 {
     workflowStage = JOB_MONITORING_STAGE;
-    emit logNeedsUpdating(("Starting Job Monitoring..."));
+    emit logOutput(("Starting Job Monitoring..."));
 }
 
 //This will start the sixth stage, checking the results
@@ -289,27 +298,37 @@ void OnlineSolver::checkJobCalibration()
     networkManager->get(request);
 
     workflowStage = JOB_CALIBRATION_STAGE;
-    emit logNeedsUpdating(("Requesting the results..."));
+    emit logOutput(("Requesting the results..."));
 }
 
-//This will start the seventh stage, getting the XYLS File and loading it (optional).
+//This will start the seventh stage, getting the Job LOG file and loading it (optional).
+void OnlineSolver::getJobLogFile()
+{
+    QString URL = QString("http://nova.astrometry.net/joblog/%1").arg(jobID);
+    networkManager->get(QNetworkRequest(QUrl(URL)));
+
+    workflowStage = LOG_LOADING_STAGE;
+    emit logOutput(("Downloading the Log file..."));
+}
+
+//This will start the eighth stage, getting the XYLS File and loading it (optional).
 void OnlineSolver::getJobAXYFile()
 {
     QString URL = QString("http://nova.astrometry.net/axy_file/%1").arg(jobID);
     networkManager->get(QNetworkRequest(QUrl(URL)));
 
     workflowStage = STAR_LOADING_STAGE;
-    emit logNeedsUpdating(("Downloading the AXY file..."));
+    emit logOutput(("Downloading the AXY file..."));
 }
 
-//This will start the eighth stage, getting the WCS File and loading it (optional).
+//This will start the ninth stage, getting the WCS File and loading it (optional).
 void OnlineSolver::getJobWCSFile()
 {
     QString URL = QString("http://nova.astrometry.net/wcs_file/%1").arg(jobID);
     networkManager->get(QNetworkRequest(QUrl(URL)));
 
     workflowStage = WCS_LOADING_STAGE;
-    emit logNeedsUpdating(("Downloading the WCS file..."));
+    emit logOutput(("Downloading the WCS file..."));
 }
 
 //This will check on the job status during the fourth stage, as it is solving
@@ -348,7 +367,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
 
     if (reply->error() != QNetworkReply::NoError)
     {
-        emit logNeedsUpdating(reply->errorString());
+        emit logOutput(reply->errorString());
         emit finished(-1);
         return;
     }
@@ -356,7 +375,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
     QJsonDocument json_doc;
     QVariant json_result;
     QVariantMap result;
-    if(workflowStage != STAR_LOADING_STAGE && workflowStage != WCS_LOADING_STAGE)
+    if(workflowStage != LOG_LOADING_STAGE && workflowStage != STAR_LOADING_STAGE && workflowStage != WCS_LOADING_STAGE)
     {
         json = (QString)reply->readAll();
 
@@ -364,7 +383,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
 
         if (parseError.error != QJsonParseError::NoError)
         {
-            emit logNeedsUpdating(QString("JSON error during parsing (%1).").arg(parseError.errorString()));
+            emit logOutput(QString("JSON error during parsing (%1).").arg(parseError.errorString()));
             emit finished(-1);
             return;
         }
@@ -372,9 +391,8 @@ void OnlineSolver::onResult(QNetworkReply *reply)
         json_result = json_doc.toVariant();
         result   = json_result.toMap();
 
-        //if (Options::alignmentLogging())
-        //    align->appendLogText(json_doc.toJson(QJsonDocument::Compact));
-        emit logNeedsUpdating(json_doc.toJson(QJsonDocument::Compact));
+        if(logLevel == LOG_VERB || logLevel == LOG_ALL)
+            emit logOutput(json_doc.toJson(QJsonDocument::Compact));
     }
     switch (workflowStage)
     {
@@ -382,25 +400,24 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             status = result["status"].toString();
             if (status != "success")
             {
-                emit logNeedsUpdating("Astrometry.net authentication failed. Check the validity of the Astrometry.net API Key.");
+                emit logOutput("Astrometry.net authentication failed. Check the validity of the Astrometry.net API Key.");
                 abort();
                 return;
             }
 
             sessionKey = result["session"].toString();
 
-            //if (Options::alignmentLogging())
-            //    emit logNeedsUpdating(("Authentication to astrometry.net is successful. Session: %1", sessionKey));
-            emit logNeedsUpdating(QString("Authentication to astrometry.net is successful. Session: %1").arg(sessionKey));
+            if(logLevel == LOG_VERB || logLevel == LOG_ALL)
+                emit logOutput(QString("Authentication to astrometry.net is successful. Session: %1").arg(sessionKey));
 
-            emit uploadFile(); //Go to NEXT STAGE
+            uploadFile(); //Go to NEXT STAGE
             break;
 
         case UPLOAD_STAGE:
             status = result["status"].toString();
             if (status != "success")
             {
-                emit logNeedsUpdating(("Upload failed."));
+                emit logOutput(("Upload failed."));
                 abort();
                 return;
             }
@@ -409,12 +426,12 @@ void OnlineSolver::onResult(QNetworkReply *reply)
 
             if (ok == false)
             {
-                emit logNeedsUpdating(("Parsing submission ID failed."));
+                emit logOutput(("Parsing submission ID failed."));
                 abort();
                 return;
             }
 
-            emit logNeedsUpdating(("Upload complete. Waiting for astrometry.net solver to complete..."));
+            emit logOutput(("Upload complete. Waiting for astrometry.net solver to complete..."));
             waitForProcessing();  //Go to the NEXT STAGE
             break;
 
@@ -454,7 +471,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             }
             else if (status == "failure")
             {
-                emit logNeedsUpdating("Solver Failed");
+                emit logOutput("Solver Failed");
                 abort();
                 return;
             }
@@ -465,28 +482,28 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             double fieldw = result["width_arcsec"].toDouble(&ok) / 60.0;
             if (ok == false)
             {
-                emit logNeedsUpdating(("Error parsing width."));
+                emit logOutput(("Error parsing width."));
                 abort();
                 return;
             }
             double fieldh = result["height_arcsec"].toDouble(&ok) / 60.0;
             if (ok == false)
             {
-                emit logNeedsUpdating(("Error parsing width."));
+                emit logOutput(("Error parsing width."));
                 abort();
                 return;
             }
             int parity = result["parity"].toInt(&ok);
             if (ok == false)
             {
-                emit logNeedsUpdating(("Error parsing parity."));
+                emit logOutput(("Error parsing parity."));
                 abort();
                 return;
             }
             double orientation = result["orientation"].toDouble(&ok);
             if (ok == false)
             {
-                emit logNeedsUpdating(("Error parsing orientation."));
+                emit logOutput(("Error parsing orientation."));
                 abort();
                 return;
             }
@@ -494,14 +511,14 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             double ra = result["ra"].toDouble(&ok);
             if (ok == false)
             {
-                emit logNeedsUpdating(("Error parsing RA."));
+                emit logOutput(("Error parsing RA."));
                 abort();
                 return;
             }
             double dec = result["dec"].toDouble(&ok);
             if (ok == false)
             {
-                emit logNeedsUpdating(("Error parsing DEC."));
+                emit logOutput(("Error parsing DEC."));
                 abort();
                 return;
             }
@@ -509,7 +526,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             double pixscale = result["pixscale"].toDouble(&ok);
             if (ok == false)
             {
-                emit logNeedsUpdating(("Error parsing DEC."));
+                emit logOutput(("Error parsing DEC."));
                 abort();
                 return;
             }
@@ -528,12 +545,42 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             solution = {fieldw,fieldh,ra,dec,rastr,decstr,orientation, pixscale, par, raErr, decErr};
             hasSolved = true;
 
+            if(logLevel == LOG_ALL || logToFile)
+                getJobLogFile(); //Go to next stage
+            else
+            {
+                if(processType == INT_SEP_EXT_SOLVER)
+                    getJobWCSFile(); //Go to Last Stage, since we already have xyls file
+                else
+                    getJobAXYFile(); //Go to next stage
+            }
+        }
+            break;
+
+        case LOG_LOADING_STAGE:
+        {
+            QByteArray responseData = reply->readAll();
+
+            if(logLevel == LOG_ALL)
+                emit logOutput(responseData);
+
+            if(logToFile)
+            {
+                QFile file(logFileName);
+                if (!file.open(QIODevice::WriteOnly))
+                {
+                    emit logOutput(("Log File Write Error"));
+                }
+                file.write(responseData.data(), responseData.size());
+                file.close();
+            }
+
             if(processType == INT_SEP_EXT_SOLVER)
                 getJobWCSFile(); //Go to Last Stage, since we already have xyls file
             else
                 getJobAXYFile(); //Go to next stage
         }
-            break;
+        break;
 
         case STAR_LOADING_STAGE:
         {
@@ -542,7 +589,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             QFile file(axyFile);
             if (!file.open(QIODevice::WriteOnly))
             {
-                emit logNeedsUpdating(("AXY File Write Error"));
+                emit logOutput(("AXY File Write Error"));
                 emit finished(0); //We still have the solution, this is not a failure!
                 return;
             }
@@ -551,7 +598,6 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             sextractorFilePath = axyFile;
             getStarsFromXYLSFile();
             getJobWCSFile(); //Go to Next Stage
-            return;
         }
         break;
 
@@ -562,7 +608,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             QFile file(solutionFile);
             if (!file.open(QIODevice::WriteOnly))
             {
-                emit logNeedsUpdating(("WCS File Write Error"));
+                emit logOutput(("WCS File Write Error"));
                 emit finished(0); //We still have the solution, this is not a failure!
                 return;
             }
@@ -571,7 +617,6 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             loadWCS(); //Attempt to load WCS from the file
             emit finished(0); //Success! We are completely done, whether or not the WCS loading was successful
             workflowStage = NO_STAGE;
-            return;
         }
             break;
 

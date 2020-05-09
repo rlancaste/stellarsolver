@@ -61,6 +61,14 @@ void SexySolver::executeProcess()
 //This is the method that runs the solver or sextractor.  Do not call it, use the methods above instead, so that it can start a new thread.
 void SexySolver::run()
 {
+    if(logToFile)
+    {
+        if(logFileName == "")
+            logFileName = basePath + "/" + baseName + ".log.txt";
+        if(QFile(logFileName).exists())
+            QFile(logFileName).remove();
+    }
+
     switch(processType)
     {
         case INT_SEP:
@@ -160,11 +168,11 @@ bool SexySolver::runSEPSextractor()
 {
     if(params.convFilter.size() == 0)
     {
-        emit logNeedsUpdating("No convFilter included.");
+        emit logOutput("No convFilter included.");
         return false;
     }
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Starting Internal SexySolver Sextractor. . .");
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Starting Internal SexySolver Sextractor. . .");
 
     //Only downsample images before SEP if the Sextraction is being used for plate solving
     if(processType == SEXYSOLVER && params.downsample != 1)
@@ -312,7 +320,7 @@ bool SexySolver::runSEPSextractor()
 
     }
 
-    emit logNeedsUpdating(QString("Stars Found before Filtering: %1").arg(stars.size()));
+    emit logOutput(QString("Stars Found before Filtering: %1").arg(stars.size()));
 
     if(stars.size() > 1)
     {
@@ -328,7 +336,7 @@ bool SexySolver::runSEPSextractor()
 
         if(params.resort && params.maxSize > 0.0)
         {
-            emit logNeedsUpdating(QString("Removing stars wider than %1 pixels").arg(params.maxSize));
+            emit logOutput(QString("Removing stars wider than %1 pixels").arg(params.maxSize));
             for(int i = 0; i<stars.size();i++)
             {
                 Star star = stars.at(i);
@@ -343,7 +351,7 @@ bool SexySolver::runSEPSextractor()
         if(params.resort && params.removeBrightest > 0.0 && params.removeBrightest < 100.0)
         {
             int numToRemove = stars.count() * (params.removeBrightest/100.0);
-            emit logNeedsUpdating(QString("Removing the %1 brightest stars").arg(numToRemove));
+            emit logOutput(QString("Removing the %1 brightest stars").arg(numToRemove));
             if(numToRemove > 1)
             {
                 for(int i = 0; i<numToRemove;i++)
@@ -354,7 +362,7 @@ bool SexySolver::runSEPSextractor()
         if(params.resort && params.removeDimmest > 0.0 && params.removeDimmest < 100.0)
         {
             int numToRemove = stars.count() * (params.removeDimmest/100.0);
-            emit logNeedsUpdating(QString("Removing the %1 dimmest stars").arg(numToRemove));
+            emit logOutput(QString("Removing the %1 dimmest stars").arg(numToRemove));
             if(numToRemove > 1)
             {
                 for(int i = 0; i<numToRemove;i++)
@@ -364,7 +372,7 @@ bool SexySolver::runSEPSextractor()
 
         if(params.maxEllipse > 1)
         {
-            emit logNeedsUpdating(QString("Removing the stars with a/b ratios greater than %1").arg(params.maxEllipse));
+            emit logOutput(QString("Removing the stars with a/b ratios greater than %1").arg(params.maxEllipse));
             for(int i = 0; i<stars.size();i++)
             {
                 Star star = stars.at(i);
@@ -389,11 +397,11 @@ bool SexySolver::runSEPSextractor()
 
             if(maxSizeofDataType == -1)
             {
-                emit logNeedsUpdating("Skipping Saturation filter");
+                emit logOutput("Skipping Saturation filter");
             }
             else
             {
-                emit logNeedsUpdating(QString("Removing the saturated stars with peak values greater than %1 Percent of %2").arg(params.saturationLimit).arg(maxSizeofDataType));
+                emit logOutput(QString("Removing the saturated stars with peak values greater than %1 Percent of %2").arg(params.saturationLimit).arg(maxSizeofDataType));
                 for(int i = 0; i<stars.size();i++)
                 {
                     Star star = stars.at(i);
@@ -408,7 +416,7 @@ bool SexySolver::runSEPSextractor()
 
     }
 
-    emit logNeedsUpdating(QString("Stars Found after Filtering: %1").arg(stars.size()));
+    emit logOutput(QString("Stars Found after Filtering: %1").arg(stars.size()));
     hasSextracted = true;
     if(processType == INT_SEP || processType == INT_SEP_HFR)
         emit finished(0);
@@ -437,7 +445,7 @@ exit:
     {
         char errorMessage[512];
         sep_get_errmsg(status, errorMessage);
-        emit logNeedsUpdating(errorMessage);
+        emit logOutput(errorMessage);
         emit finished(status);
         return false;
     }
@@ -664,7 +672,7 @@ bool SexySolver::prepare_job() {
 
     //Logratios for Solving
     bp->logratio_tosolve = params.logratio_tosolve;
-    emit logNeedsUpdating(QString("Set odds ratio to solve to %1 (log = %2)\n").arg( exp(bp->logratio_tosolve)).arg( bp->logratio_tosolve));
+    emit logOutput(QString("Set odds ratio to solve to %1 (log = %2)\n").arg( exp(bp->logratio_tosolve)).arg( bp->logratio_tosolve));
     sp->logratio_tokeep = params.logratio_tokeep;
     sp->logratio_totune = params.logratio_totune;
     sp->logratio_bail_threshold = log(DEFAULT_BAIL_THRESHOLD);
@@ -686,31 +694,31 @@ bool SexySolver::prepare_job() {
         double appu, appl;
         switch (scaleunit) {
         case SCALE_UNITS_DEG_WIDTH:
-            emit logNeedsUpdating(QString("Scale range: %1 to %1 degrees wide\n").arg(scalelo).arg(scalehi));
+            emit logOutput(QString("Scale range: %1 to %1 degrees wide\n").arg(scalelo).arg(scalehi));
             appl = deg2arcsec(scalelo) / (double)stats.width;
             appu = deg2arcsec(scalehi) / (double)stats.width;
-            emit logNeedsUpdating(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg( stats.width).arg (appl).arg( appu));
+            emit logOutput(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg( stats.width).arg (appl).arg( appu));
             break;
         case SCALE_UNITS_ARCMIN_WIDTH:
-            emit logNeedsUpdating(QString("Scale range: %1 to %2 arcmin wide\n").arg (scalelo).arg(scalehi));
+            emit logOutput(QString("Scale range: %1 to %2 arcmin wide\n").arg (scalelo).arg(scalehi));
             appl = arcmin2arcsec(scalelo) / (double)stats.width;
             appu = arcmin2arcsec(scalehi) / (double)stats.width;
-            emit logNeedsUpdating(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg (stats.width).arg( appl).arg (appu));
+            emit logOutput(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg (stats.width).arg( appl).arg (appu));
             break;
         case SCALE_UNITS_ARCSEC_PER_PIX:
-            emit logNeedsUpdating(QString("Scale range: %1 to %2 arcsec/pixel\n").arg (scalelo).arg (scalehi));
+            emit logOutput(QString("Scale range: %1 to %2 arcsec/pixel\n").arg (scalelo).arg (scalehi));
             appl = scalelo;
             appu = scalehi;
             break;
         case SCALE_UNITS_FOCAL_MM:
-            emit logNeedsUpdating(QString("Scale range: %1 to %2 mm focal length\n").arg (scalelo).arg (scalehi));
+            emit logOutput(QString("Scale range: %1 to %2 mm focal length\n").arg (scalelo).arg (scalehi));
             // "35 mm" film is 36 mm wide.
             appu = rad2arcsec(atan(36. / (2. * scalelo))) / (double)stats.width;
             appl = rad2arcsec(atan(36. / (2. * scalehi))) / (double)stats.width;
-            emit logNeedsUpdating(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg (stats.width).arg (appl).arg (appu));
+            emit logOutput(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg (stats.width).arg (appl).arg (appu));
             break;
         default:
-            emit logNeedsUpdating(QString("Unknown scale unit code %1\n").arg (scaleunit));
+            emit logOutput(QString("Unknown scale unit code %1\n").arg (scaleunit));
             return false;
         }
         dl_append(job->scales, appl);
@@ -727,17 +735,17 @@ bool SexySolver::prepare_job() {
 //This method was adapted from the main method in engine-main.c in astrometry.net
 int SexySolver::runInternalSolver()
 {
-   emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Configuring SexySolver");
+   emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Configuring SexySolver");
 
     if(params.inParallel)
     {
         if(enoughRAMisAvailableFor(indexFolderPaths))
-            emit logNeedsUpdating("There should be enough RAM to load the indexes in parallel.");
+            emit logOutput("There should be enough RAM to load the indexes in parallel.");
         else
         {
-            emit logNeedsUpdating("Not enough RAM is available on this system for loading the index files you have in parallel");
-            emit logNeedsUpdating("Disabling the inParallel option.");
+            emit logOutput("Not enough RAM is available on this system for loading the index files you have in parallel");
+            emit logOutput("Disabling the inParallel option.");
             disableInparallel();
         }
     }
@@ -750,43 +758,31 @@ int SexySolver::runInternalSolver()
     engine->minwidth = params.minwidth;
     engine->maxwidth = params.maxwidth;
 
-#ifdef _WIN32 //Windows does not support FIFO files
-    if(!params.logToFile)
+    if(logToFile)
     {
-        params.logTheOutput = false;
+        logFile = fopen(logFileName.toLatin1().constData(),"w");
     }
-#endif
-
-    //If the user selects to log to file, it will only log to a file
-    //If the user is on a non-windows system, it will by default log to the log Window
-    if(params.logTheOutput)
+    else
     {
-        if(params.logFileName == "")
-            params.logFileName = basePath + "/" + baseName + ".log.txt";
-        if(QFile(params.logFileName).exists())
-            QFile(params.logFileName).remove();
-        if(params.logToFile)
+    #ifndef _WIN32 //Windows does not support FIFO files
+        if(logFileName == "")
+            logFileName = basePath + "/" + baseName + ".logFIFO.txt";
+        if(QFile(logFileName).exists())
+            QFile(logFileName).remove();
+        int mkFifoSuccess = 0; //Note if the return value of the command is 0 it succeeded, -1 means it failed.
+        if ((mkFifoSuccess = mkfifo(logFileName.toLatin1(), S_IRUSR | S_IWUSR) < 0))
         {
-            logFile = fopen(params.logFileName.toLatin1().constData(),"w");
+            emit logOutput("Error making FIFO file");
+            return -1;
         }
-        else
-        {
-            #ifndef _WIN32 //Windows does not support FIFO files
-                int mkFifoSuccess = 0; //Note if the return value of the command is 0 it succeeded, -1 means it failed.
-                if ((mkFifoSuccess = mkfifo(params.logFileName.toLatin1(), S_IRUSR | S_IWUSR) < 0))
-                {
-                    emit logNeedsUpdating("Error making FIFO file");
-                    return -1;
-                }
-                startLogMonitor();
-                logFile = fopen(params.logFileName.toLatin1().constData(), "r+");
-            #endif
-        }
-        if(logFile)
-        {
-            log_init((log_level)params.logLevel);
-            log_to(logFile);
-        }
+        startLogMonitor();
+        logFile = fopen(logFileName.toLatin1().constData(), "r+");
+    #endif
+    }
+    if(logFile)
+    {
+        log_init(logLevel);
+        log_to(logFile);
     }
 
     //gslutils_use_error_system();
@@ -802,7 +798,7 @@ int SexySolver::runInternalSolver()
 
     //This checks to see that index files were found in the paths above, if not, it prints this warning and aborts.
     if (!pl_size(engine->indexes)) {
-        emit logNeedsUpdating(QString("\n\n"
+        emit logOutput(QString("\n\n"
                "---------------------------------------------------------------------\n"
                "You must include at least one index file in the index file directories\n\n"
                "See http://astrometry.net/use.html about how to get some index files.\n"
@@ -854,7 +850,7 @@ int SexySolver::runInternalSolver()
 
     //This makes sure the min and max widths for the engine make sense, aborting if not.
     if (engine->minwidth <= 0.0 || engine->maxwidth <= 0.0 || engine->minwidth > engine->maxwidth) {
-        emit logNeedsUpdating(QString("\"minwidth\" and \"maxwidth\" must be positive and the maxwidth must be greater!\n"));
+        emit logOutput(QString("\"minwidth\" and \"maxwidth\" must be positive and the maxwidth must be greater!\n"));
         return -1;
     }
     ///This sets the scales based on the minwidth and maxwidth if the image scale isn't known
@@ -877,21 +873,20 @@ int SexySolver::runInternalSolver()
         bp->total_timelimit = bp->timelimit;
         bp->total_cpulimit  = bp->cpulimit ;
     }
-    emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logNeedsUpdating("Starting Internal SexySolver Astrometry.net based Engine. . .");
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Starting Internal SexySolver Astrometry.net based Engine. . .");
 
     //This runs the job in the engine in the file engine.c
     if (engine_run_job(engine, job))
-        emit logNeedsUpdating("Failed to run_job()\n");
+        emit logOutput("Failed to run_job()\n");
 
-    if(params.logTheOutput)
-    {
-        //Needs to be done whether FIFO or regular file
-        if(logFile)
-            fclose(logFile);
+    //Needs to be done whether FIFO or regular file
+    if(logFile)
+        fclose(logFile);
 
-        //These things need to be done if it is running off the FIFO file
-        if(!params.logToFile)
+    //These things need to be done if it is running off the FIFO file
+    #ifndef _WIN32
+        if(!logToFile)
         {
             if(logMonitor)
                 logMonitor->quit();
@@ -906,7 +901,7 @@ int SexySolver::runInternalSolver()
                 time+=inc;
             }
         }
-    }
+    #endif
 
     //This deletes or frees the items that are no longer needed.
     engine_free(engine);
@@ -959,18 +954,18 @@ int SexySolver::runInternalSolver()
             decErr = (search_dec - dec) * 3600;
         }
 
-        emit logNeedsUpdating("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        emit logNeedsUpdating(QString("Solve Log Odds:  %1").arg(bp->solver.best_logodds));
-        emit logNeedsUpdating(QString("Number of Matches:  %1").arg(match.nmatch));
-        emit logNeedsUpdating(QString("Solved with index:  %1").arg(match.indexid));
-        emit logNeedsUpdating(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
-        emit logNeedsUpdating(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
+        emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        emit logOutput(QString("Solve Log Odds:  %1").arg(bp->solver.best_logodds));
+        emit logOutput(QString("Number of Matches:  %1").arg(match.nmatch));
+        emit logOutput(QString("Solved with index:  %1").arg(match.indexid));
+        emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
+        emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
         if(use_position)
-            emit logNeedsUpdating(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
-        emit logNeedsUpdating(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));
-        emit logNeedsUpdating(QString("Pixel Scale: %1\"").arg( pixscale));
-        emit logNeedsUpdating(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
-        emit logNeedsUpdating(QString("Field parity: %1\n").arg( parity));
+            emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
+        emit logOutput(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));
+        emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale));
+        emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
+        emit logOutput(QString("Field parity: %1\n").arg( parity));
 
         solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient, pixscale, parity, raErr, decErr};
         hasSolved = true;
@@ -978,7 +973,7 @@ int SexySolver::runInternalSolver()
     }
     else
     {
-        emit logNeedsUpdating("Solver was aborted, timed out, or failed, so no solution was found");
+        emit logOutput("Solver was aborted, timed out, or failed, so no solution was found");
         returnCode = -1;
     }
     
@@ -1002,7 +997,7 @@ wcs_point * SexySolver::getWCSCoord()
 {
     if(!hasWCS)
     {
-        emit logNeedsUpdating("There is no WCS Data.");
+        emit logOutput("There is no WCS Data.");
         return nullptr;
     }
     //We have to upscale back to the full size image
@@ -1033,7 +1028,7 @@ QList<Star> SexySolver::getStarsWithRAandDEC()
 {
     if(!hasWCS)
     {
-        emit logNeedsUpdating("There is no WCS Data");
+        emit logOutput("There is no WCS Data");
         return stars;
     }
 
@@ -1104,10 +1099,6 @@ QMap<QString, QVariant> SexySolver::convertToMap(Parameters params)
     settingsMap.insert("logratio_totune", QVariant(params.logratio_totune)) ;
     settingsMap.insert("logratio_tosolve", QVariant(params.logratio_tosolve)) ;
 
-    //Setting the logging settings
-    settingsMap.insert("logToFile", QVariant(params.logToFile)) ;
-    settingsMap.insert("logLevel", QVariant(params.logLevel)) ;
-
     return settingsMap;
 
 }
@@ -1164,10 +1155,6 @@ SexySolver::Parameters SexySolver::convertFromMap(QMap<QString, QVariant> settin
     params.logratio_tokeep = settingsMap.value("logratio_tokeep", params.logratio_tokeep).toDouble() ;
     params.logratio_totune = settingsMap.value("logratio_totune", params.logratio_totune).toDouble() ;
     params.logratio_tosolve = settingsMap.value("logratio_tosolve", params.logratio_tosolve).toDouble();
-
-    //Setting the logging settings
-    params.logToFile = settingsMap.value("logToFile", params.logToFile).toBool() ;
-    params.logLevel = settingsMap.value("logLevel", params.logLevel).toInt() ;
 
     return params;
 
@@ -1227,11 +1214,11 @@ bool SexySolver::enoughRAMisAvailableFor(QStringList indexFolders)
     uint64_t availableRAM = getAvailableRAM();
     if(availableRAM == 0)
     {
-        emit logNeedsUpdating("Unable to determine system RAM for inParallel Option");
+        emit logOutput("Unable to determine system RAM for inParallel Option");
         return false;
     }
     float bytesInGB = 1024 * 1024 * 1024; // B -> KB -> MB -> GB , float to make sure it reports the answer with any decimals
-    emit logNeedsUpdating(QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB").arg(totalSize / bytesInGB).arg(availableRAM / bytesInGB));
+    emit logOutput(QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB").arg(totalSize / bytesInGB).arg(availableRAM / bytesInGB));
     return availableRAM > totalSize;
 }
 
@@ -1243,7 +1230,7 @@ void SexySolver::startLogMonitor()
     connect(logMonitor, &QThread::started, [=]()
     {
         QString message;
-        FILE *FIFOReader = fopen(params.logFileName.toLatin1().constData(), "r");
+        FILE *FIFOReader = fopen(logFileName.toLatin1().constData(), "r");
         if(FIFOReader)
         {
             char c;
@@ -1253,13 +1240,15 @@ void SexySolver::startLogMonitor()
                     message += c;
                 else
                 {
-                    emit logNeedsUpdating(message);
+                    emit logOutput(message);
                     message = "";
-                    msleep(1);
+                    //If we don't do this, it could freeze your program it is so much output
+                    if(logLevel == LOG_ALL)
+                        msleep(1);
                 }
             }
             fclose(FIFOReader);
-            emit logNeedsUpdating(message);
+            emit logOutput(message);
             logMonitorRunning = false;
         }
     });
