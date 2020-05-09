@@ -111,7 +111,7 @@ void ExternalSextractorSolver::setWinCygwinPaths()
 
 void ExternalSextractorSolver::run()
 {
-    if(logToFile)
+    if(logLevel != LOG_NONE && logToFile)
     {
         if(logFileName == "")
             logFileName = basePath + "/" + baseName + ".log.txt";
@@ -381,7 +381,8 @@ int ExternalSextractorSolver::runExternalSextractor()
 
     sextractorProcess->setWorkingDirectory(basePath);
     sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
-    connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSextractor);
+    if(logLevel != LOG_NONE)
+        connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSextractor);
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Starting external sextractor...");
@@ -453,7 +454,8 @@ int ExternalSextractorSolver::runExternalSolver()
     solver = new QProcess();
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
-    connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
+    if(logLevel != LOG_NONE)
+        connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
 
     #ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work when started from this program.  This is needed for all types of astrometry solvers using ANSVR
             QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
@@ -536,7 +538,8 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     solver = new QProcess();
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
-    connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
+    if(logLevel != LOG_NONE)
+        connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
 
     solver->start(astapBinaryPath, solverArgs);
 

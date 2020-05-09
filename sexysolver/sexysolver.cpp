@@ -61,7 +61,7 @@ void SexySolver::executeProcess()
 //This is the method that runs the solver or sextractor.  Do not call it, use the methods above instead, so that it can start a new thread.
 void SexySolver::run()
 {
-    if(logToFile)
+    if(logLevel != LOG_NONE && logToFile)
     {
         if(logFileName == "")
             logFileName = basePath + "/" + baseName + ".log.txt";
@@ -760,31 +760,34 @@ int SexySolver::runInternalSolver()
     engine->minwidth = params.minwidth;
     engine->maxwidth = params.maxwidth;
 
-    if(logToFile)
+    if(logLevel != LOG_NONE)
     {
-        logFile = fopen(logFileName.toLatin1().constData(),"w");
-    }
-    else
-    {
-    #ifndef _WIN32 //Windows does not support FIFO files
-        if(logFileName == "")
-            logFileName = basePath + "/" + baseName + ".logFIFO.txt";
-        if(QFile(logFileName).exists())
-            QFile(logFileName).remove();
-        int mkFifoSuccess = 0; //Note if the return value of the command is 0 it succeeded, -1 means it failed.
-        if ((mkFifoSuccess = mkfifo(logFileName.toLatin1(), S_IRUSR | S_IWUSR) < 0))
+        if(logToFile)
         {
-            emit logOutput("Error making FIFO file");
-            return -1;
+            logFile = fopen(logFileName.toLatin1().constData(),"w");
         }
-        startLogMonitor();
-        logFile = fopen(logFileName.toLatin1().constData(), "r+");
-    #endif
-    }
-    if(logFile)
-    {
-        log_init(logLevel);
-        log_to(logFile);
+        else
+        {
+        #ifndef _WIN32 //Windows does not support FIFO files
+            if(logFileName == "")
+                logFileName = basePath + "/" + baseName + ".logFIFO.txt";
+            if(QFile(logFileName).exists())
+                QFile(logFileName).remove();
+            int mkFifoSuccess = 0; //Note if the return value of the command is 0 it succeeded, -1 means it failed.
+            if ((mkFifoSuccess = mkfifo(logFileName.toLatin1(), S_IRUSR | S_IWUSR) < 0))
+            {
+                emit logOutput("Error making FIFO file");
+                return -1;
+            }
+            startLogMonitor();
+            logFile = fopen(logFileName.toLatin1().constData(), "r+");
+        #endif
+        }
+        if(logFile)
+        {
+            log_init(logLevel);
+            log_to(logFile);
+        }
     }
 
     //gslutils_use_error_system();
@@ -888,7 +891,7 @@ int SexySolver::runInternalSolver()
 
     //These things need to be done if it is running off the FIFO file
     #ifndef _WIN32
-        if(!logToFile)
+        if(!logToFile && logLevel != LOG_NONE)
         {
             if(logMonitor)
                 logMonitor->quit();

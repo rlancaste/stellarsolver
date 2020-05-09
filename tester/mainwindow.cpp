@@ -552,7 +552,8 @@ void MainWindow::sextractImage()
     setupSexySolverParameters();
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
-    connect(sexySolver, &SexySolver::logOutput, this, &MainWindow::logOutput);
+    if(sexySolver->logLevel != LOG_NONE)
+        connect(sexySolver, &SexySolver::logOutput, this, &MainWindow::logOutput);
 
     startProcessMonitor();
 
@@ -615,7 +616,8 @@ void MainWindow::solveImage()
         sexySolver->setSearchPosition(ui->ra->text().toDouble(), ui->dec->text().toDouble());
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
-    connect(sexySolver, &SexySolver::logOutput, this, &MainWindow::logOutput);
+    if(sexySolver->logLevel != LOG_NONE)
+        connect(sexySolver, &SexySolver::logOutput, this, &MainWindow::logOutput);
 
     startProcessMonitor();
 
@@ -2055,9 +2057,9 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table,"# Trials");
     addColumnToTable(table,"Command");
     addColumnToTable(table,"Profile");
+    addColumnToTable(table,"Loglvl");
     addColumnToTable(table,"Stars");
     //Sextractor Parameters
-    addColumnToTable(table,"doHFR");
     addColumnToTable(table,"Shape");
     addColumnToTable(table,"Kron");
     addColumnToTable(table,"Subpix");
@@ -2109,9 +2111,9 @@ void MainWindow::addSextractionToTable()
     else
         setItemInColumn(table, "Command", sexySolver->getCommandString());
     setItemInColumn(table, "Profile", params.listName);
+    setItemInColumn(table, "Loglvl", QString::number(sexySolver->logLevel));
     setItemInColumn(table, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
-    setItemInColumn(table,"doHFR", QVariant(sexySolver->isCalculatingHFR()).toString());
     QString shapeName="Circle";
     switch(params.apertureShape)
     {
@@ -2186,7 +2188,6 @@ void MainWindow::updateHiddenResultsTableColumns()
 {
     QTableWidget *table = ui->resultsTable;
     //Sextractor Params
-    setColumnHidden(table,"doHFR", !showSextractorParams);
     setColumnHidden(table,"Shape", !showSextractorParams);
     setColumnHidden(table,"Kron", !showSextractorParams);
     setColumnHidden(table,"Subpix", !showSextractorParams);

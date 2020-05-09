@@ -318,7 +318,7 @@ private:
     void downSampleImageType(int d);
 
     void startLogMonitor();
-    QThread* logMonitor;
+    QThread* logMonitor = nullptr;
     bool logMonitorRunning = false;
     FILE *logFile = nullptr;
 

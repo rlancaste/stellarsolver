@@ -37,7 +37,7 @@ void OnlineSolver::runOnlineSolver()
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Configuring Online Solver");
 
-    if(logToFile)
+    if(logToFile && logLevel != LOG_NONE)
     {
         if(logFileName == "")
             logFileName = basePath + "/" + baseName + ".log.txt";
