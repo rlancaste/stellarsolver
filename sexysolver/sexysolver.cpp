@@ -73,12 +73,17 @@ void SexySolver::run()
     {
         case INT_SEP:
         case INT_SEP_HFR:
-            runSEPSextractor();
+            if(runSEPSextractor())
+                emit finished(0);
+            else
+                emit finished(-1);
         break;
 
         case SEXYSOLVER:
             if(runSEPSextractor())
-                runInternalSolver();
+                emit finished(runInternalSolver());
+            else
+                emit finished(-1);
         break;
 
         default: break;
@@ -418,8 +423,6 @@ bool SexySolver::runSEPSextractor()
 
     emit logOutput(QString("Stars Found after Filtering: %1").arg(stars.size()));
     hasSextracted = true;
-    if(processType == INT_SEP || processType == INT_SEP_HFR)
-        emit finished(0);
 
     if (stats.dataType != TFLOAT)
         delete [] data;
@@ -446,7 +449,6 @@ exit:
         char errorMessage[512];
         sep_get_errmsg(status, errorMessage);
         emit logOutput(errorMessage);
-        emit finished(status);
         return false;
     }
 
@@ -989,7 +991,6 @@ int SexySolver::runInternalSolver()
     solver_cleanup(&bp->solver);
     blind_cleanup(bp);
     
-    emit finished(returnCode);
     return returnCode;
 }
 
