@@ -275,6 +275,12 @@ int ExternalSextractorSolver::runExternalSextractor()
         if(ret != 0)
             return ret;
     }
+    else
+    {
+        QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
+        QFile::copy(fileToProcess, newFileURL);
+        fileToProcess = newFileURL;
+    }
 
     //Configuration arguments for sextractor
     QStringList sextractorArgs;
