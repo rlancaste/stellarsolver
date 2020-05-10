@@ -770,6 +770,8 @@ int SexySolver::runInternalSolver()
     engine->minwidth = params.minwidth;
     engine->maxwidth = params.maxwidth;
 
+    log_init(logLevel);
+
     if(logLevel != LOG_NONE)
     {
         if(logToFile)
@@ -794,10 +796,7 @@ int SexySolver::runInternalSolver()
         #endif
         }
         if(logFile)
-        {
-            log_init(logLevel);
             log_to(logFile);
-        }
     }
 
     //gslutils_use_error_system();
@@ -896,7 +895,7 @@ int SexySolver::runInternalSolver()
         emit logOutput("Failed to run_job()\n");
 
     //Needs to be done whether FIFO or regular file
-    if(logFile)
+    if(logLevel != LOG_NONE && logFile)
         fclose(logFile);
 
     //These things need to be done if it is running off the FIFO file
