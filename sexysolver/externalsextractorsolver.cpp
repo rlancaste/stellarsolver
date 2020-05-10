@@ -525,6 +525,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     solverArgs << "-o" << solutionFile;
     solverArgs << "-speed" << "auto";
     solverArgs << "-f" << fileToProcess;
+    solverArgs << "-wcs";
     if(params.downsample > 1)
         solverArgs << "-z" << QString::number(params.downsample);
     if(use_position)
@@ -1243,34 +1244,6 @@ int ExternalSextractorSolver::loadWCS()
         emit logOutput("WCS File does not exist.");
         return -1;
     }
-
-    /**
-    //ASTAP seems to save its WCS files with returns that make it unreadable to CFITSIO.  This correction didn't work
-    if(processType == ASTAP)
-    {
-        QString text;
-        if(!solution.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            emit logOutput("Cannot read the WCS file from ASTAP.");
-            return -1;
-        }
-
-        text=solution.readAll();
-        solution.close();
-        text = text.remove("\n").remove("\r");
-        emit logOutput(text);
-
-        if(!solution.open(QIODevice::WriteOnly | QIODevice::Text))
-        {
-            emit logOutput("Cannot write to the ASTAP WCS file.");
-            return -1;
-        }
-        QTextStream out(&solution);
-        out << text;
-        solution.close();
-        emit logOutput("ASTAP Processing done");
-    }
-    **/
 
     int status = 0;
     char * header { nullptr };
