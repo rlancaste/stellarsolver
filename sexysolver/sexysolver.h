@@ -42,6 +42,7 @@ class SexySolver : public QThread
 {
     Q_OBJECT
 public:
+    //This defines the type of process to perform.
     typedef enum {INT_SEP,
                   INT_SEP_HFR,
                   EXT_SEXTRACTOR,
@@ -56,11 +57,12 @@ public:
     }ProcessType;
     ProcessType processType;
 
+    //The constructor and destructor fo the SexySolver Object
     explicit SexySolver(ProcessType type, Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
     ~SexySolver();
 
+    //This generates a SexySolver Object of the SexySolver, ExternalSextractorSolver, or OnlineSolver types
     static SexySolver *createSexySolver(ProcessType type, Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
-
 
     //This is a string which explains what the Command is doing for later access.
     QString getCommandString()
@@ -106,7 +108,6 @@ public:
 
     //SEXYSOLVER PARAMETERS
     //These are the parameters used by the Internal SexySolver Sextractor and Internal SexySolver Astrometry Solver
-    //These parameters are public so that they can be changed by the program using the solver
     //The values here are the defaults unless they get changed.
     //If you are fine with those defaults, you don't need to set any of them.
 
@@ -138,6 +139,7 @@ public:
         //Star Filter Parameters
         double maxSize = 0;                 //The maximum size of stars to include in the final list in pixels based on semi-major and semi-minor axes
         double maxEllipse = 0;              //The maximum ratio between the semi-major and semi-minor axes for stars to include (a/b)
+        double keepNum = 0;                 //The number of brightest stars to keep in the list
         double removeBrightest = 0;         //The percentage of brightest stars to remove from the list
         double removeDimmest = 0;           //The percentage of dimmest stars to remove from the list
         double saturationLimit = 0;         //Remove all stars above a certain threshhold percentage of saturation
@@ -159,6 +161,7 @@ public:
         double logratio_tokeep  = log(1e9); //Odds ratio at which to keep a solution (default: 1e9)
         double logratio_totune  = log(1e6); //Odds ratio at which to try tuning up a match that isn't good enough to solve (default: 1e6)
 
+        //This allows you to compare the Parameters to see if they match
         bool operator==(const Parameters& o)
         {
             //We will skip the list name, since we want to see if the contents are the same.
@@ -178,6 +181,7 @@ public:
 
                     maxSize == o.maxSize &&
                     maxEllipse == o.maxEllipse &&
+                    keepNum == o.keepNum &&
                     removeBrightest == o.removeBrightest &&
                     removeDimmest == o.removeDimmest &&
                     saturationLimit == o.saturationLimit &&
@@ -220,7 +224,6 @@ public:
     void setIndexFolderPaths(QStringList indexPaths){indexFolderPaths = indexPaths;};
     void setSearchScale(double fov_low, double fov_high, QString scaleUnits);                              //This sets the scale range for the image to speed up the solver
     void setSearchPosition(double ra, double dec);                                                    //This sets the search RA/DEC/Radius to speed up the solver
-    void disableInparallel(){params.inParallel = false;};
     void setProcessType(ProcessType type){processType = type;};
     void setLogToFile(bool change){logToFile = change;};
     void setLogLevel(log_level level){logLevel = level;};
@@ -234,25 +237,25 @@ public:
     int getNumStarsFound(){return stars.size();};
     QList<Star> getStarList(){return stars;}
     Solution getSolution(){return solution;};
+
     bool sextractionDone(){return hasSextracted;};
     bool solvingDone(){return hasSolved;};
-    bool isCalculatingHFR(){return processType == INT_SEP_HFR || processType == EXT_SEXTRACTOR_HFR;};
+    bool hasWCSData(){return hasWCS;};
+
     Parameters getCurrentParameters(){return params;};
+    bool isCalculatingHFR(){return processType == INT_SEP_HFR || processType == EXT_SEXTRACTOR_HFR;};
     bool isUsingScale(){return use_scale;};
     bool isUsingPosition(){return use_position;};
-    bool hasWCSData(){return hasWCS;};
+
     virtual wcs_point *getWCSCoord();
     virtual QList<Star> getStarsWithRAandDEC();
 
     static QMap<QString,QVariant> convertToMap(Parameters params);
     static Parameters convertFromMap(QMap<QString,QVariant> settingsMap);
 
-
-
 protected:  //Note: These items are not private because they are needed by ExternalSextractorSolver
 
     Parameters params;           //The currently set parameters for SexySolver
-
     QStringList indexFolderPaths = getDefaultIndexFolderPaths();       //This is the list of folder paths that the solver will use to search for index files
 
     //Astrometry Scale Parameters, These are not saved parameters and change for each image, use the methods to set them
@@ -278,13 +281,8 @@ protected:  //Note: These items are not private because they are needed by Exter
     //The Results
     QList<Star> stars;          //This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
     Solution solution;          //This is the solution that comes back from the Solver
-
     bool runSEPSextractor();    //This is the method that actually runs the internal sextractor
-
-    sip_t wcs;                  //This is where the WCS data gets saved once the solving is done
-    bool hasWCS = false;
-    MatchObj match;             //This is where the match object gets stored once the solving is done.
-
+    bool hasWCS = false;        //This boolean gets set if the SexySolver has WCS data to retrieve
 
     // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
     QString cancelfn;           //Filename whose creation signals the process to stop
@@ -298,7 +296,6 @@ private:
     // The generic data buffer containing the image data
     uint8_t *downSampledBuffer { nullptr };
 
-
     //Job File related stuff
     bool prepare_job();         //This prepares the job object for the solver
     job_t thejob;               //This is the job file that will be created for astrometry.net to solve
@@ -311,6 +308,9 @@ private:
     //This is used by the sextractor, it gets a new representation of the buffer that SEP can understand
     template <typename T>
     void getFloatBuffer(float * buffer, int x, int y, int w, int h);
+
+    MatchObj match;             //This is where the match object gets stored once the solving is done.
+    sip_t wcs;                  //This is where the WCS data gets saved once the solving is done
 
     //This can downsample the image by the requested amount.
     void downsampleImage(int d);

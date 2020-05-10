@@ -147,7 +147,7 @@ void ExternalSextractorSolver::run()
             if(params.inParallel)
             {
                 emit logOutput("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
-                disableInparallel();
+                params.inParallel = false;
             }
         #endif
     }

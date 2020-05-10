@@ -146,8 +146,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>273</width>
-          <height>333</height>
+          <width>276</width>
+          <height>358</height>
          </rect>
         </property>
         <attribute name="label">
@@ -172,34 +172,13 @@
          <property name="verticalSpacing">
           <number>-1</number>
          </property>
-         <item row="20" column="2">
-          <widget class="QLineEdit" name="wcsPath"/>
-         </item>
-         <item row="1" column="2">
-          <widget class="QLineEdit" name="astapPath">
+         <item row="25" column="0" colspan="3">
+          <widget class="QCheckBox" name="cleanupTemp">
            <property name="text">
-            <string/>
+            <string>Cleanup Temporary Files After Processes</string>
            </property>
-          </widget>
-         </item>
-         <item row="18" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Solver</string>
-           </property>
-          </widget>
-         </item>
-         <item row="15" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Config</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>Temp</string>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -213,15 +192,22 @@
            </property>
           </widget>
          </item>
-         <item row="14" column="0" colspan="3">
-          <widget class="QLabel" name="label_10">
+         <item row="20" column="0">
+          <widget class="QLabel" name="label_42">
            <property name="text">
-            <string>&lt;a href= &quot;http://astrometry.net/use.html&quot;&gt;Astrometry&lt;/a&gt; or &lt;a href=&quot;https://adgsoftware.com/ansvr/&quot;&gt;ANSVR&lt;/a&gt;</string>
-           </property>
-           <property name="openExternalLinks">
-            <bool>true</bool>
+            <string>WCSInfo</string>
            </property>
           </widget>
+         </item>
+         <item row="18" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Solver</string>
+           </property>
+          </widget>
+         </item>
+         <item row="20" column="2">
+          <widget class="QLineEdit" name="wcsPath"/>
          </item>
          <item row="30" column="0" colspan="3">
           <widget class="QComboBox" name="setPathsAutomatically">
@@ -257,47 +243,12 @@
            </item>
           </widget>
          </item>
-         <item row="0" column="2">
-          <widget class="QLineEdit" name="sextractorPath">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="20" column="0">
-          <widget class="QLabel" name="label_42">
-           <property name="text">
-            <string>WCSInfo</string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="0">
           <widget class="QLabel" name="label_45">
            <property name="text">
             <string>&lt;a href=&quot;https://www.hnsky.org/astap.htm&quot;&gt;ASTAP&lt;/a&gt;</string>
            </property>
            <property name="openExternalLinks">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>&lt;a href=&quot;https://www.astromatic.net/software/sextractor&quot;&gt;Sextractor&lt;/a&gt;
-</string>
-           </property>
-           <property name="openExternalLinks">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="25" column="0" colspan="3">
-          <widget class="QCheckBox" name="cleanupTemp">
-           <property name="text">
-            <string>Cleanup Temporary Files After Processes</string>
-           </property>
-           <property name="checked">
             <bool>true</bool>
            </property>
           </widget>
@@ -311,6 +262,48 @@
          </item>
          <item row="18" column="2">
           <widget class="QLineEdit" name="solverPath"/>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>&lt;a href=&quot;https://www.astromatic.net/software/sextractor&quot;&gt;Sextractor&lt;/a&gt;
+</string>
+           </property>
+           <property name="openExternalLinks">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLineEdit" name="astapPath">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="0" colspan="3">
+          <widget class="QLabel" name="label_10">
+           <property name="text">
+            <string>&lt;a href= &quot;http://astrometry.net/use.html&quot;&gt;Astrometry&lt;/a&gt; or &lt;a href=&quot;https://adgsoftware.com/ansvr/&quot;&gt;ANSVR&lt;/a&gt;</string>
+           </property>
+           <property name="openExternalLinks">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="15" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Config</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>Temp</string>
+           </property>
+          </widget>
          </item>
          <item row="31" column="0">
           <spacer name="verticalSpacer_2">
@@ -326,7 +319,25 @@
           </spacer>
          </item>
          <item row="2" column="2">
-          <widget class="QLineEdit" name="basePath"/>
+          <widget class="QLineEdit" name="basePath">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLineEdit" name="sextractorPath">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="3">
+          <widget class="QPushButton" name="openTemp">
+           <property name="text">
+            <string>Open Temp</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -591,14 +602,14 @@
           <x>0</x>
           <y>0</y>
           <width>201</width>
-          <height>333</height>
+          <height>358</height>
          </rect>
         </property>
         <attribute name="label">
          <string>Star Filtering</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_11">
-         <item row="3" column="2">
+         <item row="4" column="2">
           <widget class="QLabel" name="label_44">
            <property name="text">
             <string>%</string>
@@ -612,49 +623,35 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_39">
-           <property name="text">
-            <string>Max Ell</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
+         <item row="4" column="0">
           <widget class="QLabel" name="label_40">
            <property name="text">
             <string>Cut Bright</string>
            </property>
           </widget>
          </item>
-         <item row="5" column="2">
-          <widget class="QLabel" name="label_52">
+         <item row="6" column="1">
+          <widget class="QLineEdit" name="saturationLimit">
            <property name="text">
-            <string>%</string>
+            <string>0</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="2">
-          <widget class="QLabel" name="label_51">
+         <item row="2" column="2">
+          <widget class="QLabel" name="label_53">
            <property name="text">
-            <string>%</string>
+            <string>a/b</string>
            </property>
           </widget>
          </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_46">
-           <property name="text">
-            <string>Sat. Lim</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
+         <item row="5" column="1">
           <widget class="QLineEdit" name="dimmestPercent">
            <property name="text">
             <string>0</string>
            </property>
           </widget>
          </item>
-         <item row="6" column="0" colspan="3">
+         <item row="7" column="0" colspan="3">
           <widget class="QLabel" name="label_48">
            <property name="text">
             <string>(Make these settings 0 to disable them)</string>
@@ -664,10 +661,10 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
-          <widget class="QLineEdit" name="saturationLimit">
+         <item row="6" column="2">
+          <widget class="QLabel" name="label_52">
            <property name="text">
-            <string>0</string>
+            <string>%</string>
            </property>
           </widget>
          </item>
@@ -678,21 +675,14 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="brightestPercent">
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
+         <item row="5" column="0">
           <widget class="QLabel" name="label_41">
            <property name="text">
             <string>Cut Dim</string>
            </property>
           </widget>
          </item>
-         <item row="7" column="0">
+         <item row="8" column="0">
           <spacer name="verticalSpacer_3">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -705,10 +695,24 @@
            </property>
           </spacer>
          </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_43">
+         <item row="1" column="2">
+          <widget class="QLabel" name="label_49">
            <property name="text">
-            <string>Max Size</string>
+            <string>px</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLineEdit" name="brightestPercent">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_46">
+           <property name="text">
+            <string>Sat. Lim</string>
            </property>
           </widget>
          </item>
@@ -719,17 +723,45 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="2">
-          <widget class="QLabel" name="label_49">
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_43">
            <property name="text">
-            <string>px</string>
+            <string>Max Size</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="2">
-          <widget class="QLabel" name="label_53">
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_39">
            <property name="text">
-            <string>a/b</string>
+            <string>Max Ell</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="2">
+          <widget class="QLabel" name="label_51">
+           <property name="text">
+            <string>%</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="keepNum">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_54">
+           <property name="text">
+            <string>Keep #</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QLabel" name="label_55">
+           <property name="text">
+            <string>stars</string>
            </property>
           </widget>
          </item>
@@ -741,7 +773,7 @@
           <x>0</x>
           <y>0</y>
           <width>201</width>
-          <height>333</height>
+          <height>358</height>
          </rect>
         </property>
         <attribute name="label">
@@ -876,7 +908,7 @@
           <x>0</x>
           <y>0</y>
           <width>201</width>
-          <height>333</height>
+          <height>358</height>
          </rect>
         </property>
         <attribute name="label">
@@ -909,7 +941,7 @@
               <x>0</x>
               <y>0</y>
               <width>199</width>
-              <height>334</height>
+              <height>356</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_5">
@@ -1122,7 +1154,7 @@
           <x>0</x>
           <y>0</y>
           <width>201</width>
-          <height>334</height>
+          <height>358</height>
          </rect>
         </property>
         <attribute name="label">

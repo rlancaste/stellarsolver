@@ -419,6 +419,16 @@ bool SexySolver::runSEPSextractor()
             }
         }
 
+        if(params.resort && params.keepNum > 0.0)
+        {
+            emit logOutput(QString("Keeping just the %1 brightest stars").arg(params.keepNum));
+            int numToRemove = stars.size() - params.keepNum;
+            if(numToRemove > 1)
+            {
+                for(int i = 0; i<numToRemove;i++)
+                    stars.removeLast();
+            }
+        }
     }
 
     emit logOutput(QString("Stars Found after Filtering: %1").arg(stars.size()));
@@ -748,7 +758,7 @@ int SexySolver::runInternalSolver()
         {
             emit logOutput("Not enough RAM is available on this system for loading the index files you have in parallel");
             emit logOutput("Disabling the inParallel option.");
-            disableInparallel();
+            params.inParallel = false;
         }
     }
 
@@ -1083,6 +1093,7 @@ QMap<QString, QVariant> SexySolver::convertToMap(Parameters params)
     //Star Filter Settings
     settingsMap.insert("maxSize", QVariant(params.maxSize));
     settingsMap.insert("maxEllipse", QVariant(params.maxEllipse));
+    settingsMap.insert("keepNum", QVariant(params.keepNum));
     settingsMap.insert("removeBrightest", QVariant(params.removeBrightest));
     settingsMap.insert("removeDimmest", QVariant(params.removeDimmest ));
     settingsMap.insert("saturationLimit", QVariant(params.saturationLimit));
@@ -1140,6 +1151,7 @@ SexySolver::Parameters SexySolver::convertFromMap(QMap<QString, QVariant> settin
     //Star Filter Settings
     params.maxSize = settingsMap.value("maxSize", params.maxSize).toDouble();
     params.maxEllipse = settingsMap.value("maxEllipse", params.maxEllipse).toDouble();
+    params.keepNum = settingsMap.value("keepNum", params.keepNum).toDouble();
     params.removeBrightest = settingsMap.value("removeBrightest", params.removeBrightest).toDouble();
     params.removeDimmest = settingsMap.value("removeDimmest", params.removeDimmest ).toDouble();
     params.saturationLimit = settingsMap.value("saturationLimit", params.saturationLimit).toDouble();

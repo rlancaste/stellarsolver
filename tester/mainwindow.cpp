@@ -14,6 +14,7 @@
 #include <QImageReader>
 #include <QTableWidgetItem>
 #include <QPainter>
+#include <QDesktopServices>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,7 +69,7 @@ MainWindow::MainWindow() :
     ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box");
     ui->solverType->setToolTip("Lets you choose how to solve the image");
     connect(ui->loadWCS, &QAbstractButton::clicked, this, &MainWindow::loadWCS);
-    ui->loadWCS->setToolTip("After Solving, load WCS info into the image and starTable so that the RA and DEC of everything can be displayed");
+    ui->loadWCS->setToolTip("Load WCS info into the image and starTable so that the RA and DEC of everything can be displayed. NOTE: You HAVE to sovle the image first.");
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     ui->Abort->setToolTip("Aborts the current process if one is running.");
     connect(ui->ClearStars,&QAbstractButton::clicked, this, &MainWindow::clearStars );
@@ -158,10 +159,14 @@ MainWindow::MainWindow() :
     ui->solverPath->setToolTip("The path to the external Astrometry.net solve-field executable");
     ui->astapPath->setToolTip("The path to the external ASTAP executable");
     ui->basePath->setToolTip("The base path where sextractor and astrometry temporary files are saved on your computer");
+    ui->openTemp->setToolTip("Opens the directory (above) to where the external solvers save their files");
     ui->wcsPath->setToolTip("The path to wcsinfo for the external Astrometry.net");
     ui->cleanupTemp->setToolTip("This option allows the program to clean up temporary files created when running various processes");
     ui->generateAstrometryConfig->setToolTip("Determines whether to generate an astrometry.cfg file based on the options in the options panel or to use the external config file above.");
 
+    connect(ui->openTemp, &QAbstractButton::clicked, this, [this](){
+        QDesktopServices::openUrl(QUrl::fromLocalFile(ui->basePath->text()));
+    });
     //SexySolver Tester Options
     connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
 
@@ -225,6 +230,7 @@ MainWindow::MainWindow() :
     ui->resortQT->setToolTip("This resorts the stars based on magnitude.  It MUST be checked for the next couple of filters to be enabled.");
     ui->maxSize->setToolTip("This is the maximum diameter of stars to include in pixels");
     ui->maxEllipse->setToolTip("Stars are typically round, this filter divides stars' semi major and minor axes and rejects stars with distorted shapes greater than this number (1 is perfectly round)");
+    ui->keepNum->setToolTip("Keep just this number of stars to send to the solver.  They will be the brightest in the list.  If there are more than that, they will all be kept");
     ui->brightestPercent->setToolTip("Removes the brightest % of stars from the image");
     ui->dimmestPercent->setToolTip("Removes the dimmest % of stars from the image");
     ui->saturationLimit->setToolTip("Removes stars above a certain % of the saturation limit of an image of this data type");
@@ -741,6 +747,7 @@ SexySolver::Parameters MainWindow::getSettingsFromUI()
     params.resort = ui->resort->isChecked();
     params.maxSize = ui->maxSize->text().toDouble();
     params.maxEllipse = ui->maxEllipse->text().toDouble();
+    params.keepNum = ui->keepNum->text().toDouble();
     params.removeBrightest = ui->brightestPercent->text().toDouble();
     params.removeDimmest = ui->dimmestPercent->text().toDouble();
     params.saturationLimit = ui->saturationLimit->text().toDouble();
@@ -786,6 +793,7 @@ void MainWindow::sendSettingsToUI(SexySolver::Parameters a)
 
         ui->maxSize->setText(QString::number(a.maxSize));
         ui->maxEllipse->setText(QString::number(a.maxEllipse));
+        ui->keepNum->setText(QString::number(a.keepNum));
         ui->brightestPercent->setText(QString::number(a.removeBrightest));
         ui->dimmestPercent->setText(QString::number(a.removeDimmest));
         ui->saturationLimit->setText(QString::number(a.saturationLimit));
@@ -2098,6 +2106,7 @@ void MainWindow::setupResultsTable()
     //Star Filtering Parameters
     addColumnToTable(table,"Max Size");
     addColumnToTable(table,"Max Ell");
+    addColumnToTable(table,"Keep #");
     addColumnToTable(table,"Cut Bri");
     addColumnToTable(table,"Cut Dim");
     addColumnToTable(table,"Sat Lim");
@@ -2170,6 +2179,7 @@ void MainWindow::addSextractionToTable()
     //StarFilter Parameters
     setItemInColumn(table,"Max Size", QString::number(params.maxSize));
     setItemInColumn(table,"Max Ell", QString::number(params.maxEllipse));
+    setItemInColumn(table,"Keep #", QString::number(params.keepNum));
     setItemInColumn(table,"Cut Bri", QString::number(params.removeBrightest));
     setItemInColumn(table,"Cut Dim", QString::number(params.removeDimmest));
     setItemInColumn(table,"Sat Lim", QString::number(params.saturationLimit));
@@ -2226,6 +2236,7 @@ void MainWindow::updateHiddenResultsTableColumns()
     //Star Filtering Parameters
     setColumnHidden(table,"Max Size", !showSextractorParams);
     setColumnHidden(table,"Max Ell", !showSextractorParams);
+    setColumnHidden(table,"Keep #", !showSextractorParams);
     setColumnHidden(table,"Cut Bri", !showSextractorParams);
     setColumnHidden(table,"Cut Dim", !showSextractorParams);
     setColumnHidden(table,"Sat Lim", !showSextractorParams);
