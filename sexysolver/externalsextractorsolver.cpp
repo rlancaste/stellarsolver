@@ -162,17 +162,14 @@ void ExternalSextractorSolver::run()
         }
     }
 
-    if(processType != ASTAP)
+    if(sextractorFilePath == "")
     {
-        if(sextractorFilePath == "")
-        {
-            sextractorFilePathIsTempFile = true;
-            sextractorFilePath = basePath + "/" + baseName + ".xyls";
-        }
-        QFile sextractorFile(sextractorFilePath);
-        if(sextractorFile.exists())
-            sextractorFile.remove();
+        sextractorFilePathIsTempFile = true;
+        sextractorFilePath = basePath + "/" + baseName + ".xyls";
     }
+    QFile sextractorFile(sextractorFilePath);
+    if(sextractorFile.exists())
+        sextractorFile.remove();
 
     switch(processType)
     {
@@ -526,6 +523,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     solverArgs << "-speed" << "auto";
     solverArgs << "-f" << fileToProcess;
     solverArgs << "-wcs";
+    solverArgs << "-xyls";
     if(params.downsample > 1)
         solverArgs << "-z" << QString::number(params.downsample);
     if(use_position)
@@ -561,6 +559,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
         return -1;
     if(!getASTAPSolutionInformation())
         return -1;
+    getStarsFromXYLSFile(); //Attempt to load stars from an xyls file, but don't fail if you don't get them
     loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
     hasSolved = true;
     return 0;
@@ -816,6 +815,13 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
                         if(ii == 3)
                             flux = QString(value).trimmed().toFloat();
                     }
+                    else if(processType == ASTAP)
+                    {
+                        if(ii == 1)
+                            starx = QString(value).trimmed().toFloat();
+                        if(ii == 2)
+                            stary = QString(value).trimmed().toFloat();
+                    }
                     else
                     {
                         if(ii == 1)
@@ -848,7 +854,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
             float a = 0;
             float b = 0;
             float theta = 0;
-            if(processType != CLASSIC_ASTROMETRY && processType != ONLINE_ASTROMETRY_NET)
+            if(processType != CLASSIC_ASTROMETRY && processType != ONLINE_ASTROMETRY_NET && processType != ASTAP)
             {
                 float thing = sqrt( pow(xx - yy, 2) + 4 * pow(xy, 2) );
                 float lambda1 = (xx + yy + thing) / 2;
