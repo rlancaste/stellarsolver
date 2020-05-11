@@ -124,6 +124,15 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
 {
     QList<SexySolver::Parameters> optionsList;
 
+    SexySolver::Parameters fastSolving;
+    fastSolving.listName = "FastSolving";
+    fastSolving.downsample = 2;
+    fastSolving.keepNum = 50;
+    fastSolving.maxEllipse = 1.5;
+    fastSolving.saturationLimit = 80;
+    createConvFilterFromFWHM(&fastSolving, 4);
+    optionsList.append(fastSolving);
+
     SexySolver::Parameters smallStars;
     smallStars.listName = "SmallSizedStars";
     smallStars.maxEllipse = 1.2;
