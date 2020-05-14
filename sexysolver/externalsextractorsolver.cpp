@@ -167,9 +167,6 @@ void ExternalSextractorSolver::run()
         sextractorFilePathIsTempFile = true;
         sextractorFilePath = basePath + "/" + baseName + ".xyls";
     }
-    QFile sextractorFile(sextractorFilePath);
-    if(sextractorFile.exists())
-        sextractorFile.remove();
 
     switch(processType)
     {
@@ -180,42 +177,133 @@ void ExternalSextractorSolver::run()
 
         case EXT_SEXTRACTORSOLVER: //This method uses external Sextractor to get the stars, then feeds it to external astrometry.net.
             {
-                int success = runExternalSextractor();
-                if( success == 0)
-                    emit finished(runExternalSolver());
+                if(!hasSextracted)
+                    runExternalSextractor();
+                if(hasSextracted)
+                {
+                    if(runInParallelAndWaitForFinish())
+                        return;
+                    else
+                        emit finished(runExternalSolver());
+                }
                 else
-                    emit finished(success);
+                    emit finished(-1);
             }
             break;
 
         case INT_SEP_EXT_SOLVER: //This method runs the Internal SexySolver to sextract the stars, then feeds it to external astrometry.net
-            if(runSEPSextractor())
+        {
+            if(!hasSextracted)
             {
+                runSEPSextractor();
                 int success = writeSextractorTable();
                 if(success == 0)
-                    emit finished(runExternalSolver());
+                    hasSextracted = true;
                 else
+                {
+                    hasSextracted = false;
                     emit finished(success);
+                }
+            }
+
+            if(hasSextracted)
+            {
+                if(runInParallelAndWaitForFinish())
+                    return;
+                else
+                    emit finished(runExternalSolver());
             }
             else
                 emit finished(-1);
+        }
             break;
 
         case CLASSIC_ASTROMETRY: //This is meant to run the traditional solve KStars used to do using python and astrometry.net
-            emit finished(runExternalSolver());
+        {
+            if(runInParallelAndWaitForFinish())
+                return;
+            else
+                emit finished(runExternalSolver());
+        }
             break;
 
         case ASTAP: //This method runs the external program ASTAP to solve the image, a fairly new KStars option
+        {
+            if(params.multiAlgorithm != NOT_MULTI)
+                emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
             emit finished(runExternalASTAPSolver());
+        }
             break;
 
         default: break;
     }
 }
 
+//This method generates child solvers with the options of the current solver
+SexySolver* ExternalSextractorSolver::spawnChildSolver()
+{
+    ExternalSextractorSolver *solver = new ExternalSextractorSolver(processType, stats, m_ImageBuffer, nullptr);
+    solver->stars = stars;
+
+    if(processType!= ASTAP && processType != CLASSIC_ASTROMETRY)
+    {
+        solver->hasSextracted = true;
+        solver->sextractorFilePath = sextractorFilePath;
+        //solver->solutionFile = basePath + "/" + baseName + ".wcs";
+        solver->basePath = basePath;
+        //solver->baseName = baseName;
+    }
+    solver->fileToProcess = fileToProcess;
+    solver->cleanupTemporaryFiles = false;
+    solver->sextractorBinaryPath = sextractorBinaryPath;
+    solver->confPath = confPath;
+    solver->solverPath = solverPath;
+    solver->astapBinaryPath = astapBinaryPath;
+    solver->wcsPath = wcsPath;
+    solver->cleanupTemporaryFiles = cleanupTemporaryFiles;
+    solver->autoGenerateAstroConfig = autoGenerateAstroConfig;
+
+    solver->isChildSolver = true;
+    solver->setParameters(params);
+    solver->setIndexFolderPaths(indexFolderPaths);
+    solver->setLogLevel(logLevel);
+    //Set the log level one less than the main solver
+    /**
+    if(logLevel == LOG_MSG || logLevel == LOG_NONE)
+        solver->setLogLevel(LOG_NONE);
+    if(logLevel == LOG_VERB)
+        solver->setLogLevel(LOG_MSG);
+    if(logLevel == LOG_ALL)
+        solver->setLogLevel(LOG_VERB);
+        **/
+    if(use_scale)
+        solver->setSearchScale(scalelo,scalehi,scaleunit);
+    if(use_position)
+        solver->setSearchPositionInDegrees(search_ra, search_dec);
+    if(logLevel != LOG_NONE)
+        connect(solver, &SexySolver::logOutput, this, &SexySolver::logOutput);
+    connect(solver, &ExternalSextractorSolver::finished, this, &ExternalSextractorSolver::finishParallelSolve);
+    //This way they all share a solved and cancel fn
+    solver->cancelfn = basePath + "/" + baseName + ".cancel";
+    //solver->solvedfn = basePath + "/" + baseName + ".solved";
+    childSolvers.append(solver);
+    return solver;
+}
+
+void ExternalSextractorSolver::getWCSDataFromChildSolver(SexySolver *solver)
+{
+    if (ExternalSextractorSolver* extSolver = dynamic_cast<ExternalSextractorSolver*>(solver))
+    {
+        hasWCS = true;
+        m_wcs = extSolver->m_wcs;
+    }
+}
+
 //This is the abort method.  For the external sextractor and solver, it uses the kill method to abort the processes
 void ExternalSextractorSolver::abort()
 {
+    foreach(SexySolver *solver, childSolvers)
+        solver->abort();
     if(!solver.isNull())
         solver->kill();
     if(!sextractorProcess.isNull())
@@ -392,7 +480,13 @@ int ExternalSextractorSolver::runExternalSextractor()
     if(sextractorProcess->exitCode()!=0 || sextractorProcess->exitStatus() == QProcess::CrashExit)
         return sextractorProcess->exitCode();
 
-    return getStarsFromXYLSFile(); //0 or exit code depending on its success
+    int exitCode = getStarsFromXYLSFile();
+    if(exitCode != 0)
+        return exitCode;
+
+    hasSextracted = true;
+
+    return 0;
 
 }
 
@@ -518,14 +612,20 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
 
     QStringList solverArgs;
 
-    QString solutionFile = basePath + "/" + baseName + ".ini";
-    solverArgs << "-o" << solutionFile;
+    QString astapSolutionFile = basePath + "/" + baseName + ".ini";
+    solverArgs << "-o" << astapSolutionFile;
     solverArgs << "-speed" << "auto";
     solverArgs << "-f" << fileToProcess;
     solverArgs << "-wcs";
     solverArgs << "-xyls";
     if(params.downsample > 1)
         solverArgs << "-z" << QString::number(params.downsample);
+    if(use_scale)
+    {
+        double scalemid = (scalehi + scalelo) / 2;
+        double degreesFOV = convertToDegreeWidth(scalemid);
+        solverArgs << "-fov" << QString::number(degreesFOV);
+    }
     if(use_position)
     {
         solverArgs << "-ra" << QString::number(search_ra / 15.0); //Convert ra to hours
@@ -588,6 +688,11 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     if(params.resort)
         solverArgs << "--resort";
 
+    if(depthhi != -1 && depthlo != -1)
+    {
+        solverArgs << "--depth" << QString("%1-%2").arg(depthlo).arg(depthhi);
+    }
+
     //This will shrink the image so that it is easier to solve.  It is only useful if you are sending an image.
     //It is not used if you are solving an xylist as in the classic astrometry.net solver
     if(params.downsample > 1 && processType == CLASSIC_ASTROMETRY)
@@ -600,7 +705,7 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     //solverArgs << "--odds-to-keep" << QString::number(logratio_tokeep);  I'm not sure if this is one we need.
 
     if (use_scale)
-        solverArgs << "-L" << QString::number(scalelo) << "-H" << QString::number(scalehi) << "-u" << units;
+        solverArgs << "-L" << QString::number(scalelo) << "-H" << QString::number(scalehi) << "-u" << getScaleUnitString();
 
     if (use_position)
         solverArgs << "-3" << QString::number(search_ra) << "-4" << QString::number(search_dec) << "-5" << QString::number(params.search_radius);
@@ -645,11 +750,13 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
 
     //This sets the cancel filename for astrometry.net.  Astrometry will monitor for the creation of this file
     //In order to shut down and stop processing
-    cancelfn = basePath + "/" + baseName + ".cancel";
+    if(cancelfn != "")
+        cancelfn = basePath + "/" + baseName + ".cancel";
     solverArgs << "--cancel" << cancelfn;
 
     //This sets the wcs file for astrometry.net.  This file will be very important for reading in WCS info later on
-    QString solutionFile = basePath + "/" + baseName + ".wcs";
+    if(solutionFile == "")
+        solutionFile = basePath + "/" + baseName + ".wcs";
     solverArgs << "-W" << solutionFile;
 
     return solverArgs;
@@ -879,7 +986,8 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
 //It reads the information from the Solution file from Astrometry.net and puts it into the solution
 bool ExternalSextractorSolver::getSolutionInformation()
 {
-    QString solutionFile = basePath + "/" + baseName + ".wcs";
+    if(solutionFile == "")
+        solutionFile = basePath + "/" + baseName + ".wcs";
     QFileInfo solutionInfo(solutionFile);
     if(!solutionInfo.exists())
     {
@@ -1240,7 +1348,8 @@ int ExternalSextractorSolver::saveAsFITS()
 //This was essentially copied from KStars' loadWCS method and split in half with some modifications.
 int ExternalSextractorSolver::loadWCS()
 {
-    QString solutionFile = basePath + "/" + baseName + ".wcs";
+    if(solutionFile == "")
+        solutionFile = basePath + "/" + baseName + ".wcs";
 
     emit logOutput("Loading WCS from file...");
 

@@ -111,16 +111,16 @@ int engine_autoindex_search_paths(engine_t* engine) {
             }
 
             logverb("Checking file \"%s\"\n", fullpath);
-            errors_start_logging_to_string();
+            //errors_start_logging_to_string();
             ok = index_is_file_index(fullpath);
-            err = errors_stop_logging_to_string(": ");
+            //err = errors_stop_logging_to_string(": ");
             if (!ok) {
-                logverb("File is not an index: %s\n", err);
-                free(err);
+                logverb("File is not an index: %s\n", fullpath);
+                //free(err);
                 free(fullpath);
                 continue;
             }
-            free(err);
+            //free(err);
 
             sl_insert_sorted_nocopy(tryinds, fullpath);
         }

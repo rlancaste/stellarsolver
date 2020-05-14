@@ -12,6 +12,9 @@ OnlineSolver::OnlineSolver(ProcessType type, Statistic imagestats, uint8_t *imag
 
 void OnlineSolver::startProcess()
 {
+    if(params.multiAlgorithm != NOT_MULTI)
+        emit logOutput("The Online solver option does not support multithreading, since the server already does this internally, ignoring this option");
+
     if(processType == ONLINE_ASTROMETRY_NET)
         runOnlineSolver();
 
@@ -211,15 +214,8 @@ void OnlineSolver::uploadFile()
 
     if (use_scale)
     {
-        QString onlineUnits;
-        if (scaleunit == SCALE_UNITS_ARCMIN_WIDTH)
-            onlineUnits = "arcminwidth";
-        if (scaleunit == SCALE_UNITS_DEG_WIDTH)
-            onlineUnits = "degwidth";
-        if (scaleunit == SCALE_UNITS_ARCSEC_PER_PIX)
-            onlineUnits = "arcsecperpix";
         uploadReq.insert("scale_type", "ul");
-        uploadReq.insert("scale_units", onlineUnits);
+        uploadReq.insert("scale_units", getScaleUnitString());
         uploadReq.insert("scale_lower", scalelo);
         uploadReq.insert("scale_upper", scalehi);
     }

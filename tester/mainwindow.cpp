@@ -237,6 +237,7 @@ MainWindow::MainWindow() :
 
     //Astrometry Settings
     ui->inParallel->setToolTip("Loads the Astrometry index files in parallel.  This can speed it up, but uses more resources");
+    ui->multiAlgo->setToolTip("Allows solving in multiple threads or multiple cores with several algorithms");
     ui->solverTimeLimit->setToolTip("This is the maximum time the Astrometry.net solver should spend on the image before giving up");
     ui->minWidth->setToolTip("Sets a the minimum degree limit in the scales for Astrometry to search if the scale parameter isn't set");
     ui->maxWidth->setToolTip("Sets a the maximum degree limit in the scales for Astrometry to search if the scale parameter isn't set");
@@ -616,11 +617,11 @@ void MainWindow::solveImage()
 
     //Setting the initial search scale settings
     if(ui->use_scale->isChecked())
-        sexySolver->setSearchScale(ui->scale_low->text().toDouble(), ui->scale_high->text().toDouble(), ui->units->currentText());
+        sexySolver->setSearchScale(ui->scale_low->text().toDouble(), ui->scale_high->text().toDouble(), (ScaleUnits)ui->units->currentIndex());
 
     //Setting the initial search location settings
     if(ui->use_position->isChecked())
-        sexySolver->setSearchPosition(ui->ra->text().toDouble(), ui->dec->text().toDouble());
+        sexySolver->setSearchPositionRaDec(ui->ra->text().toDouble(), ui->dec->text().toDouble());
 
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
     if(sexySolver->logLevel != LOG_NONE)
@@ -757,6 +758,7 @@ SexySolver::Parameters MainWindow::getSettingsFromUI()
     params.maxwidth = ui->maxWidth->text().toDouble();
     params.minwidth = ui->minWidth->text().toDouble();
     params.inParallel = ui->inParallel->isChecked();
+    params.multiAlgorithm = (SexySolver::MultiAlgo)ui->multiAlgo->currentIndex();
     params.solverTimeLimit = ui->solverTimeLimit->text().toInt();
 
     params.resort = ui->resort->isChecked();
@@ -802,6 +804,7 @@ void MainWindow::sendSettingsToUI(SexySolver::Parameters a)
 
         ui->downsample->setValue(a.downsample);
         ui->inParallel->setChecked(a.inParallel);
+        ui->multiAlgo->setCurrentIndex(a.multiAlgorithm);
         ui->solverTimeLimit->setText(QString::number(a.solverTimeLimit));
         ui->minWidth->setText(QString::number(a.minwidth));
         ui->maxWidth->setText(QString::number(a.maxwidth));
@@ -2000,7 +2003,7 @@ bool MainWindow::getSolverOptionsFromFITS()
 
         ui->scale_low->setText(QString::number(fov_low));
         ui->scale_high->setText(QString::number(fov_high));
-        ui->units->setCurrentText("app");
+        ui->units->setCurrentIndex(ARCSEC_PER_PIX);
         ui->use_scale->setChecked(true);
         fits_close_file(fptr, &status);
         return true;
@@ -2064,7 +2067,7 @@ bool MainWindow::getSolverOptionsFromFITS()
 
     ui->scale_low->setText(QString::number(fov_lower));
     ui->scale_high->setText(QString::number(fov_upper));
-    ui->units->setCurrentText("aw");
+    ui->units->setCurrentIndex(ARCMIN_WIDTH);
     ui->use_scale->setChecked(true);
 
     fits_close_file(fptr, &status);
@@ -2116,6 +2119,8 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table,"Resort?");
     addColumnToTable(table,"Down");
     addColumnToTable(table,"in ||");
+    addColumnToTable(table,"Multi");
+    addColumnToTable(table,"# Thread");
     //Results
     addColumnToTable(table,"RA (J2000)");
     addColumnToTable(table,"DEC (J2000)");
@@ -2148,23 +2153,7 @@ void MainWindow::addSextractionToTable()
     setItemInColumn(table, "Loglvl", QString::number(sexySolver->logLevel));
     setItemInColumn(table, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
-    QString shapeName="Circle";
-    switch(params.apertureShape)
-    {
-        case SHAPE_AUTO:
-            shapeName = "Auto";
-        break;
-
-        case SHAPE_CIRCLE:
-           shapeName = "Circle";
-        break;
-
-        case SHAPE_ELLIPSE:
-            shapeName = "Ellipse";
-        break;
-    }
-
-    setItemInColumn(table,"Shape", shapeName);
+    setItemInColumn(table,"Shape", sexySolver->getShapeString());
     setItemInColumn(table,"Kron", QString::number(params.kron_fact));
     setItemInColumn(table,"Subpix", QString::number(params.subpix));
     setItemInColumn(table,"r_min", QString::number(params.r_min));
@@ -2204,6 +2193,9 @@ void MainWindow::addSolutionToTable(Solution solution)
     setItemInColumn(table, "Resort?", QVariant(params.resort).toString());
     setItemInColumn(table, "Down", QVariant(params.downsample).toString());
     setItemInColumn(table, "in ||", QVariant(params.inParallel).toString());
+    setItemInColumn(table, "Multi", sexySolver->getMultiAlgoString());
+    setItemInColumn(table, "# Thread", QVariant(sexySolver->getNumThreads()).toString());
+
 
     //Results
     setItemInColumn(table, "RA (J2000)", solution.rastr);
@@ -2246,6 +2238,8 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table,"Resort?", !showAstrometryParams);
     setColumnHidden(table,"Down", !showAstrometryParams);
     setColumnHidden(table,"in ||", !showAstrometryParams);
+    setColumnHidden(table,"Multi", !showAstrometryParams);
+    setColumnHidden(table,"# Thread", !showAstrometryParams);
     //Results
     setColumnHidden(table,"RA (J2000)", !showSolutionDetails);
     setColumnHidden(table,"DEC (J2000)", !showSolutionDetails);

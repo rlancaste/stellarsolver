@@ -80,19 +80,194 @@ void SexySolver::run()
         break;
 
         case SEXYSOLVER:
-            if(runSEPSextractor())
-                emit finished(runInternalSolver());
+        {
+            if(!hasSextracted)
+                runSEPSextractor();
+            if(hasSextracted)
+            {
+                if(runInParallelAndWaitForFinish())
+                    return;
+                else
+                    emit finished(runInternalSolver());
+            }
             else
                 emit finished(-1);
+        }
         break;
 
         default: break;
     }
 }
 
+//This method generates child solvers with the options of the current solver
+SexySolver* SexySolver::spawnChildSolver()
+{
+    SexySolver *solver = new SexySolver(processType, stats, m_ImageBuffer, nullptr);
+    solver->stars = stars;
+    solver->hasSextracted = true;
+    solver->isChildSolver = true;
+    solver->setParameters(params);
+    solver->setIndexFolderPaths(indexFolderPaths);
+    //Set the log level one less than the main solver
+    if(logLevel == LOG_MSG || logLevel == LOG_NONE)
+        solver->setLogLevel(LOG_NONE);
+    if(logLevel == LOG_VERB)
+        solver->setLogLevel(LOG_MSG);
+    if(logLevel == LOG_ALL)
+        solver->setLogLevel(LOG_VERB);
+    if(use_scale)
+        solver->setSearchScale(scalelo,scalehi,scaleunit);
+    if(use_position)
+        solver->setSearchPositionInDegrees(search_ra, search_dec);
+    if(logLevel != LOG_NONE)
+        connect(solver, &SexySolver::logOutput, this, &SexySolver::logOutput);
+    connect(solver, &SexySolver::finished, this, &SexySolver::finishParallelSolve);
+    //This way they all share a solved and cancel fn
+    solver->cancelfn = basePath + "/" + baseName + ".cancel";
+    solver->solvedfn = basePath + "/" + baseName + ".solved";
+    solver->usingDownsampledImage = usingDownsampledImage;
+    childSolvers.append(solver);
+    return solver;
+}
+
+//This allows us to start multiple threads to search simulaneously in separate threads/cores
+//to attempt to efficiently use modern multi core computers to speed up the solve
+void SexySolver::parallelSolve()
+{
+    if(params.multiAlgorithm == NOT_MULTI)
+        return;
+    childSolvers.clear();
+    parallelFails = 0;
+    int threads = idealThreadCount();
+
+    if(params.multiAlgorithm == MULTI_SCALES)
+    {
+        //Attempt to search on multiple scales
+        //Note, originally I had each parallel solver getting equal ranges, but solves are faster on bigger scales
+        //So now I'm giving the bigger scale solvers more of a range to work with.
+        double minScale;
+        double maxScale;
+        ScaleUnits units;
+        if(use_scale)
+        {
+            minScale = scalelo;
+            maxScale = scalehi;
+            units = scaleunit;
+        }
+        else
+        {
+            minScale = params.minwidth;
+            maxScale = params.maxwidth;
+            units = DEG_WIDTH;
+        }
+        double scaleConst = (maxScale - minScale) / pow(threads,2);
+        if(logLevel != LOG_NONE)
+            emit logOutput(QString("Starting %1 threads to solve on multiple scales").arg(threads));
+        for(double thread = 0; thread <= threads; thread++)
+        {
+            double low = minScale + scaleConst * pow(thread,2);
+            double high = minScale + scaleConst * pow(thread + 1, 2);
+            SexySolver *solver = spawnChildSolver();
+            solver->setSearchScale(low, high, units);
+            if(logLevel != LOG_NONE)
+                emit logOutput(QString("Solver # %1, Low %2, High %3 %4").arg(childSolvers.count()).arg(low).arg(high).arg(getScaleUnitString()));
+        }
+    }
+    //Note: it might be useful to do a parallel solve on multiple positions, but I am afraid
+    //that since it searches in a circle around the search position, it might be difficult to make it
+    //search a square grid without either missing sections of sky or overlapping search regions.
+    else if(params.multiAlgorithm == MULTI_DEPTHS)
+    {
+        //Attempt to search on multiple depths
+        int sourceNum = 200;
+        if(params.keepNum !=0)
+            sourceNum = params.keepNum;
+        int inc = sourceNum / threads;
+        //We don't need an unnecessary number of threads
+        if(inc < 10)
+            inc = 10;
+        if(logLevel != LOG_NONE)
+            emit logOutput(QString("Starting %1 threads to solve on multiple depths").arg(sourceNum / inc));
+        for(int i = 1; i < sourceNum; i += inc)
+        {
+            SexySolver *solver = spawnChildSolver();
+            solver->depthlo = i;
+            solver->depthhi = i + inc;
+            if(logLevel != LOG_NONE)
+                emit logOutput(QString("Child Solver # %1, Depth Low %2, Depth High %3").arg(childSolvers.count()).arg(i).arg(i + inc));
+        }
+    }
+    foreach(SexySolver *solver, childSolvers)
+        solver->startProcess();
+}
+
+bool SexySolver::runInParallelAndWaitForFinish()
+{
+    //If we aren't doing multithreading or if this is a child solver, don't parallelize
+    if(params.multiAlgorithm == NOT_MULTI || isChildSolver)
+        return false;
+    parallelSolve();
+    while(parallelFails != childSolvers.count() && !hasSolved)
+        msleep(100);
+    foreach(SexySolver *solver, childSolvers)
+    {
+        QFile(solver->cancelfn).remove();
+        QFile(solver->solvedfn).remove();
+    }
+    return true;
+}
+
+//This slot listens for signals from the child solvers that they are in fact done with the solve
+//If they
+void SexySolver::finishParallelSolve(int success)
+{
+    SexySolver *successfulSolver = (SexySolver*)sender();
+    int whichSolver = 0;
+    for(int i =0; i<childSolvers.count(); i++ )
+    {
+        SexySolver *solver = childSolvers.at(i);
+        if(solver == successfulSolver)
+            whichSolver = i + 1;
+    }
+
+    if(success == 0)
+    {
+        foreach(SexySolver *solver, childSolvers)
+        {
+            disconnect(solver, &SexySolver::finished, this, &SexySolver::finishParallelSolve);
+            disconnect(solver, &SexySolver::logOutput, this, &SexySolver::logOutput);
+            if(solver != successfulSolver && solver->isRunning())
+                solver->abort();
+        }
+        stars = successfulSolver->stars;
+        solution = successfulSolver->solution;
+        if(successfulSolver->hasWCS)
+            getWCSDataFromChildSolver(successfulSolver);
+        hasSolved = true;
+        emit logOutput(QString("Successfully solved with child solver: %1").arg(whichSolver));
+        emit finished(0);
+    }
+    else
+    {
+        parallelFails++;
+        emit logOutput(QString("Child solver: %1 did not solve").arg(whichSolver));
+        if(parallelFails == childSolvers.count())
+            emit finished(-1);
+    }
+}
+
+void SexySolver::getWCSDataFromChildSolver(SexySolver *solver)
+{
+    hasWCS = true;
+    wcs = solver->wcs;
+    match = solver->match;
+}
+
 //This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
 void SexySolver::abort()
 {
+    foreach(SexySolver *solver, childSolvers)
+        solver->abort();
     QFile file(cancelfn);
     if(QFileInfo(file).dir().exists())
     {
@@ -100,7 +275,6 @@ void SexySolver::abort()
         file.write("Cancel");
         file.close();
     }
-    quit();
 }
 
 //This method uses a fwhm value to generate the conv filter the sextractor will use.
@@ -132,6 +306,16 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
     fastSolving.saturationLimit = 80;
     createConvFilterFromFWHM(&fastSolving, 4);
     optionsList.append(fastSolving);
+
+    SexySolver::Parameters parSolving;
+    parSolving.listName = "ParallelFastSolving";
+    parSolving.multiAlgorithm = MULTI_SCALES;
+    parSolving.downsample = 2;
+    parSolving.keepNum = 50;
+    parSolving.maxEllipse = 1.5;
+    parSolving.saturationLimit = 80;
+    createConvFilterFromFWHM(&parSolving, 4);
+    optionsList.append(parSolving);
 
     SexySolver::Parameters smallStars;
     smallStars.listName = "SmallSizedStars";
@@ -601,31 +785,42 @@ void SexySolver::downSampleImageType(int d)
 //This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.
 void SexySolver::setSearchScale(double fov_low, double fov_high, QString scaleUnits)
 {
+    if(scaleUnits =="dw" || scaleUnits =="degw" || scaleUnits =="degwidth")
+        setSearchScale(fov_low, fov_high, DEG_WIDTH);
+    if(scaleUnits == "app" || scaleUnits == "arcsecperpix")
+        setSearchScale(fov_low, fov_high, ARCSEC_PER_PIX);
+    if(scaleUnits =="aw" || scaleUnits =="amw" || scaleUnits =="arcminwidth")
+        setSearchScale(fov_low, fov_high, ARCMIN_WIDTH);
+    if(scaleUnits =="focalmm")
+        setSearchScale(fov_low, fov_high, FOCAL_MM);
+}
+
+//This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.
+void SexySolver::setSearchScale(double fov_low, double fov_high, ScaleUnits units)
+{
     use_scale = true;
     //L
     scalelo = fov_low;
     //H
     scalehi = fov_high;
     //u
-    units = scaleUnits;
-
-    if(units == "app" || units == "arcsecperpix")
-        scaleunit = SCALE_UNITS_ARCSEC_PER_PIX;
-    if(units =="aw" || units =="amw" || units =="arcminwidth")
-        scaleunit = SCALE_UNITS_ARCMIN_WIDTH;
-    if(units =="dw" || units =="degw" || units =="degwidth")
-        scaleunit = SCALE_UNITS_DEG_WIDTH;
-    if(units =="focalmm")
-        scaleunit = SCALE_UNITS_FOCAL_MM;
+    scaleunit = units;
 }
 
 //This is a convenience function used to set all the search position parameters based on the ra, dec, and radius
 //Warning!!  This method accepts the RA in decimal form and then will convert it to degrees for Astrometry.net
-void SexySolver::setSearchPosition(double ra, double dec)
+void SexySolver::setSearchPositionRaDec(double ra, double dec)
+{
+    setSearchPositionInDegrees(ra * 15.0, dec);
+}
+
+//This is a convenience function used to set all the search position parameters based on the ra, dec, and radius
+//Warning!!  This method accepts the RA in degrees just like the DEC
+void SexySolver::setSearchPositionInDegrees(double ra, double dec)
 {
     use_position = true;
     //3
-    search_ra = ra * 15.0;
+    search_ra = ra;
     //4
     search_dec = dec;
 }
@@ -685,8 +880,10 @@ bool SexySolver::prepare_job() {
     sp->field_maxx = stats.width;
     sp->field_maxy = stats.height;
 
-    cancelfn       = basePath + "/" + baseName + ".cancel";
-    solvedfn       = basePath + "/" + baseName + ".solved";
+    if(cancelfn == "")
+        cancelfn = basePath + "/" + baseName + ".cancel";
+    if(solvedfn == "")
+        solvedfn = basePath + "/" + baseName + ".solved";
 
     blind_set_cancel_file(bp, cancelfn.toLatin1().constData());
     blind_set_solved_file(bp,solvedfn.toLatin1().constData());
@@ -714,29 +911,29 @@ bool SexySolver::prepare_job() {
     if (use_scale) {
         double appu, appl;
         switch (scaleunit) {
-        case SCALE_UNITS_DEG_WIDTH:
-            emit logOutput(QString("Scale range: %1 to %1 degrees wide\n").arg(scalelo).arg(scalehi));
+        case DEG_WIDTH:
+            emit logOutput(QString("Scale range: %1 to %2 degrees wide\n").arg(scalelo).arg(scalehi));
             appl = deg2arcsec(scalelo) / (double)stats.width;
             appu = deg2arcsec(scalehi) / (double)stats.width;
-            emit logOutput(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg( stats.width).arg (appl).arg( appu));
+            emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg( stats.width).arg (appl).arg( appu));
             break;
-        case SCALE_UNITS_ARCMIN_WIDTH:
+        case ARCMIN_WIDTH:
             emit logOutput(QString("Scale range: %1 to %2 arcmin wide\n").arg (scalelo).arg(scalehi));
             appl = arcmin2arcsec(scalelo) / (double)stats.width;
             appu = arcmin2arcsec(scalehi) / (double)stats.width;
-            emit logOutput(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg (stats.width).arg( appl).arg (appu));
+            emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg (stats.width).arg( appl).arg (appu));
             break;
-        case SCALE_UNITS_ARCSEC_PER_PIX:
+        case ARCSEC_PER_PIX:
             emit logOutput(QString("Scale range: %1 to %2 arcsec/pixel\n").arg (scalelo).arg (scalehi));
             appl = scalelo;
             appu = scalehi;
             break;
-        case SCALE_UNITS_FOCAL_MM:
+        case FOCAL_MM:
             emit logOutput(QString("Scale range: %1 to %2 mm focal length\n").arg (scalelo).arg (scalehi));
             // "35 mm" film is 36 mm wide.
             appu = rad2arcsec(atan(36. / (2. * scalelo))) / (double)stats.width;
             appl = rad2arcsec(atan(36. / (2. * scalehi))) / (double)stats.width;
-            emit logOutput(QString("Image width %i pixels; arcsec per pixel range %1 %2\n").arg (stats.width).arg (appl).arg (appu));
+            emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg (stats.width).arg (appl).arg (appu));
             break;
         default:
             emit logOutput(QString("Unknown scale unit code %1\n").arg (scaleunit));
@@ -779,7 +976,13 @@ int SexySolver::runInternalSolver()
     engine->minwidth = params.minwidth;
     engine->maxwidth = params.maxwidth;
 
-    log_init(logLevel);
+    if(isChildSolver)
+    {
+        if(logLevel == LOG_VERB || logLevel == LOG_ALL)
+            log_init(logLevel);
+    }
+    else
+        log_init(logLevel);
 
     if(logLevel != LOG_NONE)
     {
@@ -790,18 +993,18 @@ int SexySolver::runInternalSolver()
         else
         {
         #ifndef _WIN32 //Windows does not support FIFO files
-            if(logFileName == "")
-                logFileName = basePath + "/" + baseName + ".logFIFO.txt";
-            if(QFile(logFileName).exists())
-                QFile(logFileName).remove();
+            logFileName = basePath + "/" + baseName + ".logFIFO.txt";
             int mkFifoSuccess = 0; //Note if the return value of the command is 0 it succeeded, -1 means it failed.
-            if ((mkFifoSuccess = mkfifo(logFileName.toLatin1(), S_IRUSR | S_IWUSR) < 0))
+            if ((mkFifoSuccess = mkfifo(logFileName.toLatin1(), S_IRUSR | S_IWUSR) == 0))
+            {
+                startLogMonitor();
+                logFile = fopen(logFileName.toLatin1().constData(), "r+");
+            }
+            else
             {
                 emit logOutput("Error making FIFO file");
-                return -1;
+                logLevel = LOG_NONE; //No need to completely fail the sovle just because of a fifo error
             }
-            startLogMonitor();
-            logFile = fopen(logFileName.toLatin1().constData(), "r+");
         #endif
         }
         if(logFile)
@@ -856,19 +1059,27 @@ int SexySolver::runInternalSolver()
     fieldToSolve->background = nullptr;
     bp->solver.fieldxy = fieldToSolve;
 
-    //This sets the depths for the job.
-    if (!il_size(engine->default_depths)) {
-        parse_depth_string(engine->default_depths,
-                           "10 20 30 40 50 60 70 80 90 100 "
-                           "110 120 130 140 150 160 170 180 190 200");
+    if(depthlo != -1 && depthhi != -1)
+    {
+        il_append(job->depths, depthlo);
+        il_append(job->depths, depthhi);
     }
-    if (il_size(job->depths) == 0) {
-        if (engine->inparallel) {
-            // no limit.
-            il_append(job->depths, 0);
-            il_append(job->depths, 0);
-        } else
-            il_append_list(job->depths, engine->default_depths);
+    else
+    {
+        //This sets the depths for the job.
+        if (!il_size(engine->default_depths)) {
+            parse_depth_string(engine->default_depths,
+                               "10 20 30 40 50 60 70 80 90 100 "
+                               "110 120 130 140 150 160 170 180 190 200");
+        }
+        if (il_size(job->depths) == 0) {
+            if (engine->inparallel) {
+                // no limit.
+                il_append(job->depths, 0);
+                il_append(job->depths, 0);
+            } else
+                il_append_list(job->depths, engine->default_depths);
+        }
     }
 
     //This makes sure the min and max widths for the engine make sense, aborting if not.
@@ -934,10 +1145,13 @@ int SexySolver::runInternalSolver()
     delete[] xArray;
     delete[] yArray;
 
-    //This deletes the temporary files
-    QDir temp(basePath);
-    temp.remove(cancelfn);
-    temp.remove(solvedfn);
+    //This deletes the temporary files  
+    if(!isChildSolver)
+    {
+        QDir temp(basePath);
+        temp.remove(cancelfn);
+        temp.remove(solvedfn);
+    }
 
     //Note: I can only get these items after the solve because I made a couple of small changes to the Astrometry.net Code.
     //I made it return in solve_fields in blind.c before it ran "cleanup".  I also had it wait to clean up solutions, blind and solver in engine.c.  We will do that after we get the solution information.
@@ -1110,6 +1324,7 @@ QMap<QString, QVariant> SexySolver::convertToMap(Parameters params)
     settingsMap.insert("maxwidth", QVariant(params.maxwidth)) ;
     settingsMap.insert("minwidth", QVariant(params.minwidth)) ;
     settingsMap.insert("inParallel", QVariant(params.inParallel)) ;
+    settingsMap.insert("multiAlgo", QVariant(params.multiAlgorithm)) ;
     settingsMap.insert("solverTimeLimit", QVariant(params.solverTimeLimit));
 
     //Astrometry Basic Parameters
@@ -1168,6 +1383,7 @@ SexySolver::Parameters SexySolver::convertFromMap(QMap<QString, QVariant> settin
     params.maxwidth = settingsMap.value("maxwidth", params.maxwidth).toDouble() ;
     params.minwidth = settingsMap.value("minwidth", params.minwidth).toDouble() ;
     params.inParallel = settingsMap.value("inParallel", params.inParallel).toBool() ;
+    params.multiAlgorithm = (MultiAlgo)(settingsMap.value("multiAlgo", params.multiAlgorithm)).toInt();
     params.solverTimeLimit = settingsMap.value("solverTimeLimit", params.solverTimeLimit).toInt();
 
     //Astrometry Basic Parameters

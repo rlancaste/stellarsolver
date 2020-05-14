@@ -21,6 +21,8 @@ public:
     ~ExternalSextractorSolver();
 
     void abort() override;
+    SexySolver* spawnChildSolver() override;
+    void getWCSDataFromChildSolver(SexySolver *solver) override;
 
     QStringList getSolverArgsList();
     bool generateAstrometryConfigFile();
@@ -53,6 +55,8 @@ public:
     // If it is not set, it will be set to a random temporary file
     QString sextractorFilePath;
     bool sextractorFilePathIsTempFile = false; //This will be set to true if it gets generated
+
+    QString solutionFile;
 
     void logSolver();
     void logSextractor();

@@ -32,11 +32,11 @@ extern "C"{
 #include "sip-utils.h"
 }
 
-//These are from augment-xylist in astrometry.net and are needed for the scale calculation
-#define SCALE_UNITS_DEG_WIDTH 0
-#define SCALE_UNITS_ARCMIN_WIDTH 1
-#define SCALE_UNITS_ARCSEC_PER_PIX 2
-#define SCALE_UNITS_FOCAL_MM 3
+typedef enum{DEG_WIDTH,
+             ARCMIN_WIDTH,
+             ARCSEC_PER_PIX,
+             FOCAL_MM
+}ScaleUnits;
 
 class SexySolver : public QThread
 {
@@ -56,6 +56,11 @@ public:
                   INT_SEP_ONLINE_ASTROMETRY_NET
     }ProcessType;
     ProcessType processType;
+
+    typedef enum {NOT_MULTI,
+                  MULTI_SCALES,
+                  MULTI_DEPTHS}
+    MultiAlgo;
 
     //The constructor and destructor fo the SexySolver Object
     explicit SexySolver(ProcessType type, Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
@@ -106,6 +111,64 @@ public:
         }
     };
 
+    QString getScaleUnitString()
+    {
+        switch(scaleunit)
+        {
+            case DEG_WIDTH:
+                return "degwidth";
+                break;
+            case ARCMIN_WIDTH:
+                return "arcminwidth";
+                break;
+            case ARCSEC_PER_PIX:
+                return "arcsecperpix";
+                break;
+            case FOCAL_MM:
+                return "focalmm";
+            break;
+            default: return ""; break;
+        }
+    }
+
+    QString getShapeString()
+    {
+        switch(params.apertureShape)
+        {
+            case SHAPE_AUTO:
+                return "Auto";
+            break;
+
+            case SHAPE_CIRCLE:
+               return "Circle";
+            break;
+
+            case SHAPE_ELLIPSE:
+                return "Ellipse";
+            break;
+            default: return ""; break;
+        }
+    }
+
+    QString getMultiAlgoString()
+    {
+        switch(params.multiAlgorithm)
+        {
+            case NOT_MULTI:
+                return "None";
+            break;
+
+            case MULTI_SCALES:
+               return "Scales";
+            break;
+
+            case MULTI_DEPTHS:
+                return "Depths";
+            break;
+            default: return ""; break;
+        }
+    }
+
     //SEXYSOLVER PARAMETERS
     //These are the parameters used by the Internal SexySolver Sextractor and Internal SexySolver Astrometry Solver
     //The values here are the defaults unless they get changed.
@@ -145,6 +208,7 @@ public:
         double saturationLimit = 0;         //Remove all stars above a certain threshhold percentage of saturation
 
         //Astrometry Config/Engine Parameters
+        MultiAlgo multiAlgorithm = NOT_MULTI;//Algorithm for running multiple threads on possibly multiple cores to solve faster
         bool inParallel = true;             //Check the indices in parallel? if the indices you are using take less than 2 GB of space, and you have at least as much physical memory as indices, you want this enabled,
         int solverTimeLimit = 600;          //Give up solving after the specified number of seconds of CPU time
         double minwidth = 0.1;              //If no scale estimate is given, this is the limit on the minimum field width in degrees.
@@ -186,6 +250,7 @@ public:
                     removeDimmest == o.removeDimmest &&
                     saturationLimit == o.saturationLimit &&
 
+                    multiAlgorithm == o.multiAlgorithm &&
                     inParallel == o.inParallel &&
                     solverTimeLimit == o.solverTimeLimit &&
                     minwidth == o.minwidth &&
@@ -222,11 +287,14 @@ public:
     //These set the settings for the SexySolver
     void setParameters(Parameters parameters){params = parameters;};
     void setIndexFolderPaths(QStringList indexPaths){indexFolderPaths = indexPaths;};
-    void setSearchScale(double fov_low, double fov_high, QString scaleUnits);                              //This sets the scale range for the image to speed up the solver
-    void setSearchPosition(double ra, double dec);                                                    //This sets the search RA/DEC/Radius to speed up the solver
+    void setSearchScale(double fov_low, double fov_high, QString scaleUnits);
+    void setSearchScale(double fov_low, double fov_high, ScaleUnits units); //This sets the scale range for the image to speed up the solver
+    void setSearchPositionRaDec(double ra, double dec);                                                    //This sets the search RA/DEC/Radius to speed up the solver
+    void setSearchPositionInDegrees(double ra, double dec);
     void setProcessType(ProcessType type){processType = type;};
     void setLogToFile(bool change){logToFile = change;};
     void setLogLevel(log_level level){logLevel = level;};
+    void setDepths(int low, int high){depthlo=low; depthhi = high;};
 
     //These static methods can be used by classes to configure parameters or paths
     static void createConvFilterFromFWHM(Parameters *params, double fwhm);                      //This creates the conv filter from a fwhm
@@ -241,11 +309,31 @@ public:
     bool sextractionDone(){return hasSextracted;};
     bool solvingDone(){return hasSolved;};
     bool hasWCSData(){return hasWCS;};
+    int getNumThreads(){if(childSolvers.size()==0) return 1; else return childSolvers.size();}
 
     Parameters getCurrentParameters(){return params;};
     bool isCalculatingHFR(){return processType == INT_SEP_HFR || processType == EXT_SEXTRACTOR_HFR;};
     bool isUsingScale(){return use_scale;};
     bool isUsingPosition(){return use_position;};
+
+    double convertToDegreeWidth(double scale){
+        switch(scaleunit)
+        {
+            case DEG_WIDTH:
+                return scale;
+                break;
+            case ARCMIN_WIDTH:
+                return arcmin2deg(scale);
+                break;
+            case ARCSEC_PER_PIX:
+                return arcsec2deg(scale) * (double)stats.width;
+                break;
+            case FOCAL_MM:
+                return rad2deg(atan(36. / (2. * scale)));
+            break;
+            default: return scale; break;
+        }
+    }
 
     virtual wcs_point *getWCSCoord();
     virtual QList<Star> getStarsWithRAandDEC();
@@ -262,8 +350,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     bool use_scale = false;             //Whether or not to use the image scale parameters
     double scalelo = 0;                 //Lower bound of image scale estimate
     double scalehi = 0;                 //Upper bound of image scale estimate
-    QString units;                      //A String Representation of the Scale units
-    int scaleunit = 0;                  //In what units are the lower and upper bounds?
+    ScaleUnits scaleunit;               //In what units are the lower and upper bounds?
 
     //Astrometry Position Parameters, These are not saved parameters and change for each image, use the methods to set them
     bool use_position = false;          //Whether or not to use initial information about the position
@@ -290,6 +377,18 @@ protected:  //Note: These items are not private because they are needed by Exter
 
     uint64_t getAvailableRAM();
     bool enoughRAMisAvailableFor(QStringList indexFolders);
+
+    //These support parallel threads used for solving.
+    QList<SexySolver*> childSolvers;
+    bool isChildSolver= false;
+    void parallelSolve();                   //This method breaks up the job and solves in parallel threads
+    virtual SexySolver* spawnChildSolver(); //This creates a child solver with all the parameters of the parent solver
+    bool runInParallelAndWaitForFinish();   //This will wait for the parallel solvers to complete and return true if it should run in parallel, and return false if it shouldn't run in parallel
+    void finishParallelSolve(int success);  //This slot handles when a parallel solve completes
+    virtual void getWCSDataFromChildSolver(SexySolver *solver);
+    int parallelFails;                      //This counts the number of threads that have failed to determine overall failure
+    int depthlo = -1;                       //This is the low depth of this child solver
+    int depthhi = -1;                       //This is the high depth of this child solver
 
 private:
 
