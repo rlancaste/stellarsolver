@@ -320,7 +320,7 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
     optionsList.append(fastSolving);
 
     SexySolver::Parameters parSolving;
-    parSolving.listName = "ParallelFastSolving";
+    parSolving.listName = "ParallelSolving";
     parSolving.multiAlgorithm = MULTI_SCALES;
     parSolving.downsample = 2;
     parSolving.keepNum = 50;
@@ -328,6 +328,29 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
     parSolving.saturationLimit = 80;
     createConvFilterFromFWHM(&parSolving, 4);
     optionsList.append(parSolving);
+
+    SexySolver::Parameters parLargeSolving;
+    parLargeSolving.listName = "ParallelLargeScale";
+    parLargeSolving.multiAlgorithm = MULTI_SCALES;
+    parLargeSolving.downsample = 2;
+    parLargeSolving.minwidth = 1;
+    parLargeSolving.keepNum = 50;
+    parLargeSolving.maxEllipse = 1.5;
+    parLargeSolving.saturationLimit = 80;
+    createConvFilterFromFWHM(&parLargeSolving, 2);
+    optionsList.append(parLargeSolving);
+
+    SexySolver::Parameters fastSmallSolving;
+    fastSmallSolving.listName = "ParallelSmallScale";
+    fastSmallSolving.multiAlgorithm = MULTI_SCALES;
+    fastSmallSolving.downsample = 2;
+    fastSmallSolving.minarea = 20;
+    fastSmallSolving.maxwidth = 10;
+    fastSmallSolving.keepNum = 50;
+    fastSmallSolving.maxEllipse = 1.5;
+    fastSmallSolving.saturationLimit = 80;
+    createConvFilterFromFWHM(&fastSmallSolving, 4);
+    optionsList.append(fastSmallSolving);
 
     SexySolver::Parameters smallStars;
     smallStars.listName = "SmallSizedStars";
