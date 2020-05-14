@@ -69,6 +69,11 @@ void SexySolver::run()
             QFile(logFileName).remove();
     }
 
+    if(cancelfn == "")
+        cancelfn = basePath + "/" + baseName + ".cancel";
+    if(solvedfn == "")
+        solvedfn = basePath + "/" + baseName + ".solved";
+
     switch(processType)
     {
         case INT_SEP:
@@ -86,7 +91,7 @@ void SexySolver::run()
             if(hasSextracted)
             {
                 if(runInParallelAndWaitForFinish())
-                    return;
+                    break;
                 else
                     emit finished(runInternalSolver());
             }
@@ -96,6 +101,11 @@ void SexySolver::run()
         break;
 
         default: break;
+    }
+    if(!isChildSolver)
+    {
+        QFile(solvedfn).remove();
+        QFile(cancelfn).remove();
     }
 }
 
@@ -123,8 +133,8 @@ SexySolver* SexySolver::spawnChildSolver()
         connect(solver, &SexySolver::logOutput, this, &SexySolver::logOutput);
     connect(solver, &SexySolver::finished, this, &SexySolver::finishParallelSolve);
     //This way they all share a solved and cancel fn
-    solver->cancelfn = basePath + "/" + baseName + ".cancel";
-    solver->solvedfn = basePath + "/" + baseName + ".solved";
+    solver->cancelfn = cancelfn;
+    solver->solvedfn = solvedfn;
     solver->usingDownsampledImage = usingDownsampledImage;
     childSolvers.append(solver);
     return solver;
@@ -207,12 +217,14 @@ bool SexySolver::runInParallelAndWaitForFinish()
     if(params.multiAlgorithm == NOT_MULTI || isChildSolver)
         return false;
     parallelSolve();
-    while(parallelFails != childSolvers.count() && !hasSolved)
-        msleep(100);
-    foreach(SexySolver *solver, childSolvers)
+    bool stillRunning = true;
+    while(stillRunning)
     {
-        QFile(solver->cancelfn).remove();
-        QFile(solver->solvedfn).remove();
+        msleep(100);
+        stillRunning = false;
+        foreach(SexySolver *solver, childSolvers)
+            if(solver->isRunning())
+                stillRunning = true;
     }
     return true;
 }
@@ -250,7 +262,7 @@ void SexySolver::finishParallelSolve(int success)
     else
     {
         parallelFails++;
-        emit logOutput(QString("Child solver: %1 did not solve").arg(whichSolver));
+        emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
         if(parallelFails == childSolvers.count())
             emit finished(-1);
     }
@@ -880,11 +892,6 @@ bool SexySolver::prepare_job() {
     sp->field_maxx = stats.width;
     sp->field_maxy = stats.height;
 
-    if(cancelfn == "")
-        cancelfn = basePath + "/" + baseName + ".cancel";
-    if(solvedfn == "")
-        solvedfn = basePath + "/" + baseName + ".solved";
-
     blind_set_cancel_file(bp, cancelfn.toLatin1().constData());
     blind_set_solved_file(bp,solvedfn.toLatin1().constData());
 
@@ -1144,14 +1151,6 @@ int SexySolver::runInternalSolver()
     free(fieldToSolve);
     delete[] xArray;
     delete[] yArray;
-
-    //This deletes the temporary files  
-    if(!isChildSolver)
-    {
-        QDir temp(basePath);
-        temp.remove(cancelfn);
-        temp.remove(solvedfn);
-    }
 
     //Note: I can only get these items after the solve because I made a couple of small changes to the Astrometry.net Code.
     //I made it return in solve_fields in blind.c before it ran "cleanup".  I also had it wait to clean up solutions, blind and solver in engine.c.  We will do that after we get the solution information.

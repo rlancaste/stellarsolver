@@ -119,6 +119,11 @@ void ExternalSextractorSolver::run()
             QFile(logFileName).remove();
     }
 
+    if(cancelfn == "")
+        cancelfn = basePath + "/" + baseName + ".cancel";
+    if(solutionFile == "")
+        solutionFile = basePath + "/" + baseName + ".wcs";
+
     //These processes use the external sextractor
     if(processType == EXT_SEXTRACTORSOLVER || processType == EXT_SEXTRACTOR || processType == EXT_SEXTRACTOR_HFR)
     {
@@ -182,7 +187,7 @@ void ExternalSextractorSolver::run()
                 if(hasSextracted)
                 {
                     if(runInParallelAndWaitForFinish())
-                        return;
+                        break;
                     else
                         emit finished(runExternalSolver());
                 }
@@ -209,7 +214,7 @@ void ExternalSextractorSolver::run()
             if(hasSextracted)
             {
                 if(runInParallelAndWaitForFinish())
-                    return;
+                    break;
                 else
                     emit finished(runExternalSolver());
             }
@@ -221,7 +226,7 @@ void ExternalSextractorSolver::run()
         case CLASSIC_ASTROMETRY: //This is meant to run the traditional solve KStars used to do using python and astrometry.net
         {
             if(runInParallelAndWaitForFinish())
-                return;
+                break;
             else
                 emit finished(runExternalSolver());
         }
@@ -237,6 +242,7 @@ void ExternalSextractorSolver::run()
 
         default: break;
     }
+    cleanupTempFiles();
 }
 
 //This method generates child solvers with the options of the current solver
@@ -244,17 +250,16 @@ SexySolver* ExternalSextractorSolver::spawnChildSolver()
 {
     ExternalSextractorSolver *solver = new ExternalSextractorSolver(processType, stats, m_ImageBuffer, nullptr);
     solver->stars = stars;
+    solver->basePath = basePath;
+    solver->baseName = baseName + "_" + QString::number(childSolvers.count());
 
     if(processType!= ASTAP && processType != CLASSIC_ASTROMETRY)
     {
         solver->hasSextracted = true;
         solver->sextractorFilePath = sextractorFilePath;
-        //solver->solutionFile = basePath + "/" + baseName + ".wcs";
-        solver->basePath = basePath;
-        //solver->baseName = baseName;
     }
     solver->fileToProcess = fileToProcess;
-    solver->cleanupTemporaryFiles = false;
+    solver->cleanupTemporaryFiles = cleanupTemporaryFiles;
     solver->sextractorBinaryPath = sextractorBinaryPath;
     solver->confPath = confPath;
     solver->solverPath = solverPath;
@@ -266,16 +271,13 @@ SexySolver* ExternalSextractorSolver::spawnChildSolver()
     solver->isChildSolver = true;
     solver->setParameters(params);
     solver->setIndexFolderPaths(indexFolderPaths);
-    solver->setLogLevel(logLevel);
     //Set the log level one less than the main solver
-    /**
     if(logLevel == LOG_MSG || logLevel == LOG_NONE)
         solver->setLogLevel(LOG_NONE);
     if(logLevel == LOG_VERB)
         solver->setLogLevel(LOG_MSG);
     if(logLevel == LOG_ALL)
         solver->setLogLevel(LOG_VERB);
-        **/
     if(use_scale)
         solver->setSearchScale(scalelo,scalehi,scaleunit);
     if(use_position)
@@ -284,7 +286,8 @@ SexySolver* ExternalSextractorSolver::spawnChildSolver()
         connect(solver, &SexySolver::logOutput, this, &SexySolver::logOutput);
     connect(solver, &ExternalSextractorSolver::finished, this, &ExternalSextractorSolver::finishParallelSolve);
     //This way they all share a solved and cancel fn
-    solver->cancelfn = basePath + "/" + baseName + ".cancel";
+    solver->solutionFile = solutionFile;
+    solver->cancelfn = cancelfn;
     //solver->solvedfn = basePath + "/" + baseName + ".solved";
     childSolvers.append(solver);
     return solver;
@@ -304,10 +307,10 @@ void ExternalSextractorSolver::abort()
 {
     foreach(SexySolver *solver, childSolvers)
         solver->abort();
-    if(!solver.isNull())
-        solver->kill();
-    if(!sextractorProcess.isNull())
-        sextractorProcess->kill();
+    //if(!solver.isNull())
+    //    solver->kill();
+   // if(!sextractorProcess.isNull())
+   //     sextractorProcess->kill();
 
     //Just in case they don't stop, we will make the cancel file too
     QFile file(cancelfn);
@@ -317,7 +320,7 @@ void ExternalSextractorSolver::abort()
         file.write("Cancel");
         file.close();
     }
-    emit logOutput("Aborted");
+    emit logOutput("Aborting ...");
 }
 
 void ExternalSextractorSolver::cleanupTempFiles()
@@ -325,19 +328,29 @@ void ExternalSextractorSolver::cleanupTempFiles()
     if(cleanupTemporaryFiles)
     {
         QDir temp(basePath);
+        //Sextractor Files
         temp.remove(baseName + ".param");
         temp.remove(baseName + ".conv");
         temp.remove(baseName + ".cfg");
+
+        //ASTAP files
         temp.remove(baseName + ".ini");
+
+        //Astrometry Files
         temp.remove(baseName + ".corr");
         temp.remove(baseName + ".rdls");
         temp.remove(baseName + ".axy");
         temp.remove(baseName + ".corr");
-        temp.remove(baseName + ".wcs");
-        temp.remove(baseName + ".solved");
         temp.remove(baseName + ".new");
         temp.remove(baseName + ".match");
         temp.remove(baseName + "-indx.xyls");
+        temp.remove(baseName + ".solved");
+
+        //Other Files
+        if(!isChildSolver)
+            QFile(solutionFile).remove();
+        //if(!isChildSolver)
+        //    QFile(cancelfn).remove();
         if(sextractorFilePathIsTempFile)
             QFile(sextractorFilePath).remove();
         if(fileToProcessIsTempFile)
@@ -365,6 +378,7 @@ int ExternalSextractorSolver::runExternalSextractor()
         QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
         QFile::copy(fileToProcess, newFileURL);
         fileToProcess = newFileURL;
+        fileToProcessIsTempFile = true;
     }
 
     //Configuration arguments for sextractor
@@ -515,6 +529,7 @@ int ExternalSextractorSolver::runExternalSolver()
         QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
         QFile::copy(fileToProcess, newFileURL);
         fileToProcess = newFileURL;
+        fileToProcessIsTempFile = true;
     }
     else
     {
@@ -524,10 +539,17 @@ int ExternalSextractorSolver::runExternalSolver()
             emit logOutput("You may want to disable the inParallel option.");
         }
 
-        QFile sextractorFile(sextractorFilePath);
+        QFileInfo sextractorFile(sextractorFilePath);
         if(!sextractorFile.exists())
         {
             emit logOutput("Please Sextract the image first");
+        }
+        if(isChildSolver)
+        {
+            QString newFileURL = basePath + "/" + baseName + "." + sextractorFile.suffix();
+            QFile::copy(sextractorFilePath, newFileURL);
+            sextractorFilePath = newFileURL;
+            sextractorFilePathIsTempFile = true;
         }
     }
 
@@ -609,6 +631,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
     QFile::copy(fileToProcess, newFileURL);
     fileToProcess = newFileURL;
+    fileToProcessIsTempFile = true;
 
     QStringList solverArgs;
 
@@ -741,7 +764,7 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     else if(logLevel == LOG_ALL)
         solverArgs << "-vv";
 
-    if(autoGenerateAstroConfig)
+    if(autoGenerateAstroConfig && !QFile(confPath).exists())
         generateAstrometryConfigFile();
 
     //This sends the path to the config file.  Note that backend-config seems to be more universally recognized across
@@ -750,13 +773,9 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
 
     //This sets the cancel filename for astrometry.net.  Astrometry will monitor for the creation of this file
     //In order to shut down and stop processing
-    if(cancelfn != "")
-        cancelfn = basePath + "/" + baseName + ".cancel";
     solverArgs << "--cancel" << cancelfn;
 
     //This sets the wcs file for astrometry.net.  This file will be very important for reading in WCS info later on
-    if(solutionFile == "")
-        solutionFile = basePath + "/" + baseName + ".wcs";
     solverArgs << "-W" << solutionFile;
 
     return solverArgs;
@@ -766,7 +785,8 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
 //for the external solvers from inside the program.
 bool ExternalSextractorSolver::generateAstrometryConfigFile()
 {
-    confPath =  basePath + "/" + baseName + ".cfg";
+    if(confPath == "")
+        confPath =  basePath + "/" + baseName + ".cfg";
     QFile configFile(confPath);
     if (configFile.open(QIODevice::WriteOnly) == false)
     {
