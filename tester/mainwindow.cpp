@@ -150,8 +150,8 @@ MainWindow::MainWindow() :
 
 
     //Hides the panels into the sides and bottom
-    ui->splitter->setSizes(QList<int>() << ui->splitter->height() << 0 );
-    ui->splitter_2->setSizes(QList<int>() << 100 << ui->splitter_2->width() / 2  << 0 );
+    ui->vertSplitter->setSizes(QList<int>() << ui->vertSplitter->height() << 0 );
+    ui->horSplitter->setSizes(QList<int>() << 100 << ui->horSplitter->width() / 2  << 0 );
 
     //Settings for the External Sextractor and Solver
     ui->configFilePath->setToolTip("The path to the Astrometry.cfg file used by astrometry.net for configuration.");
@@ -260,7 +260,7 @@ MainWindow::MainWindow() :
     ui->oddsToTune->setToolTip("The Astrometry oddsToTune Parameter.  This may need to be changed or removed");
 
     ui->logToFile->setToolTip("Whether the sexysolver should just output to the log window or whether it should log to a file.");
-    ui->logLevel->setToolTip("The verbosity level of the log to be saved for the internal solver.");
+    ui->logLevel->setToolTip("The verbosity level of the log to be displayed in the log window or saved to a file.");
 
     connect(ui->indexFolderPaths, &QComboBox::currentTextChanged, this, [this](){ loadIndexFilesList(); });
     ui->indexFolderPaths->setToolTip("The paths on your compute to search for index files.  To add another, just start typing in the box.  To select one to look at, use the drop down.");
@@ -458,8 +458,8 @@ void MainWindow::stopProcessMonitor()
 //It was getting repetitive.
 bool MainWindow::prepareForProcesses()
 {
-    if(ui->splitter->sizes().last() < 10)
-         ui->splitter->setSizes(QList<int>() << ui->splitter->height() /2 << 100 );
+    if(ui->vertSplitter->sizes().last() < 10)
+         ui->vertSplitter->setSizes(QList<int>() << ui->vertSplitter->height() /2 << 100 );
     ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
 
     if(!imageLoaded)
@@ -493,8 +493,8 @@ void MainWindow::displayTable()
     sortStars();
     updateStarTableFromList();
 
-    if(ui->splitter_2->sizes().last() < 10)
-        ui->splitter_2->setSizes(QList<int>() << ui->optionsBox->width() << ui->splitter_2->width() / 2 << 200 );
+    if(ui->horSplitter->sizes().last() < 10)
+        ui->horSplitter->setSizes(QList<int>() << ui->optionsBox->width() << ui->horSplitter->width() / 2 << 200 );
     updateImage();
 }
 
@@ -968,7 +968,7 @@ bool MainWindow::imageLoad()
         ui->starTable->clear();
         stars.clear();
         selectedStar = 0;
-        ui->splitter_2->setSizes(QList<int>() << ui->optionsBox->width() << ui->splitter_2->width() << 0 );
+        ui->horSplitter->setSizes(QList<int>() << ui->optionsBox->width() << ui->horSplitter->width() << 0 );
         ui->fileNameDisplay->setText("Image: " + fileURL);
         initDisplayImage();
         return true;
