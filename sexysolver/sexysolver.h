@@ -189,7 +189,7 @@ public:
         double magzero = 20;                 //This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.
         double minarea = 5;                  //This is the minimum area in pixels for a star detection, smaller stars are ignored.
         int deblend_thresh = 32;            //The number of thresholds the intensity range is divided up into.
-        double deblend_contrast = 1;         //The percentage of flux a separate peak must # have to be considered a separate object.
+        double deblend_contrast = 0.005;         //The percentage of flux a separate peak must # have to be considered a separate object.
         int clean = 1;                      //Attempts to 'clean' the image to remove artifacts caused by bright objects
         double clean_param = 1;             //The cleaning parameter, not sure what it does.
         double fwhm = 2;                    //A variable to store the fwhm used to generate the conv filter, changing this WILL NOT change the conv filter, you can use the method below to create the conv filter based on the fwhm

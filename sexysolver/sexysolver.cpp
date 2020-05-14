@@ -343,13 +343,11 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
     SexySolver::Parameters fastSmallSolving;
     fastSmallSolving.listName = "ParallelSmallScale";
     fastSmallSolving.multiAlgorithm = MULTI_SCALES;
-    fastSmallSolving.downsample = 2;
-    fastSmallSolving.minarea = 20;
     fastSmallSolving.maxwidth = 10;
     fastSmallSolving.keepNum = 50;
     fastSmallSolving.maxEllipse = 1.5;
     fastSmallSolving.saturationLimit = 80;
-    createConvFilterFromFWHM(&fastSmallSolving, 4);
+    createConvFilterFromFWHM(&fastSmallSolving, 2);
     optionsList.append(fastSmallSolving);
 
     SexySolver::Parameters smallStars;

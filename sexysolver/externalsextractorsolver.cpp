@@ -32,9 +32,6 @@ ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, Statistic i
     setWinANSVRPaths();
 #endif
 
-    //This will automatically delete the temporary files if that option is selected
-    connect(this, &SexySolver::finished, this, &ExternalSextractorSolver::cleanupTempFiles);
-
 }
 
 ExternalSextractorSolver::~ExternalSextractorSolver()
