@@ -163,7 +163,7 @@ void SexySolver::parallelSolve()
         double scaleConst = (maxScale - minScale) / pow(threads,2);
         if(logLevel != LOG_NONE)
             emit logOutput(QString("Starting %1 threads to solve on multiple scales").arg(threads));
-        for(double thread = 0; thread <= threads; thread++)
+        for(double thread = 0; thread < threads; thread++)
         {
             double low = minScale + scaleConst * pow(thread,2);
             double high = minScale + scaleConst * pow(thread + 1, 2);
