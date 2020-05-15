@@ -916,7 +916,7 @@ bool MainWindow::solverComplete(int error)
             solveImage();
             return true;
         }
-        loadWCS();
+        QtConcurrent::run(this, &MainWindow::loadWCS);
         stopProcessMonitor();
     }
     else
