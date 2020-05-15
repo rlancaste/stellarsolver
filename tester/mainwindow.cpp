@@ -66,9 +66,21 @@ MainWindow::MainWindow() :
     ui->sextractorType->setToolTip("Lets you choose the Internal SexySolver SEP or external Sextractor program");
     ui->optionsProfileSextract->setToolTip("The Options Profile to use for Sextracting.");
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveButtonClicked );
+    ui->editSextractorProfile->setToolTip("Loads the currently selected sextrctor profile into the profile editor");
+    connect(ui->editSextractorProfile, &QAbstractButton::clicked, this, [this](){
+        ui->optionsProfile->setCurrentIndex(ui->optionsProfileSextract->currentIndex());
+        ui->optionsTab->setCurrentIndex(1);
+        ui->optionsProfileSextract->setCurrentIndex(0);
+    });
     ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box");
     ui->solverType->setToolTip("Lets you choose how to solve the image");
     ui->optionsProfileSolve->setToolTip("The Options Profile to use for Solving.");
+    ui->editSolverProfile->setToolTip("Loads the currently selected solver profile into the profile editor");
+    connect(ui->editSolverProfile, &QAbstractButton::clicked, this, [this](){
+        ui->optionsProfile->setCurrentIndex(ui->optionsProfileSolve->currentIndex());
+        ui->optionsTab->setCurrentIndex(1);
+        ui->optionsProfileSolve->setCurrentIndex(0);
+    });
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     ui->Abort->setToolTip("Aborts the current process if one is running.");
     connect(ui->ClearStars,&QAbstractButton::clicked, this, &MainWindow::clearStars );

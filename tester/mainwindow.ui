@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1152</width>
-    <height>752</height>
+    <width>1086</width>
+    <height>761</height>
    </rect>
   </property>
   <property name="font">
@@ -105,7 +105,7 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QTabWidget" name="tabWidget_2">
+         <widget class="QTabWidget" name="optionsTab">
           <property name="currentIndex">
            <number>0</number>
           </property>
@@ -127,8 +127,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>260</width>
-                 <height>361</height>
+                 <width>242</width>
+                 <height>364</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -162,7 +162,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>285</width>
-                 <height>361</height>
+                 <height>364</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -343,8 +343,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>260</width>
-                 <height>361</height>
+                 <width>242</width>
+                 <height>364</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -461,8 +461,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>260</width>
-                 <height>361</height>
+                 <width>242</width>
+                 <height>364</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -520,8 +520,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>260</width>
-                 <height>361</height>
+                 <width>242</width>
+                 <height>364</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -683,7 +683,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>260</width>
+                 <width>242</width>
                  <height>474</height>
                 </rect>
                </property>
@@ -938,8 +938,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>150</width>
-                 <height>313</height>
+                 <width>242</width>
+                 <height>342</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1109,8 +1109,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>100</width>
-                 <height>74</height>
+                 <width>242</width>
+                 <height>342</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1142,8 +1142,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>201</width>
-                     <height>311</height>
+                     <width>240</width>
+                     <height>340</height>
                     </rect>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_5">
@@ -1295,6 +1295,11 @@
                         <string>MultiDepths</string>
                        </property>
                       </item>
+                      <item>
+                       <property name="text">
+                        <string>Auto</string>
+                       </property>
+                      </item>
                      </widget>
                     </item>
                     <item row="18" column="1">
@@ -1387,8 +1392,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>460</width>
-                 <height>129</height>
+                 <width>431</width>
+                 <height>130</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="gridLayout_2">
@@ -1794,7 +1799,7 @@
           </property>
           <item>
            <property name="text">
-            <string>Unsaved Options</string>
+            <string>Opitions in Editor</string>
            </property>
           </item>
           <item>
@@ -1802,6 +1807,13 @@
             <string>Default Options</string>
            </property>
           </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="editSextractorProfile">
+          <property name="text">
+           <string>Edit</string>
+          </property>
          </widget>
         </item>
        </layout>
@@ -1860,7 +1872,7 @@
           </property>
           <item>
            <property name="text">
-            <string>Unsaved Options</string>
+            <string>Options in Editor</string>
            </property>
           </item>
           <item>
@@ -1868,6 +1880,13 @@
             <string>Default Options</string>
            </property>
           </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="editSolverProfile">
+          <property name="text">
+           <string>Edit</string>
+          </property>
          </widget>
         </item>
        </layout>

@@ -59,8 +59,9 @@ public:
 
     typedef enum {NOT_MULTI,
                   MULTI_SCALES,
-                  MULTI_DEPTHS}
-    MultiAlgo;
+                  MULTI_DEPTHS,
+                  MULTI_AUTO
+    }MultiAlgo;
 
     //The constructor and destructor fo the SexySolver Object
     explicit SexySolver(ProcessType type, Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
@@ -368,7 +369,6 @@ public:
     }
 
     virtual wcs_point *getWCSCoord();
-    QList<Star> getStarsRAandDEC();
     virtual QList<Star> appendStarsRAandDEC(QList<Star> stars);
 
     static QMap<QString,QVariant> convertToMap(Parameters params);
@@ -404,6 +404,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     bool runSEPSextractor();    //This is the method that actually runs the internal sextractor
     bool hasWCS = false;        //This boolean gets set if the SexySolver has WCS data to retrieve
 
+    bool wasAborted = false;
     // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
     QString cancelfn;           //Filename whose creation signals the process to stop
     QString solvedfn;           //Filename whose creation tells astrometry.net it already solved the field.

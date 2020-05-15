@@ -304,10 +304,10 @@ void ExternalSextractorSolver::abort()
 {
     foreach(SexySolver *solver, childSolvers)
         solver->abort();
-    //if(!solver.isNull())
-    //    solver->kill();
-   // if(!sextractorProcess.isNull())
-   //     sextractorProcess->kill();
+    if(!solver.isNull())
+        solver->kill();
+    if(!sextractorProcess.isNull())
+        sextractorProcess->kill();
 
     //Just in case they don't stop, we will make the cancel file too
     QFile file(cancelfn);
@@ -318,6 +318,7 @@ void ExternalSextractorSolver::abort()
         file.close();
     }
     emit logOutput("Aborting ...");
+    wasAborted = true;
 }
 
 void ExternalSextractorSolver::cleanupTempFiles()
@@ -604,6 +605,8 @@ int ExternalSextractorSolver::runExternalSolver()
     if(solver->exitCode() != 0)
         return solver->exitCode();
     if(solver->exitStatus() == QProcess::CrashExit)
+        return -1;
+    if(wasAborted)
         return -1;
     if(!getSolutionInformation())
         return -1;

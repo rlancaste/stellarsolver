@@ -213,6 +213,18 @@ void SexySolver::parallelSolve()
 
 bool SexySolver::runInParallelAndWaitForFinish()
 {
+    if(params.multiAlgorithm == MULTI_AUTO)
+    {
+        if(use_scale && use_position)
+            params.multiAlgorithm = NOT_MULTI;
+        else if(use_position)
+            params.multiAlgorithm = MULTI_SCALES;
+        else if(use_scale)
+            params.multiAlgorithm = MULTI_DEPTHS;
+        else
+            params.multiAlgorithm = MULTI_SCALES;
+    }
+
     //If we aren't doing multithreading or if this is a child solver, don't parallelize
     if(params.multiAlgorithm == NOT_MULTI || isChildSolver)
         return false;
@@ -287,6 +299,7 @@ void SexySolver::abort()
         file.write("Cancel");
         file.close();
     }
+    wasAborted = true;
 }
 
 //This method uses a fwhm value to generate the conv filter the sextractor will use.
@@ -329,7 +342,7 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
 
     SexySolver::Parameters parLargeSolving;
     parLargeSolving.listName = "ParallelLargeScale";
-    parLargeSolving.multiAlgorithm = MULTI_SCALES;
+    parLargeSolving.multiAlgorithm = MULTI_AUTO;
     parLargeSolving.downsample = 2;
     parLargeSolving.minwidth = 1;
     parLargeSolving.keepNum = 50;
@@ -339,7 +352,7 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
 
     SexySolver::Parameters fastSmallSolving;
     fastSmallSolving.listName = "ParallelSmallScale";
-    fastSmallSolving.multiAlgorithm = MULTI_SCALES;
+    fastSmallSolving.multiAlgorithm = MULTI_AUTO;
     fastSmallSolving.downsample = 2;
     fastSmallSolving.maxwidth = 10;
     fastSmallSolving.keepNum = 50;
@@ -1279,11 +1292,6 @@ wcs_point * SexySolver::getWCSCoord()
     return wcs_coord;
 }
 
-QList<Star> SexySolver::getStarsRAandDEC()
-{
-    return appendStarsRAandDEC(stars);
-}
-
 QList<Star> SexySolver::appendStarsRAandDEC(QList<Star> stars)
 {
     if(!hasWCS)
@@ -1292,19 +1300,19 @@ QList<Star> SexySolver::appendStarsRAandDEC(QList<Star> stars)
         return stars;
     }
 
-    int d = params.downsample;
     QList<Star> refinedStars;
+    int d = params.downsample;
     foreach(Star star, stars)
     {
         double ra = HUGE_VAL;
         double dec = HUGE_VAL;
-        sip_pixelxy2radec(&wcs, star.x, star.y, &ra, &dec);
+        sip_pixelxy2radec(&wcs, star.x / d, star.y / d, &ra, &dec);
         char rastr[32], decstr[32];
         ra2hmsstring(ra, rastr);
         dec2dmsstring(dec, decstr);
 
         //We do need to correct for all the downsampling as well as add RA/DEC info
-        Star refinedStar = {star.x * d , star.y * d , star.mag, star.flux, star.peak, star.HFR * d, star.a * d, star.b * d, star.theta, (float)ra, (float)dec, rastr, decstr};
+        Star refinedStar = {star.x, star.y, star.mag, star.flux, star.peak, star.HFR, star.a, star.b, star.theta, (float)ra, (float)dec, rastr, decstr};
         refinedStars.append(refinedStar);
     }
     return refinedStars;
