@@ -607,8 +607,6 @@ int ExternalSextractorSolver::runExternalSolver()
         return -1;
     if(!getSolutionInformation())
         return -1;
-    if(processType == CLASSIC_ASTROMETRY) //This way you can at least get the star positions and flux from the axy file in Astrometry.net since you aren't using Sextractor
-        getStarsFromXYLSFile();
     loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
     hasSolved = true;
     return 0;
@@ -637,7 +635,6 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     solverArgs << "-speed" << "auto";
     solverArgs << "-f" << fileToProcess;
     solverArgs << "-wcs";
-    solverArgs << "-xyls";
     if(params.downsample > 1)
         solverArgs << "-z" << QString::number(params.downsample);
     if(use_scale)
@@ -679,7 +676,6 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
         return -1;
     if(!getASTAPSolutionInformation())
         return -1;
-    getStarsFromXYLSFile(); //Attempt to load stars from an xyls file, but don't fail if you don't get them
     loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
     hasSolved = true;
     return 0;

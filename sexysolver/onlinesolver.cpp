@@ -123,7 +123,7 @@ void OnlineSolver::run()
 
     //This will wait for stars and WCS until the time limit is reached
     //If it does get the file, whether or not it can read it, the stage changes to NO_STAGE and this quits
-    while(!aborted && !starsAndWCSTimedOut && (workflowStage == LOG_LOADING_STAGE || workflowStage == STAR_LOADING_STAGE || workflowStage == WCS_LOADING_STAGE))
+    while(!aborted && !starsAndWCSTimedOut && (workflowStage == LOG_LOADING_STAGE || workflowStage == WCS_LOADING_STAGE))
     {
         msleep(STATUS_CHECK_INTERVAL);
         starsAndWCSTimedOut = solverTimer.elapsed() / 1000.0 > starsAndWCSTimeLimit; //Wait 10 seconds for STARS and WCS, NO LONGER!
@@ -307,17 +307,7 @@ void OnlineSolver::getJobLogFile()
     emit logOutput(("Downloading the Log file..."));
 }
 
-//This will start the eighth stage, getting the XYLS File and loading it (optional).
-void OnlineSolver::getJobAXYFile()
-{
-    QString URL = QString("http://nova.astrometry.net/axy_file/%1").arg(jobID);
-    networkManager->get(QNetworkRequest(QUrl(URL)));
-
-    workflowStage = STAR_LOADING_STAGE;
-    emit logOutput(("Downloading the AXY file..."));
-}
-
-//This will start the ninth stage, getting the WCS File and loading it (optional).
+//This will start the eighth stage, getting the WCS File and loading it (optional).
 void OnlineSolver::getJobWCSFile()
 {
     QString URL = QString("http://nova.astrometry.net/wcs_file/%1").arg(jobID);
@@ -371,7 +361,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
     QJsonDocument json_doc;
     QVariant json_result;
     QVariantMap result;
-    if(workflowStage != LOG_LOADING_STAGE && workflowStage != STAR_LOADING_STAGE && workflowStage != WCS_LOADING_STAGE)
+    if(workflowStage != LOG_LOADING_STAGE && workflowStage != WCS_LOADING_STAGE)
     {
         json = (QString)reply->readAll();
 
@@ -544,12 +534,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             if(logLevel == LOG_ALL || logToFile)
                 getJobLogFile(); //Go to next stage
             else
-            {
-                if(processType == INT_SEP_EXT_SOLVER)
-                    getJobWCSFile(); //Go to Last Stage, since we already have xyls file
-                else
-                    getJobAXYFile(); //Go to next stage
-            }
+                getJobWCSFile(); //Go to Last Stage
         }
             break;
 
@@ -570,30 +555,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
                 file.write(responseData.data(), responseData.size());
                 file.close();
             }
-
-            if(processType == INT_SEP_EXT_SOLVER)
-                getJobWCSFile(); //Go to Last Stage, since we already have xyls file
-            else
-                getJobAXYFile(); //Go to next stage
-        }
-        break;
-
-        case STAR_LOADING_STAGE:
-        {
-            QByteArray responseData = reply->readAll();
-            QString axyFile = basePath + "/" + baseName + ".axy";
-            QFile file(axyFile);
-            if (!file.open(QIODevice::WriteOnly))
-            {
-                emit logOutput(("AXY File Write Error"));
-                emit finished(0); //We still have the solution, this is not a failure!
-                return;
-            }
-            file.write(responseData.data(), responseData.size());
-            file.close();
-            sextractorFilePath = axyFile;
-            getStarsFromXYLSFile();
-            getJobWCSFile(); //Go to Next Stage
+            getJobWCSFile(); //Go to Last Stage
         }
         break;
 

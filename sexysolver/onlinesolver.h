@@ -41,7 +41,6 @@ public:
         JOB_MONITORING_STAGE,
         JOB_CALIBRATION_STAGE,
         LOG_LOADING_STAGE,
-        STAR_LOADING_STAGE,
         WCS_LOADING_STAGE
     } WorkflowStage;
 
@@ -63,8 +62,7 @@ private:
     void startMonitoring();     //Starts Stage 5
     void checkJobCalibration(); //Starts Stage 6
     void getJobLogFile();       //Starts Stage 7
-    void getJobAXYFile();       //Starts Stage 8
-    void getJobWCSFile();       //Starts Stage 9
+    void getJobWCSFile();       //Starts Stage 8
 
     WorkflowStage workflowStage { NO_STAGE };
     QNetworkAccessManager *networkManager { nullptr };
