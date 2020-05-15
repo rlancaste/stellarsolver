@@ -64,12 +64,11 @@ MainWindow::MainWindow() :
     connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractButtonClicked );
     ui->SextractStars->setToolTip("Sextract the stars in the image using the chosen method and load them into the star table");
     ui->sextractorType->setToolTip("Lets you choose the Internal SexySolver SEP or external Sextractor program");
-    ui->withHFR->setToolTip("Sextract the image and get the Stars' HFR too. Warning, this takes more processing power.");
+    ui->optionsProfileSextract->setToolTip("The Options Profile to use for Sextracting.");
     connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveButtonClicked );
     ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box");
     ui->solverType->setToolTip("Lets you choose how to solve the image");
-    connect(ui->loadWCS, &QAbstractButton::clicked, this, &MainWindow::loadWCS);
-    ui->loadWCS->setToolTip("Load WCS info into the image and starTable so that the RA and DEC of everything can be displayed. NOTE: You HAVE to sovle the image first.");
+    ui->optionsProfileSolve->setToolTip("The Options Profile to use for Solving.");
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     ui->Abort->setToolTip("Aborts the current process if one is running.");
     connect(ui->ClearStars,&QAbstractButton::clicked, this, &MainWindow::clearStars );
@@ -79,7 +78,7 @@ MainWindow::MainWindow() :
     ui->ClearResults->setToolTip("Clears the Results Table");
 
     //The Options for the SexySolver Options
-    ui->optionsProfile->setToolTip("The Options Profile to use for Sextracting and Solving. Selecting a profile will reset all the Sextractor and Solver settings to that profile.");
+    ui->optionsProfile->setToolTip("The Options Profile currently in the options box. Selecting a profile will reset all the Sextractor and Solver settings to that profile.");
     connect(ui->optionsProfile, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::loadOptionsProfile);
     ui->addOptionProfile->setToolTip("Adds the current options in the left option pane to a new profile");
     connect(ui->addOptionProfile,&QAbstractButton::clicked, this, [this](){
@@ -95,6 +94,8 @@ MainWindow::MainWindow() :
             ui->optionsProfile->setCurrentIndex(0); //So we don't trigger any loading of any other profiles
             optionsList.append(params);
             ui->optionsProfile->addItem(name);
+            ui->optionsProfileSextract->addItem(name);
+            ui->optionsProfileSolve->addItem(name);
             ui->optionsProfile->setCurrentText(name);
         }
     });
@@ -108,6 +109,8 @@ MainWindow::MainWindow() :
         }
         ui->optionsProfile->setCurrentIndex(0); //So we don't trigger any loading of any other profiles
         ui->optionsProfile->removeItem(item);
+        ui->optionsProfileSextract->removeItem(item);
+        ui->optionsProfileSolve->removeItem(item);
         optionsList.removeAt(item - 2);
 
     });
@@ -116,9 +119,9 @@ MainWindow::MainWindow() :
     ui->loadSettings->setToolTip("Loads a file with Options Profiles from a saved location");
     connect(ui->loadSettings, &QPushButton::clicked, this, &MainWindow::loadOptionsProfiles);
 
-    QWidget *sextractorOptions = ui->optionsBox->widget(2);
-    QWidget *starFilterOptions = ui->optionsBox->widget(3);
-    QWidget *astrometryOptions = ui->optionsBox->widget(5);
+    QWidget *sextractorOptions = ui->optionsBox->widget(0);
+    QWidget *starFilterOptions = ui->optionsBox->widget(1);
+    QWidget *astrometryOptions = ui->optionsBox->widget(2);
 
     QList<QLineEdit *> lines;
     lines = sextractorOptions->findChildren<QLineEdit *>();
@@ -358,10 +361,15 @@ MainWindow::MainWindow() :
     sendSettingsToUI(temp.getCurrentParameters());
     optionsList = temp.getOptionsProfiles();
     foreach(SexySolver::Parameters param, optionsList)
+    {
         ui->optionsProfile->addItem(param.listName);
+        ui->optionsProfileSextract->addItem(param.listName);
+        ui->optionsProfileSolve->addItem(param.listName);
+    }
     optionsAreSaved = true;  //This way the next command won't trigger the unsaved warning.
     ui->optionsProfile->setCurrentIndex(1); //This is default
-
+    ui->optionsProfileSextract->setCurrentIndex(1);
+    ui->optionsProfileSolve->setCurrentIndex(1);
     QString storedPaths = programSettings.value("indexFolderPaths", "").toString();
     QStringList indexFilePaths;
     if(storedPaths == "")
@@ -478,12 +486,7 @@ bool MainWindow::prepareForProcesses()
     currentTrial = 0;
     lastSolution = Solution();
     hasHFRData = false;
-    if(hasWCSData)
-    {
-        hasWCSData = false;
-        delete [] wcs_coord;
-    }
-    clearStars();
+
     return true;
 }
 
@@ -525,22 +528,28 @@ void MainWindow::sextractButtonClicked()
     if(!prepareForProcesses())
         return;
 
+    stars.clear();
+
     QString sextractorBinaryPath = ui->sextractorPath->text();
 
     switch(ui->sextractorType->currentIndex())
     {
         case 0:
-            if(ui->withHFR->isChecked())
-                processType = SexySolver::INT_SEP_HFR;
-            else
-                processType = SexySolver::INT_SEP;
-            break;
+            processType = SexySolver::INT_SEP;
+        break;
+
         case 1:
-            if(ui->withHFR->isChecked())
-                processType = SexySolver::EXT_SEXTRACTOR_HFR;
-            else
-                processType = SexySolver::EXT_SEXTRACTOR;
-            break;
+            processType = SexySolver::INT_SEP_HFR;
+        break;
+
+        case 2:
+            processType = SexySolver::EXT_SEXTRACTOR;
+        break;
+
+        case 3:
+            processType = SexySolver::EXT_SEXTRACTOR_HFR;
+        break;
+
         default: break;
     }
 
@@ -555,6 +564,14 @@ void MainWindow::sextractImage()
         sexySolver.clear();
 
     sexySolver = SexySolver::createSexySolver(processType, stats, m_ImageBuffer, this);
+
+    //These set the Sexysolver Parameters
+    if(ui->optionsProfileSextract->currentIndex() == 0)
+        sexySolver->setParameters(getSettingsFromUI());
+    else if(ui->optionsProfileSextract->currentIndex() == 1)
+        sexySolver->setParameters(SexySolver::Parameters());
+    else
+        sexySolver->setParameters(optionsList.at(ui->optionsProfileSextract->currentIndex() - 2));
 
     setupExternalSextractorSolverIfNeeded();
     setupSexySolverParameters();
@@ -572,6 +589,13 @@ void MainWindow::solveButtonClicked()
 {
     if(!prepareForProcesses())
         return;
+
+    if(hasWCSData)
+    {
+        hasWCSData = false;
+        solverWithWCS = nullptr;
+        delete [] wcs_coord;
+    }
 
     switch(ui->solverType->currentIndex())
     {
@@ -612,6 +636,14 @@ void MainWindow::solveImage()
 
     sexySolver = SexySolver::createSexySolver(processType, stats, m_ImageBuffer, this);
 
+    //These set the Sexysolver Parameters
+    if(ui->optionsProfileSolve->currentIndex() == 0)
+        sexySolver->setParameters(getSettingsFromUI());
+    else if(ui->optionsProfileSolve->currentIndex() == 1)
+        sexySolver->setParameters(SexySolver::Parameters());
+    else
+        sexySolver->setParameters(optionsList.at(ui->optionsProfileSolve->currentIndex() - 2));
+
     setupSexySolverParameters();
     setupExternalSextractorSolverIfNeeded();
 
@@ -640,11 +672,6 @@ bool MainWindow::loadWCS()
         logOutput("You must load and solve an image first");
         return false;
     }
-    if(sexySolver->isRunning())
-    {
-        logOutput("Please wait for the solver to complete.");
-        return false;
-    }
     if(!sexySolver->solvingDone())
     {
         logOutput("The solver did not solve successfully so there is no WCS data.");
@@ -660,8 +687,12 @@ bool MainWindow::loadWCS()
     {
         hasWCSData = true;
         wcs_coord = coord;
-        stars = sexySolver->getStarsWithRAandDEC();
-        displayTable();
+        solverWithWCS = sexySolver.data();
+        if(stars.size() > 0)
+        {
+            stars = solverWithWCS->appendStarsRAandDEC(stars);
+            displayTable();
+        }
         return true;
     }
     return false;
@@ -694,14 +725,6 @@ void MainWindow::setupExternalSextractorSolverIfNeeded()
 
 void MainWindow::setupSexySolverParameters()
 {
-    //These set the Sexysolver Parameters
-    if(ui->optionsProfile->currentIndex() == 0)
-        sexySolver->setParameters(getSettingsFromUI());
-    else if(ui->optionsProfile->currentIndex() == 1)
-        sexySolver->setParameters(SexySolver::Parameters());
-    else
-        sexySolver->setParameters(optionsList.at(ui->optionsProfile->currentIndex() - 2));
-
     //Index Folder Paths
     QStringList indexFolderPaths;
     for(int i = 0; i < ui->indexFolderPaths->count(); i++)
@@ -843,6 +866,8 @@ bool MainWindow::sextractorComplete(int error)
             return true;
         }
         stopProcessMonitor();
+        if(solverWithWCS)
+            stars = solverWithWCS->appendStarsRAandDEC(stars);
         hasHFRData = sexySolver->isCalculatingHFR();
     }
     else
@@ -879,6 +904,7 @@ bool MainWindow::solverComplete(int error)
             solveImage();
             return true;
         }
+        loadWCS();
         stopProcessMonitor();
     }
     else
@@ -2150,7 +2176,7 @@ void MainWindow::addSextractionToTable()
     else
         setItemInColumn(table, "Command", sexySolver->getCommandString());
     setItemInColumn(table, "Profile", params.listName);
-    setItemInColumn(table, "Loglvl", QString::number(sexySolver->logLevel));
+    setItemInColumn(table, "Loglvl", sexySolver->getLogLevelString());
     setItemInColumn(table, "Stars", QString::number(sexySolver->getNumStarsFound()));
     //Sextractor Parameters
     setItemInColumn(table,"Shape", sexySolver->getShapeString());

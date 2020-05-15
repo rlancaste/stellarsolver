@@ -69,7 +69,7 @@ public:
     //This generates a SexySolver Object of the SexySolver, ExternalSextractorSolver, or OnlineSolver types
     static SexySolver *createSexySolver(ProcessType type, Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
 
-    //This is a string which explains what the Command is doing for later access.
+    //This gets the processType as a string explaining the command SexySolver is Running
     QString getCommandString()
     {
         switch(processType)
@@ -111,6 +111,8 @@ public:
         }
     };
 
+    //This gets the scale unit string for astrometry.net input
+    //This should NOT be translated
     QString getScaleUnitString()
     {
         switch(scaleunit)
@@ -131,6 +133,7 @@ public:
         }
     }
 
+    //This gets a string for the Sextractor setting for calculating Flux using ellipses or circles
     QString getShapeString()
     {
         switch(params.apertureShape)
@@ -150,6 +153,7 @@ public:
         }
     }
 
+    //This gets a string for which Parallel Solving Algorithm we are using
     QString getMultiAlgoString()
     {
         switch(params.multiAlgorithm)
@@ -165,6 +169,34 @@ public:
             case MULTI_DEPTHS:
                 return "Depths";
             break;
+            default: return ""; break;
+        }
+    }
+
+    QString getLogLevelString()
+    {
+        switch(logLevel)
+        {
+            case LOG_NONE:
+                return "None";
+            break;
+
+            case LOG_ERROR:
+               return "Error";
+            break;
+
+            case LOG_MSG:
+                return "Message";
+            break;
+
+            case LOG_VERB:
+                return "Verbose";
+            break;
+
+            case LOG_ALL:
+                return "All";
+            break;
+
             default: return ""; break;
         }
     }
@@ -336,7 +368,8 @@ public:
     }
 
     virtual wcs_point *getWCSCoord();
-    virtual QList<Star> getStarsWithRAandDEC();
+    QList<Star> getStarsRAandDEC();
+    virtual QList<Star> appendStarsRAandDEC(QList<Star> stars);
 
     static QMap<QString,QVariant> convertToMap(Parameters params);
     static Parameters convertFromMap(QMap<QString,QVariant> settingsMap);
@@ -375,12 +408,12 @@ protected:  //Note: These items are not private because they are needed by Exter
     QString cancelfn;           //Filename whose creation signals the process to stop
     QString solvedfn;           //Filename whose creation tells astrometry.net it already solved the field.
 
-    uint64_t getAvailableRAM();
-    bool enoughRAMisAvailableFor(QStringList indexFolders);
+    uint64_t getAvailableRAM(); //This finds out the amount of available RAM on the system
+    bool enoughRAMisAvailableFor(QStringList indexFolders);  //This determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
 
     //These support parallel threads used for solving.
-    QList<SexySolver*> childSolvers;
-    bool isChildSolver= false;
+    QList<SexySolver*> childSolvers;        //These are the solvers that this solver will spawn to run in parallel to speed up solving
+    bool isChildSolver = false;              //This identifies that this solver is in fact a child solver.
     void parallelSolve();                   //This method breaks up the job and solves in parallel threads
     virtual SexySolver* spawnChildSolver(); //This creates a child solver with all the parameters of the parent solver
     bool runInParallelAndWaitForFinish();   //This will wait for the parallel solvers to complete and return true if it should run in parallel, and return false if it shouldn't run in parallel

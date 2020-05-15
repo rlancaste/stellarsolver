@@ -70,7 +70,7 @@ public:
 
     int loadWCS();
     wcs_point * getWCSCoord() override;
-    QList<Star> getStarsWithRAandDEC() override;
+    QList<Star> appendStarsRAandDEC(QList<Star> stars) override;
     /// WCS Struct
     struct wcsprm *m_wcs
     {

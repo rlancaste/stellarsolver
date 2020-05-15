@@ -1487,7 +1487,7 @@ wcs_point *ExternalSextractorSolver::getWCSCoord()
     return wcs_coord;
 }
 
-QList<Star> ExternalSextractorSolver::getStarsWithRAandDEC()
+QList<Star> ExternalSextractorSolver::appendStarsRAandDEC(QList<Star> stars)
 {
     if(!hasWCS)
     {

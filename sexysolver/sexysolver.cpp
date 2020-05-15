@@ -1140,7 +1140,7 @@ int SexySolver::runInternalSolver()
 
     //This runs the job in the engine in the file engine.c
     if (engine_run_job(engine, job))
-        emit logOutput("Failed to run_job()\n");
+        emit logOutput("Failed to run job");
 
     //Needs to be done whether FIFO or regular file
     if(logLevel != LOG_NONE && logFile)
@@ -1280,7 +1280,12 @@ wcs_point * SexySolver::getWCSCoord()
     return wcs_coord;
 }
 
-QList<Star> SexySolver::getStarsWithRAandDEC()
+QList<Star> SexySolver::getStarsRAandDEC()
+{
+    return appendStarsRAandDEC(stars);
+}
+
+QList<Star> SexySolver::appendStarsRAandDEC(QList<Star> stars)
 {
     if(!hasWCS)
     {

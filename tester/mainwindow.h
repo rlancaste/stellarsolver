@@ -91,6 +91,7 @@ private:
     Ui::MainWindow *ui;
 
     QPointer<SexySolver> sexySolver;
+    SexySolver *solverWithWCS = nullptr;
     QString fileToProcess;
     QList<Star> stars;
     int selectedStar;
