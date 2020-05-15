@@ -6,9 +6,9 @@ cmake_policy(SET CMP0003 NEW)
 # Timestamp build
 string(TIMESTAMP SexySolver_BUILD_TS UTC)
 
-# SexySolver Version 1.0
+# SexySolver Version 1.1
 set (SexySolver_VERSION_MAJOR 1)
-set (SexySolver_VERSION_MINOR 0)
+set (SexySolver_VERSION_MINOR 1)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/version.h.cmake
