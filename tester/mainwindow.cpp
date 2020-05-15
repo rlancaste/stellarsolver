@@ -440,6 +440,8 @@ void MainWindow::clearStars()
 {
     ui->starTable->clearContents();
     ui->starTable->setRowCount(0);
+    ui->starTable->setColumnCount(0);
+    selectedStar = 0;
     stars.clear();
     updateImage();
 }
@@ -540,7 +542,7 @@ void MainWindow::sextractButtonClicked()
     if(!prepareForProcesses())
         return;
 
-    stars.clear();
+    clearStars();
 
     QString sextractorBinaryPath = ui->sextractorPath->text();
 
@@ -1005,9 +1007,7 @@ bool MainWindow::imageLoad()
     if(loadSuccess)
     {
         imageLoaded = true;
-        ui->starTable->clear();
-        stars.clear();
-        selectedStar = 0;
+        clearStars();
         ui->horSplitter->setSizes(QList<int>() << ui->optionsBox->width() << ui->horSplitter->width() << 0 );
         ui->fileNameDisplay->setText("Image: " + fileURL);
         initDisplayImage();
