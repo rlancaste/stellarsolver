@@ -993,6 +993,8 @@ bool MainWindow::imageLoad()
         delete [] wcs_coord;
         hasWCSData = false;
     }
+    if(solverWithWCS)
+        solverWithWCS = nullptr;
 
     bool loadSuccess;
     if(newFileInfo.suffix()=="fits"||newFileInfo.suffix()=="fit")
