@@ -708,9 +708,10 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
         solverArgs << "--resort";
 
     if(depthhi != -1 && depthlo != -1)
-    {
         solverArgs << "--depth" << QString("%1-%2").arg(depthlo).arg(depthhi);
-    }
+
+    if(params.keepNum !=0)
+        solverArgs << "--objs" << QString("%1").arg(params.keepNum);
 
     //This will shrink the image so that it is easier to solve.  It is only useful if you are sending an image.
     //It is not used if you are solving an xylist as in the classic astrometry.net solver
