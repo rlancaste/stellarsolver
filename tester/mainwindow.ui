@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1141</width>
+    <width>1152</width>
     <height>752</height>
    </rect>
   </property>
@@ -127,8 +127,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>212</width>
-                 <height>387</height>
+                 <width>260</width>
+                 <height>361</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -162,7 +162,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>285</width>
-                 <height>387</height>
+                 <height>361</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -339,6 +339,14 @@
                </layout>
               </widget>
               <widget class="QWidget" name="page_4">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>260</width>
+                 <height>361</height>
+                </rect>
+               </property>
                <attribute name="label">
                 <string>Scale/Position</string>
                </attribute>
@@ -449,6 +457,14 @@
                </layout>
               </widget>
               <widget class="QWidget" name="page_3">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>260</width>
+                 <height>361</height>
+                </rect>
+               </property>
                <attribute name="label">
                 <string>Index Files</string>
                </attribute>
@@ -496,6 +512,75 @@
                    <bool>true</bool>
                   </property>
                  </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="page_5">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>260</width>
+                 <height>361</height>
+                </rect>
+               </property>
+               <attribute name="label">
+                <string>Logging</string>
+               </attribute>
+               <layout class="QGridLayout" name="gridLayout_12">
+                <item row="1" column="1">
+                 <widget class="QComboBox" name="logLevel">
+                  <property name="currentIndex">
+                   <number>1</number>
+                  </property>
+                  <item>
+                   <property name="text">
+                    <string>LOG_NONE</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>LOG_MSG</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>LOG_VERB</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>LOG_ALL</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_34">
+                  <property name="text">
+                   <string>Log Level:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0" colspan="2">
+                 <widget class="QCheckBox" name="logToFile">
+                  <property name="text">
+                   <string>LogToFile</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <spacer name="verticalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </widget>
@@ -598,7 +683,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>212</width>
+                 <width>260</width>
                  <height>474</height>
                 </rect>
                </property>
@@ -853,8 +938,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>212</width>
-                 <height>331</height>
+                 <width>150</width>
+                 <height>313</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1024,8 +1109,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>212</width>
-                 <height>331</height>
+                 <width>100</width>
+                 <height>74</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1057,8 +1142,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>210</width>
-                     <height>329</height>
+                     <width>201</width>
+                     <height>311</height>
                     </rect>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_5">
@@ -1302,8 +1387,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>482</width>
-                 <height>130</height>
+                 <width>460</width>
+                 <height>129</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="gridLayout_2">
@@ -1656,47 +1741,67 @@
       <property name="topMargin">
        <number>0</number>
       </property>
-      <item row="5" column="9">
-       <widget class="QPushButton" name="Abort">
+      <item row="5" column="5">
+       <widget class="QPushButton" name="SolveImage">
         <property name="text">
-         <string>Abort</string>
+         <string>Solve</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_13">
+      <item row="5" column="2">
+       <widget class="QPushButton" name="SextractStars">
+        <property name="text">
+         <string>Sextract</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_10">
         <item>
-         <widget class="QComboBox" name="logLevel">
-          <property name="currentIndex">
-           <number>1</number>
-          </property>
+         <widget class="QComboBox" name="sextractorType">
           <item>
            <property name="text">
-            <string>LOG_NONE</string>
+            <string>Internal Sextractor</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>LOG_MSG</string>
+            <string>Internal Sextractor w/ HFR</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>LOG_VERB</string>
+            <string>External Sextractor</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>LOG_ALL</string>
+            <string>External Sextractor w/ HFR</string>
            </property>
           </item>
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="logToFile">
-          <property name="text">
-           <string>LogToFile</string>
+         <widget class="QComboBox" name="optionsProfileSextract">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>Unsaved Options</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Default Options</string>
+           </property>
+          </item>
          </widget>
         </item>
        </layout>
@@ -1767,6 +1872,31 @@
         </item>
        </layout>
       </item>
+      <item row="3" column="9">
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QPushButton" name="ClearResults">
+          <property name="text">
+           <string>Clear</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="5" column="9">
+       <widget class="QPushButton" name="Abort">
+        <property name="text">
+         <string>Abort</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QPushButton" name="exportResultsTable">
+        <property name="text">
+         <string>Export Results</string>
+        </property>
+       </widget>
+      </item>
       <item row="5" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_12">
         <item>
@@ -1801,89 +1931,6 @@
           </property>
           <property name="maximum">
            <number>100</number>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="5" column="5">
-       <widget class="QPushButton" name="SolveImage">
-        <property name="text">
-         <string>Solve</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="2">
-       <widget class="QPushButton" name="SextractStars">
-        <property name="text">
-         <string>Sextract</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <layout class="QHBoxLayout" name="horizontalLayout_10">
-        <item>
-         <widget class="QComboBox" name="sextractorType">
-          <item>
-           <property name="text">
-            <string>Internal Sextractor</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Internal Sextractor w/ HFR</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>External Sextractor</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>External Sextractor w/ HFR</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="optionsProfileSextract">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="currentIndex">
-           <number>0</number>
-          </property>
-          <item>
-           <property name="text">
-            <string>Unsaved Options</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Default Options</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="3" column="9">
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
-        <item>
-         <widget class="QPushButton" name="exportResultsTable">
-          <property name="text">
-           <string>Export Results</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="ClearResults">
-          <property name="text">
-           <string>Clear</string>
           </property>
          </widget>
         </item>
