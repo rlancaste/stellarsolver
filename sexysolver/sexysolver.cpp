@@ -315,7 +315,6 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
     fastSolving.downsample = 2;
     fastSolving.keepNum = 50;
     fastSolving.maxEllipse = 1.5;
-    fastSolving.saturationLimit = 80;
     createConvFilterFromFWHM(&fastSolving, 4);
     optionsList.append(fastSolving);
 
@@ -325,7 +324,6 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
     parSolving.downsample = 2;
     parSolving.keepNum = 50;
     parSolving.maxEllipse = 1.5;
-    parSolving.saturationLimit = 80;
     createConvFilterFromFWHM(&parSolving, 4);
     optionsList.append(parSolving);
 
@@ -336,17 +334,16 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
     parLargeSolving.minwidth = 1;
     parLargeSolving.keepNum = 50;
     parLargeSolving.maxEllipse = 1.5;
-    parLargeSolving.saturationLimit = 80;
     createConvFilterFromFWHM(&parLargeSolving, 2);
     optionsList.append(parLargeSolving);
 
     SexySolver::Parameters fastSmallSolving;
     fastSmallSolving.listName = "ParallelSmallScale";
     fastSmallSolving.multiAlgorithm = MULTI_SCALES;
+    fastSmallSolving.downsample = 2;
     fastSmallSolving.maxwidth = 10;
     fastSmallSolving.keepNum = 50;
     fastSmallSolving.maxEllipse = 1.5;
-    fastSmallSolving.saturationLimit = 80;
     createConvFilterFromFWHM(&fastSmallSolving, 2);
     optionsList.append(fastSmallSolving);
 
@@ -356,6 +353,7 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
     createConvFilterFromFWHM(&smallStars, 1);
     smallStars.r_min = 2;
     smallStars.maxSize = 5;
+    smallStars.saturationLimit = 80;
     optionsList.append(smallStars);
 
     SexySolver::Parameters mid;
@@ -366,6 +364,7 @@ QList<SexySolver::Parameters> SexySolver::getOptionsProfiles()
     mid.r_min = 5;
     mid.removeDimmest = 20;
     mid.maxSize = 10;
+    mid.saturationLimit = 80;
     optionsList.append(mid);
 
     SexySolver::Parameters big;
