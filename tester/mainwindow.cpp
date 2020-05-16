@@ -294,6 +294,7 @@ MainWindow::MainWindow() :
     ui->addIndexPath->setToolTip("Adds a path the user selects to the list of index folder paths");
 
     //Behaviors and Settings for the StarTable
+    connect(this, &MainWindow::readyForStarTable, this, &MainWindow::displayTable);
     ui->starTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     connect(ui->starTable,&QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
     ui->starTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -713,7 +714,7 @@ bool MainWindow::loadWCS()
         if(stars.size() > 0)
         {
             stars = solverWithWCS->appendStarsRAandDEC(stars);
-            displayTable();
+            emit readyForStarTable();
         }
         isLoadingWCS = false;
         return true;
@@ -904,7 +905,7 @@ bool MainWindow::sextractorComplete(int error)
             return false;
     }
 
-    displayTable();
+    emit readyForStarTable();
     ui->resultsTable->insertRow(ui->resultsTable->rowCount());
     addSextractionToTable();
     QTimer::singleShot(100 , [this](){ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());});
@@ -928,8 +929,8 @@ bool MainWindow::solverComplete(int error)
             solveImage();
             return true;
         }
-        QtConcurrent::run(this, &MainWindow::loadWCS);
         isLoadingWCS = true;
+        QtConcurrent::run(this, &MainWindow::loadWCS);
         stopProcessMonitor();
     }
     else
@@ -1834,7 +1835,6 @@ void MainWindow::sortStars()
             return s1.mag < s2.mag;
         });
     }
-    updateStarTableFromList();
 }
 
 //This is a helper function that I wrote for the methods below
@@ -1875,7 +1875,6 @@ bool setItemInColumn(QTableWidget *table, QString colName, QString value)
 //This copies the stars into the table
 void MainWindow::updateStarTableFromList()
 {
-    SexySolver::Parameters params = sexySolver->getCurrentParameters();
     QTableWidget *table = ui->starTable;
     table->clearContents();
     table->setRowCount(0);
@@ -1890,7 +1889,7 @@ void MainWindow::updateStarTableFromList()
 
     addColumnToTable(table,"FLUX_AUTO");
     addColumnToTable(table,"PEAK");
-    if(!sexySolver.isNull() && sexySolver->isCalculatingHFR())
+    if(hasHFRData)
         addColumnToTable(table,"HFR");
 
     addColumnToTable(table,"a");
@@ -1913,7 +1912,7 @@ void MainWindow::updateStarTableFromList()
 
         setItemInColumn(table, "FLUX_AUTO", QString::number(star.flux));
         setItemInColumn(table, "PEAK", QString::number(star.peak));
-        if(!sexySolver.isNull() && sexySolver->isCalculatingHFR())
+        if(hasHFRData)
             setItemInColumn(table, "HFR", QString::number(star.HFR));
 
         setItemInColumn(table, "a", QString::number(star.a));

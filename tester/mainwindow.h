@@ -221,6 +221,8 @@ public slots:
     void saveOptionsProfiles();
     void loadOptionsProfiles();
     void closeEvent(QCloseEvent *event);
+signals:
+    void readyForStarTable();
 
 };
 
