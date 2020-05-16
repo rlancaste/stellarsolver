@@ -92,6 +92,7 @@ private:
 
     QPointer<SexySolver> sexySolver;
     SexySolver *solverWithWCS = nullptr;
+    bool isLoadingWCS = false;
     QString fileToProcess;
     QList<Star> stars;
     int selectedStar;

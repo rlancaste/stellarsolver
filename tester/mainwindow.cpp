@@ -489,6 +489,11 @@ bool MainWindow::prepareForProcesses()
         logOutput("Please Load an Image First");
         return false;
     }
+    if(isLoadingWCS)
+    {
+        logOutput("WCS is currently loading, please wait a moment.");
+        return false;
+    }
     if(!sexySolver.isNull() && sexySolver->isRunning())
     {
         if(QMessageBox::question(this, "Abort?", "A Process is currently running. Abort it?") == QMessageBox::Yes)
@@ -684,16 +689,19 @@ bool MainWindow::loadWCS()
     if(sexySolver.isNull())
     {
         logOutput("You must load and solve an image first");
+        isLoadingWCS = false;
         return false;
     }
     if(!sexySolver->solvingDone())
     {
         logOutput("The solver did not solve successfully so there is no WCS data.");
+        isLoadingWCS = false;
         return false;
     }
     if(!sexySolver->hasWCSData())
     {
         logOutput("The solver did not retrieve the WCS data.");
+        isLoadingWCS = false;
         return false;
     }
     wcs_point * coord = sexySolver->getWCSCoord();
@@ -707,8 +715,10 @@ bool MainWindow::loadWCS()
             stars = solverWithWCS->appendStarsRAandDEC(stars);
             displayTable();
         }
+        isLoadingWCS = false;
         return true;
     }
+    isLoadingWCS = false;
     return false;
 }
 
@@ -919,6 +929,7 @@ bool MainWindow::solverComplete(int error)
             return true;
         }
         QtConcurrent::run(this, &MainWindow::loadWCS);
+        isLoadingWCS = true;
         stopProcessMonitor();
     }
     else
@@ -1601,7 +1612,7 @@ QRect MainWindow::getStarSizeInImage(Star star, bool &accurate)
 //It will also redraw the image when a change needs to be made in how the circles for the stars are displayed such as highlighting one star
 void MainWindow::updateImage()
 {
-    if(!imageLoaded)
+    if(!imageLoaded || rawImage.isNull())
         return;
 
     int w = (stats.width + sampling - 1) / sampling;
