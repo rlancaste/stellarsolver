@@ -353,7 +353,7 @@ public:
     bool isUsingScale(){return use_scale;};
     bool isUsingPosition(){return use_position;};
 
-    double convertToDegreeWidth(double scale){
+    double convertToDegreeHeight(double scale){
         switch(scaleunit)
         {
             case DEG_WIDTH:
@@ -363,7 +363,7 @@ public:
                 return arcmin2deg(scale);
                 break;
             case ARCSEC_PER_PIX:
-                return arcsec2deg(scale) * (double)stats.width;
+                return arcsec2deg(scale) * (double)stats.height;
                 break;
             case FOCAL_MM:
                 return rad2deg(atan(36. / (2. * scale)));
