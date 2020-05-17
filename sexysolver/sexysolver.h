@@ -52,6 +52,7 @@ public:
                   INT_SEP_EXT_SOLVER,
                   CLASSIC_ASTROMETRY,
                   ASTAP,
+                  INT_SEP_EXT_ASTAP,
                   ONLINE_ASTROMETRY_NET,
                   INT_SEP_ONLINE_ASTROMETRY_NET
     }ProcessType;
@@ -101,6 +102,9 @@ public:
                 break;
             case SexySolver::ASTAP:
                 return "ASTAP Solver";
+                break;
+            case SexySolver::INT_SEP_EXT_ASTAP:
+                return "INT SEP EXT ASTAP Solver";
                 break;
             case SexySolver::ONLINE_ASTROMETRY_NET:
                 return "Online Astrometry.net";

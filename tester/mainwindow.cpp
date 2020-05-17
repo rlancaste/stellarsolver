@@ -635,9 +635,12 @@ void MainWindow::solveButtonClicked()
             processType = SexySolver::ASTAP;
             break;
         case 5:
-            processType = SexySolver::ONLINE_ASTROMETRY_NET;
+            processType = SexySolver::INT_SEP_EXT_ASTAP;
             break;
         case 6:
+            processType = SexySolver::ONLINE_ASTROMETRY_NET;
+            break;
+        case 7:
             processType = SexySolver::INT_SEP_ONLINE_ASTROMETRY_NET;
             break;
         default: break;

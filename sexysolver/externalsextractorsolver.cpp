@@ -153,8 +153,7 @@ void ExternalSextractorSolver::run()
             }
         #endif
     }
-    //This is the only process that uses ASTAP
-    else if(processType == ASTAP)
+    else if(processType == ASTAP || processType == INT_SEP_EXT_ASTAP)
     {
         if(!QFileInfo(astapBinaryPath).exists())
         {
@@ -234,6 +233,28 @@ void ExternalSextractorSolver::run()
             if(params.multiAlgorithm != NOT_MULTI)
                 emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
             emit finished(runExternalASTAPSolver());
+        }
+            break;
+
+        case INT_SEP_EXT_ASTAP: //This method runs the internal SEP and then sends that to the external program ASTAP to solve the image, a fairly new KStars option
+        {
+            if(params.multiAlgorithm != NOT_MULTI)
+                emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
+            if(!hasSextracted)
+            {
+                runSEPSextractor();
+                int success = writeSextractorTable();
+                if(success == 0)
+                    hasSextracted = true;
+                else
+                {
+                    hasSextracted = false;
+                    emit finished(success);
+                }
+            }
+
+            if(hasSextracted)
+                emit finished(runExternalASTAPSolver());
         }
             break;
 
@@ -622,21 +643,36 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Configuring external ASTAP solver");
 
-    QFileInfo file(fileToProcess);
-    if(!file.exists())
-        return -1;
+    if(processType == INT_SEP_EXT_ASTAP)
+    {
+        QFileInfo file(sextractorFilePath);
+        if(!file.exists())
+            return -1;
+        QString newFileURL = basePath + "/" + baseName + ".fits";
+        QFile::copy(sextractorFilePath, newFileURL);
+        sextractorFilePath = newFileURL;
+    }
+    else
+    {
+        QFileInfo file(fileToProcess);
+        if(!file.exists())
+            return -1;
 
-    QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
-    QFile::copy(fileToProcess, newFileURL);
-    fileToProcess = newFileURL;
-    fileToProcessIsTempFile = true;
+        QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
+        QFile::copy(fileToProcess, newFileURL);
+        fileToProcess = newFileURL;
+        fileToProcessIsTempFile = true;
+    }
 
     QStringList solverArgs;
 
     QString astapSolutionFile = basePath + "/" + baseName + ".ini";
     solverArgs << "-o" << astapSolutionFile;
     solverArgs << "-speed" << "auto";
-    solverArgs << "-f" << fileToProcess;
+    if(processType == INT_SEP_EXT_ASTAP)
+        solverArgs << "-f" << sextractorFilePath;
+    else
+        solverArgs << "-f" << fileToProcess;
     solverArgs << "-wcs";
     if(params.downsample > 1)
         solverArgs << "-z" << QString::number(params.downsample);
@@ -652,6 +688,8 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
         solverArgs << "-spd" << QString::number(search_dec + 90); //Convert dec to spd
         solverArgs << "-r" << QString::number(params.search_radius);
     }
+    if(logLevel == LOG_ALL || logLevel == LOG_VERB)
+        solverArgs << "-log";
 
     solver.clear();
     solver = new QProcess();

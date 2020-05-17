@@ -938,8 +938,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>242</width>
-                 <height>342</height>
+                 <width>150</width>
+                 <height>313</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1109,8 +1109,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>242</width>
-                 <height>342</height>
+                 <width>98</width>
+                 <height>74</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1142,8 +1142,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>240</width>
-                     <height>340</height>
+                     <width>201</width>
+                     <height>311</height>
                     </rect>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_5">
@@ -1845,6 +1845,11 @@
           <item>
            <property name="text">
             <string>ASTAP Solver</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Int SEP Ext. ASTAP</string>
            </property>
           </item>
           <item>
