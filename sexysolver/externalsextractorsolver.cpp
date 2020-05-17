@@ -643,16 +643,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Configuring external ASTAP solver");
 
-    if(processType == INT_SEP_EXT_ASTAP)
-    {
-        QFileInfo file(sextractorFilePath);
-        if(!file.exists())
-            return -1;
-        QString newFileURL = basePath + "/" + baseName + ".fits";
-        QFile::copy(sextractorFilePath, newFileURL);
-        sextractorFilePath = newFileURL;
-    }
-    else
+    if(processType != INT_SEP_EXT_ASTAP)
     {
         QFileInfo file(fileToProcess);
         if(!file.exists())
@@ -669,10 +660,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     QString astapSolutionFile = basePath + "/" + baseName + ".ini";
     solverArgs << "-o" << astapSolutionFile;
     solverArgs << "-speed" << "auto";
-    if(processType == INT_SEP_EXT_ASTAP)
-        solverArgs << "-f" << sextractorFilePath;
-    else
-        solverArgs << "-f" << fileToProcess;
+    solverArgs << "-f" << fileToProcess;
     solverArgs << "-wcs";
     if(params.downsample > 1)
         solverArgs << "-z" << QString::number(params.downsample);
@@ -1212,25 +1200,52 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
 //https://heasarc.gsfc.nasa.gov/docs/software/fitsio/cookbook/node16.html
 int ExternalSextractorSolver::writeSextractorTable()
 {
-
-    if(sextractorFilePath == "")
-    {
-        sextractorFilePathIsTempFile = true;
-        sextractorFilePath = basePath + "/" + baseName + ".xyls";
-    }
-
-    QFile sextractorFile(sextractorFilePath);
-    if(sextractorFile.exists())
-        sextractorFile.remove();
-
     int status = 0;
     fitsfile * new_fptr;
 
-
-    if (fits_create_file(&new_fptr, sextractorFilePath.toLatin1(), &status))
+    if(processType == INT_SEP_EXT_ASTAP)
     {
-        fits_report_error(stderr, status);
-        return status;
+        QFileInfo file(fileToProcess);
+        if(!file.exists())
+            return -1;
+
+        if(file.suffix() != "fits" && file.suffix() != "fit")
+        {
+            int ret = saveAsFITS();
+            if(ret != 0)
+                return ret;
+        }
+        else
+        {
+            QString newFileURL = basePath + "/" + baseName + ".fits";
+            QFile::copy(fileToProcess, newFileURL);
+            fileToProcess = newFileURL;
+            fileToProcessIsTempFile = true;
+        }
+
+        if (fits_open_diskfile(&new_fptr, fileToProcess.toLatin1(), READWRITE, &status))
+        {
+            fits_report_error(stderr, status);
+            return status;
+        }
+    }
+    else
+    {
+        if(sextractorFilePath == "")
+        {
+            sextractorFilePathIsTempFile = true;
+            sextractorFilePath = basePath + "/" + baseName + ".xyls";
+        }
+
+        QFile sextractorFile(sextractorFilePath);
+        if(sextractorFile.exists())
+            sextractorFile.remove();
+
+        if (fits_create_file(&new_fptr, sextractorFilePath.toLatin1(), &status))
+        {
+            fits_report_error(stderr, status);
+            return status;
+        }
     }
 
     int tfields=3;
