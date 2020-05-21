@@ -1,4 +1,4 @@
-/*  ExternalSextractorSolver for SexySolver Tester Application, developed by Robert Lancaster, 2020
+/*  ExternalSextractorSolver, SexySolver Intenal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
@@ -9,20 +9,22 @@
 #ifndef EXTERNALSEXTRACTORSOLVER_H
 #define EXTERNALSEXTRACTORSOLVER_H
 
-#include "sexysolver.h"
+#include "internalsextractorsolver.h"
 #include <QProcess>
 #include <QPointer>
 
-class ExternalSextractorSolver : public SexySolver
+class ExternalSextractorSolver : public InternalSextractorSolver
 {
     Q_OBJECT
 public:
-    explicit ExternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent);
+    explicit ExternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent = nullptr);
     ~ExternalSextractorSolver();
 
+
+    int sextract() override;
     void abort() override;
-    SexySolver* spawnChildSolver() override;
-    void getWCSDataFromChildSolver(SexySolver *solver) override;
+    SextractorSolver * spawnChildSolver(int n) override;
+    //void getWCSDataFromChildSolver(SextractorSolver *solver) override;
 
     QStringList getSolverArgsList();
     bool generateAstrometryConfigFile();

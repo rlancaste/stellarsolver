@@ -91,13 +91,11 @@ private:
     Ui::MainWindow *ui;
 
     QPointer<SexySolver> sexySolver;
-    SexySolver *solverWithWCS = nullptr;
-    bool isLoadingWCS = false;
     QString fileToProcess;
     QList<Star> stars;
     int selectedStar;
 
-    QList<SexySolver::Parameters> optionsList;
+    QList<Parameters> optionsList;
     bool optionsAreSaved = true;
 
     //Options for SexySolver Tester
@@ -110,7 +108,7 @@ private:
     bool showAstrometryParams = false;
     bool showSolutionDetails = true;
 
-    SexySolver::ProcessType processType;
+    ProcessType processType;
 
     //This allows for averaging over multiple trials
     int currentTrial = 0;
@@ -166,7 +164,6 @@ public slots:
     void sextractImage();
     void solveButtonClicked();
     void solveImage();
-    bool loadWCS();
 
     void abort();
 
@@ -203,14 +200,15 @@ public slots:
     bool getSolverOptionsFromFITS();
 
     //These functions handle the settings for the Sextractors and Solvers
-    SexySolver::Parameters getSettingsFromUI();
-    void sendSettingsToUI(SexySolver::Parameters a);
+    Parameters getSettingsFromUI();
+    void sendSettingsToUI(Parameters a);
     void setupExternalSextractorSolverIfNeeded();
     void setupSexySolverParameters();
 
     //These functions get called when the sextractor or solver finishes
     bool sextractorComplete(int error);
     bool solverComplete(int error);
+    bool loadWCSComplete();
 
     //These functions handle the solution table
     void addSolutionToTable(Solution solution);

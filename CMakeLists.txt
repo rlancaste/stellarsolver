@@ -236,6 +236,8 @@ set (sep_SRCS
     )
 
 set(SexySolver_SRCS
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sextractorsolver.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/internalsextractorsolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/externalsextractorsolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/onlinesolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sexysolver.cpp

@@ -1,4 +1,4 @@
-/*  ExternalSextractorSolver for SexySolver Tester Application, developed by Robert Lancaster, 2020
+/*  ExternalSextractorSolver, SexySolver Internal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
@@ -12,7 +12,7 @@
 #include <wcshdr.h>
 #include <wcsfix.h>
 
-ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SexySolver(type, imagestats, imageBuffer, parent)
+ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : InternalSextractorSolver(type, imagestats, imageBuffer, parent)
 {
 
     //This sets the base name used for the temp files.
@@ -106,6 +106,45 @@ void ExternalSextractorSolver::setWinCygwinPaths()
     wcsPath = "C:/cygwin64/bin/wcsinfo";
 }
 
+int ExternalSextractorSolver::sextract()
+{
+    //These processes use the external sextractor
+    if(processType == EXT_SEXTRACTORSOLVER || processType == EXT_SEXTRACTOR || processType == EXT_SEXTRACTOR_HFR)
+    {
+        #ifdef _WIN32  //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
+            emit logOutput("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
+        #endif
+
+        if(!QFileInfo(sextractorBinaryPath).exists())
+        {
+            emit logOutput("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
+            return -1;
+        }
+    }
+
+    if(processType == EXT_SEXTRACTOR_HFR)
+        calculateHFR = true;
+    if(processType == EXT_SEXTRACTOR)
+        calculateHFR = false;
+
+    if(sextractorFilePath == "")
+    {
+        sextractorFilePathIsTempFile = true;
+        sextractorFilePath = basePath + "/" + baseName + ".xyls";
+    }
+
+    if(processType == EXT_SEXTRACTOR_HFR || processType == EXT_SEXTRACTOR || processType == EXT_SEXTRACTORSOLVER )
+        return runExternalSextractor();
+    else if(processType == INT_SEP_EXT_SOLVER || processType == INT_SEP_EXT_ASTAP)
+    {
+        int fail = 0;
+        if((fail = runSEPSextractor()) != 0)
+            return fail;
+        return(writeSextractorTable());
+    }
+    return -1;
+}
+
 void ExternalSextractorSolver::run()
 {
     if(logLevel != LOG_NONE && logToFile)
@@ -120,21 +159,6 @@ void ExternalSextractorSolver::run()
         cancelfn = basePath + "/" + baseName + ".cancel";
     if(solutionFile == "")
         solutionFile = basePath + "/" + baseName + ".wcs";
-
-    //These processes use the external sextractor
-    if(processType == EXT_SEXTRACTORSOLVER || processType == EXT_SEXTRACTOR || processType == EXT_SEXTRACTOR_HFR)
-    {
-        #ifdef _WIN32  //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
-            emit logOutput("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
-        #endif
-
-        if(!QFileInfo(sextractorBinaryPath).exists())
-        {
-            emit logOutput("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
-            emit finished(-1);
-            return;
-        }
-    }
 
     //These are the solvers that use External Astrometry.
     if(processType == EXT_SEXTRACTORSOLVER || processType == INT_SEP_EXT_SOLVER || processType == CLASSIC_ASTROMETRY)
@@ -173,17 +197,27 @@ void ExternalSextractorSolver::run()
     {
         case EXT_SEXTRACTOR:
         case EXT_SEXTRACTOR_HFR:
-            emit finished(runExternalSextractor());
+            emit finished(sextract());
             break;
 
-        case EXT_SEXTRACTORSOLVER: //This method uses external Sextractor to get the stars, then feeds it to external astrometry.net.
+        case EXT_SEXTRACTORSOLVER://This method uses external Sextractor to get the stars, then feeds it to external astrometry.net.
+        case INT_SEP_EXT_SOLVER://This method runs the Internal SexySolver to sextract the stars, then feeds it to external astrometry.net
+        case INT_SEP_EXT_ASTAP: //This method runs the internal SEP and then sends that to the external program ASTAP to solve the image, a fairly new KStars option
             {
                 if(!hasSextracted)
-                    runExternalSextractor();
+                {
+                    int fail = sextract();
+                    if(fail != 0)
+                    {
+                        emit finished(fail);
+                        return;
+                    }
+                }
+
                 if(hasSextracted)
                 {
-                    if(runInParallelAndWaitForFinish())
-                        break;
+                    if(processType == INT_SEP_EXT_ASTAP)
+                        emit finished(runExternalASTAPSolver());
                     else
                         emit finished(runExternalSolver());
                 }
@@ -192,39 +226,9 @@ void ExternalSextractorSolver::run()
             }
             break;
 
-        case INT_SEP_EXT_SOLVER: //This method runs the Internal SexySolver to sextract the stars, then feeds it to external astrometry.net
-        {
-            if(!hasSextracted)
-            {
-                runSEPSextractor();
-                int success = writeSextractorTable();
-                if(success == 0)
-                    hasSextracted = true;
-                else
-                {
-                    hasSextracted = false;
-                    emit finished(success);
-                }
-            }
-
-            if(hasSextracted)
-            {
-                if(runInParallelAndWaitForFinish())
-                    break;
-                else
-                    emit finished(runExternalSolver());
-            }
-            else
-                emit finished(-1);
-        }
-            break;
-
         case CLASSIC_ASTROMETRY: //This is meant to run the traditional solve KStars used to do using python and astrometry.net
         {
-            if(runInParallelAndWaitForFinish())
-                break;
-            else
-                emit finished(runExternalSolver());
+            emit finished(runExternalSolver());
         }
             break;
 
@@ -236,40 +240,18 @@ void ExternalSextractorSolver::run()
         }
             break;
 
-        case INT_SEP_EXT_ASTAP: //This method runs the internal SEP and then sends that to the external program ASTAP to solve the image, a fairly new KStars option
-        {
-            if(params.multiAlgorithm != NOT_MULTI)
-                emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
-            if(!hasSextracted)
-            {
-                runSEPSextractor();
-                int success = writeSextractorTable();
-                if(success == 0)
-                    hasSextracted = true;
-                else
-                {
-                    hasSextracted = false;
-                    emit finished(success);
-                }
-            }
-
-            if(hasSextracted)
-                emit finished(runExternalASTAPSolver());
-        }
-            break;
-
         default: break;
     }
     cleanupTempFiles();
 }
 
 //This method generates child solvers with the options of the current solver
-SexySolver* ExternalSextractorSolver::spawnChildSolver()
+SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
 {
     ExternalSextractorSolver *solver = new ExternalSextractorSolver(processType, stats, m_ImageBuffer, nullptr);
     solver->stars = stars;
     solver->basePath = basePath;
-    solver->baseName = baseName + "_" + QString::number(childSolvers.count());
+    solver->baseName = baseName + "_" + QString::number(n);
 
     if(processType!= ASTAP && processType != CLASSIC_ASTROMETRY)
     {
@@ -277,7 +259,6 @@ SexySolver* ExternalSextractorSolver::spawnChildSolver()
         solver->sextractorFilePath = sextractorFilePath;
     }
     solver->fileToProcess = fileToProcess;
-    solver->cleanupTemporaryFiles = cleanupTemporaryFiles;
     solver->sextractorBinaryPath = sextractorBinaryPath;
     solver->confPath = confPath;
     solver->solverPath = solverPath;
@@ -287,44 +268,31 @@ SexySolver* ExternalSextractorSolver::spawnChildSolver()
     solver->autoGenerateAstroConfig = autoGenerateAstroConfig;
 
     solver->isChildSolver = true;
-    solver->setParameters(params);
-    solver->setIndexFolderPaths(indexFolderPaths);
+    solver->params = params;
+    solver->indexFolderPaths = indexFolderPaths;
     //Set the log level one less than the main solver
     if(logLevel == LOG_MSG || logLevel == LOG_NONE)
-        solver->setLogLevel(LOG_NONE);
+        solver->logLevel = LOG_NONE;
     if(logLevel == LOG_VERB)
-        solver->setLogLevel(LOG_MSG);
+        solver->logLevel = LOG_MSG;
     if(logLevel == LOG_ALL)
-        solver->setLogLevel(LOG_VERB);
+        solver->logLevel = LOG_VERB;
     if(use_scale)
-        solver->setSearchScale(scalelo,scalehi,scaleunit);
+        solver->setSearchScale(scalelo, scalehi, scaleunit);
     if(use_position)
         solver->setSearchPositionInDegrees(search_ra, search_dec);
     if(logLevel != LOG_NONE)
-        connect(solver, &SexySolver::logOutput, this, &SexySolver::logOutput);
-    connect(solver, &ExternalSextractorSolver::finished, this, &ExternalSextractorSolver::finishParallelSolve);
+        connect(solver, &SextractorSolver::logOutput, this, &SextractorSolver::logOutput);
     //This way they all share a solved and cancel fn
     solver->solutionFile = solutionFile;
     solver->cancelfn = cancelfn;
     //solver->solvedfn = basePath + "/" + baseName + ".solved";
-    childSolvers.append(solver);
     return solver;
-}
-
-void ExternalSextractorSolver::getWCSDataFromChildSolver(SexySolver *solver)
-{
-    if (ExternalSextractorSolver* extSolver = dynamic_cast<ExternalSextractorSolver*>(solver))
-    {
-        hasWCS = true;
-        m_wcs = extSolver->m_wcs;
-    }
 }
 
 //This is the abort method.  For the external sextractor and solver, it uses the kill method to abort the processes
 void ExternalSextractorSolver::abort()
 {
-    foreach(SexySolver *solver, childSolvers)
-        solver->abort();
     if(!solver.isNull())
         solver->kill();
     if(!sextractorProcess.isNull())
@@ -338,7 +306,8 @@ void ExternalSextractorSolver::abort()
         file.write("Cancel");
         file.close();
     }
-    emit logOutput("Aborting ...");
+    if(!isChildSolver)
+        emit logOutput("Aborting ...");
     wasAborted = true;
 }
 

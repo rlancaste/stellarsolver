@@ -1,3 +1,10 @@
+/*  OnlineSolver, SexySolver Internal Library developed by Robert Lancaster, 2020
+
+    This application is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public
+    License as published by the Free Software Foundation; either
+    version 2 of the License, or (at your option) any later version.
+*/
 #include "onlinesolver.h"
 #include <QTimer>
 #include <QEventLoop>
@@ -5,8 +12,9 @@
 OnlineSolver::OnlineSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : ExternalSextractorSolver(type, imagestats, imageBuffer, parent)
 {
     connect(this, &OnlineSolver::timeToCheckJobs, this, &OnlineSolver::checkJobs);
+    connect(this, &OnlineSolver::startupOnlineSolver, this, &OnlineSolver::authenticate);
 
-    networkManager = new QNetworkAccessManager();
+    networkManager = new QNetworkAccessManager(this);
     connect(networkManager, &QNetworkAccessManager::finished, this, &OnlineSolver::onResult);
 }
 
@@ -24,14 +32,12 @@ void OnlineSolver::startProcess()
         delete ycol;
         xcol=strdup("X"); //This is the column for the x-coordinates, it doesn't accept X_IMAGE like the other one
         ycol=strdup("Y"); //This is the column for the y-coordinates, it doesn't accept Y_IMAGE like the other one
-        if(runSEPSextractor())
-        {
-            int success = writeSextractorTable();
-            if(success == 0)
-                runOnlineSolver();
-        }
-        else
-            emit finished(-1);
+        int fail = 0;
+        if((fail = runSEPSextractor()) != 0)
+            emit finished(fail);
+        if((fail = writeSextractorTable()) != 0)
+            emit finished(fail);
+        runOnlineSolver();
     }
 }
 
@@ -50,8 +56,7 @@ void OnlineSolver::runOnlineSolver()
 
     solverTimer.start();
 
-    authenticate(); //Go to FIRST STAGE
-
+    startupOnlineSolver(); //Go to FIRST STAGE
     start(); //Start the other thread, which will monitor everything.
 }
 
@@ -344,6 +349,9 @@ void OnlineSolver::onResult(QNetworkReply *reply)
     QJsonParseError parseError;
     QString status;
     QList<QVariant> jsonArray;
+
+    if(logLevel == LOG_VERB || logLevel == LOG_ALL)
+        emit logOutput("Reply Received");
 
     if (workflowStage == NO_STAGE)
     {

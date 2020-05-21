@@ -1,3 +1,10 @@
+/*  OnlineSovler, SexySolver Intenal Library developed by Robert Lancaster, 2020
+
+    This application is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public
+    License as published by the Free Software Foundation; either
+    version 2 of the License, or (at your option) any later version.
+*/
 #ifndef ONLINESOLVER_H
 #define ONLINESOLVER_H
 
@@ -29,6 +36,7 @@ public:
     QString fileToProcess;
 
     void startProcess() override;
+    //void executeProcess() override;
     void abort() override;
 
     typedef enum
@@ -76,6 +84,7 @@ private:
 
 signals:
     void timeToCheckJobs();
+    void startupOnlineSolver();
 
 };
 
