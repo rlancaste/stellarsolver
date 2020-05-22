@@ -5,16 +5,15 @@
     License as published by the Free Software Foundation; either
     version 2 of the License, or (at your option) any later version.
 */
-#include "internalsextractorsolver.h"
 #if defined(__APPLE__)
-#include <sys/sysctl.h>
 #include <sys/stat.h>
 #elif defined(_WIN32)
 #include "windows.h"
 #else //Linux
-#include <QProcess>
 #include <sys/stat.h>
 #endif
+
+#include "internalsextractorsolver.h"
 #include "qmath.h"
 
 InternalSextractorSolver::InternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SextractorSolver(type, imagestats, imageBuffer, parent)
@@ -660,18 +659,6 @@ int InternalSextractorSolver::runInternalSolver()
 {
    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Configuring SexySolver");
-
-    if(params.inParallel)
-    {
-        if(enoughRAMisAvailableFor(indexFolderPaths))
-            emit logOutput("There should be enough RAM to load the indexes in parallel.");
-        else
-        {
-            emit logOutput("Not enough RAM is available on this system for loading the index files you have in parallel");
-            emit logOutput("Disabling the inParallel option.");
-            params.inParallel = false;
-        }
-    }
 
     //This creates and sets up the engine
     engine_t* engine = engine_new();

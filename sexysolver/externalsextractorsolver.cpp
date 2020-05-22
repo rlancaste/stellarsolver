@@ -521,12 +521,6 @@ int ExternalSextractorSolver::runExternalSolver()
     }
     else
     {
-        if(params.inParallel && !enoughRAMisAvailableFor(indexFolderPaths))
-        {
-            emit logOutput("Not enough RAM is available on this system for loading the index files you have in parallel");
-            emit logOutput("You may want to disable the inParallel option.");
-        }
-
         QFileInfo sextractorFile(sextractorFilePath);
         if(!sextractorFile.exists())
         {

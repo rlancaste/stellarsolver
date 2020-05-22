@@ -101,9 +101,6 @@ public:
     bool solvingDone(){return hasSolved;};
     bool isCalculatingHFR(){return calculateHFR;};
 
-    uint64_t getAvailableRAM(); //This finds out the amount of available RAM on the system
-    bool enoughRAMisAvailableFor(QStringList indexFolders);  //This determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
-
 protected:  //Note: These items are not private because they are needed by ExternalSextractorSolver
 
 

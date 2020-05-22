@@ -270,6 +270,9 @@ public:
     QString astrometryAPIKey;
     QString astrometryAPIURL;
 
+    uint64_t getAvailableRAM(); //This finds out the amount of available RAM on the system
+    bool enoughRAMisAvailableFor(QStringList indexFolders);  //This determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
+
 public slots:
     void processFinished(int code);
     void parallelSolve();
@@ -319,6 +322,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     QString solvedfn;           //Filename whose creation tells astrometry.net it already solved the field.
 
 private:
+    bool checkParameters();
     void run() override;
     SextractorSolver* createSextractorSolver();
 
