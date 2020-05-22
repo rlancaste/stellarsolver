@@ -53,25 +53,25 @@ public:
         switch(processType)
         {
             case INT_SEP:
-                return "Internal SEP";
+                return "Int. SEP";
                 break;
             case INT_SEP_HFR:
-                return "Internal SEP w/ HFR";
+                return "Int. SEP w/ HFR";
                 break;
             case EXT_SEXTRACTOR:
-                return "Ext Sextractor";
+                return "Ext. SExtractor";
                 break;
             case EXT_SEXTRACTOR_HFR:
-                return "Ext Sextractor w/ HFR";
+                return "Ext. SExtractor w/ HFR";
                 break;
             case SEXYSOLVER:
-                return "SexySolver";
+                return "Int. SEP & Int. Solver";
                 break;
             case EXT_SEXTRACTORSOLVER:
-                return "Ext Sextractor Ext Solver";
+                return "Ext. SExtractor & Solver";
                 break;
             case INT_SEP_EXT_SOLVER:
-                return "Int SEP Ext Solver";
+                return "Int. SEP & Ext. Solver";
                 break;
             case CLASSIC_ASTROMETRY:
                 return "Classic Astrometry.net";
@@ -80,13 +80,13 @@ public:
                 return "ASTAP Solver";
                 break;
             case INT_SEP_EXT_ASTAP:
-                return "INT SEP EXT ASTAP Solver";
+                return "Int. SEP & Ext. ASTAP Solver";
                 break;
             case ONLINE_ASTROMETRY_NET:
-                return "Online Astrometry.net";
+                return "Online Solver";
                 break;
             case INT_SEP_ONLINE_ASTROMETRY_NET:
-                return "Int SEP Online Astrometry.net";
+                return "Int. SEP & Online Solver";
                 break;
             default: return ""; break;
         }

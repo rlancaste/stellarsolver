@@ -140,11 +140,16 @@ bool SexySolver::checkParameters()
     if(params.inParallel)
     {
         if(enoughRAMisAvailableFor(indexFolderPaths))
-            emit logOutput("There should be enough RAM to load the indexes in parallel.");
+        {
+            if(logLevel != LOG_NONE)
+                emit logOutput("There should be enough RAM to load the indexes in parallel.");
+        }
         else
         {
-            emit logOutput("Not enough RAM is available on this system for loading the index files you have in parallel");
-            emit logOutput("Disabling the inParallel option.");
+            if(logLevel != LOG_NONE)
+                emit logOutput("Not enough RAM is available on this system for loading the index files you have in parallel");
+            if(logLevel != LOG_NONE)
+                emit logOutput("Disabling the inParallel option.");
             params.inParallel = false;
         }
     }
@@ -327,8 +332,10 @@ void SexySolver::finishParallelSolve(int success)
     if(success == 0)
     {
         numStars  = reportingSolver->getNumStarsFound();
-        emit logOutput(QString("Successfully solved with child solver: %1").arg(whichSolver));
-        emit logOutput("Shutting down other child solvers");
+        if(logLevel != LOG_NONE)
+            emit logOutput(QString("Successfully solved with child solver: %1").arg(whichSolver));
+        if(logLevel != LOG_NONE)
+            emit logOutput("Shutting down other child solvers");
         foreach(SextractorSolver *solver, parallelSolvers)
         {
             disconnect(solver, &SextractorSolver::finished, this, &SexySolver::finishParallelSolve);
@@ -348,7 +355,8 @@ void SexySolver::finishParallelSolve(int success)
     else
     {
         parallelFails++;
-        emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
+        if(logLevel != LOG_NONE)
+            emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
         if(parallelFails == parallelSolvers.count())
             emit finished(-1);
     }
@@ -745,11 +753,13 @@ bool SexySolver::enoughRAMisAvailableFor(QStringList indexFolders)
     uint64_t availableRAM = getAvailableRAM();
     if(availableRAM == 0)
     {
-        emit logOutput("Unable to determine system RAM for inParallel Option");
+        if(logLevel != LOG_NONE)
+            emit logOutput("Unable to determine system RAM for inParallel Option");
         return false;
     }
     float bytesInGB = 1024 * 1024 * 1024; // B -> KB -> MB -> GB , float to make sure it reports the answer with any decimals
-    emit logOutput(QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB").arg(totalSize / bytesInGB).arg(availableRAM / bytesInGB));
+    if(logLevel != LOG_NONE)
+        emit logOutput(QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB").arg(totalSize / bytesInGB).arg(availableRAM / bytesInGB));
     return availableRAM > totalSize;
 }
 

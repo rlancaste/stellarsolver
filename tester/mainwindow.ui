@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1086</width>
+    <width>1094</width>
     <height>761</height>
    </rect>
   </property>
@@ -127,7 +127,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>242</width>
+                 <width>244</width>
                  <height>364</height>
                 </rect>
                </property>
@@ -343,7 +343,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>242</width>
+                 <width>244</width>
                  <height>364</height>
                 </rect>
                </property>
@@ -461,7 +461,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>242</width>
+                 <width>244</width>
                  <height>364</height>
                 </rect>
                </property>
@@ -520,7 +520,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>242</width>
+                 <width>244</width>
                  <height>364</height>
                 </rect>
                </property>
@@ -683,7 +683,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>242</width>
+                 <width>244</width>
                  <height>474</height>
                 </rect>
                </property>
@@ -1413,7 +1413,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>431</width>
+                 <width>435</width>
                  <height>130</height>
                 </rect>
                </property>
@@ -1787,22 +1787,22 @@
          <widget class="QComboBox" name="sextractorType">
           <item>
            <property name="text">
-            <string>Internal Sextractor</string>
+            <string>Internal SEP</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>Internal Sextractor w/ HFR</string>
+            <string>Internal SEP w/ HFR</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>External Sextractor</string>
+            <string>External SExtractor</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>External Sextractor w/ HFR</string>
+            <string>External SExtractor w/ HFR</string>
            </property>
           </item>
          </widget>
@@ -1845,17 +1845,17 @@
          <widget class="QComboBox" name="solverType">
           <item>
            <property name="text">
-            <string>Internal Sextractor &amp; Solver</string>
+            <string>Int. SEP &amp; Int. Solver</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>External Sextractor &amp; Solver</string>
+            <string>Ext SExtractor &amp; Ext Solver</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>Int. SEP Ext. Solver</string>
+            <string>Int. SEP &amp; Ext. Solver</string>
            </property>
           </item>
           <item>
@@ -1870,7 +1870,7 @@
           </item>
           <item>
            <property name="text">
-            <string>Int SEP Ext. ASTAP</string>
+            <string>Int. SEP &amp; Ext. ASTAP</string>
            </property>
           </item>
           <item>
@@ -1880,7 +1880,7 @@
           </item>
           <item>
            <property name="text">
-            <string>Int. SEP Online Solver</string>
+            <string>Int. SEP &amp; Online Solver</string>
            </property>
           </item>
          </widget>
