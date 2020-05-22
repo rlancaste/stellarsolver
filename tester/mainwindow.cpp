@@ -831,12 +831,13 @@ void MainWindow::sendSettingsToUI(Parameters a)
 bool MainWindow::sextractorComplete(int error)
 {
     elapsed = processTimer.elapsed()/1000.0;
-    totalTime += elapsed;
+
 
     disconnect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
 
     if(error == 0)
     {
+        totalTime += elapsed; //Only add to total time if it was successful
         if(currentTrial==numberOfTrials)
             stars = sexySolver->getStarList();
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -865,6 +866,7 @@ bool MainWindow::sextractorComplete(int error)
         stopProcessMonitor();
         if(currentTrial == 1)
             return false;
+        currentTrial--; //This solve was NOT successful so it should not be counted in the average.
     }
 
     emit readyForStarTable();
@@ -878,12 +880,12 @@ bool MainWindow::sextractorComplete(int error)
 bool MainWindow::solverComplete(int error)
 {
     elapsed = processTimer.elapsed()/1000.0;
-    totalTime += elapsed;
 
     disconnect(sexySolver, &SexySolver::finished, this, &MainWindow::solverComplete);
 
     if(error == 0)
     {
+        totalTime += elapsed; //Only add to the total time if it was successful
         ui->progressBar->setRange(0,10);
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput(QString(sexySolver->getCommandString() + " took a total of: %1 second(s).").arg( elapsed));
@@ -907,6 +909,7 @@ bool MainWindow::solverComplete(int error)
         stopProcessMonitor();
         if(currentTrial == 1)
             return false;
+        currentTrial--; //This solve was NOT successful so it should not be counted in the average.
     }
 
     ui->resultsTable->insertRow(ui->resultsTable->rowCount());
@@ -2184,8 +2187,8 @@ void MainWindow::addSextractionToTable()
     QTableWidget *table = ui->resultsTable;
     Parameters params = sexySolver->getCurrentParameters();
 
-    setItemInColumn(table, "Avg Time", QString::number(totalTime / numberOfTrials));
-    setItemInColumn(table, "# Trials", QString::number(numberOfTrials));
+    setItemInColumn(table, "Avg Time", QString::number(totalTime / currentTrial));
+    setItemInColumn(table, "# Trials", QString::number(currentTrial));
     if(sexySolver->isCalculatingHFR())
         setItemInColumn(table, "Command", sexySolver->getCommandString() + " w/HFR");
     else
@@ -2224,8 +2227,8 @@ void MainWindow::addSolutionToTable(Solution solution)
     QTableWidget *table = ui->resultsTable;
     Parameters params = sexySolver->getCurrentParameters();
 
-    setItemInColumn(table, "Avg Time", QString::number(totalTime / numberOfTrials));
-    setItemInColumn(table, "# Trials", QString::number(numberOfTrials));
+    setItemInColumn(table, "Avg Time", QString::number(totalTime / currentTrial));
+    setItemInColumn(table, "# Trials", QString::number(currentTrial));
     setItemInColumn(table, "Command", sexySolver->getCommandString());
     setItemInColumn(table, "Profile", params.listName);
 
