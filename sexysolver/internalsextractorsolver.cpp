@@ -291,10 +291,46 @@ int InternalSextractorSolver::runSEPSextractor()
 
     }
 
-    emit logOutput(QString("Stars Found before Filtering: %1").arg(stars.size()));
+    applyStarFilters();
 
+    hasSextracted = true;
+
+    if (stats.dataType != TFLOAT)
+        delete [] data;
+    sep_bkg_free(bkg);
+    sep_catalog_free(catalog);
+    free(imback);
+    free(fluxerr);
+    free(area);
+    free(flag);
+    return 0;
+
+exit:
+    if (stats.dataType != TFLOAT)
+        delete [] data;
+    sep_bkg_free(bkg);
+    sep_catalog_free(catalog);
+    free(imback);
+    free(fluxerr);
+    free(area);
+    free(flag);
+
+    if (status != 0)
+    {
+        char errorMessage[512];
+        sep_get_errmsg(status, errorMessage);
+        emit logOutput(errorMessage);
+        return status;
+    }
+
+    return -1;
+}
+
+void InternalSextractorSolver::applyStarFilters()
+{
     if(stars.size() > 1)
     {
+        emit logOutput(QString("Stars Found before Filtering: %1").arg(stars.size()));
         if(params.resort)
         {
             //Note that a star is dimmer when the mag is greater!
@@ -409,40 +445,8 @@ int InternalSextractorSolver::runSEPSextractor()
                     stars.removeLast();
             }
         }
+        emit logOutput(QString("Stars Found after Filtering: %1").arg(stars.size()));
     }
-
-    emit logOutput(QString("Stars Found after Filtering: %1").arg(stars.size()));
-    hasSextracted = true;
-
-    if (stats.dataType != TFLOAT)
-        delete [] data;
-    sep_bkg_free(bkg);
-    sep_catalog_free(catalog);
-    free(imback);
-    free(fluxerr);
-    free(area);
-    free(flag);
-    return 0;
-
-exit:
-    if (stats.dataType != TFLOAT)
-        delete [] data;
-    sep_bkg_free(bkg);
-    sep_catalog_free(catalog);
-    free(imback);
-    free(fluxerr);
-    free(area);
-    free(flag);
-
-    if (status != 0)
-    {
-        char errorMessage[512];
-        sep_get_errmsg(status, errorMessage);
-        emit logOutput(errorMessage);
-        return status;
-    }
-
-    return -1;
 }
 
 template <typename T>

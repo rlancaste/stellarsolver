@@ -133,8 +133,15 @@ int ExternalSextractorSolver::sextract()
         sextractorFilePath = basePath + "/" + baseName + ".xyls";
     }
 
-    if(processType == EXT_SEXTRACTOR_HFR || processType == EXT_SEXTRACTOR || processType == EXT_SEXTRACTORSOLVER )
+    if(processType == EXT_SEXTRACTOR_HFR || processType == EXT_SEXTRACTOR)
         return runExternalSextractor();
+    else if(processType == EXT_SEXTRACTORSOLVER)
+    {
+        int fail = 0;
+        if((fail = runExternalSextractor()) != 0)
+            return fail;
+        return(writeSextractorTable());
+    }
     else if(processType == INT_SEP_EXT_SOLVER || processType == INT_SEP_EXT_ASTAP)
     {
         int fail = 0;
@@ -485,6 +492,8 @@ int ExternalSextractorSolver::runExternalSextractor()
     int exitCode = getStarsFromXYLSFile();
     if(exitCode != 0)
         return exitCode;
+
+    applyStarFilters();
 
     hasSextracted = true;
 

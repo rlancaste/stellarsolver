@@ -28,6 +28,7 @@ public:
 
 protected:
     int runSEPSextractor();    //This is the method that actually runs the internal sextractor
+    void applyStarFilters();    //This applies the star filter to the stars list.
     bool usingDownsampledImage = false; //This boolean gets set internally if we are using a downsampled image buffer for SEP
 
 
