@@ -12,7 +12,7 @@
 #include <wcshdr.h>
 #include <wcsfix.h>
 
-ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : InternalSextractorSolver(type, imagestats, imageBuffer, parent)
+ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalSextractorSolver(type, imagestats, imageBuffer, parent)
 {
 
     //This sets the base name used for the temp files.
@@ -1339,7 +1339,9 @@ int ExternalSextractorSolver::saveAsFITS()
     }
 
     /* Write Data */
-    if (fits_write_img(fptr, stats.dataType, 1, nelements, m_ImageBuffer, &status))
+    uint8_t *imageBuffer = nullptr;
+    memcpy(imageBuffer, m_ImageBuffer, stats.size);
+    if (fits_write_img(fptr, stats.dataType, 1, nelements, imageBuffer, &status))
     {
         fits_report_error(stderr, status);
         return status;

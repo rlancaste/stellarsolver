@@ -15,10 +15,10 @@
 
 //Astrometry.net includes
 extern "C"{
-#include "blindutils.h"
-#include "log.h"
-#include "engine.h"
-#include "sip-utils.h"
+#include "astrometry/blindutils.h"
+#include "astrometry/log.h"
+#include "astrometry/engine.h"
+#include "astrometry/sip-utils.h"
 }
 
 

@@ -26,10 +26,10 @@
 
 //Astrometry.net includes
 extern "C"{
-#include "blindutils.h"
-#include "log.h"
-#include "engine.h"
-#include "sip-utils.h"
+#include "astrometry/blindutils.h"
+#include "astrometry/log.h"
+#include "astrometry/engine.h"
+#include "astrometry/sip-utils.h"
 }
 
 
@@ -43,8 +43,8 @@ public:
     ProcessType processType;
 
     //The constructor and destructor fo the SexySolver Object
-    explicit SexySolver(ProcessType type, Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
-    explicit SexySolver(Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
+    explicit SexySolver(ProcessType type, Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
+    explicit SexySolver(Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
     ~SexySolver();
 
     //This gets the processType as a string explaining the command SexySolver is Running
@@ -305,7 +305,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     bool hasSextracted = false;         //This boolean is set when the sextraction is done
     bool hasSolved = false;             //This boolean is set when the solving is done
     Statistic stats;                    //This is information about the image
-    uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
+    const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
 
     //The Results
     QList<Star> stars;          //This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net

@@ -16,7 +16,7 @@
 class InternalSextractorSolver: public SextractorSolver
 {
 public:
-    explicit InternalSextractorSolver(ProcessType type, Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
+    explicit InternalSextractorSolver(ProcessType type, Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
     ~InternalSextractorSolver();
 
     int sextract() override;

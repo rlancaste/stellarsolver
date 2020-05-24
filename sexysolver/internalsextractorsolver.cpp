@@ -16,7 +16,7 @@
 #include "internalsextractorsolver.h"
 #include "qmath.h"
 
-InternalSextractorSolver::InternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : SextractorSolver(type, imagestats, imageBuffer, parent)
+InternalSextractorSolver::InternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : SextractorSolver(type, imagestats, imageBuffer, parent)
 {
     processType = type;
     stats=imagestats;
@@ -172,7 +172,7 @@ int InternalSextractorSolver::runSEPSextractor()
             break;
         case TFLOAT:
             delete [] data;
-            data = reinterpret_cast<float *>(m_ImageBuffer);
+            memcpy(data, m_ImageBuffer, sizeof(float)*w*h);
             break;
         case TDOUBLE:
             getFloatBuffer<double>(data, x, y, w, h);
@@ -452,8 +452,7 @@ void InternalSextractorSolver::applyStarFilters()
 template <typename T>
 void InternalSextractorSolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
 {
-    auto * rawBuffer = reinterpret_cast<T *>(m_ImageBuffer);
-
+    auto * rawBuffer = reinterpret_cast<T const *>(m_ImageBuffer);
     float * floatPtr = buffer;
 
     int x2 = x + w;
@@ -514,7 +513,7 @@ void InternalSextractorSolver::downSampleImageType(int d)
     int oldBufferSize = stats.samples_per_channel * numChannels * stats.bytesPerPixel;
     int newBufferSize = oldBufferSize / (d * d); //It is d times smaller in width and height
     downSampledBuffer =new uint8_t[newBufferSize];
-    auto * sourceBuffer = reinterpret_cast<T *>(m_ImageBuffer);
+    auto * sourceBuffer = reinterpret_cast<T const *>(m_ImageBuffer);
     auto * destinationBuffer = reinterpret_cast<T *>(downSampledBuffer);
 
     //The G pixels are after all the R pixels, Same for the B pixels

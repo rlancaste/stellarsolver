@@ -7,7 +7,7 @@
 */
 #include "sextractorsolver.h"
 
-SextractorSolver::SextractorSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : QThread(parent)
+SextractorSolver::SextractorSolver(ProcessType type, Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : QThread(parent)
 {
     processType = type;
     stats=imagestats;

@@ -19,14 +19,14 @@
 #include "onlinesolver.h"
 
 
-SexySolver::SexySolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : QThread(parent)
+SexySolver::SexySolver(ProcessType type, Statistic imagestats, const uint8_t *imageBuffer, QObject *parent) : QThread(parent)
 {
      processType = type;
      stats=imagestats;
      m_ImageBuffer=imageBuffer;
 }
 
-SexySolver::SexySolver(Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : QThread(parent)
+SexySolver::SexySolver(Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : QThread(parent)
 {
      stats=imagestats;
      m_ImageBuffer=imageBuffer;

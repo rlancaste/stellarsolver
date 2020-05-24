@@ -17,7 +17,7 @@ class ExternalSextractorSolver : public InternalSextractorSolver
 {
     Q_OBJECT
 public:
-    explicit ExternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent = nullptr);
+    explicit ExternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
     ~ExternalSextractorSolver();
 
 

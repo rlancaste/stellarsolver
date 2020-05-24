@@ -18,17 +18,17 @@
 
 //Astrometry.net includes
 extern "C"{
-#include "blindutils.h"
-#include "log.h"
-#include "engine.h"
-#include "sip-utils.h"
+#include "astrometry/blindutils.h"
+#include "astrometry/log.h"
+#include "astrometry/engine.h"
+#include "astrometry/sip-utils.h"
 }
 
 class SextractorSolver : public QThread
 {
     Q_OBJECT
 public:
-    SextractorSolver(ProcessType type, Statistic imagestats,  uint8_t *imageBuffer, QObject *parent = nullptr);
+    SextractorSolver(ProcessType type, Statistic imagestats,  const uint8_t *imageBuffer, QObject *parent = nullptr);
     ~SextractorSolver();
 
     ProcessType processType;
@@ -109,7 +109,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     bool hasSextracted = false;         //This boolean is set when the sextraction is done
     bool hasSolved = false;             //This boolean is set when the solving is done
     Statistic stats;                    //This is information about the image
-    uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
+    const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
     bool usingDownsampledImage = false; //This boolean gets set internally if we are using a downsampled image buffer for SEP
 
     //The Results

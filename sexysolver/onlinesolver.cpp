@@ -9,7 +9,7 @@
 #include <QTimer>
 #include <QEventLoop>
 
-OnlineSolver::OnlineSolver(ProcessType type, Statistic imagestats, uint8_t *imageBuffer, QObject *parent) : ExternalSextractorSolver(type, imagestats, imageBuffer, parent)
+OnlineSolver::OnlineSolver(ProcessType type, Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : ExternalSextractorSolver(type, imagestats, imageBuffer, parent)
 {
     connect(this, &OnlineSolver::timeToCheckJobs, this, &OnlineSolver::checkJobs);
     connect(this, &OnlineSolver::startupOnlineSolver, this, &OnlineSolver::authenticate);
