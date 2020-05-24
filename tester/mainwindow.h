@@ -107,6 +107,10 @@ private:
     bool showSextractorParams = false;
     bool showAstrometryParams = false;
     bool showSolutionDetails = true;
+    bool settingSubframe = false;
+
+    bool useSubframe = false;
+    QRect subframe;
 
     ProcessType processType;
 
@@ -158,6 +162,7 @@ public slots:
     void settingJustChanged();
 
     void loadIndexFilesList();
+    void setSubframe();
 
     //These are the functions that run when the bottom buttons are clicked
     void sextractButtonClicked();
@@ -193,7 +198,7 @@ public slots:
 
     void mouseMovedOverImage(QPoint location);
     QString getValue(int x, int y);
-    void mouseClickedOnStar(QPoint location);
+    void mouseClickedInImage(QPoint location);
     QRect getStarSizeInImage(Star star, bool &accurate);
 
     //This function is for loading and parsing the options

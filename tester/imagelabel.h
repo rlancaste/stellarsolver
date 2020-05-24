@@ -15,7 +15,7 @@ public:
 
 signals:
     void mouseClicked(QPoint location);
-    void mouseHovered(QPoint location);
+    void mouseMoved(QPoint location);
 
 };
 

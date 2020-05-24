@@ -184,6 +184,8 @@ MainWindow::MainWindow() :
     });
     //SexySolver Tester Options
     connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
+    ui->setSubFrame->setToolTip("Sets or clears the Subframe for Sextraction if desired");
+    connect(ui->setSubFrame,&QAbstractButton::clicked, this, &MainWindow::setSubframe );
 
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){
         ExternalSextractorSolver extTemp(EXT_SEXTRACTORSOLVER, stats, m_ImageBuffer, this);
@@ -309,8 +311,8 @@ MainWindow::MainWindow() :
     ui->showStarShapeInfo->setToolTip("This toggles whether to show or hide the information about each star's semi-major axis, semi-minor axis, and orientation in the star table after sextraction.");
 
     //Behaviors for the Mouse over the Image to interact with the StartList and the UI
-    connect(ui->Image,&ImageLabel::mouseHovered,this, &MainWindow::mouseMovedOverImage);
-    connect(ui->Image,&ImageLabel::mouseClicked,this, &MainWindow::mouseClickedOnStar);
+    connect(ui->Image,&ImageLabel::mouseMoved,this, &MainWindow::mouseMovedOverImage);
+    connect(ui->Image,&ImageLabel::mouseClicked,this, &MainWindow::mouseClickedInImage);
 
     //Behavior and settings for the Results Table
     setupResultsTable();
@@ -463,6 +465,21 @@ void MainWindow::logOutput(QString text)
      ui->logDisplay->show();
 }
 
+void MainWindow::setSubframe()
+{
+    if(useSubframe)
+    {
+        useSubframe = false;
+        ui->setSubFrame->setChecked(false);
+    }
+    else
+    {
+        settingSubframe = true;
+        ui->mouseInfo->setText("Please select your subframe now.");
+    }
+    updateImage();
+}
+
 void MainWindow::startProcessMonitor()
 {
     ui->status->setText(QString("Processing Trial %1").arg(currentTrial));
@@ -594,6 +611,11 @@ void MainWindow::sextractImage()
     setupExternalSextractorSolverIfNeeded();
     setupSexySolverParameters();
 
+    if(useSubframe)
+        sexySolver->setUseSubframe(subframe);
+    else
+        sexySolver->clearSubFrame();
+
     connect(sexySolver, &SexySolver::finished, this, &MainWindow::sextractorComplete);
 
     startProcessMonitor();
@@ -660,6 +682,8 @@ void MainWindow::solveImage()
 
     setupSexySolverParameters();
     setupExternalSextractorSolverIfNeeded();
+
+    sexySolver->clearSubFrame();
 
     //Setting the initial search scale settings
     if(ui->use_scale->isChecked())
@@ -1655,6 +1679,18 @@ void MainWindow::updateImage()
             p.drawEllipse(starInImage);
             p.restore();
         }
+        if(useSubframe)
+        {
+            QPen highlighter(QColor("green"));
+            highlighter.setWidth(2);
+            p.setPen(highlighter);
+            p.setOpacity(1);
+            double x = subframe.x() * currentWidth / stats.width ;
+            double y = subframe.y() * currentHeight / stats.height;
+            double w = subframe.width() * currentWidth / stats.width;
+            double h = subframe.height() * currentHeight / stats.height;
+            p.drawRect(QRect(x,y,w,h));
+        }
         p.end();
     }
 
@@ -1698,16 +1734,30 @@ void MainWindow::mouseMovedOverImage(QPoint location)
         double x = location.x() * stats.width / currentWidth;
         double y = location.y() * stats.height / currentHeight;
 
+        if(settingSubframe)
+        {
+            int subX = subframe.x();
+            int subY = subframe.y();
+            int w = x - subX;
+            int h = y - subY;
+            subframe = QRect(subX, subY, w, h);
+            updateImage();
+        }
+
+        QString mouseText = "";
         if(hasWCSData)
         {
             int index = x + y * stats.width;
             char rastr[32], decstr[32];
             ra2hmsstring(wcs_coord[index].ra, rastr);
             dec2dmsstring(wcs_coord[index].dec, decstr);
-            ui->mouseInfo->setText(QString("RA: %1, DEC: %2, Value: %3").arg(rastr).arg(decstr).arg(getValue(x,y)));
+            mouseText = QString("RA: %1, DEC: %2, Value: %3").arg(rastr).arg(decstr).arg(getValue(x,y));
         }
         else
-            ui->mouseInfo->setText(QString("X: %1, Y: %2, Value: %3").arg(x).arg(y).arg(getValue(x,y)));
+            mouseText = QString("X: %1, Y: %2, Value: %3").arg(x).arg(y).arg(getValue(x,y));
+        if(useSubframe)
+            mouseText = mouseText + QString(", Subframe X: %1, Y: %2, W: %3, H: %4").arg(subframe.x()).arg(subframe.y()).arg(subframe.width()).arg(subframe.height());
+        ui->mouseInfo->setText(mouseText);
 
         bool starFound = false;
         for(int i = 0 ; i < stars.size() ; i ++)
@@ -1789,8 +1839,21 @@ QString MainWindow::getValue(int x, int y)
 
 //I wrote the is method to respond when the user clicks on a star
 //It highlights the row in the star table that corresponds to that star
-void MainWindow::mouseClickedOnStar(QPoint location)
+void MainWindow::mouseClickedInImage(QPoint location)
 {
+    if(settingSubframe)
+    {
+        if(!useSubframe)
+        {
+            useSubframe = true;
+            ui->setSubFrame->setChecked(true);
+            double x = location.x() * stats.width / currentWidth;
+            double y = location.y() * stats.height / currentHeight;
+            subframe = QRect(x, y, 0, 0);
+        }
+        else
+            settingSubframe = false;
+    }
     for(int i = 0 ; i < stars.size() ; i ++)
     {
         bool accurate;

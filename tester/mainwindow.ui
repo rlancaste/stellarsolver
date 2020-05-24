@@ -1130,7 +1130,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>98</width>
+                 <width>100</width>
                  <height>74</height>
                 </rect>
                </property>
@@ -1498,6 +1498,16 @@
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="setSubFrame">
+                <property name="text">
+                 <string>SubFrame</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QCheckBox" name="showStars">

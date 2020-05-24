@@ -18,6 +18,7 @@
 #include <QMap>
 #include <QVariant>
 #include <QVector>
+#include <QRect>
 
 //CFitsio Includes
 #include "fitsio.h"
@@ -203,7 +204,10 @@ public:
 
     //These are the most important methods that you can use for the SexySolver
     void sextract();
+    void sextract(QRect frame);
     void sextractWithHFR();
+    void sextractWithHFR(QRect frame);
+
     void startsextraction();
     void startSextractionWithHFR();
     void solve();
@@ -273,6 +277,8 @@ public:
     uint64_t getAvailableRAM(); //This finds out the amount of available RAM on the system
     bool enoughRAMisAvailableFor(QStringList indexFolders);  //This determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
 
+    void setUseSubframe(QRect frame){useSubframe = true; subframe = frame;};
+    void clearSubFrame(){useSubframe = false; subframe = QRect(0,0,stats.width,stats.height);};
 public slots:
     void processFinished(int code);
     void parallelSolve();
@@ -280,6 +286,8 @@ public slots:
 
 protected:  //Note: These items are not private because they are needed by ExternalSextractorSolver
 
+    bool useSubframe = false;
+    QRect subframe;
     QList<SextractorSolver*> parallelSolvers;
     SextractorSolver *sextractorSolver = nullptr;
     SextractorSolver *solverWithWCS = nullptr;

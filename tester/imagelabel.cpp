@@ -7,7 +7,7 @@ ImageLabel::ImageLabel(QWidget *parent, Qt::WindowFlags)
 
 void ImageLabel::mouseMoveEvent(QMouseEvent *ev)
 {
-    emit mouseHovered(ev->pos());
+    emit mouseMoved(ev->pos());
 }
 
 void ImageLabel::mouseReleaseEvent(QMouseEvent *ev)

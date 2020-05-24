@@ -24,12 +24,14 @@ SexySolver::SexySolver(ProcessType type, Statistic imagestats, const uint8_t *im
      processType = type;
      stats=imagestats;
      m_ImageBuffer=imageBuffer;
+     subframe = QRect(0,0,stats.width,stats.height);
 }
 
 SexySolver::SexySolver(Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : QThread(parent)
 {
      stats=imagestats;
      m_ImageBuffer=imageBuffer;
+     subframe = QRect(0,0,stats.width,stats.height);
 }
 
 SexySolver::~SexySolver()
@@ -64,6 +66,8 @@ SextractorSolver* SexySolver::createSextractorSolver()
         solver = extSolver;
     }
 
+    if(useSubframe)
+        solver->setUseSubframe(subframe);
     solver->logToFile = logToFile;
     solver->logFileName = logFileName;
     solver->logLevel = logLevel;
@@ -84,12 +88,30 @@ SextractorSolver* SexySolver::createSextractorSolver()
 void SexySolver::sextract()
 {
     processType = INT_SEP;
+    useSubframe = false;
     executeProcess();
 }
 
 void SexySolver::sextractWithHFR()
 {
     processType = INT_SEP_HFR;
+    useSubframe = false;
+    executeProcess();
+}
+
+void SexySolver::sextract(QRect frame)
+{
+    processType = INT_SEP;
+    subframe = frame;
+    useSubframe = true;
+    executeProcess();
+}
+
+void SexySolver::sextractWithHFR(QRect frame)
+{
+    processType = INT_SEP_HFR;
+    subframe = frame;
+    useSubframe = true;
     executeProcess();
 }
 

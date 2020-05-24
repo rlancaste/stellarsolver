@@ -10,6 +10,7 @@
 
 //Includes for this project
 #include <QThread>
+#include <QRect>
 #include <QDir>
 #include "structuredefinitions.h"
 
@@ -100,10 +101,12 @@ public:
     bool hasWCSData(){return hasWCS;};
     bool solvingDone(){return hasSolved;};
     bool isCalculatingHFR(){return calculateHFR;};
+    void setUseSubframe(QRect frame){useSubframe = true; subframe = frame;};
 
 protected:  //Note: These items are not private because they are needed by ExternalSextractorSolver
 
-
+    bool useSubframe = false;
+    QRect subframe;
     //SexySolver Internal settings that are needed by ExternalSextractorSolver as well
     bool calculateHFR = false;          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
     bool hasSextracted = false;         //This boolean is set when the sextraction is done

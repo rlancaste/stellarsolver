@@ -150,6 +150,13 @@ int InternalSextractorSolver::runSEPSextractor()
         downsampleImage(params.downsample);
 
     int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
+    if(useSubframe)
+    {
+        x = subframe.x();
+        y = subframe.y();
+        w = subframe.width();
+        h = subframe.height();
+    }
 
     auto * data = new float[w * h];
 
@@ -285,10 +292,9 @@ int InternalSextractorSolver::runSEPSextractor()
             HFR = flux_fractions[0];
         }
 
-        Star star = {xPos , yPos , mag, (float)sum, (float)peak, HFR, a, b, qRadiansToDegrees(theta), 0, 0,"",""};
+        Star star = {xPos + x, yPos + y, mag, (float)sum, (float)peak, HFR, a, b, qRadiansToDegrees(theta), 0, 0,"",""};
 
         stars.append(star);
-
     }
 
     applyStarFilters();
