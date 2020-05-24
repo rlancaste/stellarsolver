@@ -81,6 +81,8 @@ endif(WIN32)
 # We aren't using netpbm in this program, so set this to 0 no matter what
 file(APPEND "${config_FN}" "#define HAVE_NETPBM 0")
 
+option(BUILD_TESTER "Build sexysolver tester program, instead of just the library" On)
+
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
 find_package(WCSLIB REQUIRED)
@@ -270,6 +272,11 @@ if(WIN32)
 target_link_libraries(sexysolver wsock32 ${Boost_LIBRARIES})
 endif(WIN32)
 
+install(TARGETS sexysolver DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sexysolver.h DESTINATION "${CMAKE_INSTALL_PREFIX}/include/")
+
+if(BUILD_TESTER)
+
 set(SexySolverTester_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/mainwindow.cpp
@@ -284,7 +291,7 @@ qt5_wrap_ui(SexySolverui_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/mainwindow.ui
     )
 
-If(APPLE)
+if(APPLE)
 set(MACOSX_BUNDLE_ICON_FILE SexySolverIcon.icns)
 set(SexySolverTesterApp_ICON ${CMAKE_CURRENT_SOURCE_DIR}/tester/SexySolverIcon.icns)
 set_source_files_properties(${SexySolverTesterApp_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
@@ -324,6 +331,7 @@ else(APPLE)
         install(TARGETS SexySolverTester RUNTIME DESTINATION bin)
 endif(APPLE)
 
+endif(BUILD_TESTER)
 
 
 
