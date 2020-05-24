@@ -274,6 +274,7 @@ endif(WIN32)
 
 install(TARGETS sexysolver DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sexysolver.h DESTINATION "${CMAKE_INSTALL_PREFIX}/include/sexysolver/")
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/structuredefinitions.h DESTINATION "${CMAKE_INSTALL_PREFIX}/include/sexysolver/")
 
 if(BUILD_TESTER)
 
