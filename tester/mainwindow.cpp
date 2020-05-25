@@ -1735,6 +1735,15 @@ void MainWindow::mouseMovedOverImage(QPoint location)
         double x = location.x() * stats.width / currentWidth;
         double y = location.y() * stats.height / currentHeight;
 
+        if(x < 0)
+            x = 0;
+        if(y < 0)
+            y = 0;
+        if(x > stats.width)
+            x = stats.width;
+        if(y > stats.height)
+            y = stats.height;
+
         if(settingSubframe)
         {
             int subX = subframe.x();
