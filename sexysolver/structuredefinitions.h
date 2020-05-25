@@ -72,11 +72,14 @@ typedef struct
     double decError;    //The error between the search_dec position and the solution dec position in "
 } Solution;
 
+#ifndef struct_wcs_point
+#define struct_wcs_point
 typedef struct
 {
     float ra;
     float dec;
 } wcs_point;
+#endif
 
 enum Shape{
     SHAPE_AUTO,
