@@ -313,6 +313,7 @@ MainWindow::MainWindow() :
     //Behaviors for the Mouse over the Image to interact with the StartList and the UI
     connect(ui->Image,&ImageLabel::mouseMoved,this, &MainWindow::mouseMovedOverImage);
     connect(ui->Image,&ImageLabel::mouseClicked,this, &MainWindow::mouseClickedInImage);
+    connect(ui->Image,&ImageLabel::mouseDown,this, &MainWindow::mousePressedInImage);
 
     //Behavior and settings for the Results Table
     setupResultsTable();
@@ -1842,6 +1843,20 @@ QString MainWindow::getValue(int x, int y)
 void MainWindow::mouseClickedInImage(QPoint location)
 {
     if(settingSubframe)
+        settingSubframe = false;
+
+    for(int i = 0 ; i < stars.size() ; i ++)
+    {
+        bool accurate;
+        QRect starInImage = getStarSizeInImage(stars.at(i), accurate);
+        if(starInImage.contains(location))
+            ui->starTable->selectRow(i);
+    }
+}
+
+void MainWindow::mousePressedInImage(QPoint location)
+{
+    if(settingSubframe)
     {
         if(!useSubframe)
         {
@@ -1851,15 +1866,6 @@ void MainWindow::mouseClickedInImage(QPoint location)
             double y = location.y() * stats.height / currentHeight;
             subframe = QRect(x, y, 0, 0);
         }
-        else
-            settingSubframe = false;
-    }
-    for(int i = 0 ; i < stars.size() ; i ++)
-    {
-        bool accurate;
-        QRect starInImage = getStarSizeInImage(stars.at(i), accurate);
-        if(starInImage.contains(location))
-            ui->starTable->selectRow(i);
     }
 }
 
