@@ -493,6 +493,19 @@ int ExternalSextractorSolver::runExternalSextractor()
     if(exitCode != 0)
         return exitCode;
 
+    if(useSubframe)
+    {
+        for(int i = 0; i<stars.size();i++)
+        {
+            Star star = stars.at(i);
+            if(!subframe.contains(star.x, star.y))
+            {
+                stars.removeAt(i);
+                i--;
+            }
+        }
+    }
+
     applyStarFilters();
 
     hasSextracted = true;
@@ -1339,13 +1352,15 @@ int ExternalSextractorSolver::saveAsFITS()
     }
 
     /* Write Data */
-    uint8_t *imageBuffer = nullptr;
-    memcpy(imageBuffer, m_ImageBuffer, stats.size);
+    uint8_t *imageBuffer = new uint8_t[stats.samples_per_channel * m_Channels * stats.bytesPerPixel];
+    memcpy(imageBuffer, m_ImageBuffer, stats.samples_per_channel * m_Channels * stats.bytesPerPixel);
     if (fits_write_img(fptr, stats.dataType, 1, nelements, imageBuffer, &status))
     {
+        delete[] imageBuffer;
         fits_report_error(stderr, status);
         return status;
     }
+    delete[] imageBuffer;
 
     /* Write keywords */
 
