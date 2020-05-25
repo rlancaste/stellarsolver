@@ -277,7 +277,7 @@ public:
     uint64_t getAvailableRAM(); //This finds out the amount of available RAM on the system
     bool enoughRAMisAvailableFor(QStringList indexFolders);  //This determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
 
-    void setUseSubframe(QRect frame){useSubframe = true; subframe = frame;};
+    void setUseSubframe(QRect frame);
     void clearSubFrame(){useSubframe = false; subframe = QRect(0,0,stats.width,stats.height);};
 public slots:
     void processFinished(int code);

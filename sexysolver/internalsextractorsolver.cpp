@@ -152,26 +152,10 @@ int InternalSextractorSolver::runSEPSextractor()
     int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
     if(useSubframe)
     {
-        if(subframe.width() > 0)
-        {
-            x = subframe.x();
-            w = subframe.width();
-        }
-        else
-        {
-            x = subframe.x() + subframe.width(); //It's negative
-            w = -subframe.width();
-        }
-        if(subframe.height() > 0)
-        {
-            y = subframe.y();
-            h = subframe.height();
-        }
-        else
-        {
-            y = subframe.y() + subframe.height(); //It's negative
-            h = -subframe.height();
-        }
+         x = subframe.x();
+         w = subframe.width();
+         y = subframe.y();
+         h = subframe.height();
     }
 
     auto * data = new float[w * h];

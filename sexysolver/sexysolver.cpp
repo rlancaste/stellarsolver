@@ -512,9 +512,34 @@ QList<Parameters> SexySolver::getOptionsProfiles()
     return optionsList;
 }
 
-//All the code below is my attempt to implement astrometry.net code in such a way that it could run internally in a program instead of requiring
-//external method calls.  This would be critical for running astrometry.net on windows and it might make the code more efficient on Linux and mac since it
-//would not have to prepare command line options and parse them all the time.
+void SexySolver::setUseSubframe(QRect frame)
+{
+    int x = frame.x();
+    int y = frame.y();
+    int w = frame.width();
+    int h = frame.height();
+    if(w < 0)
+    {
+        x = x + w; //It's negative
+        w = -w;
+    }
+    if(h < 0)
+    {
+        y = y + h; //It's negative
+        h = -h;
+    }
+    if(x < 0)
+        x = 0;
+    if(y < 0)
+        y = 0;
+    if(x > stats.width)
+        x = stats.width;
+    if(y > stats.height)
+        y = stats.height;
+
+    useSubframe = true;
+    subframe = QRect(x, y, w, h);
+}
 
 //This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.
 void SexySolver::setSearchScale(double fov_low, double fov_high, QString scaleUnits)
