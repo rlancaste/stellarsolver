@@ -319,6 +319,7 @@ void SexySolver::processFinished(int code)
         else
         {
             stars = sextractorSolver->getStarList();
+            background = sextractorSolver->getBackground();
             calculateHFR = sextractorSolver->isCalculatingHFR();
             if(solverWithWCS)
                 stars = solverWithWCS->appendStarsRAandDEC(stars);

@@ -59,6 +59,13 @@ typedef struct
 
 typedef struct
 {
+    int bw, bh;        /* single tile width, height */
+    float global;      /* global mean */
+    float globalrms;   /* global sigma */
+} Background;
+
+typedef struct
+{
     double fieldWidth;  //The Calculated width of the field
     double fieldHeight; //The Calculated height of the field
     double ra;          //The Right Ascension of the center of the field

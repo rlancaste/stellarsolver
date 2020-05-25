@@ -94,7 +94,7 @@ public:
     int depthhi = -1;                       //This is the high depth of this child solver
 
 
-
+    Background getBackground(){return background;}
     int getNumStarsFound(){return stars.size();};
     QList<Star> getStarList(){return stars;}
     Solution getSolution(){return solution;};
@@ -116,6 +116,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     bool usingDownsampledImage = false; //This boolean gets set internally if we are using a downsampled image buffer for SEP
 
     //The Results
+    Background background;      //This is a report on the background levels found during sextraction
     QList<Star> stars;          //This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
     Solution solution;          //This is the solution that comes back from the Solver
     bool runSEPSextractor();    //This is the method that actually runs the internal sextractor

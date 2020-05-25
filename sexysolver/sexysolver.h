@@ -229,21 +229,22 @@ public:
 
 
     //Accessor Method for external classes
-    int getNumStarsFound(){return numStars;};
+    int getNumStarsFound(){return numStars;}
     QList<Star> getStarList(){return stars;}
+    Background getBackground(){return background;}
     QList<Star> getStarListFromSolve(){return starsFromSolve;}
-    Solution getSolution(){return solution;};
+    Solution getSolution(){return solution;}
 
-    bool sextractionDone(){return hasSextracted;};
-    bool solvingDone(){return hasSolved;};
-    void setLoadWCS(bool set){loadWCS = set;};
+    bool sextractionDone(){return hasSextracted;}
+    bool solvingDone(){return hasSolved;}
+    void setLoadWCS(bool set){loadWCS = set;}
     bool hasWCSData(){return hasWCS;};
     int getNumThreads(){if(parallelSolvers.size()==0) return 1; else return parallelSolvers.size();}
 
-    Parameters getCurrentParameters(){return params;};
-    bool isCalculatingHFR(){return calculateHFR;};
-    bool isUsingScale(){return use_scale;};
-    bool isUsingPosition(){return use_position;};
+    Parameters getCurrentParameters(){return params;}
+    bool isCalculatingHFR(){return calculateHFR;}
+    bool isUsingScale(){return use_scale;}
+    bool isUsingPosition(){return use_position;}
 
 
     virtual wcs_point *getWCSCoord();
@@ -311,6 +312,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
 
     //The Results
+    Background background;      //This is a report on the background levels found during sextraction
     QList<Star> stars;          //This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
     QList<Star> starsFromSolve; //This is the list of stars that were sextracted for the last successful solve
     int numStars;               //The number of stars found in the last operation

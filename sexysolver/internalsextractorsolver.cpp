@@ -213,6 +213,12 @@ int InternalSextractorSolver::runSEPSextractor()
     status = sep_bkg_array(bkg, imback, SEP_TFLOAT);
     if (status != 0) goto exit;
 
+    //Saving some background information
+    background.bh = bkg->bh;
+    background.bw = bkg->bw;
+    background.global = bkg->global;
+    background.globalrms = bkg->globalrms;
+
     // #3 Background subtraction
     status = sep_bkg_subarray(bkg, im.data, im.dtype);
     if (status != 0) goto exit;
