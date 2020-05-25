@@ -273,9 +273,16 @@ target_link_libraries(sexysolver wsock32 ${Boost_LIBRARIES})
 endif(WIN32)
 
 install(TARGETS sexysolver DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sexysolver.h DESTINATION "${CMAKE_INSTALL_PREFIX}/include/sexysolver/")
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/structuredefinitions.h DESTINATION "${CMAKE_INSTALL_PREFIX}/include/sexysolver/")
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sextractorsolver.h DESTINATION "${CMAKE_INSTALL_PREFIX}/include/sexysolver/")
+set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/sexysolver/")
+set(PKG_CONFIG_LIBDIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+set(PKGCONFIG_INSTALL_PREFIX "${CMAKE_INSTALL_LIBDIR}/pkgconfig/")
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sexysolver.h DESTINATION "${INCLUDE_INSTALL_DIR}")
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/structuredefinitions.h DESTINATION "${INCLUDE_INSTALL_DIR}")
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sextractorsolver.h DESTINATION "${INCLUDE_INSTALL_DIR}")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libsexysolver.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/libsexysolver.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libsexysolver.pc DESTINATION ${PKGCONFIG_INSTALL_PREFIX})
 
 if(BUILD_TESTER)
 
