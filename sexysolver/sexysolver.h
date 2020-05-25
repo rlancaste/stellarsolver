@@ -183,13 +183,6 @@ public:
         }
     }
 
-    //SEXYSOLVER PARAMETERS
-    //These are the parameters used by the Internal SexySolver Sextractor and Internal SexySolver Astrometry Solver
-    //The values here are the defaults unless they get changed.
-    //If you are fine with those defaults, you don't need to set any of them.
-
-
-
     //Logging Settings for Astrometry
     bool logToFile = false;             //This determines whether or not to save the output from Astrometry.net to a file
     QString logFileName;                //This is the path to the log file that it will save.
@@ -217,6 +210,7 @@ public:
 
     //These set the settings for the SexySolver
     void setParameters(Parameters parameters){params = parameters;};
+    void setParameterProfile(ParametersProfile profile);
     void setIndexFolderPaths(QStringList indexPaths){indexFolderPaths = indexPaths;};
     void setUseScale(bool set){use_scale = set;};
     void setSearchScale(double fov_low, double fov_high, QString scaleUnits);
@@ -230,8 +224,9 @@ public:
 
     //These static methods can be used by classes to configure parameters or paths
     static void createConvFilterFromFWHM(Parameters *params, double fwhm);                      //This creates the conv filter from a fwhm
-    static QList<Parameters> getOptionsProfiles();
+    static QList<Parameters> getBuiltInProfiles();
     static QStringList getDefaultIndexFolderPaths();
+
 
     //Accessor Method for external classes
     int getNumStarsFound(){return numStars;};

@@ -376,7 +376,7 @@ MainWindow::MainWindow() :
     SexySolver temp(processType, stats, m_ImageBuffer, this);
     ui->basePath->setText(temp.basePath);
     sendSettingsToUI(temp.getCurrentParameters());
-    optionsList = temp.getOptionsProfiles();
+    optionsList = temp.getBuiltInProfiles();
     foreach(Parameters param, optionsList)
     {
         ui->optionsProfile->addItem(param.listName);

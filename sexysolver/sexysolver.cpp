@@ -411,9 +411,9 @@ void SexySolver::createConvFilterFromFWHM(Parameters *params, double fwhm)
     }
 }
 
-QList<Parameters> SexySolver::getOptionsProfiles()
+QList<Parameters> SexySolver::getBuiltInProfiles()
 {
-    QList<Parameters> optionsList;
+    QList<Parameters> profileList;
 
     Parameters fastSolving;
     fastSolving.listName = "FastSolving";
@@ -423,7 +423,7 @@ QList<Parameters> SexySolver::getOptionsProfiles()
     fastSolving.keepNum = 50;
     fastSolving.maxEllipse = 1.5;
     createConvFilterFromFWHM(&fastSolving, 4);
-    optionsList.append(fastSolving);
+    profileList.append(fastSolving);
 
     Parameters parSolving;
     parSolving.listName = "ParallelSolving";
@@ -434,7 +434,7 @@ QList<Parameters> SexySolver::getOptionsProfiles()
     parSolving.keepNum = 50;
     parSolving.maxEllipse = 1.5;
     createConvFilterFromFWHM(&parSolving, 2);
-    optionsList.append(parSolving);
+    profileList.append(parSolving);
 
     Parameters parLargeSolving;
     parLargeSolving.listName = "ParallelLargeScale";
@@ -445,7 +445,7 @@ QList<Parameters> SexySolver::getOptionsProfiles()
     parLargeSolving.keepNum = 50;
     parLargeSolving.maxEllipse = 1.5;
     createConvFilterFromFWHM(&parLargeSolving, 2);
-    optionsList.append(parLargeSolving);
+    profileList.append(parLargeSolving);
 
     Parameters fastSmallSolving;
     fastSmallSolving.listName = "ParallelSmallScale";
@@ -456,14 +456,14 @@ QList<Parameters> SexySolver::getOptionsProfiles()
     fastSmallSolving.keepNum = 50;
     fastSmallSolving.maxEllipse = 1.5;
     createConvFilterFromFWHM(&fastSmallSolving, 2);
-    optionsList.append(fastSmallSolving);
+    profileList.append(fastSmallSolving);
 
     Parameters stars;
     stars.listName = "AllStars";
     stars.maxEllipse = 1.5;
     createConvFilterFromFWHM(&stars, 1);
     stars.r_min = 2;
-    optionsList.append(stars);
+    profileList.append(stars);
 
     Parameters smallStars;
     smallStars.listName = "SmallSizedStars";
@@ -472,7 +472,7 @@ QList<Parameters> SexySolver::getOptionsProfiles()
     smallStars.r_min = 2;
     smallStars.maxSize = 5;
     smallStars.saturationLimit = 80;
-    optionsList.append(smallStars);
+    profileList.append(smallStars);
 
     Parameters mid;
     mid.listName = "MidSizedStars";
@@ -484,7 +484,7 @@ QList<Parameters> SexySolver::getOptionsProfiles()
     mid.minSize = 2;
     mid.maxSize = 10;
     mid.saturationLimit = 80;
-    optionsList.append(mid);
+    profileList.append(mid);
 
     Parameters big;
     big.listName = "BigSizedStars";
@@ -494,22 +494,15 @@ QList<Parameters> SexySolver::getOptionsProfiles()
     big.r_min = 20;
     big.minSize = 5;
     big.removeDimmest = 50;
-    optionsList.append(big);
+    profileList.append(big);
 
-    Parameters down;
-    down.listName = "DownSample2";
-    down.downsample = 2;
-    down.removeDimmest = 50;
-    optionsList.append(down);
+    return profileList;
+}
 
-    Parameters downStars;
-    downStars.listName = "Down2Stars";
-    downStars.maxEllipse = 1.2;
-    downStars.downsample = 2;
-    downStars.removeDimmest = 50;
-    optionsList.append(downStars);
-
-    return optionsList;
+void SexySolver::setParameterProfile(ParametersProfile profile)
+{
+    QList<Parameters> profileList = getBuiltInProfiles();
+    setParameters(profileList.at(profile));
 }
 
 void SexySolver::setUseSubframe(QRect frame)

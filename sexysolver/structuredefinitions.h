@@ -113,6 +113,21 @@ typedef enum {NOT_MULTI,
               MULTI_AUTO
 }MultiAlgo;
 
+//SEXYSOLVER PARAMETERS
+//These are the parameters used by the Internal SexySolver Sextractor and Internal SexySolver Astrometry Solver
+//The values here are the defaults unless they get changed.
+//If you are fine with those defaults, you don't need to set any of them.
+
+typedef enum {
+    FAST_SOLVING,
+    PARALLEL_SOLVING,
+    PARALLEL_LARGESCALE,
+    PARALLEL_SMALLSCALE,
+    ALL_STARS,
+    SMALL_STARS,
+    MID_STARS,
+    BIG_STARS
+} ParametersProfile;
 struct Parameters
 {
     QString listName = "Default";       //This is the name of this particular profile of options for SexySolver
