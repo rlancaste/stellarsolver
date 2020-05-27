@@ -89,14 +89,18 @@ void SexySolver::sextract()
 {
     processType = INT_SEP;
     useSubframe = false;
-    executeProcess();
+    startProcess();
+    while(!isFinished())
+        wait(10);
 }
 
 void SexySolver::sextractWithHFR()
 {
     processType = INT_SEP_HFR;
     useSubframe = false;
-    executeProcess();
+    startProcess();
+    while(!isFinished())
+        wait(10);
 }
 
 void SexySolver::sextract(QRect frame)
@@ -104,7 +108,9 @@ void SexySolver::sextract(QRect frame)
     processType = INT_SEP;
     subframe = frame;
     useSubframe = true;
-    executeProcess();
+    startProcess();
+    while(!isFinished())
+        wait(10);
 }
 
 void SexySolver::sextractWithHFR(QRect frame)
@@ -112,7 +118,9 @@ void SexySolver::sextractWithHFR(QRect frame)
     processType = INT_SEP_HFR;
     subframe = frame;
     useSubframe = true;
-    executeProcess();
+    startProcess();
+    while(!isFinished())
+        wait(10);
 }
 
 void SexySolver::startsextraction()
