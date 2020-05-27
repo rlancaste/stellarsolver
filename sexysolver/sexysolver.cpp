@@ -90,7 +90,7 @@ void SexySolver::sextract()
     processType = INT_SEP;
     useSubframe = false;
     startProcess();
-    while(!isFinished())
+    while(!hasSextracted)
         wait(10);
 }
 
@@ -99,7 +99,7 @@ void SexySolver::sextractWithHFR()
     processType = INT_SEP_HFR;
     useSubframe = false;
     startProcess();
-    while(!isFinished())
+    while(!hasSextracted)
         wait(10);
 }
 
@@ -109,7 +109,7 @@ void SexySolver::sextract(QRect frame)
     subframe = frame;
     useSubframe = true;
     startProcess();
-    while(!isFinished())
+    while(!hasSextracted)
         wait(10);
 }
 
@@ -119,7 +119,7 @@ void SexySolver::sextractWithHFR(QRect frame)
     subframe = frame;
     useSubframe = true;
     startProcess();
-    while(!isFinished())
+    while(!hasSextracted)
         wait(10);
 }
 
@@ -188,6 +188,11 @@ bool SexySolver::checkParameters()
 
 void SexySolver::run()
 {
+    if(processType == INT_SEP || processType == INT_SEP_HFR || processType == EXT_SEXTRACTOR || processType == EXT_SEXTRACTOR_HFR)
+        hasSextracted = false;
+    else
+        hasSolved = false;
+
     //These are the ones that support parallelization
     if(params.multiAlgorithm != NOT_MULTI && (processType == SEXYSOLVER || processType == EXT_SEXTRACTORSOLVER || processType == INT_SEP_EXT_SOLVER))
     {
@@ -322,6 +327,7 @@ void SexySolver::processFinished(int code)
                 hasWCS = true;
                 solverWithWCS = sextractorSolver;
             }
+            hasSolved = true;
         }
         //This means it was a Sextraction Command
         else
@@ -331,6 +337,7 @@ void SexySolver::processFinished(int code)
             calculateHFR = sextractorSolver->isCalculatingHFR();
             if(solverWithWCS)
                 stars = solverWithWCS->appendStarsRAandDEC(stars);
+            hasSextracted = true;
         }
     }
     emit finished(code);
