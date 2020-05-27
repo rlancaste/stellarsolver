@@ -21,7 +21,8 @@ extern "C"{
 #include "astrometry/sip-utils.h"
 }
 
-
+#ifndef struct_statistic
+#define struct_statistic
 /// Stats struct to hold statisical data about the FITS data
 typedef struct
 {
@@ -30,7 +31,7 @@ typedef struct
     double stddev[3] = {0};
     double median[3] = {0};
     double SNR { 0 };
-    /// FITS image data type (SEP_TBYTE, TUSHORT, TULONG, TFLOAT, TLONGLONG, TDOUBLE)
+    /// FITS image data type (TBYTE, TUSHORT, TULONG, TFLOAT, TLONGLONG, TDOUBLE)
     uint32_t dataType { 0 };
     int bytesPerPixel { 1 };
     int ndim { 2 };
@@ -39,6 +40,7 @@ typedef struct
     uint16_t width { 0 };
     uint16_t height { 0 };
 } Statistic;
+#endif
 
 typedef struct
 {
