@@ -291,6 +291,7 @@ target_link_libraries(sexysolverstatic wsock32 ${Boost_LIBRARIES})
 target_link_libraries(sexysolver wsock32 ${Boost_LIBRARIES})
 endif(WIN32)
 
+set_target_properties(sexysolverstatic PROPERTIES OUTPUT_NAME sexysolver)
 install(TARGETS sexysolverstatic DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
 install(TARGETS sexysolver DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
 set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/sexysolver/")
