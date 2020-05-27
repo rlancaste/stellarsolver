@@ -116,7 +116,6 @@ set(qfits_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_error.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_header.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_image.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_md5.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_table.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_time.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/qfits-an/qfits_tools.c
@@ -159,7 +158,6 @@ set(anbase_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/permutedsort.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/ioutils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/fileutils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/md5.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/os-features.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/an-endian.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/astrometry/util/errors.c
@@ -245,7 +243,26 @@ set(SexySolver_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/sexysolver/sexysolver.cpp
    )
 
-add_library(sexysolver
+add_library(sexysolverstatic STATIC
+    ${SexySolver_SRCS}
+    ${sep_SRCS}
+    ${engine_SRCS}
+    ${anfiles_SRCS}
+    ${anutils_SRCS}
+    ${anbase_SRCS}
+    ${kd_SRCS}
+    ${qfits_SRCS}
+    )
+target_link_libraries(sexysolverstatic
+    ${CFITSIO_LIBRARIES}
+    ${GSL_LIBRARIES}
+    ${WCSLIB_LIBRARIES}
+    Qt5::Core
+    Qt5::Network
+    Qt5::Widgets
+    )
+
+add_library(sexysolver SHARED
     ${SexySolver_SRCS}
     ${sep_SRCS}
     ${engine_SRCS}
@@ -258,20 +275,23 @@ add_library(sexysolver
 target_link_libraries(sexysolver
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
-
+    ${WCSLIB_LIBRARIES}
     Qt5::Core
     Qt5::Network
     Qt5::Widgets
     )
 
 if(NOT MSVC)
+target_link_libraries(sexysolverstatic -lpthread)
 target_link_libraries(sexysolver -lpthread)
 endif(NOT MSVC)
 
 if(WIN32)
+target_link_libraries(sexysolverstatic wsock32 ${Boost_LIBRARIES})
 target_link_libraries(sexysolver wsock32 ${Boost_LIBRARIES})
 endif(WIN32)
 
+install(TARGETS sexysolverstatic DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
 install(TARGETS sexysolver DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
 set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/sexysolver/")
 set(PKG_CONFIG_LIBDIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
@@ -316,7 +336,7 @@ if(APPLE)
     SET_TARGET_PROPERTIES(SexySolverTester PROPERTIES MACOSX_BUNDLE TRUE)
 endif(APPLE)
 
-target_link_libraries(SexySolverTester sexysolver)
+target_link_libraries(SexySolverTester sexysolverstatic)
 
 target_link_libraries(SexySolverTester
     ${CFITSIO_LIBRARIES}
