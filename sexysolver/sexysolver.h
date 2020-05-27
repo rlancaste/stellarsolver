@@ -237,6 +237,7 @@ public:
 
     bool sextractionDone(){return hasSextracted;}
     bool solvingDone(){return hasSolved;}
+    bool failed(){return hasFailed;}
     void setLoadWCS(bool set){loadWCS = set;}
     bool hasWCSData(){return hasWCS;};
     int getNumThreads(){if(parallelSolvers.size()==0) return 1; else return parallelSolvers.size();}
@@ -308,6 +309,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     bool calculateHFR = false;          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
     bool hasSextracted = false;         //This boolean is set when the sextraction is done
     bool hasSolved = false;             //This boolean is set when the solving is done
+    bool hasFailed = false;
     Statistic stats;                    //This is information about the image
     const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
 
