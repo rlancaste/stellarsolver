@@ -17,6 +17,7 @@
 #include "sextractorsolver.h"
 #include "externalsextractorsolver.h"
 #include "onlinesolver.h"
+#include <QApplication>
 
 
 SexySolver::SexySolver(ProcessType type, Statistic imagestats, const uint8_t *imageBuffer, QObject *parent) : QThread(parent)
@@ -89,14 +90,14 @@ void SexySolver::sextract()
 {
     processType = INT_SEP;
     useSubframe = false;
-    startProcess();
+    executeProcess();
 }
 
 void SexySolver::sextractWithHFR()
 {
     processType = INT_SEP_HFR;
     useSubframe = false;
-    startProcess();
+    executeProcess();
 }
 
 void SexySolver::sextract(QRect frame)
@@ -104,7 +105,7 @@ void SexySolver::sextract(QRect frame)
     processType = INT_SEP;
     subframe = frame;
     useSubframe = true;
-    startProcess();
+    executeProcess();
 }
 
 void SexySolver::sextractWithHFR(QRect frame)
@@ -112,7 +113,7 @@ void SexySolver::sextractWithHFR(QRect frame)
     processType = INT_SEP_HFR;
     subframe = frame;
     useSubframe = true;
-    startProcess();
+    executeProcess();
 }
 
 void SexySolver::startsextraction()
@@ -141,7 +142,9 @@ void SexySolver::executeProcess()
     if(checkParameters())
     {
         sextractorSolver = createSextractorSolver();
-        run();
+        start();
+        while(!hasSextracted && !hasSolved && !hasFailed && !wasAborted)
+            QApplication::processEvents();
     }
 }
 
