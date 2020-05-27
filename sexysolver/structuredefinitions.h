@@ -12,14 +12,7 @@
 #include "stdint.h"
 #include <QString>
 #include <QVector>
-
-//Astrometry.net includes
-extern "C"{
-#include "astrometry/blindutils.h"
-#include "astrometry/log.h"
-#include "astrometry/engine.h"
-#include "astrometry/sip-utils.h"
-}
+#include "math.h"
 
 #ifndef struct_statistic
 #define struct_statistic
@@ -40,6 +33,17 @@ typedef struct
     uint16_t width { 0 };
     uint16_t height { 0 };
 } Statistic;
+#endif
+
+#ifndef struct_log
+#define struct_log
+enum log_level {
+    LOG_NONE,
+    LOG_ERROR,
+    LOG_MSG,
+    LOG_VERB,
+    LOG_ALL
+};
 #endif
 
 typedef struct
@@ -181,7 +185,7 @@ struct Parameters
     //Astrometry Basic Parameters
     bool resort = true;                 //Whether to resort the stars based on magnitude NOTE: This is REQUIRED to be true for the filters above
     int downsample = 1;                 //Factor to use for downsampling the image before SEP for plate solving.  Can speed it up.  Note: This should ONLY be used for SEP used for solving, not for Sextraction
-    int search_parity = PARITY_BOTH;    //Only check for matches with positive/negative parity (default: try both)
+    int search_parity = 2;              //Only check for matches with positive/negative parity (default: try both)
     double search_radius = 15;          //Only search in indexes within 'radius' of the field center given by RA and DEC
 
     //LogOdds Settings

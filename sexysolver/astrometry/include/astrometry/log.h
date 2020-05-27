@@ -9,6 +9,8 @@
 #include <stdarg.h>
 #include "astrometry/an-bool.h"
 
+#ifndef struct_log
+#define struct_log
 enum log_level {
     LOG_NONE,
     LOG_ERROR,
@@ -16,6 +18,7 @@ enum log_level {
     LOG_VERB,
     LOG_ALL
 };
+#endif
 
 typedef void (*logfunc_t)(void* baton, enum log_level, const char* file, int line, const char* func, const char* format, va_list va);
 //typedef void (*logfunc2_t)(void* baton, enum log_level, const char* file, int line, const char* string);

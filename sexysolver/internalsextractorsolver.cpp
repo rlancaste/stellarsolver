@@ -16,6 +16,10 @@
 #include "internalsextractorsolver.h"
 #include "qmath.h"
 
+extern "C"{
+    #include "astrometry/log.h"
+}
+
 InternalSextractorSolver::InternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : SextractorSolver(type, imagestats, imageBuffer, parent)
 {
     processType = type;
@@ -686,10 +690,10 @@ int InternalSextractorSolver::runInternalSolver()
     if(isChildSolver)
     {
         if(logLevel == LOG_VERB || logLevel == LOG_ALL)
-            log_init(logLevel);
+            log_init((log_level)logLevel);
     }
     else
-        log_init(logLevel);
+        log_init((log_level)logLevel);
 
     if(logLevel != LOG_NONE)
     {
