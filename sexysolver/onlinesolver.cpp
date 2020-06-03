@@ -232,8 +232,8 @@ void OnlineSolver::uploadFile()
         uploadReq.insert("radius", params.search_radius);
     }
 
-    if (useWCSCenter)
-        uploadReq.insert("crpix_center", true);
+    //We would like the Coordinates found to be the center of the image
+    uploadReq.insert("crpix_center", true);
 
     if (params.downsample != 1)
         uploadReq.insert("downsample_factor", params.downsample);

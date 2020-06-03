@@ -705,7 +705,8 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     // Start with always-used arguments.  The way we are using Astrometry.net,
     //We really would prefer that it always overwrite existing files, that it not waste any time
     //writing plots to a file, and that it doesn't run the verification.
-    solverArgs << "-O" << "--no-plots" << "--no-verify";
+    //We would also like the Coordinates found to be the center of the image
+    solverArgs << "-O" << "--no-plots" << "--no-verify"<< "--crpix-center";
 
     //We would also prefer that it not write these temporary files, because they are a waste of
     //resources, time, hard disk space, and memory card life since we aren't using them.

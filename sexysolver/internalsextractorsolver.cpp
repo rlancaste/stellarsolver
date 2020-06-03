@@ -608,6 +608,10 @@ bool InternalSextractorSolver::prepare_job() {
     sp->field_maxx = stats.width;
     sp->field_maxy = stats.height;
 
+    //We would like the Coordinates found to be the center of the image
+    sp->set_crpix = TRUE;
+    sp->set_crpix_center = TRUE;
+
     blind_set_cancel_file(bp, cancelfn.toLatin1().constData());
     blind_set_solved_file(bp,solvedfn.toLatin1().constData());
 

@@ -80,8 +80,6 @@ private:
     int job_retries { 0 };
     QElapsedTimer solverTimer;
 
-    bool useWCSCenter { false };
-
 signals:
     void timeToCheckJobs();
     void startupOnlineSolver();
