@@ -9,7 +9,7 @@
 #include <QTimer>
 #include <QEventLoop>
 
-OnlineSolver::OnlineSolver(ProcessType type, Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : ExternalSextractorSolver(type, imagestats, imageBuffer, parent)
+OnlineSolver::OnlineSolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : ExternalSextractorSolver(type, imagestats, imageBuffer, parent)
 {
     connect(this, &OnlineSolver::timeToCheckJobs, this, &OnlineSolver::checkJobs);
     connect(this, &OnlineSolver::startupOnlineSolver, this, &OnlineSolver::authenticate);
@@ -525,9 +525,6 @@ void OnlineSolver::onResult(QNetworkReply *reply)
                 return;
             }
 
-            char rastr[32], decstr[32];
-            ra2hmsstring(ra, rastr);
-            dec2dmsstring(dec, decstr);
             float raErr = 0;
             float decErr = 0;
             if(use_position)
@@ -536,7 +533,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
                 decErr = (search_dec - dec) * 3600;
             }
             QString par = (parity > 0) ? "neg" : "pos";
-            solution = {fieldw,fieldh,ra,dec,rastr,decstr,orientation, pixscale, par, raErr, decErr};
+            solution = {fieldw, fieldh, ra, dec, orientation, pixscale, par, raErr, decErr};
             hasSolved = true;
 
             if(logLevel == LOG_ALL || logToFile)

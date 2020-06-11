@@ -13,11 +13,13 @@
 #include <QProcess>
 #include <QPointer>
 
+using namespace SSolver;
+
 class ExternalSextractorSolver : public InternalSextractorSolver
 {
     Q_OBJECT
 public:
-    explicit ExternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
+    explicit ExternalSextractorSolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
     ~ExternalSextractorSolver();
 
 
@@ -71,8 +73,8 @@ public:
     void cleanupTempFiles();
 
     int loadWCS();
-    wcs_point * getWCSCoord() override;
-    QList<Star> appendStarsRAandDEC(QList<Star> stars) override;
+    FITSImage::wcs_point * getWCSCoord() override;
+    QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars) override;
     /// WCS Struct
     struct wcsprm *m_wcs
     {

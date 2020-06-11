@@ -11,6 +11,7 @@
 //Includes for this project
 #include "structuredefinitions.h"
 #include "sextractorsolver.h"
+#include "parameters.h"
 
 //QT Includes
 #include <QDir>
@@ -19,6 +20,8 @@
 #include <QVariant>
 #include <QVector>
 #include <QRect>
+
+using namespace SSolver;
 
 class SexySolver : public QThread
 {
@@ -29,149 +32,44 @@ public:
     ProcessType processType;
 
     //The constructor and destructor fo the SexySolver Object
-    explicit SexySolver(ProcessType type, Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
-    explicit SexySolver(Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
+    explicit SexySolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
+    explicit SexySolver(FITSImage::Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
     ~SexySolver();
 
     //This gets the processType as a string explaining the command SexySolver is Running
     QString getCommandString()
     {
-        switch(processType)
-        {
-            case INT_SEP:
-                return "Int. SEP";
-                break;
-            case INT_SEP_HFR:
-                return "Int. SEP w/ HFR";
-                break;
-            case EXT_SEXTRACTOR:
-                return "Ext. SExtractor";
-                break;
-            case EXT_SEXTRACTOR_HFR:
-                return "Ext. SExtractor w/ HFR";
-                break;
-            case SEXYSOLVER:
-                return "Int. SEP & Int. Solver";
-                break;
-            case EXT_SEXTRACTORSOLVER:
-                return "Ext. SExtractor & Solver";
-                break;
-            case INT_SEP_EXT_SOLVER:
-                return "Int. SEP & Ext. Solver";
-                break;
-            case CLASSIC_ASTROMETRY:
-                return "Classic Astrometry.net";
-                break;
-            case ASTAP:
-                return "ASTAP Solver";
-                break;
-            case INT_SEP_EXT_ASTAP:
-                return "Int. SEP & Ext. ASTAP Solver";
-                break;
-            case ONLINE_ASTROMETRY_NET:
-                return "Online Solver";
-                break;
-            case INT_SEP_ONLINE_ASTROMETRY_NET:
-                return "Int. SEP & Online Solver";
-                break;
-            default: return ""; break;
-        }
-    };
+        return SSolver::getCommandString(processType);
+    }
 
     //This gets the scale unit string for astrometry.net input
     //This should NOT be translated
     QString getScaleUnitString()
     {
-        switch(scaleunit)
-        {
-            case DEG_WIDTH:
-                return "degwidth";
-                break;
-            case ARCMIN_WIDTH:
-                return "arcminwidth";
-                break;
-            case ARCSEC_PER_PIX:
-                return "arcsecperpix";
-                break;
-            case FOCAL_MM:
-                return "focalmm";
-            break;
-            default: return ""; break;
-        }
+        return SSolver::getScaleUnitString(scaleunit);
     }
 
     //This gets a string for the Sextractor setting for calculating Flux using ellipses or circles
     QString getShapeString()
     {
-        switch(params.apertureShape)
-        {
-            case SHAPE_AUTO:
-                return "Auto";
-            break;
-
-            case SHAPE_CIRCLE:
-               return "Circle";
-            break;
-
-            case SHAPE_ELLIPSE:
-                return "Ellipse";
-            break;
-            default: return ""; break;
-        }
+        return SSolver::getShapeString(params.apertureShape);
     }
 
     //This gets a string for which Parallel Solving Algorithm we are using
     QString getMultiAlgoString()
     {
-        switch(params.multiAlgorithm)
-        {
-            case NOT_MULTI:
-                return "None";
-            break;
-
-            case MULTI_SCALES:
-               return "Scales";
-            break;
-
-            case MULTI_DEPTHS:
-                return "Depths";
-            break;
-            default: return ""; break;
-        }
+        return SSolver::getMultiAlgoString(params.multiAlgorithm);
     }
 
     QString getLogLevelString()
     {
-        switch(logLevel)
-        {
-            case LOG_NONE:
-                return "None";
-            break;
-
-            case LOG_ERROR:
-               return "Error";
-            break;
-
-            case LOG_MSG:
-                return "Message";
-            break;
-
-            case LOG_VERB:
-                return "Verbose";
-            break;
-
-            case LOG_ALL:
-                return "All";
-            break;
-
-            default: return ""; break;
-        }
+        return SSolver::getLogLevelString(logLevel);
     }
 
     //Logging Settings for Astrometry
     bool logToFile = false;             //This determines whether or not to save the output from Astrometry.net to a file
     QString logFileName;                //This is the path to the log file that it will save.
-    log_level logLevel = LOG_MSG;       //This is the level of logging getting saved to the log file
+    logging_level logLevel = LOG_MSG;       //This is the level of logging getting saved to the log file
 
     //These are for creating temporary files
     QString baseName;                   //This is the base name used for all temporary files.  It uses a random name based on the type of solver/sextractor.
@@ -195,7 +93,7 @@ public:
 
     //These set the settings for the SexySolver
     void setParameters(Parameters parameters){params = parameters;};
-    void setParameterProfile(ParametersProfile profile);
+    void setParameterProfile(SSolver::Parameters::ParametersProfile profile);
     void setIndexFolderPaths(QStringList indexPaths){indexFolderPaths = indexPaths;};
     void setUseScale(bool set){use_scale = set;};
     void setSearchScale(double fov_low, double fov_high, QString scaleUnits);
@@ -205,7 +103,7 @@ public:
     void setSearchPositionInDegrees(double ra, double dec);
     void setProcessType(ProcessType type){processType = type;};
     void setLogToFile(bool change){logToFile = change;};
-    void setLogLevel(log_level level){logLevel = level;};
+    void setLogLevel(logging_level level){logLevel = level;};
 
     //These static methods can be used by classes to configure parameters or paths
     static void createConvFilterFromFWHM(Parameters *params, double fwhm);                      //This creates the conv filter from a fwhm
@@ -215,10 +113,10 @@ public:
 
     //Accessor Method for external classes
     int getNumStarsFound(){return numStars;}
-    QList<Star> getStarList(){return stars;}
-    Background getBackground(){return background;}
-    QList<Star> getStarListFromSolve(){return starsFromSolve;}
-    Solution getSolution(){return solution;}
+    QList<FITSImage::Star> getStarList(){return stars;}
+    FITSImage::Background getBackground(){return background;}
+    QList<FITSImage::Star> getStarListFromSolve(){return starsFromSolve;}
+    FITSImage::Solution getSolution(){return solution;}
 
     bool sextractionDone(){return hasSextracted;}
     bool solvingDone(){return hasSolved;}
@@ -233,11 +131,8 @@ public:
     bool isUsingPosition(){return use_position;}
 
 
-    virtual wcs_point *getWCSCoord();
-    virtual QList<Star> appendStarsRAandDEC(QList<Star> stars);
-
-    static QMap<QString,QVariant> convertToMap(Parameters params);
-    static Parameters convertFromMap(QMap<QString,QVariant> settingsMap);
+    virtual FITSImage::wcs_point *getWCSCoord();
+    virtual QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars);
 
     //External Options
     QString fileToProcess;
@@ -261,6 +156,21 @@ public:
 
     void setUseSubframe(QRect frame);
     void clearSubFrame(){useSubframe = false; subframe = QRect(0,0,stats.width,stats.height);};
+
+    static QString raString(double ra)
+    {
+        char rastr[32];
+        ra2hmsstring(ra, rastr);
+        return rastr;
+    }
+
+    static QString decString(double dec)
+    {
+        char decstr[32];
+        dec2dmsstring(dec, decstr);
+        return decstr;
+    }
+
 public slots:
     void processFinished(int code);
     void parallelSolve();
@@ -295,18 +205,18 @@ protected:  //Note: These items are not private because they are needed by Exter
     bool hasSextracted = false;         //This boolean is set when the sextraction is done
     bool hasSolved = false;             //This boolean is set when the solving is done
     bool hasFailed = false;
-    Statistic stats;                    //This is information about the image
+    FITSImage::Statistic stats;                    //This is information about the image
     const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
 
     //The Results
-    Background background;      //This is a report on the background levels found during sextraction
-    QList<Star> stars;          //This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
-    QList<Star> starsFromSolve; //This is the list of stars that were sextracted for the last successful solve
+    FITSImage::Background background;      //This is a report on the background levels found during sextraction
+    QList<FITSImage::Star> stars;          //This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
+    QList<FITSImage::Star> starsFromSolve; //This is the list of stars that were sextracted for the last successful solve
     int numStars;               //The number of stars found in the last operation
-    Solution solution;          //This is the solution that comes back from the Solver
+    FITSImage::Solution solution;          //This is the solution that comes back from the Solver
     bool loadWCS = true;
     bool hasWCS = false;        //This boolean gets set if the SexySolver has WCS data to retrieve
-    wcs_point * wcs_coord = nullptr;
+    FITSImage::wcs_point * wcs_coord = nullptr;
 
     bool wasAborted = false;
     // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve

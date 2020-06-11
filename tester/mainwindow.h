@@ -85,17 +85,17 @@ public:
     explicit MainWindow();
     ~MainWindow();
 
-    void setStarList(QList<Star> starList){stars = starList;};
+    void setStarList(QList<FITSImage::Star> starList){stars = starList;};
 
 private:
     Ui::MainWindow *ui;
 
     QPointer<SexySolver> sexySolver;
     QString fileToProcess;
-    QList<Star> stars;
+    QList<FITSImage::Star> stars;
     int selectedStar;
 
-    QList<Parameters> optionsList;
+    QList<SSolver::Parameters> optionsList;
     bool optionsAreSaved = true;
 
     //Options for SexySolver Tester
@@ -112,7 +112,7 @@ private:
     bool useSubframe = false;
     QRect subframe;
 
-    ProcessType processType;
+    SSolver::ProcessType processType;
 
     //This allows for averaging over multiple trials
     int currentTrial = 0;
@@ -121,7 +121,7 @@ private:
 
     //Data about the image
     bool imageLoaded = false;
-    Statistic stats;
+    FITSImage::Statistic stats;
     fitsfile *fptr { nullptr };
     QImage rawImage;
     QImage scaledImage;
@@ -146,9 +146,9 @@ private:
     void setupResultsTable();
     void clearAstrometrySettings();
     void addSextractionToTable();
-    Solution lastSolution;
+    FITSImage::Solution lastSolution;
 
-    wcs_point *wcs_coord { nullptr };
+    FITSImage::wcs_point *wcs_coord { nullptr };
 
 public slots:
 
@@ -200,14 +200,14 @@ public slots:
     QString getValue(int x, int y);
     void mouseClickedInImage(QPoint location);
     void mousePressedInImage(QPoint location);
-    QRect getStarSizeInImage(Star star, bool &accurate);
+    QRect getStarSizeInImage(FITSImage::Star star, bool &accurate);
 
     //This function is for loading and parsing the options
     bool getSolverOptionsFromFITS();
 
     //These functions handle the settings for the Sextractors and Solvers
-    Parameters getSettingsFromUI();
-    void sendSettingsToUI(Parameters a);
+    SSolver::Parameters getSettingsFromUI();
+    void sendSettingsToUI(SSolver::Parameters a);
     void setupExternalSextractorSolverIfNeeded();
     void setupSexySolverParameters();
 
@@ -217,7 +217,7 @@ public slots:
     bool loadWCSComplete();
 
     //These functions handle the solution table
-    void addSolutionToTable(Solution solution);
+    void addSolutionToTable(FITSImage::Solution solution);
     void updateHiddenResultsTableColumns();
     void saveResultsTable();
 

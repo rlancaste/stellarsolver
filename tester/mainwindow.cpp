@@ -101,7 +101,7 @@ MainWindow::MainWindow() :
         if (ok && !name.isEmpty())
         {
             optionsAreSaved = true;
-            Parameters params = getSettingsFromUI();
+            SSolver::Parameters params = getSettingsFromUI();
             params.listName = name;
             ui->optionsProfile->setCurrentIndex(0); //So we don't trigger any loading of any other profiles
             optionsList.append(params);
@@ -188,7 +188,7 @@ MainWindow::MainWindow() :
     connect(ui->setSubFrame,&QAbstractButton::clicked, this, &MainWindow::setSubframe );
 
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){
-        ExternalSextractorSolver extTemp(EXT_SEXTRACTORSOLVER, stats, m_ImageBuffer, this);
+        ExternalSextractorSolver extTemp(SSolver::EXT_SEXTRACTORSOLVER, stats, m_ImageBuffer, this);
 
         switch(num)
         {
@@ -377,7 +377,7 @@ MainWindow::MainWindow() :
     ui->basePath->setText(temp.basePath);
     sendSettingsToUI(temp.getCurrentParameters());
     optionsList = temp.getBuiltInProfiles();
-    foreach(Parameters param, optionsList)
+    foreach(SSolver::Parameters param, optionsList)
     {
         ui->optionsProfile->addItem(param.listName);
         ui->optionsProfileSextract->addItem(param.listName);
@@ -410,7 +410,7 @@ void MainWindow::loadOptionsProfile()
     if(ui->optionsProfile->currentIndex() == 0)
         return;
 
-    Parameters oldOptions = getSettingsFromUI();
+    SSolver::Parameters oldOptions = getSettingsFromUI();
 
     if( !optionsAreSaved )
     {
@@ -422,9 +422,9 @@ void MainWindow::loadOptionsProfile()
         optionsAreSaved = true; //They just got overwritten
     }
 
-    Parameters newOptions;
+    SSolver::Parameters newOptions;
     if(ui->optionsProfile->currentIndex() == 1)
-        newOptions = Parameters();
+        newOptions = SSolver::Parameters();
     else
         newOptions = optionsList.at(ui->optionsProfile->currentIndex() - 2);
     QList<QWidget *> controls = ui->optionsBox->findChildren<QWidget *>();
@@ -523,7 +523,7 @@ bool MainWindow::prepareForProcesses()
     numberOfTrials = ui->trials->value();
     totalTime = 0;
     currentTrial = 0;
-    lastSolution = Solution();
+    lastSolution = FITSImage::Solution();
     hasHFRData = false;
 
     return true;
@@ -574,19 +574,19 @@ void MainWindow::sextractButtonClicked()
     switch(ui->sextractorType->currentIndex())
     {
         case 0:
-            processType = INT_SEP;
+            processType = SSolver::INT_SEP;
         break;
 
         case 1:
-            processType = INT_SEP_HFR;
+            processType = SSolver::INT_SEP_HFR;
         break;
 
         case 2:
-            processType = EXT_SEXTRACTOR;
+            processType = SSolver::EXT_SEXTRACTOR;
         break;
 
         case 3:
-            processType = EXT_SEXTRACTOR_HFR;
+            processType = SSolver::EXT_SEXTRACTOR_HFR;
         break;
 
         default: break;
@@ -605,7 +605,7 @@ void MainWindow::sextractImage()
     if(ui->optionsProfileSextract->currentIndex() == 0)
         sexySolver->setParameters(getSettingsFromUI());
     else if(ui->optionsProfileSextract->currentIndex() == 1)
-        sexySolver->setParameters(Parameters());
+        sexySolver->setParameters(SSolver::Parameters());
     else
         sexySolver->setParameters(optionsList.at(ui->optionsProfileSextract->currentIndex() - 2));
 
@@ -637,28 +637,28 @@ void MainWindow::solveButtonClicked()
     switch(ui->solverType->currentIndex())
     {
         case 0:
-            processType = SEXYSOLVER;
+            processType = SSolver::SEXYSOLVER;
             break;
         case 1:
-            processType = EXT_SEXTRACTORSOLVER;
+            processType = SSolver::EXT_SEXTRACTORSOLVER;
             break;
         case 2:
-            processType = INT_SEP_EXT_SOLVER;
+            processType = SSolver::INT_SEP_EXT_SOLVER;
             break;
         case 3:
-            processType = CLASSIC_ASTROMETRY;
+            processType = SSolver::CLASSIC_ASTROMETRY;
             break;
         case 4:
-            processType = ASTAP;
+            processType = SSolver::ASTAP;
             break;
         case 5:
-            processType = INT_SEP_EXT_ASTAP;
+            processType = SSolver::INT_SEP_EXT_ASTAP;
             break;
         case 6:
-            processType = ONLINE_ASTROMETRY_NET;
+            processType = SSolver::ONLINE_ASTROMETRY_NET;
             break;
         case 7:
-            processType = INT_SEP_ONLINE_ASTROMETRY_NET;
+            processType = SSolver::INT_SEP_ONLINE_ASTROMETRY_NET;
             break;
         default: break;
     }
@@ -677,7 +677,7 @@ void MainWindow::solveImage()
     if(ui->optionsProfileSolve->currentIndex() == 0)
         sexySolver->setParameters(getSettingsFromUI());
     else if(ui->optionsProfileSolve->currentIndex() == 1)
-        sexySolver->setParameters(Parameters());
+        sexySolver->setParameters(SSolver::Parameters());
     else
         sexySolver->setParameters(optionsList.at(ui->optionsProfileSolve->currentIndex() - 2));
 
@@ -688,7 +688,7 @@ void MainWindow::solveImage()
 
     //Setting the initial search scale settings
     if(ui->use_scale->isChecked())
-        sexySolver->setSearchScale(ui->scale_low->text().toDouble(), ui->scale_high->text().toDouble(), (ScaleUnits)ui->units->currentIndex());
+        sexySolver->setSearchScale(ui->scale_low->text().toDouble(), ui->scale_high->text().toDouble(), (SSolver::ScaleUnits)ui->units->currentIndex());
     else
         sexySolver->setUseScale(false);
     //Setting the initial search location settings
@@ -744,24 +744,24 @@ void MainWindow::setupSexySolverParameters()
     sexySolver->logToFile = ui->logToFile->isChecked();
 
     if(ui->logLevel->currentIndex()==0)
-        sexySolver->setLogLevel(LOG_NONE);
+        sexySolver->setLogLevel(SSolver::LOG_NONE);
     if(ui->logLevel->currentIndex()==1)
-        sexySolver->setLogLevel(LOG_MSG);
+        sexySolver->setLogLevel(SSolver::LOG_MSG);
     if(ui->logLevel->currentIndex()==2)
-        sexySolver->setLogLevel(LOG_VERB);
+        sexySolver->setLogLevel(SSolver::LOG_VERB);
     if(ui->logLevel->currentIndex()==3)
-        sexySolver->setLogLevel(LOG_ALL);
+        sexySolver->setLogLevel(SSolver::LOG_ALL);
 }
 
 //This sets all the settings for either the internal or external sextractor
 //based on the requested settings in the mainwindow interface.
 //If you are implementing the SexySolver Library in your progra, you may choose to change some or all of these settings or use the defaults.
-Parameters MainWindow::getSettingsFromUI()
+SSolver::Parameters MainWindow::getSettingsFromUI()
 { 
-    Parameters params;
+    SSolver::Parameters params;
     params.listName = "Custom";
     //These are to pass the parameters to the internal sextractor
-    params.apertureShape = (Shape) ui->apertureShape->currentIndex();
+    params.apertureShape = (SSolver::Shape) ui->apertureShape->currentIndex();
     params.kron_fact = ui->kron_fact->text().toDouble();
     params.subpix = ui->subpix->text().toInt() ;
     params.r_min = ui->r_min->text().toFloat();
@@ -789,7 +789,7 @@ Parameters MainWindow::getSettingsFromUI()
     params.maxwidth = ui->maxWidth->text().toDouble();
     params.minwidth = ui->minWidth->text().toDouble();
     params.inParallel = ui->inParallel->isChecked();
-    params.multiAlgorithm = (MultiAlgo)ui->multiAlgo->currentIndex();
+    params.multiAlgorithm = (SSolver::MultiAlgo)ui->multiAlgo->currentIndex();
     params.solverTimeLimit = ui->solverTimeLimit->text().toInt();
 
     params.resort = ui->resort->isChecked();
@@ -804,7 +804,7 @@ Parameters MainWindow::getSettingsFromUI()
     return params;
 }
 
-void MainWindow::sendSettingsToUI(Parameters a)
+void MainWindow::sendSettingsToUI(SSolver::Parameters a)
 {
     //Sextractor Settings
 
@@ -950,7 +950,7 @@ bool MainWindow::solverComplete(int error)
 bool MainWindow::loadWCSComplete()
 {
     disconnect(sexySolver, &SexySolver::wcsDataisReady, this, &MainWindow::loadWCSComplete);
-    wcs_point * coord = sexySolver->getWCSCoord();
+    FITSImage::wcs_point * coord = sexySolver->getWCSCoord();
     if(coord)
     {
         hasWCSData = true;
@@ -1570,7 +1570,7 @@ void MainWindow::autoScale()
 
 //This method is intended to get the position and size of the star for rendering purposes
 //It is used to draw circles/ellipses for the stars and to detect when the mouse is over a star
-QRect MainWindow::getStarSizeInImage(Star star, bool &accurate)
+QRect MainWindow::getStarSizeInImage(FITSImage::Star star, bool &accurate)
 {
     accurate = true;
     double width = 0;
@@ -1647,7 +1647,7 @@ void MainWindow::updateImage()
         QPainter p(&renderedImage);
         for(int starnum = 0 ; starnum < stars.size() ; starnum++)
         {
-            Star star = stars.at(starnum);
+            FITSImage::Star star = stars.at(starnum);
             bool accurate;
             QRect starInImage = getStarSizeInImage(star, accurate);
             p.save();
@@ -1757,11 +1757,8 @@ void MainWindow::mouseMovedOverImage(QPoint location)
         QString mouseText = "";
         if(hasWCSData)
         {
-            int index = x + y * stats.width;
-            char rastr[32], decstr[32];
-            ra2hmsstring(wcs_coord[index].ra, rastr);
-            dec2dmsstring(wcs_coord[index].dec, decstr);
-            mouseText = QString("RA: %1, DEC: %2, Value: %3").arg(rastr).arg(decstr).arg(getValue(x,y));
+            int index = x + y * stats.width;      
+            mouseText = QString("RA: %1, DEC: %2, Value: %3").arg(SexySolver::raString(wcs_coord[index].ra)).arg(SexySolver::decString(wcs_coord[index].dec)).arg(getValue(x,y));
         }
         else
             mouseText = QString("X: %1, Y: %2, Value: %3").arg(x).arg(y).arg(getValue(x,y));
@@ -1772,7 +1769,7 @@ void MainWindow::mouseMovedOverImage(QPoint location)
         bool starFound = false;
         for(int i = 0 ; i < stars.size() ; i ++)
         {
-            Star star = stars.at(i);
+            FITSImage::Star star = stars.at(i);
             bool accurate;
             QRect starInImage = getStarSizeInImage(star, accurate);
             if(starInImage.contains(location))
@@ -1781,7 +1778,7 @@ void MainWindow::mouseMovedOverImage(QPoint location)
                 if(hasHFRData)
                     text += ", " + QString("HFR: %1").arg(star.HFR);
                 if(hasWCSData)
-                    text += "\n" + QString("RA: %1, DEC: %2").arg(star.rastr).arg(star.decstr);
+                    text += "\n" + QString("RA: %1, DEC: %2").arg(SexySolver::raString(star.ra)).arg(SexySolver::decString(star.dec));
                 QToolTip::showText(QCursor::pos(), text, ui->Image);
                 selectedStar = i;
                 starFound = true;
@@ -1886,7 +1883,7 @@ void MainWindow::starClickedInTable()
     {
         QTableWidgetItem *currentItem = ui->starTable->selectedItems().first();
         selectedStar = ui->starTable->row(currentItem);
-        Star star = stars.at(selectedStar);
+        FITSImage::Star star = stars.at(selectedStar);
         double starx = star.x * currentWidth / stats.width ;
         double stary = star.y * currentHeight / stats.height;
         updateImage();
@@ -1901,7 +1898,7 @@ void MainWindow::sortStars()
     {
         //Note that a star is dimmer when the mag is greater!
         //We want to sort in decreasing order though!
-        std::sort(stars.begin(), stars.end(), [](const Star &s1, const Star &s2)
+        std::sort(stars.begin(), stars.end(), [](const FITSImage::Star &s1, const FITSImage::Star &s2)
         {
             return s1.mag < s2.mag;
         });
@@ -1970,15 +1967,15 @@ void MainWindow::updateStarTableFromList()
     for(int i = 0; i < stars.size(); i ++)
     {
         table->insertRow(table->rowCount());
-        Star star = stars.at(i);
+        FITSImage::Star star = stars.at(i);
 
         setItemInColumn(table, "MAG_AUTO", QString::number(star.mag));
         setItemInColumn(table, "X_IMAGE", QString::number(star.x));
         setItemInColumn(table, "Y_IMAGE", QString::number(star.y));
         if(hasWCSData)
         {
-            setItemInColumn(table, "RA (J2000)", star.rastr);
-            setItemInColumn(table, "DEC (J2000)", star.decstr);
+            setItemInColumn(table, "RA (J2000)", SexySolver::raString(star.ra));
+            setItemInColumn(table, "DEC (J2000)", SexySolver::decString(star.dec));
         }
 
         setItemInColumn(table, "FLUX_AUTO", QString::number(star.flux));
@@ -2124,7 +2121,7 @@ bool MainWindow::getSolverOptionsFromFITS()
 
         ui->scale_low->setText(QString::number(fov_low));
         ui->scale_high->setText(QString::number(fov_high));
-        ui->units->setCurrentIndex(ARCSEC_PER_PIX);
+        ui->units->setCurrentIndex(SSolver::ARCSEC_PER_PIX);
         ui->use_scale->setChecked(true);
         fits_close_file(fptr, &status);
         return true;
@@ -2188,7 +2185,7 @@ bool MainWindow::getSolverOptionsFromFITS()
 
     ui->scale_low->setText(QString::number(fov_lower));
     ui->scale_high->setText(QString::number(fov_upper));
-    ui->units->setCurrentIndex(ARCMIN_WIDTH);
+    ui->units->setCurrentIndex(SSolver::ARCMIN_WIDTH);
     ui->use_scale->setChecked(true);
 
     fits_close_file(fptr, &status);
@@ -2263,7 +2260,7 @@ void MainWindow::setupResultsTable()
 void MainWindow::addSextractionToTable()
 {       
     QTableWidget *table = ui->resultsTable;
-    Parameters params = sexySolver->getCurrentParameters();
+    SSolver::Parameters params = sexySolver->getCurrentParameters();
 
     setItemInColumn(table, "Avg Time", QString::number(totalTime / currentTrial));
     setItemInColumn(table, "# Trials", QString::number(currentTrial));
@@ -2300,10 +2297,10 @@ void MainWindow::addSextractionToTable()
 
 //This adds a solution to the Results Table
 //To add, remove, or change the way certain columns are filled when a solve is finished, edit them here.
-void MainWindow::addSolutionToTable(Solution solution)
+void MainWindow::addSolutionToTable(FITSImage::Solution solution)
 {
     QTableWidget *table = ui->resultsTable;
-    Parameters params = sexySolver->getCurrentParameters();
+    SSolver::Parameters params = sexySolver->getCurrentParameters();
 
     setItemInColumn(table, "Avg Time", QString::number(totalTime / currentTrial));
     setItemInColumn(table, "# Trials", QString::number(currentTrial));
@@ -2321,8 +2318,8 @@ void MainWindow::addSolutionToTable(Solution solution)
 
 
     //Results
-    setItemInColumn(table, "RA (J2000)", solution.rastr);
-    setItemInColumn(table, "DEC (J2000)", solution.decstr);
+    setItemInColumn(table, "RA (J2000)", SexySolver::raString(solution.ra));
+    setItemInColumn(table, "DEC (J2000)", SexySolver::decString(solution.dec));
     if(solution.raError == 0)
         setItemInColumn(table, "RA ERR \"", "--");
     else
@@ -2521,9 +2518,9 @@ void MainWindow::saveOptionsProfiles()
     QSettings settings(fileURL, QSettings::IniFormat);
     for(int i = 0 ; i < optionsList.count(); i++)
     {
-        Parameters params = optionsList.at(i);
+        SSolver::Parameters params = optionsList.at(i);
         settings.beginGroup(params.listName);
-        QMap<QString, QVariant> map = SexySolver::convertToMap(params);
+        QMap<QString, QVariant> map = SSolver::Parameters::convertToMap(params);
         QMapIterator<QString, QVariant> it(map);
         while(it.hasNext())
         {
@@ -2555,9 +2552,9 @@ void MainWindow::loadOptionsProfiles()
         QMap<QString, QVariant> map;
         foreach(QString key, keys)
             map.insert(key, settings.value(key));
-        Parameters newParams = SexySolver::convertFromMap(map);
+        SSolver::Parameters newParams = SSolver::Parameters::convertFromMap(map);
         bool alreadyInThere = false;
-        foreach(Parameters params, optionsList)
+        foreach(SSolver::Parameters params, optionsList)
             if(params == newParams  && group == params.listName)
                 alreadyInThere = true;
         if(!alreadyInThere)

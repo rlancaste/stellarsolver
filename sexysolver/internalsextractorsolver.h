@@ -13,17 +13,19 @@
 //Sextractor Includes
 #include "sep/sep.h"
 
+using namespace SSolver;
+
 class InternalSextractorSolver: public SextractorSolver
 {
 public:
-    explicit InternalSextractorSolver(ProcessType type, Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
+    explicit InternalSextractorSolver(ProcessType type, FITSImage::Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
     ~InternalSextractorSolver();
 
     int sextract() override;
     //void solve() override;
     void abort() override;
-    wcs_point *getWCSCoord() override;
-    QList<Star> appendStarsRAandDEC(QList<Star> stars) override;
+    FITSImage::wcs_point *getWCSCoord() override;
+    QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars) override;
     SextractorSolver* spawnChildSolver(int n) override;
 
 protected:

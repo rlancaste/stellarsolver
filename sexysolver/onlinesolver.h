@@ -25,11 +25,13 @@
 #define JOB_RETRY_ATTEMPTS    90
 #define STATUS_CHECK_INTERVAL 2000 /* 2000 ms */
 
+using namespace SSolver;
+
 class OnlineSolver : public ExternalSextractorSolver
 {
     Q_OBJECT
 public:
-    explicit OnlineSolver(ProcessType type, Statistic imagestats, uint8_t const *imageBuffer, QObject *parent);
+    explicit OnlineSolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent);
 
     QString astrometryAPIKey;
     QString astrometryAPIURL;

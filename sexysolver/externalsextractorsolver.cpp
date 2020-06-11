@@ -12,7 +12,7 @@
 #include <wcshdr.h>
 #include <wcsfix.h>
 
-ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalSextractorSolver(type, imagestats, imageBuffer, parent)
+ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalSextractorSolver(type, imagestats, imageBuffer, parent)
 {
 
     //This sets the base name used for the temp files.
@@ -497,7 +497,7 @@ int ExternalSextractorSolver::runExternalSextractor()
     {
         for(int i = 0; i<stars.size();i++)
         {
-            Star star = stars.at(i);
+            FITSImage::Star star = stars.at(i);
             if(!subframe.contains(star.x, star.y))
             {
                 stars.removeAt(i);
@@ -586,7 +586,7 @@ int ExternalSextractorSolver::runExternalSolver()
     #endif
 
     #ifdef Q_OS_OSX //This is needed so that astrometry.net can find netpbm and python on Mac when started from this program.  It is not needed when using an alternate sextractor
-        if(processType == CLASSIC_ASTROMETRY)
+        if(processType ==CLASSIC_ASTROMETRY)
         {
             QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
             QString path            = env.value("PATH", "");
@@ -1000,7 +1000,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
                 theta = qRadiansToDegrees(atan(xy / (lambda1 - yy)));
             }
 
-            Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta, 0, 0,"",""};
+            FITSImage::Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta, 0, 0};
 
             stars.append(star);
         }
@@ -1090,7 +1090,7 @@ bool ExternalSextractorSolver::getSolutionInformation()
         decErr = (search_dec - dec) * 3600;
     }
 
-    solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient,pixscale, parity, raErr, decErr};
+    solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
     return true;
 }
 
@@ -1158,7 +1158,7 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
                 decErr = (search_dec - dec) * 3600;
             }
 
-            solution = {fieldw,fieldh,ra,dec,rastr,decstr,orient, pixscale, parity, raErr, decErr};
+            solution = {fieldw,fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
 
             emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
             emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
@@ -1491,7 +1491,7 @@ int ExternalSextractorSolver::loadWCS()
 }
 
 //This was essentially copied from KStars' loadWCS method and split in half with some modifications
-wcs_point *ExternalSextractorSolver::getWCSCoord()
+FITSImage::wcs_point *ExternalSextractorSolver::getWCSCoord()
 {
     if(!hasWCS)
     {
@@ -1501,8 +1501,8 @@ wcs_point *ExternalSextractorSolver::getWCSCoord()
 
     int w  = stats.width;
     int h = stats.height;
-    wcs_point * wcs_coord = new wcs_point[w * h];
-    wcs_point * p = wcs_coord;
+    FITSImage::wcs_point * wcs_coord = new FITSImage::wcs_point[w * h];
+    FITSImage::wcs_point * p = wcs_coord;
     double imgcrd[2], phi = 0, pixcrd[2], theta = 0, world[2];
     int status;
     int stat[2];
@@ -1530,7 +1530,7 @@ wcs_point *ExternalSextractorSolver::getWCSCoord()
     return wcs_coord;
 }
 
-QList<Star> ExternalSextractorSolver::appendStarsRAandDEC(QList<Star> stars)
+QList<FITSImage::Star> ExternalSextractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> stars)
 {
     if(!hasWCS)
     {
@@ -1542,8 +1542,8 @@ QList<Star> ExternalSextractorSolver::appendStarsRAandDEC(QList<Star> stars)
     int status;
     int stat[2];
 
-    QList<Star> refinedStars;
-    foreach(Star star, stars)
+    QList<FITSImage::Star> refinedStars;
+    foreach(FITSImage::Star star, stars)
     {
         double ra = HUGE_VAL;
         double dec = HUGE_VAL;
@@ -1561,12 +1561,8 @@ QList<Star> ExternalSextractorSolver::appendStarsRAandDEC(QList<Star> stars)
             dec = world[1];
         }
 
-        char rastr[32], decstr[32];
-        ra2hmsstring(ra, rastr);
-        dec2dmsstring(dec, decstr);
-
         //We do need to correct for all the downsampling as well as add RA/DEC info
-        Star refinedStar = {star.x, star.y, star.mag, star.flux, star.peak, star.HFR, star.a, star.b, star.theta, (float)ra, (float)dec, rastr, decstr};
+        FITSImage::Star refinedStar = {star.x, star.y, star.mag, star.flux, star.peak, star.HFR, star.a, star.b, star.theta, (float)ra, (float)dec};
         refinedStars.append(refinedStar);
     }
     return refinedStars;

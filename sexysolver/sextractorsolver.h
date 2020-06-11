@@ -13,6 +13,7 @@
 #include <QRect>
 #include <QDir>
 #include "structuredefinitions.h"
+#include "parameters.h"
 
 //CFitsio Includes
 #include "fitsio.h"
@@ -24,11 +25,13 @@ extern "C"{
 #include "astrometry/sip-utils.h"
 }
 
+using namespace SSolver;
+
 class SextractorSolver : public QThread
 {
     Q_OBJECT
 public:
-    SextractorSolver(ProcessType type, Statistic imagestats,  const uint8_t *imageBuffer, QObject *parent = nullptr);
+    SextractorSolver(ProcessType type, FITSImage::Statistic imagestats,  const uint8_t *imageBuffer, QObject *parent = nullptr);
     ~SextractorSolver();
 
     ProcessType processType;
@@ -41,13 +44,13 @@ public:
     virtual SextractorSolver* spawnChildSolver(int n) = 0;
     //This will abort the solver
 
-    virtual wcs_point *getWCSCoord() = 0;
-    virtual QList<Star> appendStarsRAandDEC(QList<Star> stars) = 0;
+    virtual FITSImage::wcs_point *getWCSCoord() = 0;
+    virtual QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars) = 0;
 
     //Logging Settings for Astrometry
     bool logToFile = false;             //This determines whether or not to save the output from Astrometry.net to a file
     QString logFileName;                //This is the path to the log file that it will save.
-    log_level logLevel = LOG_MSG;       //This is the level of logging getting saved to the log file
+    logging_level logLevel = LOG_MSG;       //This is the level of logging getting saved to the log file
 
     //These are for creating temporary files
     QString baseName;                   //This is the base name used for all temporary files.  It uses a random name based on the type of solver/sextractor.
@@ -93,10 +96,10 @@ public:
     int depthhi = -1;                       //This is the high depth of this child solver
 
 
-    Background getBackground(){return background;}
+    FITSImage::Background getBackground(){return background;}
     int getNumStarsFound(){return stars.size();};
-    QList<Star> getStarList(){return stars;}
-    Solution getSolution(){return solution;};
+    QList<FITSImage::Star> getStarList(){return stars;}
+    FITSImage::Solution getSolution(){return solution;};
     bool hasWCSData(){return hasWCS;};
     bool solvingDone(){return hasSolved;};
     bool isCalculatingHFR(){return calculateHFR;};
@@ -110,14 +113,14 @@ protected:  //Note: These items are not private because they are needed by Exter
     bool calculateHFR = false;          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
     bool hasSextracted = false;         //This boolean is set when the sextraction is done
     bool hasSolved = false;             //This boolean is set when the solving is done
-    Statistic stats;                    //This is information about the image
+    FITSImage::Statistic stats;                    //This is information about the image
     const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
     bool usingDownsampledImage = false; //This boolean gets set internally if we are using a downsampled image buffer for SEP
 
     //The Results
-    Background background;      //This is a report on the background levels found during sextraction
-    QList<Star> stars;          //This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
-    Solution solution;          //This is the solution that comes back from the Solver
+    FITSImage::Background background;      //This is a report on the background levels found during sextraction
+    QList<FITSImage::Star> stars;          //This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
+    FITSImage::Solution solution;          //This is the solution that comes back from the Solver
     bool runSEPSextractor();    //This is the method that actually runs the internal sextractor
     bool hasWCS = false;        //This boolean gets set if the SexySolver has WCS data to retrieve
 
