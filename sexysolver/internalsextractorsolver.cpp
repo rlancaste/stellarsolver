@@ -206,6 +206,7 @@ int InternalSextractorSolver::runSEPSextractor()
     double requested_frac[2] = { 0.5, 0.99 };
     double flux_fractions[2] = {0};
     short flux_flag = 0;
+    std::vector<std::pair<int, double>> ovals;
 
     // #0 Create SEP Image structure
     sep_image im = {data, nullptr, nullptr, SEP_TFLOAT, 0, 0, w, h, 0.0, SEP_NOISE_NONE, 1.0, 0.0};
@@ -234,10 +235,22 @@ int InternalSextractorSolver::runSEPSextractor()
     status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, params.minarea, params.convFilter.data(), sqrt(params.convFilter.size()), sqrt(params.convFilter.size()), SEP_FILTER_CONV, params.deblend_thresh, params.deblend_contrast, params.clean, params.clean_param, &catalog);
     if (status != 0) goto exit;
 
-    stars.clear();
-
+    // Find the oval sizes for each detection in the detected star catalog, and sort by that. Oval size
+    // correlates very well with HFR and likely magnitude.
     for (int i = 0; i < catalog->nobj; i++)
     {
+        const double ovalSizeSq = catalog->a[i] * catalog->a[i] + catalog->b[i] * catalog->b[i];
+        ovals.push_back(std::pair<int, double>(i, ovalSizeSq));
+    }
+    std::sort(ovals.begin(), ovals.end(), [](const std::pair<int, double> &o1, const std::pair<int, double> &o2) -> bool { return o1.second > o2.second;});
+    
+    stars.clear();
+    int numToProcess = std::min(catalog->nobj, params.initialKeep);
+    for (int index = 0; index < numToProcess; index++)
+    {
+        // Processing detections in the order of the sort above.
+        int i = ovals[index].first;
+
         //Constant values
         double r = 6;  //The instructions say to use a fixed value of 6: https://sep.readthedocs.io/en/v1.0.x/api/sep.kron_radius.html
 
