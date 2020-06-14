@@ -207,6 +207,7 @@ int InternalSextractorSolver::runSEPSextractor()
     double flux_fractions[2] = {0};
     short flux_flag = 0;
     std::vector<std::pair<int, double>> ovals;
+    int numToProcess = 0;
 
     // #0 Create SEP Image structure
     sep_image im = {data, nullptr, nullptr, SEP_TFLOAT, 0, 0, w, h, 0.0, SEP_NOISE_NONE, 1.0, 0.0};
@@ -245,7 +246,7 @@ int InternalSextractorSolver::runSEPSextractor()
     std::sort(ovals.begin(), ovals.end(), [](const std::pair<int, double> &o1, const std::pair<int, double> &o2) -> bool { return o1.second > o2.second;});
     
     stars.clear();
-    int numToProcess = std::min(catalog->nobj, params.initialKeep);
+    numToProcess = std::min(catalog->nobj, params.initialKeep);
     for (int index = 0; index < numToProcess; index++)
     {
         // Processing detections in the order of the sort above.
