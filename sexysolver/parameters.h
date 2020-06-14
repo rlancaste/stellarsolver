@@ -239,6 +239,7 @@ public:
     double maxSize = 0;                 // The maximum size of stars to include in the final list in pixels based on semi-major and semi-minor axes
     double minSize = 0;                 // The minimum size of stars to include in the final list in pixels based on semi-major and semi-minor axes
     double maxEllipse = 0;              // The maximum ratio between the semi-major and semi-minor axes for stars to include (a/b)
+    int initialKeep = 1000000;          // Number of stars to process before filtering.
     double keepNum = 0;                 // The number of brightest stars to keep in the list
     double removeBrightest = 0;         // The percentage of brightest stars to remove from the list
     double removeDimmest = 0;           // The percentage of dimmest stars to remove from the list
