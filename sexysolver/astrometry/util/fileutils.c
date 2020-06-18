@@ -4,7 +4,7 @@
  */
 #include <string.h>
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <libgen.h>
 #endif
 
@@ -28,7 +28,7 @@ char* resolve_path(const char* filename, const char* basedir) {
     free(path);
     return rtn;
 }
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 /**
 char* find_executable(const char* progname, const char* sibling) {
     char* sib;

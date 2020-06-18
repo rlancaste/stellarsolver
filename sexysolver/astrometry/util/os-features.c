@@ -15,7 +15,7 @@
 #define NEED_FDATASYNC 1
 #endif
 
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 //#if NEED_CANONICALIZE_FILE_NAME
 //char* canonicalize_file_name(const char* fn) {
 //    char* path = malloc(1024);

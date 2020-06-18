@@ -434,8 +434,8 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
                 free(fieldsigma2s);
                 free(indexpix);
                 free(indexin);
-                free(testperm); //# Modified by Robert Lancaster for the SexySolver Internal Library, fix memory leak?
-                free(refperm); //# Modified by Robert Lancaster for the SexySolver Internal Library, fix memory leak?
+                free(testperm); //# Modified by Robert Lancaster for the StellarSolver Internal Library, fix memory leak?
+                free(refperm); //# Modified by Robert Lancaster for the StellarSolver Internal Library, fix memory leak?
                 return NULL;
             }
 
@@ -475,7 +475,7 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
                 sip_print_to(sipout, stdout);
             sipout->wcstan.imagew = W;
             sipout->wcstan.imageh = H;
-            free(testperm); //# Modified by Robert Lancaster for the SexySolver Internal Library, Fix Memory Leak?
+            free(testperm); //# Modified by Robert Lancaster for the StellarSolver Internal Library, Fix Memory Leak?
         }
     }
 

@@ -10,7 +10,7 @@
 #include "fitsioutils.h"
 #include "errors.h"
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include "sys/types.h"
 #endif
 

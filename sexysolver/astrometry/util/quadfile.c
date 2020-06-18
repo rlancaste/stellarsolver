@@ -281,7 +281,7 @@ int quadfile_write_header_to(quadfile_t* qf, FILE* fid) {
 int quadfile_write_quad(quadfile_t* qf, unsigned int* stars) {
     uint32_t* data;
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         uint32_t ustars[qf->dimquads];
 #else
         uint32_t* ustars = (uint32_t*)malloc(sizeof(uint32_t)*qf->dimquads);
@@ -297,7 +297,7 @@ int quadfile_write_quad(quadfile_t* qf, unsigned int* stars) {
         for (i=0; i<qf->dimquads; i++)
             ustars[i] = stars[i];
     }
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         free(ustars);
 #endif
     if (fitsbin_write_item(qf->fb, chunk, data)) {

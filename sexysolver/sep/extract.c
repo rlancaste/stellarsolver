@@ -1098,8 +1098,8 @@ int convert_to_catalog(objliststruct *objlist, int *survives,
   QMALLOC(cat->ycpeak, int, nobj, status);
   QMALLOC(cat->xpeak, int, nobj, status);
   QMALLOC(cat->ypeak, int, nobj, status);
-  //QMALLOC(cat->cflux, float, nobj, status);  Memory leak corrected by Rob Lancaster for SexySolver Internal Library
-  //QMALLOC(cat->flux, float, nobj, status);   Memory leak corrected by Rob Lancaster for SexySolver Internal Library
+  //QMALLOC(cat->cflux, float, nobj, status);  Memory leak corrected by Rob Lancaster for StellarSolver Internal Library
+  //QMALLOC(cat->flux, float, nobj, status);   Memory leak corrected by Rob Lancaster for StellarSolver Internal Library
   QMALLOC(cat->flag, short, nobj, status);
 
   /* fill output arrays */

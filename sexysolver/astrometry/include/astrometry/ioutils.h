@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 #ifdef _WIN32
 //These types are not included on windows
 typedef unsigned long int ulong;
@@ -18,7 +18,7 @@ typedef unsigned short int ushort;
 typedef unsigned int uint;
 #endif
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 char* basename(const char* path);
 char* dirname(const char* path);
 #endif
@@ -48,7 +48,7 @@ Malloc
 char* dirname_safe(const char* path);
 
 // Returns (system + user) CPU time, in seconds.
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 float get_cpu_usage(void);
 #endif
 
@@ -81,12 +81,12 @@ void
 ATTRIB_FORMAT(printf,2,3)
     asprintf_safe(char** strp, const char* format, ...);
 
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 //int run_command_get_outputs(const char* cmd, sl** outlines, sl** errlines);
 
 void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* mapsize, int* pgap);
 
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 char* mmap_file(int fildes, off_t mapsize);
 #endif
 
@@ -94,7 +94,7 @@ char* mmap_file(int fildes, off_t mapsize);
 char* create_temp_file(const char* fn, const char* dir);
 
 // If "dir" is NULL, create temp file in $TMP, or /tmp if not set.
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 //char* create_temp_dir(const char* name, const char* dir);
 
 char* shell_escape(const char* str);
@@ -122,10 +122,10 @@ sl* file_get_lines(const char* fn, anbool include_newlines);
 
 sl* fid_get_lines(FILE* fid, anbool include_newlines);
 
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 //sl* dir_get_contents(const char* path, sl* result, anbool filesonly, anbool recursive);
 
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 //int file_get_last_modified_string(const char* fn, const char* timeformat,
 //                                  anbool utc, char* output, size_t outsize);
 
@@ -154,7 +154,7 @@ int ends_with(const char* str, const char* prefix);
 
 char* strdup_safe(const char* str);
 
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 void add_sigbus_mmap_warning(void);
 void reset_sigbus_mmap_warning(void);
 #endif

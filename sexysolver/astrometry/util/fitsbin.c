@@ -264,7 +264,7 @@ static int write_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk, int flipped) {
         int i, j;
         int nper = chunk->itemsize / flipped;
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         char tempdata[chunk->itemsize];
 #else
         char* tempdata = (char*)malloc(sizeof(char)*chunk->itemsize);
@@ -274,7 +274,7 @@ static int write_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk, int flipped) {
         assert(nper * flipped == chunk->itemsize);
         for (i=0; i<N; i++) {
             // copy it...
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
             memcpy(tempdata, chunk->data + i*chunk->itemsize, chunk->itemsize);
 #else
             memcpy(tempdata, ((char *)chunk->data) + i*chunk->itemsize, chunk->itemsize);
@@ -285,7 +285,7 @@ static int write_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk, int flipped) {
             // write it...
             fitsbin_write_item(fb, chunk, tempdata);
         }
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         free(tempdata);
 #endif
     }
@@ -512,7 +512,7 @@ static int read_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
 
         //I don't think this check is needed on windows right now since we are just mapping it all to memory
         //And it is causing problems on windows making it not blind solve sometimes for some reason ??
-#ifndef _WIN32  //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32  //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
         if (fits_bytes_needed(expected) != tabsize) {
             ERROR("Expected table size (%zu => %i FITS blocks) is not equal to "
@@ -524,7 +524,7 @@ static int read_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
         }
 #endif
 
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
         chunk->map = mmap_file(fileno(fb->fid), chunk->mapsize);
 #else
         get_mmap_size(tabstart, tabsize, &mapstart, &(chunk->mapsize), &mapoffset);
@@ -538,7 +538,7 @@ static int read_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
             return -1;
         }
 
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
         chunk->data = chunk->map + tabstart;
 #else
         chunk->data = chunk->map + mapoffset;

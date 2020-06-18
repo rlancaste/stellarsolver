@@ -69,7 +69,7 @@ typedef enum {INT_SEP,                      // Performs internal SEP on the imag
               INT_SEP_HFR,                  // Performs internal SEP on the image with HFR Calculation
               EXT_SEXTRACTOR,               // Uses the External Sextractor to Sextract the Image
               EXT_SEXTRACTOR_HFR,           // Uses the External Sextractor to Sextract the Image with HFR Calculation
-              SEXYSOLVER,                   // Uses Internal SEP to get the sources and then Solves with the Internal astrometry.net build
+              STELLARSOLVER,                   // Uses Internal SEP to get the sources and then Solves with the Internal astrometry.net build
               EXT_SEXTRACTORSOLVER,         // Uses External Sextractor to get the sources and then Solves with a local astrometry.net or ANSVR
               INT_SEP_EXT_SOLVER,           // Uses Internal SEP to get the sources and then Solves with a local astrometry.net or ANSVR
               CLASSIC_ASTROMETRY,           // Just uses a local Astrometry.net or ANSVR solver to solve the image without prior source extraction
@@ -79,7 +79,7 @@ typedef enum {INT_SEP,                      // Performs internal SEP on the imag
               INT_SEP_ONLINE_ASTROMETRY_NET // ses Internal SEP to get the sources and then uses an online astrometry.net solver or ANSVR
 }ProcessType;
 
-//This gets the processType as a string explaining the command SexySolver is Running
+//This gets the processType as a string explaining the command StellarSolver is Running
 static QString getCommandString(SSolver::ProcessType processType)
 {
     switch(processType)
@@ -96,7 +96,7 @@ static QString getCommandString(SSolver::ProcessType processType)
         case EXT_SEXTRACTOR_HFR:
             return "Ext. SExtractor w/ HFR";
             break;
-        case SEXYSOLVER:
+        case STELLARSOLVER:
             return "Int. SEP & Int. Solver";
             break;
         case EXT_SEXTRACTORSOLVER:
@@ -190,7 +190,7 @@ static QString getLogLevelString(SSolver::logging_level logLevel)
     }
 }
 
-//SEXYSOLVER PARAMETERS
+//STELLARSOLVER PARAMETERS
 //These are the parameters used by the Sexysolver for both Sextracting and Solving
 //The values here are the defaults unless they get changed.
 //If you are fine with those defaults, you don't need to set any of them.
@@ -199,7 +199,7 @@ class Parameters
 {
 public:
 
-    // These are the available parameter profiles that are built into SexySolver.
+    // These are the available parameter profiles that are built into StellarSolver.
     // You can just use them without having to set any parameters yourself.
     typedef enum {
         FAST_SOLVING,
@@ -212,7 +212,7 @@ public:
         BIG_STARS
     } ParametersProfile;
 
-    QString listName = "Default";       // This is the name of this particular profile of options for SexySolver
+    QString listName = "Default";       // This is the name of this particular profile of options for StellarSolver
 
     //Sextractor Photometry Parameters
     Shape apertureShape = SHAPE_CIRCLE; // Whether to use the SEP_SUM_ELLIPSE method or the SEP_SUM_CIRCLE method

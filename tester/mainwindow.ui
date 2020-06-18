@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>SexySolver Astrometry Tester</string>
+   <string>StellarSolver Astrometry Tester</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -132,7 +132,7 @@
                 </rect>
                </property>
                <attribute name="label">
-                <string>SexySolver</string>
+                <string>StellarSolver</string>
                </attribute>
                <layout class="QGridLayout" name="gridLayout_15">
                 <item row="0" column="0">
@@ -144,7 +144,7 @@
                    </size>
                   </property>
                   <property name="text">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;img src=&quot;:/SexySolverIcon.png&quot; width=&quot;125&quot;/&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;SexySolver Library&lt;br/&gt;© 2020 by &lt;br/&gt;Rob Lancaster&lt;br/&gt;GPL v.3&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;built on:&lt;br/&gt;&lt;a href=&quot;http://astrometry.net/doc/readme.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;astrometry.net&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;a href=&quot;https://sep.readthedocs.io/en/v1.0.x/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;sextractor (SEP)&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;img src=&quot;:/StellarSolverIcon.png&quot; width=&quot;125&quot;/&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;StellarSolver Library&lt;br/&gt;© 2020 by &lt;br/&gt;Rob Lancaster&lt;br/&gt;GPL v.3&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;built on:&lt;br/&gt;&lt;a href=&quot;http://astrometry.net/doc/readme.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;astrometry.net&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;a href=&quot;https://sep.readthedocs.io/en/v1.0.x/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;sextractor (SEP)&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="wordWrap">
                    <bool>true</bool>

@@ -1,12 +1,12 @@
-/*  SexySolver, SexySolver Intenal Library developed by Robert Lancaster, 2020
+/*  StellarSolver, StellarSolver Intenal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
     License as published by the Free Software Foundation; either
     version 2 of the License, or (at your option) any later version.
 */
-#ifndef SEXYSOLVER_H
-#define SEXYSOLVER_H
+#ifndef STELLARSOLVER_H
+#define STELLARSOLVER_H
 
 //Includes for this project
 #include "structuredefinitions.h"
@@ -23,7 +23,7 @@
 
 using namespace SSolver;
 
-class SexySolver : public QThread
+class StellarSolver : public QThread
 {
     Q_OBJECT
 public:
@@ -31,12 +31,12 @@ public:
 
     ProcessType processType;
 
-    //The constructor and destructor fo the SexySolver Object
-    explicit SexySolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
-    explicit SexySolver(FITSImage::Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
-    ~SexySolver();
+    //The constructor and destructor fo the StellarSolver Object
+    explicit StellarSolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
+    explicit StellarSolver(FITSImage::Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
+    ~StellarSolver();
 
-    //This gets the processType as a string explaining the command SexySolver is Running
+    //This gets the processType as a string explaining the command StellarSolver is Running
     QString getCommandString()
     {
         return SSolver::getCommandString(processType);
@@ -75,10 +75,10 @@ public:
     QString baseName;                   //This is the base name used for all temporary files.  It uses a random name based on the type of solver/sextractor.
     QString basePath = QDir::tempPath();//This is the path used for saving any temporary files.  They are by default saved to the default temp directory, you can change it if you want to.
 
-    //SEXYSOLVER METHODS
-    //The public methods here are for you to start, stop, setup, and get results from the SexySolver
+    //STELLARSOLVER METHODS
+    //The public methods here are for you to start, stop, setup, and get results from the StellarSolver
 
-    //These are the most important methods that you can use for the SexySolver
+    //These are the most important methods that you can use for the StellarSolver
     void sextract();
     void sextract(QRect frame);
     void sextractWithHFR();
@@ -91,7 +91,7 @@ public:
     virtual void startProcess();                        //This starts the process in a separate thread
     virtual void abort();                       //This will abort the solver
 
-    //These set the settings for the SexySolver
+    //These set the settings for the StellarSolver
     void setParameters(Parameters parameters){params = parameters;};
     void setParameterProfile(SSolver::Parameters::ParametersProfile profile);
     void setIndexFolderPaths(QStringList indexPaths){indexFolderPaths = indexPaths;};
@@ -186,7 +186,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     int parallelFails = 0;
     bool parallelSolversAreRunning();
 
-    Parameters params;           //The currently set parameters for SexySolver
+    Parameters params;           //The currently set parameters for StellarSolver
     QStringList indexFolderPaths = getDefaultIndexFolderPaths();       //This is the list of folder paths that the solver will use to search for index files
 
     //Astrometry Scale Parameters, These are not saved parameters and change for each image, use the methods to set them
@@ -200,7 +200,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     double search_ra = HUGE_VAL;        //RA of field center for search, format: decimal degrees
     double search_dec = HUGE_VAL;       //DEC of field center for search, format: decimal degrees
 
-    //SexySolver Internal settings that are needed by ExternalSextractorSolver as well
+    //StellarSolver Internal settings that are needed by ExternalSextractorSolver as well
     bool calculateHFR = false;          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
     bool hasSextracted = false;         //This boolean is set when the sextraction is done
     bool hasSolved = false;             //This boolean is set when the solving is done
@@ -215,7 +215,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     int numStars;               //The number of stars found in the last operation
     FITSImage::Solution solution;          //This is the solution that comes back from the Solver
     bool loadWCS = true;
-    bool hasWCS = false;        //This boolean gets set if the SexySolver has WCS data to retrieve
+    bool hasWCS = false;        //This boolean gets set if the StellarSolver has WCS data to retrieve
     FITSImage::wcs_point * wcs_coord = nullptr;
 
     bool wasAborted = false;
@@ -241,4 +241,4 @@ signals:
 
 };
 
-#endif // SEXYSOLVER_H
+#endif // STELLARSOLVER_H

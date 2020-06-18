@@ -1,4 +1,4 @@
-/*  InternalSextractorSolver, SexySolver Intenal Library developed by Robert Lancaster, 2020
+/*  InternalSextractorSolver, StellarSolver Intenal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
@@ -44,8 +44,8 @@ private:
     job_t thejob;               //This is the job file that will be created for astrometry.net to solve
     job_t* job = &thejob;       //This is a pointer to that job file
 
-    //These are the key internal methods for the internal SexySolver solver
-    void run() override;        //This starts the SexySolver in a separate thread.  Note, ExternalSextractorSolver uses QProcess
+    //These are the key internal methods for the internal StellarSolver solver
+    void run() override;        //This starts the StellarSolver in a separate thread.  Note, ExternalSextractorSolver uses QProcess
     int runInternalSolver();    //This is the method that actually runs the internal solver
 
     //This is used by the sextractor, it gets a new representation of the buffer that SEP can understand

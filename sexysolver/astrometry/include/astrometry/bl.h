@@ -19,12 +19,12 @@
 
 #include "astrometry/keywords.h"
 
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 #ifdef _WIN32
 int vasprintf(char **strp, const char *fmt, va_list ap);
 #endif
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
 #define ftello _ftelli64

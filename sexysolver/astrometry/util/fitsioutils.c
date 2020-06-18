@@ -81,7 +81,7 @@ qfits_table* fits_copy_table(qfits_table* tbl) {
 
 int fits_pixdump(const qfitsdumper * qd) {
     FILE* f_out;
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     const void* vbuf;
 #else
     const char* vbuf;
@@ -303,7 +303,7 @@ double fits_get_double_val(const qfits_table* table, int column,
         memcpy(&fval, cdata, sizeof(fval));
         //Note: This is not what we want to do, but this function doesn't work right now
         //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         v32_ntoh(&fval);
 #endif
         dval = fval;
@@ -312,7 +312,7 @@ double fits_get_double_val(const qfits_table* table, int column,
         memcpy(&dval, cdata, sizeof(dval));
         //Note: This is not what we want to do, but this function doesn't work right now
         //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         v64_ntoh(&dval);
 #endif
         return dval;
@@ -905,7 +905,7 @@ int fits_write_data_D(FILE* fid, double value, anbool flip) {
     assert(sizeof(double) == 8);
     //Note: This is not what we want to do, but this function doesn't work right now
     //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     if (flip)
         v64_hton(&value);
 #endif
@@ -920,7 +920,7 @@ int fits_write_data_E(FILE* fid, float value, anbool flip) {
     assert(sizeof(float) == 4);
     //Note: This is not what we want to do, but this function doesn't work right now
     //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     if (flip)
         v32_hton(&value);
 #endif
@@ -954,7 +954,7 @@ int fits_write_data_X(FILE* fid, unsigned char value) {
 int fits_write_data_I(FILE* fid, int16_t value, anbool flip) {
     //Note: This is not what we want to do, but this function doesn't work right now
     //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     if (flip)
         v16_hton(&value);
 #endif
@@ -968,7 +968,7 @@ int fits_write_data_I(FILE* fid, int16_t value, anbool flip) {
 int fits_write_data_J(FILE* fid, int32_t value, anbool flip) {
     //Note: This is not what we want to do, but this function doesn't work right now
     //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     if (flip)
         v32_hton(&value);
 #endif
@@ -982,7 +982,7 @@ int fits_write_data_J(FILE* fid, int32_t value, anbool flip) {
 int fits_write_data_K(FILE* fid, int64_t value, anbool flip) {
     //Note: This is not what we want to do, but this function doesn't work right now
     //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     if (flip)
         v64_hton(&value);
 #endif

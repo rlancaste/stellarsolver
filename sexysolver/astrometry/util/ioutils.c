@@ -10,7 +10,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <windirent.h>
 #else
 #include <dirent.h>
@@ -30,7 +30,7 @@
 
 #include <time.h>
 
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <winsock.h>
 #else
 #include <sys/wait.h>
@@ -46,7 +46,7 @@
 #include "errors.h"
 #include "log.h"
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 #ifndef S_ISDIR
  #define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
@@ -262,7 +262,7 @@ char* find_file_in_dirs(const char** dirs, int ndirs, const char* filename, anbo
     }
     return NULL;
 }
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 float get_cpu_usage() {
     struct rusage r;
     float sofar;
@@ -325,7 +325,7 @@ void asprintf_safe(char** strp, const char* format, ...) {
     }
     va_end(lst);
 }
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 sl* dir_get_contents(const char* path, sl* list, anbool filesonly, anbool recurse) {
     DIR* dir = opendir(path);
     if (!dir) {
@@ -434,7 +434,7 @@ static int readfd(int fd, char* buf, int NB, char** pcursor,
     *pcursor = cursor;
     return 0;
 }
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 //Removing this function since it won't be needed and will cause problems on windows
 /**
 int run_command_get_outputs(const char* cmd, sl** outlines, sl** errlines) {
@@ -643,7 +643,7 @@ int mkdir_p(const char* dirpath) {
     free(path);
     while (sl_size(tomake)) {
         char* path = sl_pop(tomake);
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
         if (mkdir(path, 0777)) {
 #else
         if (mkdir(path)) {
@@ -688,7 +688,7 @@ char* shell_escape(const char* str) {
     return result;
 }
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static char* get_temp_dir() {
     char* dir = getenv("TMP");
     if (!dir) {
@@ -716,7 +716,7 @@ char* create_temp_file(const char* fn, const char* dir) {
 }
 #endif
 
-/** //# Modified by Robert Lancaster for the SexySolver Internal Library
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 char* create_temp_dir(const char* name, const char* dir) {
     char* tempdir;
     if (!dir) {
@@ -846,7 +846,7 @@ void* file_get_contents(const char* fn, size_t* len, anbool addzero) {
     return buf;
 }
 void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* mapsize, int* pgap) {
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
     SYSTEM_INFO system_info;
     GetSystemInfo (&system_info);
     int ps = system_info.dwPageSize;
@@ -886,7 +886,7 @@ time_t file_get_last_modified_time(const char* fn) {
     }
     return st.st_mtime;
 }
-/** //# Modified by Robert Lancaster for the SexySolver Internal Library
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int file_get_last_modified_string(const char* fn, const char* timeformat,
                                   anbool utc, char* output, size_t outsize) {
     struct tm tym;
@@ -912,7 +912,7 @@ int file_get_last_modified_string(const char* fn, const char* timeformat,
 }
 **/
 anbool file_exists(const char* fn) {
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     return fn && (access(fn, F_OK) == 0);
 #else
     DWORD dwAttrib = GetFileAttributes(fn);
@@ -922,7 +922,7 @@ anbool file_exists(const char* fn) {
 }
 
 anbool file_readable(const char* fn) {
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     return fn && (access(fn, R_OK) == 0);
 #else
     //NOTE: THIS NEEDS TO BE CHANGED, IT JUST DETERMINES THAT THE FILE EXISTS!
@@ -933,7 +933,7 @@ anbool file_readable(const char* fn) {
 }
 
 anbool file_executable(const char* fn) {
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     return fn && (access(fn, X_OK) == 0);
 #else
     return FALSE; //We shouldn't be executing anything anyway
@@ -978,7 +978,7 @@ char* strdup_safe(const char* str) {
     return rtn;
 }
 
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int oldsigbus_valid = 0;
 static struct sigaction oldsigbus;
 static void sigbus_handler(int sig) {

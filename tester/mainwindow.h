@@ -1,4 +1,4 @@
-/*  MainWindow for SexySolver Tester Application, developed by Robert Lancaster, 2020
+/*  MainWindow for StellarSolver Tester Application, developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
@@ -10,7 +10,7 @@
 
 //Includes for this project
 #include "structuredefinitions.h"
-#include "sexysolver.h"
+#include "stellarsolver.h"
 #include "externalsextractorsolver.h"
 #include "onlinesolver.h"
 
@@ -90,7 +90,7 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    QPointer<SexySolver> sexySolver;
+    QPointer<StellarSolver> stellarSolver;
     QString fileToProcess;
     QList<FITSImage::Star> stars;
     int selectedStar;
@@ -98,7 +98,7 @@ private:
     QList<SSolver::Parameters> optionsList;
     bool optionsAreSaved = true;
 
-    //Options for SexySolver Tester
+    //Options for StellarSolver Tester
     QString dirPath = QDir::homePath();
     bool hasHFRData = false;
     bool hasWCSData = false;
@@ -209,7 +209,7 @@ public slots:
     SSolver::Parameters getSettingsFromUI();
     void sendSettingsToUI(SSolver::Parameters a);
     void setupExternalSextractorSolverIfNeeded();
-    void setupSexySolverParameters();
+    void setupStellarSolverParameters();
 
     //These functions get called when the sextractor or solver finishes
     bool sextractorComplete(int error);

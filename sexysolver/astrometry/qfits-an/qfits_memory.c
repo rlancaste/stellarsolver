@@ -40,7 +40,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <sys/resource.h>
 #else
 #include "windows.h"
@@ -211,7 +211,7 @@ static char * qfits_memory_tmpfilename(int);
 static char * strdup_(const char * str);
 void qfits_memory_status_(const char *, int);
 
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static char* mmap_file(int fildes, off_t mapsize)
 {
     HANDLE fm, h;
@@ -335,7 +335,7 @@ void * qfits_memory_malloc(
             exit(-1);
         }
 
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
         fchmod(swapfd, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
 #endif
 
@@ -357,7 +357,7 @@ void * qfits_memory_malloc(
         }
 
         /* mmap() the swap file */
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
         ptr = mmap_file(swapfd, nbufs * MEMPAGESZ);
 #else
         ptr = (void*)mmap(0,
@@ -472,7 +472,7 @@ void * qfits_memory_calloc(
 // copied from ioutils.c
 
 static void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* mapsize, int* pgap) {
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
     SYSTEM_INFO system_info;
     GetSystemInfo (&system_info);
     int ps = system_info.dwPageSize;
@@ -540,7 +540,7 @@ void* qfits_memory_falloc2(
 
 	/* Memory-map input file */
 	// mmap requires page-aligned offsets.
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
     ptr = mmap_file(fd, size + offs);
 #else
 	get_mmap_size(offs, size, &mapstart, &maplen, &mapoff);
@@ -563,7 +563,7 @@ void* qfits_memory_falloc2(
 	if (freesize) {
 		*freesize = maplen;
 	}
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
     return ptr + offs;
 #else
 	return ptr + mapoff;
@@ -638,7 +638,7 @@ char * qfits_memory_falloc(
         }
 
         /* Memory-map input file */
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
         ptr = mmap_file(fd,sta.st_size);
 #else
         ptr = (char*)mmap(0, sta.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
@@ -749,7 +749,7 @@ char * qfits_memory_falloc(
     }
 
     /* Memory-map input file */
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
     ptr = mmap_file(fd,sta.st_size);
 #else
     ptr = (char*)mmap(0, sta.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE,fd,0);
@@ -1365,7 +1365,7 @@ static unsigned qfits_memory_hash(const char * key)
 /*----------------------------------------------------------------------------*/
 static void qfits_memory_init(void)
 {
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
     struct rlimit rlim;
 #endif
 
@@ -1382,7 +1382,7 @@ static void qfits_memory_init(void)
     atexit(qfits_memory_cleanup);
         
     /* Increase number of descriptors to maximum */
-    #ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+    #ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
     getrlimit(RLIMIT_NOFILE, &rlim);
     qfits_mem_debug(
         fprintf(stderr, "qfits_mem: increasing from %ld to %ld file handles\n",

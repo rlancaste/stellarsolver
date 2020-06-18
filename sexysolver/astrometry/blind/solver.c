@@ -3,7 +3,7 @@
  # Licensed under a 3-clause BSD style license - see LICENSE
  */
 
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 #ifdef _MSC_VER
 #define _USE_MATH_DEFINES
 #endif
@@ -648,7 +648,7 @@ void solver_preprocess_field(solver_t* solver) {
 }
 
 void solver_free_field(solver_t* solver) {
-    //# Modified by Robert Lancaster for the SexySolver Internal Library
+    //# Modified by Robert Lancaster for the StellarSolver Internal Library
     //if (solver->fieldxy)
     //    starxy_free(solver->fieldxy);
     //solver->fieldxy = NULL;
@@ -763,7 +763,7 @@ void solver_run(solver_t* solver) {
 
     num_indexes = pl_size(solver->indexes);
     {
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         double minAB2s[num_indexes];
         double maxAB2s[num_indexes];
 #else
@@ -1013,7 +1013,7 @@ void solver_run(solver_t* solver) {
         }
         free(pquads);
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         free(minAB2s);
         free(maxAB2s);
 #endif
@@ -1246,7 +1246,7 @@ static void resolve_matches(kdtree_qres_t* krez, const double *field,
     int jj, thisquadno;
     MatchObj mo;
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         unsigned int star[dimquads];
 #else
         unsigned int* star = (unsigned int*)malloc(sizeof(unsigned int)*dimquads);
@@ -1256,7 +1256,7 @@ static void resolve_matches(kdtree_qres_t* krez, const double *field,
 
     for (jj = 0; jj < krez->nres; jj++) {
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         double starxyz[dimquads*3];
 #else
         double* starxyz = (double*)malloc(sizeof(double)*dimquads*3);
@@ -1348,18 +1348,18 @@ static void resolve_matches(kdtree_qres_t* krez, const double *field,
 
         if (unlikely(solver->quit_now))
         {
-            #ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+            #ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
              free(starxyz);
              free(star);
             #endif
             return;
         }
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         free(starxyz);
 #endif
     }
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         free(star);
 #endif
 }

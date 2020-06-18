@@ -1,4 +1,4 @@
-/*  SextractorSolver, SexySolver Intenal Library developed by Robert Lancaster, 2020
+/*  SextractorSolver, StellarSolver Intenal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
@@ -37,7 +37,7 @@ public:
     ProcessType processType;
     virtual int sextract()=0;
     //virtual void solve()=0;
-    //These are the most important methods that you can use for the SexySolver
+    //These are the most important methods that you can use for the StellarSolver
     virtual void executeProcess();                      //This runs the process without threading.
     virtual void startProcess();                        //This starts the process in a separate thread
     virtual void abort() = 0;
@@ -56,7 +56,7 @@ public:
     QString baseName;                   //This is the base name used for all temporary files.  It uses a random name based on the type of solver/sextractor.
     QString basePath;                   //This is the path used for saving any temporary files.  They are by default saved to the default temp directory, you can change it if you want to.
 
-    Parameters params;                  //The currently set parameters for SexySolver
+    Parameters params;                  //The currently set parameters for StellarSolver
     QStringList indexFolderPaths;       //This is the list of folder paths that the solver will use to search for index files
 
     //Astrometry Scale Parameters, These are not saved parameters and change for each image, use the methods to set them
@@ -109,7 +109,7 @@ protected:  //Note: These items are not private because they are needed by Exter
 
     bool useSubframe = false;
     QRect subframe;
-    //SexySolver Internal settings that are needed by ExternalSextractorSolver as well
+    //StellarSolver Internal settings that are needed by ExternalSextractorSolver as well
     bool calculateHFR = false;          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
     bool hasSextracted = false;         //This boolean is set when the sextraction is done
     bool hasSolved = false;             //This boolean is set when the solving is done
@@ -122,7 +122,7 @@ protected:  //Note: These items are not private because they are needed by Exter
     QList<FITSImage::Star> stars;          //This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
     FITSImage::Solution solution;          //This is the solution that comes back from the Solver
     bool runSEPSextractor();    //This is the method that actually runs the internal sextractor
-    bool hasWCS = false;        //This boolean gets set if the SexySolver has WCS data to retrieve
+    bool hasWCS = false;        //This boolean gets set if the StellarSolver has WCS data to retrieve
 
     bool wasAborted = false;
     // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve

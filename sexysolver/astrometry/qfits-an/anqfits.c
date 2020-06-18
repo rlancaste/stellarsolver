@@ -37,7 +37,7 @@
 #define debug printf
 #else
 #define qdebug( code ) {}
-#define debug(args, ...) //# Modified by Robert Lancaster for the SexySolver Internal Library
+#define debug(args, ...) //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #endif
 
 int fits_get_atom_size(tfits_type type) {
@@ -1075,7 +1075,7 @@ tfits_type anqfits_ptype_to_ttype(int ptype) {
     return -1;
 }
 
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 void* anqfits_readpix(const anqfits_t* qf, int ext,
                       int x0, int x1, int y0, int y1,
                       /** The plane you want, from 0 to planes-1 */
@@ -1280,7 +1280,7 @@ void* anqfits_readpix(const anqfits_t* qf, int ext,
     }
     return NULL;
 }
-#endif //# Modified by Robert Lancaster for the SexySolver Internal Library
+#endif //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 
 

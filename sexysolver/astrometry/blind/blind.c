@@ -12,10 +12,10 @@
 
 #include <sys/types.h>
 
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <sys/resource.h>
 #endif
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <sys/time.h>
 #include <libgen.h>
 #include "ioutils.h"
@@ -319,7 +319,7 @@ static void check_time_limits(blind_t* bp) {
             bp->hit_timelimit = TRUE;
         }
     }
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
     if (bp->total_cpulimit || bp->cpulimit) {
         float now = get_cpu_usage();
         if ((bp->total_cpulimit > 0.0) &&
@@ -350,11 +350,11 @@ void blind_run(blind_t* bp) {
     bp->time_total_start = timenow();
 
     // Record current CPU usage for total cpu-usage limit.
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
     bp->cpu_total_start = get_cpu_usage();
 #endif
 
-    //# Modified by Robert Lancaster for the SexySolver Internal Library
+    //# Modified by Robert Lancaster for the StellarSolver Internal Library
     /**
     get_fields_from_solvedserver(bp, sp);
 
@@ -463,7 +463,7 @@ void blind_run(blind_t* bp) {
         }
 
         // Record current CPU usage.
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
         bp->cpu_start = get_cpu_usage();
 #endif
         // Record current wall-clock time.
@@ -497,7 +497,7 @@ void blind_run(blind_t* bp) {
             logverb("Trying index %s...\n", index->indexname);
 
             // Record current CPU usage.
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
             bp->cpu_start = get_cpu_usage();
 #endif
             // Record current wall-clock time.
@@ -514,7 +514,7 @@ void blind_run(blind_t* bp) {
 
  cleanup:
     // Clean up.
-    //xylist_close(bp->xyls); //# Modified by Robert Lancaster for the SexySolver Internal Library
+    //xylist_close(bp->xyls); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
     if (bp->solvedserver)
         solvedclient_set_server(NULL);
@@ -522,7 +522,7 @@ void blind_run(blind_t* bp) {
     if (write_solutions(bp))
         exit(-1);
 
-    return;  //# Modified by Robert Lancaster for the SexySolver Internal Library
+    return;  //# Modified by Robert Lancaster for the StellarSolver Internal Library
             //We want to return here so that the match object is preserved so we don't have to read the information from a wcs file
 
     for (i=0; i<bl_size(bp->solutions); i++) {
@@ -724,7 +724,7 @@ void blind_cleanup(blind_t* bp) {
     free(bp->sort_rdls);
 }
 
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int sort_rdls(MatchObj* mymo, blind_t* bp) {
     const solver_t* sp = &(bp->solver);
     anbool asc = TRUE;
@@ -804,7 +804,7 @@ static anbool record_match_callback(MatchObj* mo, void* userdata) {
 
         // This must happen first, because it reorders the "ref" arrays,
         // and we want that to be done before more data are integrated.
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
         if (bp->sort_rdls) {
             if (sort_rdls(mymo, bp)) {
                 ERROR("Failed to sort RDLS file by column \"%s\"", bp->sort_rdls);
@@ -971,11 +971,11 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
         memset(&template, 0, sizeof(MatchObj));
         template.fieldnum = fieldnum;
         template.fieldfile = bp->fieldid;
-/** //# Modified by Robert Lancaster for the SexySolver Internal Library
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
         // Get the FIELDID string from the xyls FITS header.
         if (xylist_open_field(bp->xyls, fieldnum)) {
             logerr("Failed to open extension %i in xylist.\n", fieldnum);
-            return; //# Modified by Robert Lancaster for the SexySolver Internal Library
+            return; //# Modified by Robert Lancaster for the StellarSolver Internal Library
         }
         fieldhdr = xylist_get_header(bp->xyls);
         if (fieldhdr) {
@@ -987,14 +987,14 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
 **/
         // Has the field already been solved?
         if (is_field_solved(bp, fieldnum))
-           return; //# Modified by Robert Lancaster for the SexySolver Internal Library
+           return; //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
         // Get the field.
-        //solver_set_field(sp, xylist_read_field(bp->xyls, NULL));   //# Modified by Robert Lancaster for the SexySolver Internal Library
+        //solver_set_field(sp, xylist_read_field(bp->xyls, NULL));   //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
         if (!sp->fieldxy) {
             logerr("Failed to read xylist field.\n");
-            return; //# Modified by Robert Lancaster for the SexySolver Internal Library
+            return; //# Modified by Robert Lancaster for the StellarSolver Internal Library
         }
 
         sp->numtries = 0;
@@ -1080,7 +1080,7 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
         last_utime = utime;
         last_stime = stime;
         last_wtime = wtime;
-    return;  //# Modified by Robert Lancaster for the SexySolver Internal Library
+    return;  //# Modified by Robert Lancaster for the StellarSolver Internal Library
         //We want to return here so that the sp object is preserved so we don't have to read the information from a wcs file
     }
 }

@@ -3,7 +3,7 @@
  # Licensed under a 3-clause BSD style license - see LICENSE
  */
 
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 #ifdef _MSC_VER
 #define _USE_MATH_DEFINES
 #endif
@@ -14,7 +14,7 @@
 #include <assert.h>
 #include <sys/types.h>
 
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 #ifdef _WIN32
 #include <boost/regex.h>
 #else

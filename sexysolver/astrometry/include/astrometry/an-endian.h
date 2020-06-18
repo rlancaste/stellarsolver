@@ -9,7 +9,7 @@
 
 // MacOSX doesn't have endian.h
 // (actually 10.5 does)
-#if __APPLE__ || _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#if __APPLE__ || _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 # include <sys/types.h>
 #elif __FreeBSD__
 # include <sys/endian.h>

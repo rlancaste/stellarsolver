@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <pwd.h>
 #include <sys/time.h>
 #else
@@ -92,7 +92,7 @@ static long timer_to_time(time_t time_secs);
 static long qfits_time_now(void);
 static long qfits_date_now (void);
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 struct timeval {
     long	tv_sec;		/* seconds */
     long	tv_usec;	/* and microseconds */

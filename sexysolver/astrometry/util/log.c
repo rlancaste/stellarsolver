@@ -31,7 +31,7 @@ static void* logts_init_key(void* user) {
 #include "thread-specific.inc"
 
 static log_t* get_logger() {
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     if (g_thread_specific)
         return logts_get_key(&g_logger);
 #endif
@@ -85,7 +85,7 @@ void log_free(log_t* log) {
     free(log);
 }
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 AN_THREAD_DECLARE_STATIC_MUTEX(loglock);
 #endif
 
@@ -94,12 +94,12 @@ static void loglvl(const log_t* logger, enum log_level level,
                    const char* format, va_list va) {
     if (level > logger->level)
         return;
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     AN_THREAD_LOCK(loglock);
 #endif
     if (logger->f) {
         if (logger->timestamp)
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
             fprintf(logger->f, "[%6i: %.3f] ", (int)getpid(), timenow() - logger->t0);
 #else
             fprintf(logger->f, "[ %.3f] ", timenow() - logger->t0);
@@ -111,7 +111,7 @@ static void loglvl(const log_t* logger, enum log_level level,
     if (logger->logfunc) {
         logger->logfunc(logger->baton, level, file, line, func, format, va);
     }
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     AN_THREAD_UNLOCK(loglock);
 #endif
 }

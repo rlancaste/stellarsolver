@@ -3,7 +3,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE
 */
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <pthread.h>
 
 #define GLUE2(x, y) x ## _ ## y

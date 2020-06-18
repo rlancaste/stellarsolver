@@ -1,4 +1,4 @@
-/*  SexySolver, SexySolver Internal Library developed by Robert Lancaster, 2020
+/*  StellarSolver, StellarSolver Internal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
@@ -13,7 +13,7 @@
 #include <QProcess>
 #endif
 
-#include "sexysolver.h"
+#include "stellarsolver.h"
 #include "sextractorsolver.h"
 #include "externalsextractorsolver.h"
 #include "onlinesolver.h"
@@ -21,7 +21,7 @@
 
 using namespace SSolver;
 
-SexySolver::SexySolver(ProcessType type, FITSImage::Statistic imagestats, const uint8_t *imageBuffer, QObject *parent) : QThread(parent)
+StellarSolver::StellarSolver(ProcessType type, FITSImage::Statistic imagestats, const uint8_t *imageBuffer, QObject *parent) : QThread(parent)
 {
      processType = type;
      stats=imagestats;
@@ -29,22 +29,22 @@ SexySolver::SexySolver(ProcessType type, FITSImage::Statistic imagestats, const 
      subframe = QRect(0,0,stats.width,stats.height);
 }
 
-SexySolver::SexySolver(FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : QThread(parent)
+StellarSolver::StellarSolver(FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : QThread(parent)
 {
      stats=imagestats;
      m_ImageBuffer=imageBuffer;
      subframe = QRect(0,0,stats.width,stats.height);
 }
 
-SexySolver::~SexySolver()
+StellarSolver::~StellarSolver()
 {
 
 }
 
-SextractorSolver* SexySolver::createSextractorSolver()
+SextractorSolver* StellarSolver::createSextractorSolver()
 {
     SextractorSolver *solver;
-    if(processType == INT_SEP || processType == INT_SEP_HFR || processType == SEXYSOLVER)
+    if(processType == INT_SEP || processType == INT_SEP_HFR || processType == STELLARSOLVER)
         solver = new InternalSextractorSolver(processType, stats, m_ImageBuffer, this);
     else if(processType == ONLINE_ASTROMETRY_NET || processType == INT_SEP_ONLINE_ASTROMETRY_NET)
     {
@@ -81,27 +81,27 @@ SextractorSolver* SexySolver::createSextractorSolver()
     if(use_position)
         solver->setSearchPositionInDegrees(search_ra, search_dec);
     if(logLevel != LOG_NONE)
-        connect(solver, &SextractorSolver::logOutput, this, &SexySolver::logOutput);
+        connect(solver, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
 
     return solver;
 }
 
 
-void SexySolver::sextract()
+void StellarSolver::sextract()
 {
     processType = INT_SEP;
     useSubframe = false;
     executeProcess();
 }
 
-void SexySolver::sextractWithHFR()
+void StellarSolver::sextractWithHFR()
 {
     processType = INT_SEP_HFR;
     useSubframe = false;
     executeProcess();
 }
 
-void SexySolver::sextract(QRect frame)
+void StellarSolver::sextract(QRect frame)
 {
     processType = INT_SEP;
     subframe = frame;
@@ -109,7 +109,7 @@ void SexySolver::sextract(QRect frame)
     executeProcess();
 }
 
-void SexySolver::sextractWithHFR(QRect frame)
+void StellarSolver::sextractWithHFR(QRect frame)
 {
     processType = INT_SEP_HFR;
     subframe = frame;
@@ -117,19 +117,19 @@ void SexySolver::sextractWithHFR(QRect frame)
     executeProcess();
 }
 
-void SexySolver::startsextraction()
+void StellarSolver::startsextraction()
 {
     processType = INT_SEP;
     startProcess();
 }
 
-void SexySolver::startSextractionWithHFR()
+void StellarSolver::startSextractionWithHFR()
 {
     processType = INT_SEP_HFR;
     startProcess();
 }
 
-void SexySolver::startProcess()
+void StellarSolver::startProcess()
 {
     if(checkParameters())
     {
@@ -138,7 +138,7 @@ void SexySolver::startProcess()
     }
 }
 
-void SexySolver::executeProcess()
+void StellarSolver::executeProcess()
 {
     if(checkParameters())
     {
@@ -149,7 +149,7 @@ void SexySolver::executeProcess()
     }
 }
 
-bool SexySolver::checkParameters()
+bool StellarSolver::checkParameters()
 {
     if(params.multiAlgorithm == MULTI_AUTO)
     {
@@ -182,7 +182,7 @@ bool SexySolver::checkParameters()
     return true; //For now
 }
 
-void SexySolver::run()
+void StellarSolver::run()
 {
     hasFailed = false;
     if(processType == INT_SEP || processType == INT_SEP_HFR || processType == EXT_SEXTRACTOR || processType == EXT_SEXTRACTOR_HFR)
@@ -191,7 +191,7 @@ void SexySolver::run()
         hasSolved = false;
 
     //These are the ones that support parallelization
-    if(params.multiAlgorithm != NOT_MULTI && (processType == SEXYSOLVER || processType == EXT_SEXTRACTORSOLVER || processType == INT_SEP_EXT_SOLVER))
+    if(params.multiAlgorithm != NOT_MULTI && (processType == STELLARSOLVER || processType == EXT_SEXTRACTORSOLVER || processType == INT_SEP_EXT_SOLVER))
     {
         sextractorSolver->sextract();
         parallelSolve();
@@ -214,14 +214,14 @@ void SexySolver::run()
     }
     else if(processType == ONLINE_ASTROMETRY_NET || processType == INT_SEP_ONLINE_ASTROMETRY_NET)
     {
-        connect(sextractorSolver, &SextractorSolver::finished, this, &SexySolver::processFinished);
+        connect(sextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
         sextractorSolver->startProcess();
         while(sextractorSolver->isRunning())
             msleep(100);
     }
     else
     {
-        connect(sextractorSolver, &SextractorSolver::finished, this, &SexySolver::processFinished);
+        connect(sextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
         sextractorSolver->executeProcess();
     }
     if(logLevel != LOG_NONE)
@@ -230,9 +230,9 @@ void SexySolver::run()
 
 //This allows us to start multiple threads to search simulaneously in separate threads/cores
 //to attempt to efficiently use modern multi core computers to speed up the solve
-void SexySolver::parallelSolve()
+void StellarSolver::parallelSolve()
 {
-    if(params.multiAlgorithm == NOT_MULTI || !(processType == SEXYSOLVER || processType == EXT_SEXTRACTORSOLVER || processType == INT_SEP_EXT_SOLVER))
+    if(params.multiAlgorithm == NOT_MULTI || !(processType == STELLARSOLVER || processType == EXT_SEXTRACTORSOLVER || processType == INT_SEP_EXT_SOLVER))
         return;
     parallelSolvers.clear();
     parallelFails = 0;
@@ -266,7 +266,7 @@ void SexySolver::parallelSolve()
             double low = minScale + scaleConst * pow(thread,2);
             double high = minScale + scaleConst * pow(thread + 1, 2);
             SextractorSolver *solver = sextractorSolver->spawnChildSolver(thread);
-            connect(solver, &SextractorSolver::finished, this, &SexySolver::finishParallelSolve);
+            connect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             solver->setSearchScale(low, high, units);
             parallelSolvers.append(solver);
             if(logLevel != LOG_NONE)
@@ -291,7 +291,7 @@ void SexySolver::parallelSolve()
         for(int i = 1; i < sourceNum; i += inc)
         {
             SextractorSolver *solver = sextractorSolver->spawnChildSolver(i);
-            connect(solver, &SextractorSolver::finished, this, &SexySolver::finishParallelSolve);
+            connect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             solver->depthlo = i;
             solver->depthhi = i + inc;
             parallelSolvers.append(solver);
@@ -303,14 +303,14 @@ void SexySolver::parallelSolve()
         solver->startProcess();
 }
 
-bool SexySolver::parallelSolversAreRunning()
+bool StellarSolver::parallelSolversAreRunning()
 {
     foreach(SextractorSolver *solver, parallelSolvers)
         if(solver->isRunning())
             return true;
     return false;
 }
-void SexySolver::processFinished(int code)
+void StellarSolver::processFinished(int code)
 {
     numStars  = sextractorSolver->getNumStarsFound();
     if(code == 0)
@@ -355,7 +355,7 @@ void SexySolver::processFinished(int code)
 
 //This slot listens for signals from the child solvers that they are in fact done with the solve
 //If they
-void SexySolver::finishParallelSolve(int success)
+void StellarSolver::finishParallelSolve(int success)
 {
     SextractorSolver *reportingSolver = (SextractorSolver*)sender();
     int whichSolver = 0;
@@ -375,8 +375,8 @@ void SexySolver::finishParallelSolve(int success)
             emit logOutput("Shutting down other child solvers");
         foreach(SextractorSolver *solver, parallelSolvers)
         {
-            disconnect(solver, &SextractorSolver::finished, this, &SexySolver::finishParallelSolve);
-            disconnect(solver, &SextractorSolver::logOutput, this, &SexySolver::logOutput);
+            disconnect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
+            disconnect(solver, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
             if(solver != reportingSolver && solver->isRunning())
                 solver->abort();
         }
@@ -400,7 +400,7 @@ void SexySolver::finishParallelSolve(int success)
 }
 
 //This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
-void SexySolver::abort()
+void StellarSolver::abort()
 {
     foreach(SextractorSolver *solver, parallelSolvers)
         solver->abort();
@@ -410,7 +410,7 @@ void SexySolver::abort()
 }
 
 //This method uses a fwhm value to generate the conv filter the sextractor will use.
-void SexySolver::createConvFilterFromFWHM(Parameters *params, double fwhm)
+void StellarSolver::createConvFilterFromFWHM(Parameters *params, double fwhm)
 {
     params->fwhm = fwhm;
     params->convFilter.clear();
@@ -426,7 +426,7 @@ void SexySolver::createConvFilterFromFWHM(Parameters *params, double fwhm)
     }
 }
 
-QList<Parameters> SexySolver::getBuiltInProfiles()
+QList<Parameters> StellarSolver::getBuiltInProfiles()
 {
     QList<Parameters> profileList;
 
@@ -514,13 +514,13 @@ QList<Parameters> SexySolver::getBuiltInProfiles()
     return profileList;
 }
 
-void SexySolver::setParameterProfile(SSolver::Parameters::ParametersProfile profile)
+void StellarSolver::setParameterProfile(SSolver::Parameters::ParametersProfile profile)
 {
     QList<Parameters> profileList = getBuiltInProfiles();
     setParameters(profileList.at(profile));
 }
 
-void SexySolver::setUseSubframe(QRect frame)
+void StellarSolver::setUseSubframe(QRect frame)
 {
     int x = frame.x();
     int y = frame.y();
@@ -550,7 +550,7 @@ void SexySolver::setUseSubframe(QRect frame)
 }
 
 //This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.
-void SexySolver::setSearchScale(double fov_low, double fov_high, QString scaleUnits)
+void StellarSolver::setSearchScale(double fov_low, double fov_high, QString scaleUnits)
 {
     if(scaleUnits =="dw" || scaleUnits =="degw" || scaleUnits =="degwidth")
         setSearchScale(fov_low, fov_high, DEG_WIDTH);
@@ -563,7 +563,7 @@ void SexySolver::setSearchScale(double fov_low, double fov_high, QString scaleUn
 }
 
 //This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.
-void SexySolver::setSearchScale(double fov_low, double fov_high, ScaleUnits units)
+void StellarSolver::setSearchScale(double fov_low, double fov_high, ScaleUnits units)
 {
     use_scale = true;
     //L
@@ -576,14 +576,14 @@ void SexySolver::setSearchScale(double fov_low, double fov_high, ScaleUnits unit
 
 //This is a convenience function used to set all the search position parameters based on the ra, dec, and radius
 //Warning!!  This method accepts the RA in decimal form and then will convert it to degrees for Astrometry.net
-void SexySolver::setSearchPositionRaDec(double ra, double dec)
+void StellarSolver::setSearchPositionRaDec(double ra, double dec)
 {
     setSearchPositionInDegrees(ra * 15.0, dec);
 }
 
 //This is a convenience function used to set all the search position parameters based on the ra, dec, and radius
 //Warning!!  This method accepts the RA in degrees just like the DEC
-void SexySolver::setSearchPositionInDegrees(double ra, double dec)
+void StellarSolver::setSearchPositionInDegrees(double ra, double dec)
 {
     use_position = true;
     //3
@@ -601,7 +601,7 @@ void addPathToListIfExists(QStringList *list, QString path)
     }
 }
 
-QStringList SexySolver::getDefaultIndexFolderPaths()
+QStringList StellarSolver::getDefaultIndexFolderPaths()
 {
     QStringList indexFilePaths;
 #if defined(Q_OS_OSX)
@@ -624,7 +624,7 @@ QStringList SexySolver::getDefaultIndexFolderPaths()
 
 
 
-FITSImage::wcs_point * SexySolver::getWCSCoord()
+FITSImage::wcs_point * StellarSolver::getWCSCoord()
 {
     if(hasWCS)
         return wcs_coord;
@@ -632,7 +632,7 @@ FITSImage::wcs_point * SexySolver::getWCSCoord()
         return nullptr;
 }
 
-QList<FITSImage::Star> SexySolver::appendStarsRAandDEC(QList<FITSImage::Star> stars)
+QList<FITSImage::Star> StellarSolver::appendStarsRAandDEC(QList<FITSImage::Star> stars)
 {
 
     return sextractorSolver->appendStarsRAandDEC(stars);
@@ -640,7 +640,7 @@ QList<FITSImage::Star> SexySolver::appendStarsRAandDEC(QList<FITSImage::Star> st
 
 //This function should get the system RAM in bytes.  I may revise it later to get the currently available RAM
 //But from what I read, getting the Available RAM is inconsistent and buggy on many systems.
-uint64_t SexySolver::getAvailableRAM()
+uint64_t StellarSolver::getAvailableRAM()
 {
     uint64_t RAM = 0;
 
@@ -673,7 +673,7 @@ uint64_t SexySolver::getAvailableRAM()
 }
 
 //This should determine if enough RAM is available to load all the index files in parallel
-bool SexySolver::enoughRAMisAvailableFor(QStringList indexFolders)
+bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
 {
     uint64_t totalSize = 0;
 

@@ -15,10 +15,10 @@
 #include <ctype.h>
 #include <errno.h>
 #include <sys/types.h>
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <sys/wait.h>
 #endif
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <windirent.h>
 #include <windows.h>
 #else
@@ -532,7 +532,7 @@ int engine_run_job(engine_t* engine, job_t* job) {
             // we only want to try using the verify_wcses the first time.
             blind_clear_verify_wcses(bp);
             blind_clear_indexes(bp);
-            //# Modified by Robert Lancaster for the SexySolver Internal Library
+            //# Modified by Robert Lancaster for the StellarSolver Internal Library
             //blind_clear_solutions(bp); //We will clean this up later.
             //blind_clear_indexes(bp); //Repetitive?
             solver_clear_indexes(sp);
@@ -552,7 +552,7 @@ int engine_run_job(engine_t* engine, job_t* job) {
     logverb("AB scale constraints: %i\n", sp->num_abscale_skipped);
 
  finish:
-    //# Modified by Robert Lancaster for the SexySolver Internal Library, we will clean these up back in SexySolvr.cpp
+    //# Modified by Robert Lancaster for the StellarSolver Internal Library, we will clean these up back in StellarSolver.cpp
     //solver_cleanup(sp);
     //blind_cleanup(bp);
     return 0;

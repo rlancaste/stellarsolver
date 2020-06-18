@@ -9,7 +9,7 @@
 #include "astrometry/os-features-config.h"
 #endif
 
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 // Features we use that aren't standard across all supported platforms
 //#if defined(NEED_CANONICALIZE_FILE_NAME) && (NEED_CANONICALIZE_FILE_NAME == 0)
 // don't redeclare it!
@@ -18,10 +18,10 @@
 //#endif
 
 // This is actually in POSIX1b but may or may not be available.
-//int fdatasync(int fd); //# Modified by Robert Lancaster for the SexySolver Internal Library
+//int fdatasync(int fd); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 // Not POSIX; doesn't exist in Solaris 10 or MSVC
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <sys/param.h>
 #endif
 #ifndef MIN

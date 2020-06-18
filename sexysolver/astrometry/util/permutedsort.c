@@ -6,12 +6,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdint.h> //# Modified by Robert Lancaster for the SexySolver Internal Library
+#include <stdint.h> //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <sys/types.h>
 #endif
 

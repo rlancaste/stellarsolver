@@ -360,7 +360,7 @@ anbool bt_insert2(bt* tree, void* data, anbool unique, compare_func_2 compare, v
     unsigned char da[AVL_MAX_HEIGHT]; /* Cached comparison results. */
     int k = 0;              /* Number of cached results. */
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         unsigned char overflow[tree->datasize];
 #else
         unsigned char *overflow = (unsigned char*) malloc(sizeof(unsigned char)*tree->datasize);
@@ -448,7 +448,7 @@ anbool bt_insert2(bt* tree, void* data, anbool unique, compare_func_2 compare, v
         dir = 0;
     }
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     free(overflow);
 #endif
 

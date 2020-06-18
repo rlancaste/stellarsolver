@@ -1,4 +1,4 @@
-/*  InternalSextractorSolver, SexySolver Internal Library developed by Robert Lancaster, 2020
+/*  InternalSextractorSolver, StellarSolver Internal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
@@ -118,7 +118,7 @@ void InternalSextractorSolver::run()
             emit finished(sextract());
         break;
 
-        case SEXYSOLVER:
+        case STELLARSOLVER:
         {
             if(!hasSextracted)
                 sextract();
@@ -149,10 +149,10 @@ int InternalSextractorSolver::runSEPSextractor()
         return -1;
     }
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting Internal SexySolver Sextractor. . .");
+    emit logOutput("Starting Internal StellarSolver Sextractor. . .");
 
     //Only downsample images before SEP if the Sextraction is being used for plate solving
-    if(processType == SEXYSOLVER && params.downsample != 1)
+    if(processType == STELLARSOLVER && params.downsample != 1)
         downsampleImage(params.downsample);
 
     int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
@@ -697,7 +697,7 @@ bool InternalSextractorSolver::prepare_job() {
 int InternalSextractorSolver::runInternalSolver()
 {
    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Configuring SexySolver");
+    emit logOutput("Configuring StellarSolver");
 
     //This creates and sets up the engine
     engine_t* engine = engine_new();
@@ -839,7 +839,7 @@ int InternalSextractorSolver::runInternalSolver()
         bp->total_cpulimit  = bp->cpulimit ;
     }
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting Internal SexySolver Astrometry.net based Engine. . .");
+    emit logOutput("Starting Internal StellarSolver Astrometry.net based Engine. . .");
 
     //This runs the job in the engine in the file engine.c
     if (engine_run_job(engine, job))

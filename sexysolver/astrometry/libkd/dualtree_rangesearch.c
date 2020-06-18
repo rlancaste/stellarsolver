@@ -157,7 +157,7 @@ static void rs_handle_result(void* vparams,
 
     for (y=yl; y<=yr; y++) {
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         double py[D];
 #else
         double *py = (double*) malloc(sizeof(double)*D);
@@ -179,7 +179,7 @@ static void rs_handle_result(void* vparams,
         for (x=xl; x<=xr; x++) {
             double d2;
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         double px[D];
 #else
         double *px = (double*) malloc(sizeof(double)*D);
@@ -195,11 +195,11 @@ static void rs_handle_result(void* vparams,
             if ((p->usemin) && (d2 < p->mindistsq))
                 continue;
             p->user_callback(p->user_callback_param, x, y, d2);   
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
             free(px);
 #endif
         }
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         free(py);
 #endif
     }

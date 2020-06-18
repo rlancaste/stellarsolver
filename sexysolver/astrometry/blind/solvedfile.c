@@ -16,7 +16,7 @@
 #include "solvedfile.h"
 #include "errors.h"
 
-//# Modified by Robert Lancaster for the SexySolver Internal Library
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
 #if defined(__APPLE__) || defined (_WIN32)
 // MacOS 10.3 with gcc 3.3 doesn't have O_SYNC.
 #if !defined(O_SYNC)
@@ -77,7 +77,7 @@ int solvedfile_get(char* fn, int fieldnum) {
     return val;
 }
 
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 // lastfield = 0 for no limit.
 static il* solvedfile_getall_val(char* fn, int firstfield, int lastfield, int maxfields, int val) {
     FILE* f;
@@ -249,7 +249,7 @@ int solvedfile_set_file(char* fn, anbool* vals, int N) {
     }
     return 0;
 }
-#endif //# Modified by Robert Lancaster for the SexySolver Internal Library
+#endif //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 int solvedfile_set(char* fn, int fieldnum) {
     int f;
@@ -260,7 +260,7 @@ int solvedfile_set(char* fn, int fieldnum) {
     fieldnum--;
 
     // (file mode 666; umask will modify this, if set).
-#ifdef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
     f = open(fn, O_WRONLY | O_CREAT | O_SYNC);
 #else
     f = open(fn, O_WRONLY | O_CREAT | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);

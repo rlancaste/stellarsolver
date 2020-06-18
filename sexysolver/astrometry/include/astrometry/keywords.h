@@ -9,7 +9,7 @@
 #define ASTROMETRY_KEYWORDS_H
 
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #define ATTRIB_FORMAT(style,fmt,start)
 #define InlineDeclare
 #define InlineDefineH

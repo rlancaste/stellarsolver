@@ -5,7 +5,7 @@
 
 #include <time.h>
 
-#ifndef _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <sys/resource.h>
 #include <sys/time.h>
 #else
@@ -24,7 +24,7 @@ static time_t starttime;
 static double starttime2;
 static double startutime, startstime;
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 //Source: https://stackoverflow.com/questions/10905892/equivalent-of-gettimeday-for-windows
 //Marked as a "Free Implementation by the author of the post.
 int gettimeofday(struct timeval * tp, struct timezone * tzp)
@@ -74,7 +74,7 @@ void tic() {
 }
 
 int get_resource_stats(double* p_usertime, double* p_systime, long* p_maxrss) {
-#ifndef _WIN32   //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _WIN32   //# Modified by Robert Lancaster for the StellarSolver Internal Library
     //Getting the rusage would be much more difficult on windows
     struct rusage usage;
     if (getrusage(RUSAGE_SELF, &usage)) {
@@ -91,7 +91,7 @@ int get_resource_stats(double* p_usertime, double* p_systime, long* p_maxrss) {
         *p_maxrss = usage.ru_maxrss;
     }
     return 0;
-#else  //# Modified by Robert Lancaster for the SexySolver Internal Library
+#else  //# Modified by Robert Lancaster for the StellarSolver Internal Library
    return 1;
 #endif
 }

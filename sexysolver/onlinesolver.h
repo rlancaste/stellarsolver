@@ -1,4 +1,4 @@
-/*  OnlineSovler, SexySolver Intenal Library developed by Robert Lancaster, 2020
+/*  OnlineSovler, StellarSolver Intenal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public

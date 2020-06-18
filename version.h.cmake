@@ -1,5 +1,5 @@
 /* Version information */
-#define SexySolver_VERSION "@SexySolver_VERSION_MAJOR@.@SexySolver_VERSION_MINOR@"
+#define StellarSolver_VERSION "@StellarSolver_VERSION_MAJOR@.@StellarSolver_VERSION_MINOR@"
 
 /* Build TS */
-#cmakedefine SexySolver_BUILD_TS "@SexySolver_BUILD_TS@"
+#cmakedefine StellarSolver_BUILD_TS "@StellarSolver_BUILD_TS@"

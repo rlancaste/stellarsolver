@@ -19,7 +19,7 @@
 #include "ioutils.h"
 #include "fitsioutils.h"
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 struct timeval {
     long	tv_sec;		/* seconds */
     long	tv_usec;	/* and microseconds */
