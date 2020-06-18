@@ -46,7 +46,7 @@ Another thought I had in the back of my mind was that there were a copule of rea
 ## Linux
  - Download the stellarsolver-tester git repository in a terminal window or download it in your browser
  
- 		git clone https://github.com/rlancaste/stellarsolver-tester.git
+ 		git clone https://github.com/rlancaste/stellarsolver.git
  		
  - Run the installLinux.sh script
  

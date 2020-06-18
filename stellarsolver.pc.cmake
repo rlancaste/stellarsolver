@@ -5,7 +5,7 @@ includedir=@INCLUDE_INSTALL_DIR@
 
 Name: stellarsolver
 Description: StellarSolver Internal Sextraction and Plate Solving Library
-URL: https://github.com/rlancaste/stellarsolver-tester
+URL: https://github.com/rlancaste/stellarsolver
 Version: @StellarSolver_VERSION@
 Libs: -L${libdir} -lstellarsolver
 Libs.private: -lcfitsio -lwcslib -lpthread
