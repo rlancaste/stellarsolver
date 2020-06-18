@@ -8,23 +8,23 @@ fi
 
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTER=ON ../
 make -j $(expr $(nproc) + 2)
 sudo make install
 
-cp ../tester/SexySolverIcon.png $HOME/Pictures/
+cp ../tester/StellarSolverIcon.png $HOME/Pictures/
 
-# This will create a shortcut on the desktop for launching SexySolver
+# This will create a shortcut on the desktop for launching StellarSolver
 ##################
-cat >$HOME/Desktop/SexySolverTester.desktop <<-EOF
+cat >$HOME/Desktop/StellarSolverTester.desktop <<-EOF
 [Desktop Entry]
 Version=1.0
 Type=Application
 Terminal=false
-Icon[en_US]=$HOME/Pictures/SexySolverIcon.png
-Icon=$HOME/Pictures/SexySolverIcon.png
-Exec=/usr/bin/SexySolverTester
-Name[en_US]=SexySolverTester
-Name=SexySolverTester
+Icon[en_US]=$HOME/Pictures/StellarSolverIcon.png
+Icon=$HOME/Pictures/StellarSolverIcon.png
+Exec=/usr/bin/StellarSolverTester
+Name[en_US]=StellarSolverTester
+Name=StellarSolverTester
 EOF
 ##################

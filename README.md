@@ -1,7 +1,7 @@
-# SexySolver
+# StellarSolver
 ## The Cross Platform Sextractor and Astrometry.net-Based Internal Astrometric Solver
 
-![SexySolver Pretty](/images/SexySolverPretty.png "SexySolver solving a pretty image.")
+![StellarSolver Pretty](/images/StellarSolverPretty.png "StellarSolver solving a pretty image.")
 
  - An Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net and SEP (sextractor)
  - Meant to be an internal library for use in a program like KStars for internal plate solving on all supported operating systems
@@ -12,9 +12,9 @@
  - Directly loads the image data into SEP and then takes the generated xy-list internally from Sextractor into astrometry.net, so there is no need to save any files.
  - No temporary files need to be created for solving and no WCS file needs to be created to read the solved information.  Although astrometry.net does monitor for the creation of 2 files indicating that a field is solved or a cancel was made, so these are created for now.
  - The Index Files are still required for solving images, but the program or the user can specify the folder locations rather than putting them in the config file.
- - Note: The executable created by MainWindow is only meant for testing purposes.  It is for developing and improving SexySolver.cpp and the included libraries in the astrometry and sep folders.  It can be used to compare the library to an existing installation of astrometry.net on the computer to perfect the settings.
+ - Note: The executable created by MainWindow is only meant for testing purposes.  It is for developing and improving StellarSolver.cpp and the included libraries in the astrometry and sep folders.  It can be used to compare the library to an existing installation of astrometry.net on the computer to perfect the settings.
 
-![SexySolver In Action](/images/SexySolverInAction2.png "SexySolver running the same solve on different platforms.")
+![StellarSolver In Action](/images/StellarSolverInAction2.png "StellarSolver running the same solve on different platforms.")
 ## Based on:
  - Astrometry.net [Astrometry README](http://astrometry.net/doc/readme.html)
  - Sextractor [Sextractor Documentation](https://sextractor.readthedocs.io/en/latest/)
@@ -44,9 +44,9 @@ Another thought I had in the back of my mind was that there were a copule of rea
 # Installing the program
 
 ## Linux
- - Download the sexysolver-tester git repository in a terminal window or download it in your browser
+ - Download the stellarsolver-tester git repository in a terminal window or download it in your browser
  
- 		git clone https://github.com/rlancaste/sexysolver-tester.git
+ 		git clone https://github.com/rlancaste/stellarsolver-tester.git
  		
  - Run the installLinux.sh script
  
@@ -65,7 +65,7 @@ Another thought I had in the back of my mind was that there were a copule of rea
  - Go to your Start Menu and Open the program
 
 # What else do I need to install
-One of the big goals of the SexySolver is to eliminate all the external programs, configuration files, and setup currently required by programs like 
+One of the big goals of the StellarSolver is to eliminate all the external programs, configuration files, and setup currently required by programs like 
 Astrometry.net.  But no matter what, you will still need some index files which contain the star positions astrometry will match your stars with to get a solve.
 That being said, it would really help for the testing purposes to install the other methods of plate solving for comparison purposes.  Also note that another
 goal of this project is to try to improve the parameters and the way that we use the external programs as well for an alternative plate solving method.
@@ -80,9 +80,9 @@ to the homebrew index file location or if you have KStars installed, it can use 
 "local" index file location or the Linux default location.
 
 ## Alternate programs/methods for solving
-This program has several methods of plate solving images, one is using the internal SexySolver Library, but the other methods all rely on external programs.
+This program has several methods of plate solving images, one is using the internal StellarSolver Library, but the other methods all rely on external programs.
 You don't have to install any of them, but sometimes the other methods are better for certain images and we would like to compare the methods and improve all
-of them.  The goal is not just to replace all of these other ways of plate solving with SexySolver, but to provide alternatives.  To get them all set up
+of them.  The goal is not just to replace all of these other ways of plate solving with StellarSolver, but to provide alternatives.  To get them all set up
 
 - Astrometry - [http://astrometry.net/doc/readme.html](http://astrometry.net/doc/readme.html)
 - ANSVR (Astrometry on Windows) [https://adgsoftware.com/ansvr/](https://adgsoftware.com/ansvr/)
@@ -91,11 +91,11 @@ of them.  The goal is not just to replace all of these other ways of plate solvi
 - Sextractor is a little more difficult.  It can't be installed on Windows to my knowledge.  The installation of astrometry.net on ubuntu installs 
 sextractor as well so it is taken care of.  And on Macs, you can either use the internal version that comes with KStars or you can install it with homebrew.
 
-NOTE:  If you have KStars installed on a Mac, you already have all of these programs in the app bundle except for ASTAP and the SexySolver program can
+NOTE:  If you have KStars installed on a Mac, you already have all of these programs in the app bundle except for ASTAP and the StellarSolver program can
 utilize them just fine so you don't need to install external programs except KStars and ASTAP.
 
-# Using the SexySolver Tester Program
-Remember that the main goal of this SexySolver tester program is to perfect the internal libraries, determine what settings need to be avaiable for the user to use,
+# Using the StellarSolver Tester Program
+Remember that the main goal of this StellarSolver tester program is to perfect the internal libraries, determine what settings need to be avaiable for the user to use,
 determine what settings should be set to fixed values and hidden from the user, and to figure out what effect some settings have on the program.  With that goal in mind,
 please test plate solving all kinds of images on different systems.  Try Sextracting all kinds of images on different systems.  Compare the results in the results table
 and in the star table.  Find out what works and what does not work.  Send feedback!
@@ -108,7 +108,7 @@ When you do the sextraction, the program will load the results into the star tab
 We want the Sextractor to be fairly fast, accurately detect stars (or other objects) for various purposes, and report things like Magnitude and Flux.
 One goal is to use the sextracted stars to solve images, the other is to use the sextracted stars for other reasons like guiding and photometry.
 
-![SexySolver Sextractor](/images/Sextractor.png "SexySolver sextracting stars into the star table.")
+![StellarSolver Sextractor](/images/Sextractor.png "StellarSolver sextracting stars into the star table.")
 
 ## Solving Images
 You can use the Internal Solver or the External Solver(s).  There are numerous options like using internal sextractor and external astrometry.net, or using ASTAP to solve images.
@@ -116,18 +116,18 @@ We want to support various methods of solving images because different systems w
 There are a number of settings in the left panel of options that you can set for solving images.  We want to solve images quickly but accurately.
 So please play around with the settings and find out what can work the best.
 
-![SexySolver Solver](/images/Solver.png "SexySolver solving an image using different methods.")
+![StellarSolver Solver](/images/Solver.png "StellarSolver solving an image using different methods.")
 
 # Building the program
 
 ## Linux
-You can follow this set of steps on ubuntu build the program SexySolver on Linux if you don't want to use the installer above.
+You can follow this set of steps on ubuntu build the program StellarSolver on Linux if you don't want to use the installer above.
 
 	sudo apt -y install git cmake qt5-default libcfitsio-dev libgsl-dev
-	git clone https://github.com/rlancaste/sexysolver-tester.git
+	git clone https://github.com/rlancaste/stellarsolver.git
 	mkdir build
 	cd build
-	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ../sexysolver-tester/
+	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTER=ON ../stellarsolver/
 	make -j $(expr $(nproc) + 2)
 	sudo make install
 
@@ -137,10 +137,10 @@ You should probably use craft to get it set up on Mac.  You don't need to do so,
 since there are dependencies like cfitsio which are more challenging to install without using craft.
 You can set it up using:
  [Mac Craft Installation Instructions](https://community.kde.org/Guidelines_and_HOWTOs/Build_from_source/Mac#Installation_using_Craft)
-Once you set up craft, just copy the SexySolver recipe in the craft-blueprint folder of this repo into the folder
+Once you set up craft, just copy the StellarSolver recipe in the craft-blueprint folder of this repo into the folder
 /etc/blueprints/locations/craft-blueprints-kde/libs of your root craft directory.  Then just type:
 
-	craft -v -i SexySolver
+	craft -v -i StellarSolver
 
 and it will build.
 
@@ -149,9 +149,9 @@ The Windows build is still very much experimental.  On Windows, right now you ha
 and everything else all set up, and you have to use the MingGW compiler.  It won't build yet using MSVC and Visual Studio.
 You can set it up using:
  [Windows Craft Installation Instructions](https://community.kde.org/Guidelines_and_HOWTOs/Build_from_source/Windows)
-Once you set up craft, just copy the SexySolver recipe in the craft-blueprint folder of this repo into the folder
+Once you set up craft, just copy the StellarSolver recipe in the craft-blueprint folder of this repo into the folder
 /etc/blueprints/locations/craft-blueprints-kde/libs of your root craft directory.  Then just type:
 
-	craft -v -i SexySolver
+	craft -v -i StellarSolver
 
 and it will build.
