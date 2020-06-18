@@ -11,7 +11,7 @@ else
 fi
 
 #This makes and installs the library
-mkdir $DIR/build
+mkdir -p $DIR/build
 cd $DIR/build
 cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo $DIR
 make -j $(expr $(nproc) + 2)

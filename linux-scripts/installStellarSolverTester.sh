@@ -11,9 +11,9 @@ else
 fi
 
 #This makes and installs the library
-mkdir $DIR/build
+mkdir -p $DIR/build
 cd $DIR/build
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo $DIR
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTER=ON $DIR
 make -j $(expr $(nproc) + 2)
 sudo make install
 
