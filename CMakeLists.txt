@@ -292,7 +292,11 @@ target_link_libraries(stellarsolverstatic wsock32 ${Boost_LIBRARIES})
 target_link_libraries(stellarsolver wsock32 ${Boost_LIBRARIES})
 endif(WIN32)
 
+# If we are using windows, it can cause problems for the static and dynamic libraries to have the same name.
+if(NOT WIN32)
 set_target_properties(stellarsolverstatic PROPERTIES OUTPUT_NAME stellarsolver)
+endif(NOT WIN32)
+
 install(TARGETS stellarsolverstatic DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
 install(TARGETS stellarsolver DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
 install(TARGETS stellarsolverstatic DESTINATION ${CMAKE_INSTALL_LIBDIR})
