@@ -63,7 +63,7 @@ static QString getScaleUnitString(SSolver::ScaleUnits scaleunit)
     }
 }
 
-// This is the list of operations that the Sexysolver can do.
+// This is the list of operations that the Stellarsolver can do.
 // You need to set this either directly or using a method before starting the process.
 typedef enum {INT_SEP,                      // Performs internal SEP on the image
               INT_SEP_HFR,                  // Performs internal SEP on the image with HFR Calculation
@@ -191,7 +191,7 @@ static QString getLogLevelString(SSolver::logging_level logLevel)
 }
 
 //STELLARSOLVER PARAMETERS
-//These are the parameters used by the Sexysolver for both Sextracting and Solving
+//These are the parameters used by the StellarSolver for both Sextracting and Solving
 //The values here are the defaults unless they get changed.
 //If you are fine with those defaults, you don't need to set any of them.
 
