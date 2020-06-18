@@ -81,7 +81,7 @@ endif(WIN32)
 # We aren't using netpbm in this program, so set this to 0 no matter what
 file(APPEND "${config_FN}" "#define HAVE_NETPBM 0")
 
-option(BUILD_TESTER "Build stellarsolver tester program, instead of just the library" On)
+option(BUILD_TESTER "Build stellarsolver tester program, instead of just the library" Off)
 
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
