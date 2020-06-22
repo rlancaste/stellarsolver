@@ -269,6 +269,7 @@ int InternalSextractorSolver::runSEPSextractor()
         float theta = catalog->theta[i];
         double flux = catalog->flux[i];
         double peak = catalog->peak[i];
+        int numPixels = catalog->npix[i];
 
         //Variables that will be obtained through methods
         double kronrad;
@@ -321,7 +322,7 @@ int InternalSextractorSolver::runSEPSextractor()
             HFR = flux_fractions[0];
         }
 
-        FITSImage::Star star = {xPos + x, yPos + y, mag, (float)sum, (float)peak, HFR, a, b, qRadiansToDegrees(theta), 0, 0};
+        FITSImage::Star star = {xPos + x, yPos + y, mag, (float)sum, (float)peak, HFR, a, b, qRadiansToDegrees(theta), 0, 0, numPixels};
 
         stars.append(star);
     }
