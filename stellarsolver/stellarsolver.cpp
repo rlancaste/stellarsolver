@@ -703,9 +703,9 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
 }
 
 // Taken from: http://www1.phys.vt.edu/~jhs/phys3154/snr20040108.pdf
-static double StellarSolver::snr(const FITSImage::Background &background,
-                                 const FITSImage::Star &star,
-                                 double gain)
+double StellarSolver::snr(const FITSImage::Background &background,
+                          const FITSImage::Star &star,
+                          double gain)
 {
     const double numPixelsInSkyEstimate = background.bw * background.bh;
     const double varSky = background.globalrms * background.globalrms;
