@@ -59,6 +59,7 @@ typedef struct
     int bw, bh;        // single tile width, height
     float global;      // global mean
     float globalrms;   // global sigma
+    int num_stars_detected; // Number of stars detected before any reduction.
 } Background;
 
 // This struct contains information about the astrometric solution

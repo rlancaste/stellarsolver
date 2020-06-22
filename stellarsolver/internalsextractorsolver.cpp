@@ -236,6 +236,9 @@ int InternalSextractorSolver::runSEPSextractor()
     status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, params.minarea, params.convFilter.data(), sqrt(params.convFilter.size()), sqrt(params.convFilter.size()), SEP_FILTER_CONV, params.deblend_thresh, params.deblend_contrast, params.clean, params.clean_param, &catalog);
     if (status != 0) goto exit;
 
+    // Record the number of stars detected.
+    background.num_stars_detected = catalog->nobj;
+    
     // Find the oval sizes for each detection in the detected star catalog, and sort by that. Oval size
     // correlates very well with HFR and likely magnitude.
     for (int i = 0; i < catalog->nobj; i++)
