@@ -130,6 +130,9 @@ public:
     bool isUsingScale(){return use_scale;}
     bool isUsingPosition(){return use_position;}
 
+    //Static Utility
+    static double snr(const FITSImage::Background &background,
+                      const FITSImage::Star &star, double gain = 0.5);
 
     virtual FITSImage::wcs_point *getWCSCoord();
     virtual QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars);

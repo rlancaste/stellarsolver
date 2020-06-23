@@ -50,6 +50,7 @@ typedef struct
     float theta;    // The angle of orientation of the star
     float ra;       // The right ascension of the star
     float dec;      // The declination of the star
+    int numPixels;  // The number of pixels occupied by the star in the image.
 } Star;
 
 // This struct holds data about the background in an image

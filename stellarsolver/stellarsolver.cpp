@@ -702,7 +702,23 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
     return availableRAM > totalSize;
 }
 
+// Taken from: http://www1.phys.vt.edu/~jhs/phys3154/snr20040108.pdf
+double StellarSolver::snr(const FITSImage::Background &background,
+                          const FITSImage::Star &star,
+                          double gain)
+{
+    const double numPixelsInSkyEstimate = background.bw * background.bh;
+    const double varSky = background.globalrms * background.globalrms;
+    
+    if (numPixelsInSkyEstimate <= 0 || gain <= 0)
+        return 0;
 
-
-
-
+    // It seems SEP flux subtracts out the background, so no need
+    // for numer = flux - star.numPixels * mean;
+    const double numer = star.flux;  
+    const double denom = sqrt( numer / gain + star.numPixels * varSky  * (1 + 1 / numPixelsInSkyEstimate));
+    if (denom <= 0)
+        return 0;
+    return numer / denom;
+    
+}
