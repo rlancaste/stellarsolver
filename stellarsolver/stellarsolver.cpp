@@ -44,19 +44,21 @@ StellarSolver::~StellarSolver()
 SextractorSolver* StellarSolver::createSextractorSolver()
 {
     SextractorSolver *solver;
-    if(processType == INT_SEP || processType == INT_SEP_HFR || processType == STELLARSOLVER)
-        solver = new InternalSextractorSolver(processType, stats, m_ImageBuffer, this);
-    else if(processType == ONLINE_ASTROMETRY_NET || processType == INT_SEP_ONLINE_ASTROMETRY_NET)
+
+    if(processType == SOLVE && solverType == SOLVER_ONLINEASTROMETRY)
     {
-        OnlineSolver *onlineSolver = new OnlineSolver(processType, stats, m_ImageBuffer, this);
+        OnlineSolver *onlineSolver = new OnlineSolver(processType, sextractorType, solverType, stats, m_ImageBuffer, this);
         onlineSolver->fileToProcess = fileToProcess;
         onlineSolver->astrometryAPIKey = astrometryAPIKey;
         onlineSolver->astrometryAPIURL = astrometryAPIURL;
+        onlineSolver->sextractorBinaryPath = sextractorBinaryPath;
         solver = onlineSolver;
     }
+    else if((processType == SOLVE && solverType == SOLVER_STELLARSOLVER) || (processType != SOLVE && sextractorType != SEXTRACTOR_EXTERNAL))
+        solver = new InternalSextractorSolver(processType, sextractorType, solverType, stats, m_ImageBuffer, this);
     else
     {
-        ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(processType, stats, m_ImageBuffer, this);
+        ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(processType, sextractorType, solverType, stats, m_ImageBuffer, this);
         extSolver->fileToProcess = fileToProcess;
         extSolver->sextractorBinaryPath = sextractorBinaryPath;
         extSolver->confPath = confPath;
@@ -89,21 +91,21 @@ SextractorSolver* StellarSolver::createSextractorSolver()
 
 void StellarSolver::sextract()
 {
-    processType = INT_SEP;
+    processType = SEXTRACT;
     useSubframe = false;
     executeProcess();
 }
 
 void StellarSolver::sextractWithHFR()
 {
-    processType = INT_SEP_HFR;
+    processType = SEXTRACT_WITH_HFR;
     useSubframe = false;
     executeProcess();
 }
 
 void StellarSolver::sextract(QRect frame)
 {
-    processType = INT_SEP;
+    processType = SEXTRACT;
     subframe = frame;
     useSubframe = true;
     executeProcess();
@@ -111,7 +113,7 @@ void StellarSolver::sextract(QRect frame)
 
 void StellarSolver::sextractWithHFR(QRect frame)
 {
-    processType = INT_SEP_HFR;
+    processType = SEXTRACT_WITH_HFR;
     subframe = frame;
     useSubframe = true;
     executeProcess();
@@ -119,38 +121,45 @@ void StellarSolver::sextractWithHFR(QRect frame)
 
 void StellarSolver::startsextraction()
 {
-    processType = INT_SEP;
+    processType = SEXTRACT;
     startProcess();
 }
 
 void StellarSolver::startSextractionWithHFR()
 {
-    processType = INT_SEP_HFR;
+    processType = SEXTRACT_WITH_HFR;
     startProcess();
 }
 
 void StellarSolver::startProcess()
 {
-    if(checkParameters())
-    {
-        sextractorSolver = createSextractorSolver();
-        start();
-    }
+    sextractorSolver = createSextractorSolver();
+    start();
 }
 
 void StellarSolver::executeProcess()
 {
-    if(checkParameters())
-    {
-        sextractorSolver = createSextractorSolver();
-        start();
-        while(!hasSextracted && !hasSolved && !hasFailed && !wasAborted)
-            QApplication::processEvents();
-    }
+    sextractorSolver = createSextractorSolver();
+    start();
+    while(!hasSextracted && !hasSolved && !hasFailed && !wasAborted)
+        QApplication::processEvents();
 }
 
 bool StellarSolver::checkParameters()
 {
+    if(params.multiAlgorithm != NOT_MULTI && solverType == SOLVER_ASTAP && processType == SOLVE)
+    {
+        emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
+        params.multiAlgorithm = NOT_MULTI;
+    }
+
+    if(processType == SOLVE && solverType == SOLVER_STELLARSOLVER && sextractorType != SEXTRACTOR_INTERNAL)
+    {
+        emit logOutput("StellarSolver only uses the Internal SEP Sextractor since it doesn't save files to disk. Changing to Internal Sextractor.");
+        sextractorType = SEXTRACTOR_INTERNAL;
+
+    }
+
     if(params.multiAlgorithm == MULTI_AUTO)
     {
         if(use_scale && use_position)
@@ -179,19 +188,26 @@ bool StellarSolver::checkParameters()
             params.inParallel = false;
         }
     }
+
     return true; //For now
 }
 
 void StellarSolver::run()
 {
+    if(checkParameters() == false)
+    {
+        emit logOutput("There is an issue with your parameters.  Terminating the process.");
+        return;
+    }
+
     hasFailed = false;
-    if(processType == INT_SEP || processType == INT_SEP_HFR || processType == EXT_SEXTRACTOR || processType == EXT_SEXTRACTOR_HFR)
+    if(processType == SEXTRACT || processType == SEXTRACT_WITH_HFR)
         hasSextracted = false;
     else
         hasSolved = false;
 
-    //These are the ones that support parallelization
-    if(params.multiAlgorithm != NOT_MULTI && (processType == STELLARSOLVER || processType == EXT_SEXTRACTORSOLVER || processType == INT_SEP_EXT_SOLVER))
+    //These are the solvers that support parallelization, ASTAP and the online ones do not
+    if(params.multiAlgorithm != NOT_MULTI && processType == SOLVE && (solverType == SOLVER_STELLARSOLVER || solverType == SOLVER_LOCALASTROMETRY))
     {
         sextractorSolver->sextract();
         parallelSolve();
@@ -212,7 +228,7 @@ void StellarSolver::run()
         while(parallelSolversAreRunning())
             msleep(100);
     }
-    else if(processType == ONLINE_ASTROMETRY_NET || processType == INT_SEP_ONLINE_ASTROMETRY_NET)
+    else if(solverType == SOLVER_ONLINEASTROMETRY)
     {
         connect(sextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
         sextractorSolver->startProcess();
@@ -232,7 +248,7 @@ void StellarSolver::run()
 //to attempt to efficiently use modern multi core computers to speed up the solve
 void StellarSolver::parallelSolve()
 {
-    if(params.multiAlgorithm == NOT_MULTI || !(processType == STELLARSOLVER || processType == EXT_SEXTRACTORSOLVER || processType == INT_SEP_EXT_SOLVER))
+    if(params.multiAlgorithm == NOT_MULTI || !(solverType == SOLVER_STELLARSOLVER || solverType == SOLVER_LOCALASTROMETRY))
         return;
     parallelSolvers.clear();
     parallelFails = 0;

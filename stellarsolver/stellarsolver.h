@@ -30,6 +30,8 @@ public:
     //This defines the type of process to perform.
 
     ProcessType processType;
+    SextractorType sextractorType;
+    SolverType solverType;
 
     //The constructor and destructor fo the StellarSolver Object
     explicit StellarSolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
@@ -39,7 +41,7 @@ public:
     //This gets the processType as a string explaining the command StellarSolver is Running
     QString getCommandString()
     {
-        return SSolver::getCommandString(processType);
+        return SSolver::getCommandString(processType, sextractorType, solverType);
     }
 
     //This gets the scale unit string for astrometry.net input
@@ -102,6 +104,8 @@ public:
     void setSearchPositionRaDec(double ra, double dec);                                                    //This sets the search RA/DEC/Radius to speed up the solver
     void setSearchPositionInDegrees(double ra, double dec);
     void setProcessType(ProcessType type){processType = type;};
+    void setSextractorType(SextractorType type){sextractorType = type;};
+    void setSolverType(SolverType type){solverType = type;};
     void setLogToFile(bool change){logToFile = change;};
     void setLogLevel(logging_level level){logLevel = level;};
 

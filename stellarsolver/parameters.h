@@ -65,64 +65,81 @@ static QString getScaleUnitString(SSolver::ScaleUnits scaleunit)
 
 // This is the list of operations that the Stellarsolver can do.
 // You need to set this either directly or using a method before starting the process.
-typedef enum {INT_SEP,                      // Performs internal SEP on the image
-              INT_SEP_HFR,                  // Performs internal SEP on the image with HFR Calculation
-              EXT_SEXTRACTOR,               // Uses the External Sextractor to Sextract the Image
-              EXT_SEXTRACTOR_HFR,           // Uses the External Sextractor to Sextract the Image with HFR Calculation
-              STELLARSOLVER,                   // Uses Internal SEP to get the sources and then Solves with the Internal astrometry.net build
-              EXT_SEXTRACTORSOLVER,         // Uses External Sextractor to get the sources and then Solves with a local astrometry.net or ANSVR
-              INT_SEP_EXT_SOLVER,           // Uses Internal SEP to get the sources and then Solves with a local astrometry.net or ANSVR
-              CLASSIC_ASTROMETRY,           // Just uses a local Astrometry.net or ANSVR solver to solve the image without prior source extraction
-              ASTAP,                        // Just uses a local ASTAP installation to solve the image without prior source extraction
-              INT_SEP_EXT_ASTAP,            // Uses Internal SEP to get the sources and then Solves with a local ASTAP installation
-              ONLINE_ASTROMETRY_NET,        // Just uses an online astrometry.net solver or ANSVR
-              INT_SEP_ONLINE_ASTROMETRY_NET // ses Internal SEP to get the sources and then uses an online astrometry.net solver or ANSVR
-}ProcessType;
+typedef enum { SEXTRACT,            //This just sextracts the sources
+               SEXTRACT_WITH_HFR,   //This sextracts the sources and finds the HFR
+               SOLVE                //This solves the image
+} ProcessType;
+
+typedef enum { SEXTRACTOR_INTERNAL, //This uses internal SEP to Sextract Sources
+               SEXTRACTOR_EXTERNAL,  //This uses the external sextractor to Sextract Sources.
+               SEXTRACTOR_BUILTIN  //This uses whatever default sextraction method the selected solver uses
+} SextractorType;
+
+typedef enum { SOLVER_STELLARSOLVER,    //This uses the internal build of astrometry.net
+               SOLVER_LOCALASTROMETRY,  //This uses an astrometry.net or ANSVR locally on this computer
+               SOLVER_ASTAP,            //This uses a local installation of ASTAP
+               SOLVER_ONLINEASTROMETRY  //This uses the online astrometry.net or ASTAP
+} SolverType;
 
 //This gets the processType as a string explaining the command StellarSolver is Running
-static QString getCommandString(SSolver::ProcessType processType)
+static QString getCommandString(SSolver::ProcessType processType, SSolver::SextractorType sextractorType, SSolver::SolverType solverType)
 {
+    QString commandString = "";
+
+    switch(sextractorType)
+    {
+        case SEXTRACTOR_INTERNAL:
+            commandString += "Internal ";
+        break;
+
+        case SEXTRACTOR_EXTERNAL:
+            commandString += "External ";
+        break;
+
+        case SEXTRACTOR_BUILTIN:
+            commandString += "Built In ";
+        break;
+    }
+
     switch(processType)
     {
-        case INT_SEP:
-            return "Int. SEP";
-            break;
-        case INT_SEP_HFR:
-            return "Int. SEP w/ HFR";
-            break;
-        case EXT_SEXTRACTOR:
-            return "Ext. SExtractor";
-            break;
-        case EXT_SEXTRACTOR_HFR:
-            return "Ext. SExtractor w/ HFR";
-            break;
-        case STELLARSOLVER:
-            return "Int. SEP & Int. Solver";
-            break;
-        case EXT_SEXTRACTORSOLVER:
-            return "Ext. SExtractor & Solver";
-            break;
-        case INT_SEP_EXT_SOLVER:
-            return "Int. SEP & Ext. Solver";
-            break;
-        case CLASSIC_ASTROMETRY:
-            return "Classic Astrometry.net";
-            break;
-        case ASTAP:
-            return "ASTAP Solver";
-            break;
-        case INT_SEP_EXT_ASTAP:
-            return "Int. SEP & Ext. ASTAP Solver";
-            break;
-        case ONLINE_ASTROMETRY_NET:
-            return "Online Solver";
-            break;
-        case INT_SEP_ONLINE_ASTROMETRY_NET:
-            return "Int. SEP & Online Solver";
-            break;
-        default: return ""; break;
+        case SEXTRACT:
+            commandString += "Sextractor ";
+        break;
+
+        case SEXTRACT_WITH_HFR:
+            commandString += "Sextractor w/HFR ";
+        break;
+
+        case SOLVE:
+            commandString += "Sextractor w/ ";
+        break;
     }
+
+    if(processType == SOLVE)
+    {
+        switch(solverType)
+        {
+            case SOLVER_STELLARSOLVER:
+                commandString += "StellarSolver ";
+            break;
+
+            case SOLVER_LOCALASTROMETRY:
+                commandString += "local solver ";
+            break;
+
+            case SOLVER_ASTAP:
+                commandString += "local ASTAP ";
+            break;
+
+            case SOLVER_ONLINEASTROMETRY:
+                commandString += "online solver ";
+            break;
+        }
+    }
+    return commandString;
 };
+
 
 // These are the algorithms used for patallel solving
 // When solving an image, this is one of the Parameters

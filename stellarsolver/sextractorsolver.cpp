@@ -10,9 +10,11 @@
 using namespace SSolver;
 
 
-SextractorSolver::SextractorSolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : QThread(parent)
+SextractorSolver::SextractorSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : QThread(parent)
 {
     processType = type;
+    sextractorType = sexType;
+    solverType = solType;
     stats=imagestats;
     m_ImageBuffer=imageBuffer;
 }

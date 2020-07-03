@@ -18,7 +18,7 @@ using namespace SSolver;
 class InternalSextractorSolver: public SextractorSolver
 {
 public:
-    explicit InternalSextractorSolver(ProcessType type, FITSImage::Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
+    explicit InternalSextractorSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
     ~InternalSextractorSolver();
 
     int sextract() override;

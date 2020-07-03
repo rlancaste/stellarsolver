@@ -22,7 +22,7 @@ extern "C"{
 
 using namespace SSolver;
 
-InternalSextractorSolver::InternalSextractorSolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : SextractorSolver(type, imagestats, imageBuffer, parent)
+InternalSextractorSolver::InternalSextractorSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : SextractorSolver(type, sexType, solType, imagestats, imageBuffer, parent)
 {
     processType = type;
     stats=imagestats;
@@ -58,7 +58,7 @@ void InternalSextractorSolver::abort()
 //This method generates child solvers with the options of the current solver
 SextractorSolver* InternalSextractorSolver::spawnChildSolver(int n)
 {
-    InternalSextractorSolver *solver = new InternalSextractorSolver(processType, stats, m_ImageBuffer, nullptr);
+    InternalSextractorSolver *solver = new InternalSextractorSolver(processType, sextractorType, solverType, stats, m_ImageBuffer, nullptr);
     solver->stars = stars;
     solver->basePath = basePath;
     //They will all share the same basename
@@ -88,10 +88,6 @@ SextractorSolver* InternalSextractorSolver::spawnChildSolver(int n)
 
 int InternalSextractorSolver::sextract()
 {
-    if(processType == INT_SEP_HFR)
-        calculateHFR = true;
-    if(processType == INT_SEP)
-        calculateHFR = false;
     return(runSEPSextractor());
 }
 
@@ -113,12 +109,12 @@ void InternalSextractorSolver::run()
 
     switch(processType)
     {
-        case INT_SEP:
-        case INT_SEP_HFR:
+        case SEXTRACT:
+        case SEXTRACT_WITH_HFR:
             emit finished(sextract());
         break;
 
-        case STELLARSOLVER:
+        case SOLVE:
         {
             if(!hasSextracted)
                 sextract();
@@ -152,7 +148,7 @@ int InternalSextractorSolver::runSEPSextractor()
     emit logOutput("Starting Internal StellarSolver Sextractor. . .");
 
     //Only downsample images before SEP if the Sextraction is being used for plate solving
-    if(processType == STELLARSOLVER && params.downsample != 1)
+    if(processType == SOLVE && solverType == SOLVER_STELLARSOLVER && params.downsample != 1)
         downsampleImage(params.downsample);
 
     int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
@@ -315,7 +311,7 @@ int InternalSextractorSolver::runSEPSextractor()
         float mag = params.magzero - 2.5 * log10(sum);
 
         float HFR = 0;
-        if(processType == INT_SEP_HFR)
+        if(processType == SEXTRACT_WITH_HFR)
         {
             //Get HFR
             sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, params.subpix, 0, &flux, requested_frac, 2, flux_fractions, &flux_flag);

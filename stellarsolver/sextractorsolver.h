@@ -31,10 +31,13 @@ class SextractorSolver : public QThread
 {
     Q_OBJECT
 public:
-    SextractorSolver(ProcessType type, FITSImage::Statistic imagestats,  const uint8_t *imageBuffer, QObject *parent = nullptr);
+    SextractorSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats,  const uint8_t *imageBuffer, QObject *parent = nullptr);
     ~SextractorSolver();
 
     ProcessType processType;
+    SextractorType sextractorType;
+    SolverType solverType;
+
     virtual int sextract()=0;
     //virtual void solve()=0;
     //These are the most important methods that you can use for the StellarSolver
@@ -102,7 +105,7 @@ public:
     FITSImage::Solution getSolution(){return solution;};
     bool hasWCSData(){return hasWCS;};
     bool solvingDone(){return hasSolved;};
-    bool isCalculatingHFR(){return calculateHFR;};
+    bool isCalculatingHFR(){return processType==SEXTRACT_WITH_HFR;};
     void setUseSubframe(QRect frame){useSubframe = true; subframe = frame;};
 
 protected:  //Note: These items are not private because they are needed by ExternalSextractorSolver
@@ -110,7 +113,6 @@ protected:  //Note: These items are not private because they are needed by Exter
     bool useSubframe = false;
     QRect subframe;
     //StellarSolver Internal settings that are needed by ExternalSextractorSolver as well
-    bool calculateHFR = false;          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
     bool hasSextracted = false;         //This boolean is set when the sextraction is done
     bool hasSolved = false;             //This boolean is set when the solving is done
     FITSImage::Statistic stats;                    //This is information about the image

@@ -12,7 +12,7 @@
 #include <wcshdr.h>
 #include <wcsfix.h>
 
-ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalSextractorSolver(type, imagestats, imageBuffer, parent)
+ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalSextractorSolver(type, sexType, solType, imagestats, imageBuffer, parent)
 {
 
     //This sets the base name used for the temp files.
@@ -108,8 +108,7 @@ void ExternalSextractorSolver::setWinCygwinPaths()
 
 int ExternalSextractorSolver::sextract()
 {
-    //These processes use the external sextractor
-    if(processType == EXT_SEXTRACTORSOLVER || processType == EXT_SEXTRACTOR || processType == EXT_SEXTRACTOR_HFR)
+    if(sextractorType == SEXTRACTOR_EXTERNAL)
     {
         #ifdef _WIN32  //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
             emit logOutput("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
@@ -122,30 +121,22 @@ int ExternalSextractorSolver::sextract()
         }
     }
 
-    if(processType == EXT_SEXTRACTOR_HFR)
-        calculateHFR = true;
-    if(processType == EXT_SEXTRACTOR)
-        calculateHFR = false;
-
     if(sextractorFilePath == "")
     {
         sextractorFilePathIsTempFile = true;
         sextractorFilePath = basePath + "/" + baseName + ".xyls";
     }
 
-    if(processType == EXT_SEXTRACTOR_HFR || processType == EXT_SEXTRACTOR)
+    if(processType == SEXTRACT_WITH_HFR || processType == SEXTRACT)
         return runExternalSextractor();
-    else if(processType == EXT_SEXTRACTORSOLVER)
+    else
     {
         int fail = 0;
-        if((fail = runExternalSextractor()) != 0)
-            return fail;
-        return(writeSextractorTable());
-    }
-    else if(processType == INT_SEP_EXT_SOLVER || processType == INT_SEP_EXT_ASTAP)
-    {
-        int fail = 0;
-        if((fail = runSEPSextractor()) != 0)
+        if(sextractorType == SEXTRACTOR_INTERNAL)
+            fail = runSEPSextractor();
+        else if(sextractorType == SEXTRACTOR_EXTERNAL)
+            fail = runExternalSextractor();
+        if(fail != 0)
             return fail;
         return(writeSextractorTable());
     }
@@ -168,7 +159,7 @@ void ExternalSextractorSolver::run()
         solutionFile = basePath + "/" + baseName + ".wcs";
 
     //These are the solvers that use External Astrometry.
-    if(processType == EXT_SEXTRACTORSOLVER || processType == INT_SEP_EXT_SOLVER || processType == CLASSIC_ASTROMETRY)
+    if(solverType == SOLVER_LOCALASTROMETRY)
     {
         if(!QFileInfo(solverPath).exists())
         {
@@ -184,7 +175,7 @@ void ExternalSextractorSolver::run()
             }
         #endif
     }
-    else if(processType == ASTAP || processType == INT_SEP_EXT_ASTAP)
+    else if(solverType == SOLVER_ASTAP)
     {
         if(!QFileInfo(astapBinaryPath).exists())
         {
@@ -202,14 +193,18 @@ void ExternalSextractorSolver::run()
 
     switch(processType)
     {
-        case EXT_SEXTRACTOR:
-        case EXT_SEXTRACTOR_HFR:
+        case SEXTRACT:
+        case SEXTRACT_WITH_HFR:
             emit finished(sextract());
             break;
 
-        case EXT_SEXTRACTORSOLVER://This method uses external Sextractor to get the stars, then feeds it to external astrometry.net.
-        case INT_SEP_EXT_SOLVER://This method runs the Internal StellarSolver to sextract the stars, then feeds it to external astrometry.net
-        case INT_SEP_EXT_ASTAP: //This method runs the internal SEP and then sends that to the external program ASTAP to solve the image, a fairly new KStars option
+        case SOLVE:
+        {
+            if(sextractorType == SEXTRACTOR_BUILTIN && solverType == SOLVER_LOCALASTROMETRY)
+                emit finished(runExternalSolver());
+            else if(sextractorType == SEXTRACTOR_BUILTIN && solverType == SOLVER_ASTAP)
+                emit finished(runExternalASTAPSolver());
+            else
             {
                 if(!hasSextracted)
                 {
@@ -223,7 +218,7 @@ void ExternalSextractorSolver::run()
 
                 if(hasSextracted)
                 {
-                    if(processType == INT_SEP_EXT_ASTAP)
+                    if(solverType == SOLVER_ASTAP)
                         emit finished(runExternalASTAPSolver());
                     else
                         emit finished(runExternalSolver());
@@ -231,36 +226,23 @@ void ExternalSextractorSolver::run()
                 else
                     emit finished(-1);
             }
-            break;
 
-        case CLASSIC_ASTROMETRY: //This is meant to run the traditional solve KStars used to do using python and astrometry.net
-        {
-            emit finished(runExternalSolver());
         }
             break;
-
-        case ASTAP: //This method runs the external program ASTAP to solve the image, a fairly new KStars option
-        {
-            if(params.multiAlgorithm != NOT_MULTI)
-                emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
-            emit finished(runExternalASTAPSolver());
-        }
-            break;
-
-        default: break;
     }
+
     cleanupTempFiles();
 }
 
 //This method generates child solvers with the options of the current solver
 SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
 {
-    ExternalSextractorSolver *solver = new ExternalSextractorSolver(processType, stats, m_ImageBuffer, nullptr);
+    ExternalSextractorSolver *solver = new ExternalSextractorSolver(processType, sextractorType, solverType, stats, m_ImageBuffer, nullptr);
     solver->stars = stars;
     solver->basePath = basePath;
     solver->baseName = baseName + "_" + QString::number(n);
 
-    if(processType!= ASTAP && processType != CLASSIC_ASTROMETRY)
+    if(solverType!= SOLVER_ASTAP && solverType != SOLVER_LOCALASTROMETRY)
     {
         solver->hasSextracted = true;
         solver->sextractorFilePath = sextractorFilePath;
@@ -406,7 +388,7 @@ int ExternalSextractorSolver::runExternalSextractor()
         out << "CXX_IMAGE\n";//                Cxx object ellipse parameter                              [pixel**(-2)]
         out << "CYY_IMAGE\n";//                Cyy object ellipse parameter                              [pixel**(-2)]
         out << "CXY_IMAGE\n";//                Cxy object ellipse parameter                              [pixel**(-2)]
-        if(processType == EXT_SEXTRACTOR_HFR)
+        if(processType == SEXTRACT_WITH_HFR)
             out << "FLUX_RADIUS\n";//              Fraction-of-light radii                                   [pixel]
         paramFile.close();
     }
@@ -519,12 +501,12 @@ int ExternalSextractorSolver::runExternalSextractor()
 int ExternalSextractorSolver::runExternalSolver()
 {
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    if(processType == CLASSIC_ASTROMETRY)
+    if(sextractorType == SEXTRACTOR_BUILTIN)
         emit logOutput("Configuring external Astrometry.net solver classically: using python and without Sextractor first");
     else
         emit logOutput("Configuring external Astrometry.net solver using an xylist input");
 
-    if(processType == CLASSIC_ASTROMETRY)
+    if(sextractorType == SEXTRACTOR_BUILTIN)
     {
         QFileInfo file(fileToProcess);
         if(!file.exists())
@@ -559,7 +541,7 @@ int ExternalSextractorSolver::runExternalSolver()
 
     QStringList solverArgs=getSolverArgsList();
 
-    if(processType == CLASSIC_ASTROMETRY)
+    if(sextractorType == SEXTRACTOR_BUILTIN)
     {
         solverArgs << "--keep-xylist" << sextractorFilePath;
         solverArgs << fileToProcess;
@@ -586,7 +568,7 @@ int ExternalSextractorSolver::runExternalSolver()
     #endif
 
     #ifdef Q_OS_OSX //This is needed so that astrometry.net can find netpbm and python on Mac when started from this program.  It is not needed when using an alternate sextractor
-        if(processType ==CLASSIC_ASTROMETRY)
+        if(sextractorType == SEXTRACTOR_BUILTIN && solverType == SOLVER_LOCALASTROMETRY)
         {
             QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
             QString path            = env.value("PATH", "");
@@ -628,7 +610,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Configuring external ASTAP solver");
 
-    if(processType != INT_SEP_EXT_ASTAP)
+    if(sextractorType != SEXTRACTOR_BUILTIN)
     {
         QFileInfo file(fileToProcess);
         if(!file.exists())
@@ -727,7 +709,7 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
 
     //This will shrink the image so that it is easier to solve.  It is only useful if you are sending an image.
     //It is not used if you are solving an xylist as in the classic astrometry.net solver
-    if(params.downsample > 1 && processType == CLASSIC_ASTROMETRY)
+    if(params.downsample > 1 && sextractorType == SEXTRACTOR_BUILTIN)
         solverArgs << "--downsample" << QString::number(params.downsample);
 
     //I am not sure if we want to provide these options or not.  They do make a huge difference in solving time
@@ -744,7 +726,7 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
 
     //The following options are unnecessary if you are sending an image to Astrometry.net
     //And not an xylist
-    if(processType != CLASSIC_ASTROMETRY)
+    if(sextractorType != SEXTRACTOR_BUILTIN)
     {
         //These options are required to use an xylist, so all solvers that don't send an image
         //to Astrometry.net must send these 4 options.
@@ -942,7 +924,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
                     if (fits_read_col_str (new_fptr,ii,jj,kk, 1, nullptrstr,
                                            &val, &anynul, &status) )
                         break;  /* jump out of loop on error */
-                    if(processType == CLASSIC_ASTROMETRY || processType == ONLINE_ASTROMETRY_NET)
+                    if(solverType == SOLVER_LOCALASTROMETRY || solverType == SOLVER_ONLINEASTROMETRY)
                     {
                         if(ii == 1)
                             starx = QString(value).trimmed().toFloat();
@@ -951,7 +933,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
                         if(ii == 3)
                             flux = QString(value).trimmed().toFloat();
                     }
-                    else if(processType == ASTAP)
+                    else if(solverType == SOLVER_ASTAP)
                     {
                         if(ii == 1)
                             starx = QString(value).trimmed().toFloat();
@@ -976,7 +958,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
                             yy = QString(value).trimmed().toFloat();
                         if(ii == 8)
                             xy = QString(value).trimmed().toFloat();
-                        if(processType == EXT_SEXTRACTOR_HFR && ii == 9)
+                        if(processType == SEXTRACT_WITH_HFR && ii == 9)
                             HFR = QString(value).trimmed().toFloat();
                     }
                 }
@@ -990,7 +972,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
             float a = 0;
             float b = 0;
             float theta = 0;
-            if(processType != CLASSIC_ASTROMETRY && processType != ONLINE_ASTROMETRY_NET && processType != ASTAP)
+            if(solverType != SOLVER_LOCALASTROMETRY && solverType != SOLVER_ONLINEASTROMETRY && solverType != SOLVER_ASTAP)
             {
                 float thing = sqrt( pow(xx - yy, 2) + 4 * pow(xy, 2) );
                 float lambda1 = (xx + yy + thing) / 2;
@@ -1189,7 +1171,7 @@ int ExternalSextractorSolver::writeSextractorTable()
     int status = 0;
     fitsfile * new_fptr;
 
-    if(processType == INT_SEP_EXT_ASTAP)
+    if(sextractorType == SEXTRACTOR_INTERNAL && solverType == SOLVER_ASTAP)
     {
         QFileInfo file(fileToProcess);
         if(!file.exists())

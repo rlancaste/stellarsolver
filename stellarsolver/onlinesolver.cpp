@@ -9,7 +9,7 @@
 #include <QTimer>
 #include <QEventLoop>
 
-OnlineSolver::OnlineSolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : ExternalSextractorSolver(type, imagestats, imageBuffer, parent)
+OnlineSolver::OnlineSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : ExternalSextractorSolver(type, sexType, solType, imagestats, imageBuffer, parent)
 {
     connect(this, &OnlineSolver::timeToCheckJobs, this, &OnlineSolver::checkJobs);
     connect(this, &OnlineSolver::startupOnlineSolver, this, &OnlineSolver::authenticate);
@@ -23,20 +23,29 @@ void OnlineSolver::startProcess()
     if(params.multiAlgorithm != NOT_MULTI)
         emit logOutput("The Online solver option does not support multithreading, since the server already does this internally, ignoring this option");
 
-    if(processType == ONLINE_ASTROMETRY_NET)
+    if(sextractorType == SEXTRACTOR_BUILTIN)
         runOnlineSolver();
-
-    if(processType == INT_SEP_ONLINE_ASTROMETRY_NET)
+    else
     {
         delete xcol;
         delete ycol;
         xcol=strdup("X"); //This is the column for the x-coordinates, it doesn't accept X_IMAGE like the other one
         ycol=strdup("Y"); //This is the column for the y-coordinates, it doesn't accept Y_IMAGE like the other one
         int fail = 0;
-        if((fail = runSEPSextractor()) != 0)
+        if(sextractorType == SEXTRACTOR_INTERNAL)
+            fail = runSEPSextractor();
+        else if(sextractorType == SEXTRACTOR_EXTERNAL)
+            fail = runExternalSextractor();
+        if(fail != 0)
+        {
             emit finished(fail);
+            return;
+        }
         if((fail = writeSextractorTable()) != 0)
+        {
             emit finished(fail);
+            return;
+        }
         runOnlineSolver();
     }
 }
@@ -186,7 +195,7 @@ void OnlineSolver::uploadFile()
     QNetworkRequest request;
 
     QFile *fitsFile;
-    if(processType == ONLINE_ASTROMETRY_NET)
+    if(sextractorType == SEXTRACTOR_BUILTIN)
         fitsFile = new QFile(fileToProcess);
     else
         fitsFile = new QFile(sextractorFilePath);
@@ -211,7 +220,7 @@ void OnlineSolver::uploadFile()
     uploadReq.insert("session", sessionKey);
     uploadReq.insert("allow_commercial_use", "n");
 
-    if(processType == INT_SEP_ONLINE_ASTROMETRY_NET)
+    if(sextractorType != SEXTRACTOR_BUILTIN)
     {
         uploadReq.insert("image_width", stats.width);
         uploadReq.insert("image_height", stats.height);

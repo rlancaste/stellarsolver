@@ -19,7 +19,7 @@ class ExternalSextractorSolver : public InternalSextractorSolver
 {
     Q_OBJECT
 public:
-    explicit ExternalSextractorSolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
+    explicit ExternalSextractorSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
     ~ExternalSextractorSolver();
 
 
@@ -90,13 +90,15 @@ public:
     char* colUnits=strdup("pixels"); //This is the unit for the xy columns in the file
     char* magUnits=strdup("magnitude"); //This is the unit for the magnitude in the file
 
+    int runExternalSextractor();
+
 private:
     QPointer<QProcess> solver;
     QPointer<QProcess> sextractorProcess;
 
     void run() override; //This starts the ExternalSextractorSolver in a separate thread.  Note, ExternalSextractorSolver uses QProcess
 
-    int runExternalSextractor();
+
     int runExternalSolver();
     int runExternalASTAPSolver();
 

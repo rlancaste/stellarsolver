@@ -113,6 +113,8 @@ private:
     QRect subframe;
 
     SSolver::ProcessType processType;
+    SSolver::SextractorType sextractorType;
+    SSolver::SolverType solverType;
 
     //This allows for averaging over multiple trials
     int currentTrial = 0;
@@ -165,9 +167,8 @@ public slots:
     void setSubframe();
 
     //These are the functions that run when the bottom buttons are clicked
-    void sextractButtonClicked();
+    void startProcess1Clicked();
     void sextractImage();
-    void solveButtonClicked();
     void solveImage();
 
     void abort();

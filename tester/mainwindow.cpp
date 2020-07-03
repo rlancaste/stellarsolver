@@ -61,25 +61,24 @@ MainWindow::MainWindow() :
 
     //The Options at the bottom of the Window
     ui->trials->setToolTip("The number of times to Sextract or Solve to get an average time that it takes.");
-    connect(ui->SextractStars,&QAbstractButton::clicked, this, &MainWindow::sextractButtonClicked );
-    ui->SextractStars->setToolTip("Sextract the stars in the image using the chosen method and load them into the star table");
-    ui->sextractorType->setToolTip("Lets you choose the Internal StellarSolver SEP or external Sextractor program");
-    ui->optionsProfileSextract->setToolTip("The Options Profile to use for Sextracting.");
-    connect(ui->SolveImage,&QAbstractButton::clicked, this, &MainWindow::solveButtonClicked );
-    ui->editSextractorProfile->setToolTip("Loads the currently selected sextrctor profile into the profile editor");
+    connect(ui->startProcess_1,&QAbstractButton::clicked, this, &MainWindow::startProcess1Clicked );
+    //ui->SextractStars->setToolTip("Sextract the stars in the image using the chosen method and load them into the star table");
+    //ui->sextractorType->setToolTip("Lets you choose the Internal StellarSolver SEP or external Sextractor program");
+    //ui->optionsProfileSextract->setToolTip("The Options Profile to use for Sextracting.");
+    //ui->editSextractorProfile->setToolTip("Loads the currently selected sextrctor profile into the profile editor");
     connect(ui->editSextractorProfile, &QAbstractButton::clicked, this, [this](){
-        ui->optionsProfile->setCurrentIndex(ui->optionsProfileSextract->currentIndex());
+        ui->optionsProfile->setCurrentIndex(ui->sextractionProfile->currentIndex());
         ui->optionsTab->setCurrentIndex(1);
-        ui->optionsProfileSextract->setCurrentIndex(0);
+        ui->sextractionProfile->setCurrentIndex(0);
     });
-    ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box");
-    ui->solverType->setToolTip("Lets you choose how to solve the image");
-    ui->optionsProfileSolve->setToolTip("The Options Profile to use for Solving.");
-    ui->editSolverProfile->setToolTip("Loads the currently selected solver profile into the profile editor");
+   // ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box");
+    //ui->solverType->setToolTip("Lets you choose how to solve the image");
+    //ui->optionsProfileSolve->setToolTip("The Options Profile to use for Solving.");
+    //ui->editSolverProfile->setToolTip("Loads the currently selected solver profile into the profile editor");
     connect(ui->editSolverProfile, &QAbstractButton::clicked, this, [this](){
-        ui->optionsProfile->setCurrentIndex(ui->optionsProfileSolve->currentIndex());
+        ui->optionsProfile->setCurrentIndex(ui->solverProfile->currentIndex());
         ui->optionsTab->setCurrentIndex(1);
-        ui->optionsProfileSolve->setCurrentIndex(0);
+        ui->solverProfile->setCurrentIndex(0);
     });
     connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
     ui->Abort->setToolTip("Aborts the current process if one is running.");
@@ -106,8 +105,8 @@ MainWindow::MainWindow() :
             ui->optionsProfile->setCurrentIndex(0); //So we don't trigger any loading of any other profiles
             optionsList.append(params);
             ui->optionsProfile->addItem(name);
-            ui->optionsProfileSextract->addItem(name);
-            ui->optionsProfileSolve->addItem(name);
+            ui->sextractionProfile->addItem(name);
+            ui->solverProfile->addItem(name);
             ui->optionsProfile->setCurrentText(name);
         }
     });
@@ -121,8 +120,8 @@ MainWindow::MainWindow() :
         }
         ui->optionsProfile->setCurrentIndex(0); //So we don't trigger any loading of any other profiles
         ui->optionsProfile->removeItem(item);
-        ui->optionsProfileSextract->removeItem(item);
-        ui->optionsProfileSolve->removeItem(item);
+        ui->sextractionProfile->removeItem(item);
+        ui->solverProfile->removeItem(item);
         optionsList.removeAt(item - 2);
 
     });
@@ -188,7 +187,7 @@ MainWindow::MainWindow() :
     connect(ui->setSubFrame,&QAbstractButton::clicked, this, &MainWindow::setSubframe );
 
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){
-        ExternalSextractorSolver extTemp(SSolver::EXT_SEXTRACTORSOLVER, stats, m_ImageBuffer, this);
+        ExternalSextractorSolver extTemp(SSolver::SOLVE, sextractorType, solverType, stats, m_ImageBuffer, this);
 
         switch(num)
         {
@@ -363,7 +362,7 @@ MainWindow::MainWindow() :
 
     //This gets a temporary ExternalSextractorSolver to get the defaults
     //It tries to load from the saved settings if possible as well.
-    ExternalSextractorSolver extTemp(processType, stats, m_ImageBuffer, this);
+    ExternalSextractorSolver extTemp(processType, sextractorType, solverType, stats, m_ImageBuffer, this);
     ui->sextractorPath->setText(programSettings.value("sextractorBinaryPath", extTemp.sextractorBinaryPath).toString());
     ui->configFilePath->setText(programSettings.value("confPath", extTemp.confPath).toString());
     ui->solverPath->setText(programSettings.value("solverPath", extTemp.solverPath).toString());
@@ -380,13 +379,14 @@ MainWindow::MainWindow() :
     foreach(SSolver::Parameters param, optionsList)
     {
         ui->optionsProfile->addItem(param.listName);
-        ui->optionsProfileSextract->addItem(param.listName);
-        ui->optionsProfileSolve->addItem(param.listName);
+        ui->sextractionProfile->addItem(param.listName);
+        ui->solverProfile->addItem(param.listName);
     }
     optionsAreSaved = true;  //This way the next command won't trigger the unsaved warning.
     ui->optionsProfile->setCurrentIndex(1); //This is default
-    ui->optionsProfileSextract->setCurrentText("AllStars"); //Best Sextraction Profile for Stars
-    ui->optionsProfileSolve->setCurrentText("ParallelSmallScale"); //Best Solving Profile for telescopes
+    ui->processType_1->setCurrentIndex(SOLVE);
+    ui->sextractionProfile->setCurrentText("AllStars"); //Best Sextraction Profile for Stars
+    ui->solverProfile->setCurrentText("ParallelSmallScale"); //Best Solving Profile for telescopes
     QString storedPaths = programSettings.value("indexFolderPaths", "").toString();
     QStringList indexFilePaths;
     if(storedPaths == "")
@@ -562,52 +562,46 @@ void MainWindow::loadIndexFilesList()
 //The methods run when the buttons are clicked.  They call the methods inside StellarSolver and ExternalSextractorSovler
 
 //This method responds when the user clicks the Sextract Button
-void MainWindow::sextractButtonClicked()
+void MainWindow::startProcess1Clicked()
 {
     if(!prepareForProcesses())
         return;
 
-    clearStars();
-
-    QString sextractorBinaryPath = ui->sextractorPath->text();
-
-    switch(ui->sextractorType->currentIndex())
+    processType = (SSolver::ProcessType) ui->processType_1->currentIndex();
+    int profileSelection;
+    if(processType == SOLVE)
     {
-        case 0:
-            processType = SSolver::INT_SEP;
-        break;
-
-        case 1:
-            processType = SSolver::INT_SEP_HFR;
-        break;
-
-        case 2:
-            processType = SSolver::EXT_SEXTRACTOR;
-        break;
-
-        case 3:
-            processType = SSolver::EXT_SEXTRACTOR_HFR;
-        break;
-
-        default: break;
+        sextractorType = (SSolver::SextractorType) ui->sextractorTypeForSolving->currentIndex();
+        solverType = (SSolver::SolverType) ui->solverType->currentIndex();
+        profileSelection = ui->solverProfile->currentIndex();
+    }
+    else
+    {
+        sextractorType = (SSolver::SextractorType) ui->sextractorTypeForSextraction->currentIndex();
+        profileSelection = ui->sextractionProfile->currentIndex();
     }
 
-    sextractImage();
+    //These set the StellarSolver Parameters
+    if(profileSelection == 0)
+        stellarSolver->setParameters(getSettingsFromUI());
+    else if(profileSelection == 1)
+        stellarSolver->setParameters(SSolver::Parameters());
+    else
+        stellarSolver->setParameters(optionsList.at(profileSelection - 2));
+
+    if(processType == SOLVE)
+        solveImage();
+    else
+        sextractImage();
 }
 
 void MainWindow::sextractImage()
 {
     currentTrial++;
 
+    clearStars();
+    stellarSolver->setSextractorType(sextractorType);
     stellarSolver->setProcessType(processType);
-
-    //These set the StellarSolver Parameters
-    if(ui->optionsProfileSextract->currentIndex() == 0)
-        stellarSolver->setParameters(getSettingsFromUI());
-    else if(ui->optionsProfileSextract->currentIndex() == 1)
-        stellarSolver->setParameters(SSolver::Parameters());
-    else
-        stellarSolver->setParameters(optionsList.at(ui->optionsProfileSextract->currentIndex() - 2));
 
     setupExternalSextractorSolverIfNeeded();
     setupStellarSolverParameters();
@@ -623,10 +617,10 @@ void MainWindow::sextractImage()
     stellarSolver->startProcess();
 }
 
-void MainWindow::solveButtonClicked()
+//This method runs when the user clicks the Sextract and Solve buttton
+void MainWindow::solveImage()
 {
-    if(!prepareForProcesses())
-        return;
+    currentTrial++;
 
     if(hasWCSData)
     {
@@ -634,52 +628,9 @@ void MainWindow::solveButtonClicked()
         delete [] wcs_coord;
     }
 
-    switch(ui->solverType->currentIndex())
-    {
-        case 0:
-            processType = SSolver::STELLARSOLVER;
-            break;
-        case 1:
-            processType = SSolver::EXT_SEXTRACTORSOLVER;
-            break;
-        case 2:
-            processType = SSolver::INT_SEP_EXT_SOLVER;
-            break;
-        case 3:
-            processType = SSolver::CLASSIC_ASTROMETRY;
-            break;
-        case 4:
-            processType = SSolver::ASTAP;
-            break;
-        case 5:
-            processType = SSolver::INT_SEP_EXT_ASTAP;
-            break;
-        case 6:
-            processType = SSolver::ONLINE_ASTROMETRY_NET;
-            break;
-        case 7:
-            processType = SSolver::INT_SEP_ONLINE_ASTROMETRY_NET;
-            break;
-        default: break;
-    }
-
-    solveImage();
-}
-
-//This method runs when the user clicks the Sextract and Solve buttton
-void MainWindow::solveImage()
-{
-    currentTrial++;
-
     stellarSolver->setProcessType(processType);
-
-    //These set the StellarSolver Parameters
-    if(ui->optionsProfileSolve->currentIndex() == 0)
-        stellarSolver->setParameters(getSettingsFromUI());
-    else if(ui->optionsProfileSolve->currentIndex() == 1)
-        stellarSolver->setParameters(SSolver::Parameters());
-    else
-        stellarSolver->setParameters(optionsList.at(ui->optionsProfileSolve->currentIndex() - 2));
+    stellarSolver->setSextractorType(sextractorType);
+    stellarSolver->setSolverType(solverType);
 
     setupStellarSolverParameters();
     setupExternalSextractorSolverIfNeeded();
