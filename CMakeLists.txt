@@ -1,5 +1,5 @@
 PROJECT(stellarsolver C CXX)
-cmake_minimum_required(VERSION 2.4.7)
+cmake_minimum_required(VERSION 3.0)
 
 cmake_policy(SET CMP0003 NEW)
 
@@ -9,6 +9,10 @@ string(TIMESTAMP StellarSolver_BUILD_TS UTC)
 # StellarSolver Version 1.4
 set (StellarSolver_VERSION_MAJOR 1)
 set (StellarSolver_VERSION_MINOR 4)
+
+set (StellarSolver_SOVERSION "${StellarSolver_VERSION_MAJOR}")
+set (StellarSolver_VERSION ${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR})
+set (StellarSolver_VERSION_STRING "${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR}")
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/version.h.cmake
@@ -32,8 +36,6 @@ include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver")
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry")
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/include")
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/include/astrometry")
-include_directories("/usr/local/include")
-include_directories("/usr/include")
 
 set(config_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/os-features-test.c
@@ -282,6 +284,8 @@ target_link_libraries(stellarsolver
     Qt5::Widgets
     )
 
+set_target_properties(stellarsolver PROPERTIES VERSION ${StellarSolver_VERSION_STRING} SOVERSION ${StellarSolver_SOVERSION} OUTPUT_NAME stellarsolver)
+
 if(NOT MSVC)
 target_link_libraries(stellarsolverstatic -lpthread)
 target_link_libraries(stellarsolver -lpthread)
@@ -297,11 +301,14 @@ if(NOT WIN32)
 set_target_properties(stellarsolverstatic PROPERTIES OUTPUT_NAME stellarsolver)
 endif(NOT WIN32)
 
-install(TARGETS stellarsolverstatic DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
-install(TARGETS stellarsolver DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
+# What is this for??
+#install(TARGETS stellarsolverstatic DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
+#install(TARGETS stellarsolver DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
+
 install(TARGETS stellarsolverstatic DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(TARGETS stellarsolver DESTINATION ${CMAKE_INSTALL_LIBDIR})
-set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/stellarsolver")
+
+set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/libstellarsolver")
 set(PKG_CONFIG_LIBDIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 set(PKGCONFIG_INSTALL_PREFIX "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 
@@ -314,6 +321,9 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/include/a
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc DESTINATION ${PKGCONFIG_INSTALL_PREFIX})
 
+#########################################################################################
+## Stellar Solver Tester
+#########################################################################################
 if(BUILD_TESTER)
 
 set(StellarSolverTester_SRCS
@@ -366,12 +376,8 @@ install(TARGETS StellarSolverTester
     RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
     )
 else(APPLE)
-	#installation for Linux
+        #installation for Linux
         install(TARGETS StellarSolverTester RUNTIME DESTINATION bin)
 endif(APPLE)
 
 endif(BUILD_TESTER)
-
-
-
-
