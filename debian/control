@@ -1,0 +1,30 @@
+Source: libstellarsolver
+Section: libs
+Priority: extra
+Maintainer: Jasem Mutlaq <mutlaqja@ikarustech.com>
+Build-Depends: debhelper (>= 9), cdbs, cmake, qtbase5-dev, zlib1g-dev, libcfitsio3-dev|libcfitsio-dev, wcslib-dev, libgsl-dev
+Standards-Version: 3.9.1 
+
+Package: libstellarsolver
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: StellarSolver Library
+ .
+ This package includes library to control StellarSolver CCDs and Filter Wheels.
+
+Package: libstellarsolver-dev
+Architecture: any
+Depends: libstellarsolver, ${shlibs:Depends}, ${misc:Depends}
+Description: StellarSolver Library development headers
+ .
+ This package includes development headers for StellarSolver CCDs and Filter Wheels.
+
+Package: libstellarsolver-dbg
+Priority: extra
+Section: debug
+Architecture: any
+Depends: libstellarsolver (= ${binary:Version}), ${misc:Depends}
+Description: StellarSolver Library debug symbols
+ .
+ This package contains debug symbols.
+
