@@ -10,14 +10,14 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: StellarSolver Library
  .
- This package includes library to control StellarSolver CCDs and Filter Wheels.
+ This package includes an Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net and SEP.
 
 Package: libstellarsolver-dev
 Architecture: any
 Depends: libstellarsolver, ${shlibs:Depends}, ${misc:Depends}
 Description: StellarSolver Library development headers
  .
- This package includes development headers for StellarSolver CCDs and Filter Wheels.
+ This package includes development headers for an Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net and SEP.
 
 Package: libstellarsolver-dbg
 Priority: extra
