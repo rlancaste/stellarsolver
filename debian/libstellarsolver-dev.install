@@ -1,0 +1,4 @@
+usr/lib/*/libstellarsolver.so
+usr/lib/*/libstellarsolver.a
+usr/include/libstellarsolver/*
+usr/lib/*/pkgconfig/stellarsolver.pc
