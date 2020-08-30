@@ -187,38 +187,38 @@ MainWindow::MainWindow() :
     connect(ui->setSubFrame,&QAbstractButton::clicked, this, &MainWindow::setSubframe );
 
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){
-        ExternalSextractorSolver extTemp(SSolver::SOLVE, sextractorType, solverType, stats, m_ImageBuffer, this);
 
+        ExternalProgramPaths paths;
         switch(num)
         {
             case 0:
-                extTemp.setLinuxDefaultPaths();
+                paths = ExternalSextractorSolver::getLinuxDefaultPaths();
                 break;
             case 1:
-                extTemp.setLinuxInternalPaths();
+                paths = ExternalSextractorSolver::getLinuxInternalPaths();
                 break;
             case 2:
-                extTemp.setMacHomebrewPaths();
+                paths = ExternalSextractorSolver::getMacHomebrewPaths();
                 break;
             case 3:
-                extTemp.setMacInternalPaths();
+                paths = ExternalSextractorSolver::getMacInternalPaths();
                 break;
             case 4:
-                extTemp.setWinANSVRPaths();
+                paths = ExternalSextractorSolver::getWinANSVRPaths();
                 break;
             case 5:
-                extTemp.setWinCygwinPaths();
+                paths = ExternalSextractorSolver::getWinCygwinPaths();
                 break;
             default:
-                extTemp.setLinuxDefaultPaths();
+                paths = ExternalSextractorSolver::getLinuxDefaultPaths();
                 break;
         }
 
-        ui->sextractorPath->setText(extTemp.sextractorBinaryPath);
-        ui->configFilePath->setText(extTemp.confPath);
-        ui->solverPath->setText(extTemp.solverPath);
-        ui->astapPath->setText(extTemp.astapBinaryPath);
-        ui->wcsPath->setText(extTemp.wcsPath);
+        ui->sextractorPath->setText(paths.sextractorBinaryPath);
+        ui->configFilePath->setText(paths.confPath);
+        ui->solverPath->setText(paths.solverPath);
+        ui->astapPath->setText(paths.astapBinaryPath);
+        ui->wcsPath->setText(paths.wcsPath);
     });
     ui->setPathsAutomatically->setToolTip("This allows you to select the default values of typical configurations of paths to external files/programs on different systems from a dropdown");
 

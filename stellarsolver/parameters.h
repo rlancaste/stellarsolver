@@ -13,6 +13,15 @@ enum Shape{
     SHAPE_ELLIPSE
 };
 
+typedef struct
+{
+    QString confPath;               //Path to the Astrometry Config File
+    QString sextractorBinaryPath;   //Path to the Sextractor Program binary
+    QString solverPath;             //Path to the Astrometry Solver binary
+    QString astapBinaryPath;        //Path to the ASTAP Program binary
+    QString wcsPath;                //Path to the WCSInfo binary
+} ExternalProgramPaths;
+
 //This gets a string for the Sextractor setting for calculating Flux using ellipses or circles
 static QString getShapeString(SSolver::Shape shape)
 
