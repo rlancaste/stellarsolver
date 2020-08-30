@@ -38,6 +38,14 @@ public:
     explicit StellarSolver(FITSImage::Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
     ~StellarSolver();
 
+    //Methods to get default file paths
+    static ExternalProgramPaths getLinuxDefaultPaths();
+    static ExternalProgramPaths getLinuxInternalPaths();
+    static ExternalProgramPaths getMacHomebrewPaths();
+    static ExternalProgramPaths getMacInternalPaths();
+    static ExternalProgramPaths getWinANSVRPaths();
+    static ExternalProgramPaths getWinCygwinPaths();
+
     //This gets the processType as a string explaining the command StellarSolver is Running
     QString getCommandString()
     {
