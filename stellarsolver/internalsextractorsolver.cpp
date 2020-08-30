@@ -682,9 +682,12 @@ bool InternalSextractorSolver::prepare_job() {
             emit logOutput(QString("Unknown scale unit code %1\n").arg (scaleunit));
             return false;
         }
+
         dl_append(job->scales, appl);
         dl_append(job->scales, appu);
         blind_add_field_range(bp, appl, appu);
+        if(params.downsample !=1)
+            emit logOutput(QString("Downsampling is multiplying the scale by: %1").arg(params.downsample));
     }
 
     blind_add_field(bp, 1);

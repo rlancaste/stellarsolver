@@ -41,19 +41,22 @@ public:
 
     //System File Paths
     QStringList indexFilePaths;
-    QString astapBinaryPath;
-    QString sextractorBinaryPath;
-    QString confPath;
-    QString solverPath;
-    QString wcsPath;
+    QString confPath;               //Path to the Astrometry Config File
+    QString sextractorBinaryPath;   //Path to the Sextractor Program binary
+    QString solverPath;             //Path to the Astrometry Solver binary
+    QString astapBinaryPath;        //Path to the ASTAP Program binary
+    QString wcsPath;                //Path to the WCSInfo binary
 
-    //Methods to Set File Paths Automatically
-    void setLinuxDefaultPaths();
-    void setLinuxInternalPaths();
-    void setMacHomebrewPaths();
-    void setMacInternalPaths();
-    void setWinANSVRPaths();
-    void setWinCygwinPaths();
+    //Methods to get default file paths
+    static ExternalProgramPaths getLinuxDefaultPaths();
+    static ExternalProgramPaths getLinuxInternalPaths();
+    static ExternalProgramPaths getMacHomebrewPaths();
+    static ExternalProgramPaths getMacInternalPaths();
+    static ExternalProgramPaths getWinANSVRPaths();
+    static ExternalProgramPaths getWinCygwinPaths();
+
+    //Method to set file paths
+    void setExternalFilePaths(ExternalProgramPaths paths);
 
     // This is the xyls file path that sextractor will be saving for Astrometry.net
     // If it is not set, it will be set to a random temporary file

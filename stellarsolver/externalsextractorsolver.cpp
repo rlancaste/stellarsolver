@@ -23,13 +23,13 @@ ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, SextractorT
 
 #if defined(Q_OS_OSX)
     if(QFile("/usr/local/bin/solve-field").exists())
-        setMacHomebrewPaths();
+        setExternalFilePaths(getMacHomebrewPaths());
     else
-        setMacInternalPaths();
+        setExternalFilePaths(getMacInternalPaths());
 #elif defined(Q_OS_LINUX)
-    setLinuxDefaultPaths();
+    setExternalFilePaths(getLinuxDefaultPaths());
 #else //Windows
-    setWinANSVRPaths();
+    setExternalFilePaths(getWinANSVRPaths());
 #endif
 
 }
@@ -46,64 +46,83 @@ ExternalSextractorSolver::~ExternalSextractorSolver()
 
 //The following methods are available to set the default paths for different operating systems and configurations.
 
-void ExternalSextractorSolver::setLinuxDefaultPaths()
+ExternalProgramPaths ExternalSextractorSolver::getLinuxDefaultPaths()
 {
-    confPath = "/etc/astrometry.cfg";
-    sextractorBinaryPath = "/usr/bin/sextractor";
-    solverPath = "/usr/bin/solve-field";
-    if(QFile("/bin/astap").exists())
-        astapBinaryPath = "/bin/astap";
-    else
-        astapBinaryPath = "/opt/astap/astap";
-    wcsPath = "/usr/bin/wcsinfo";
+    return ExternalProgramPaths{
+        "/etc/astrometry.cfg",          //confPath
+        "/usr/bin/sextractor",          //sextractorBinaryPath
+        "/usr/bin/solve-field",         //solverPath
+        (QFile("/bin/astap").exists())?
+            "/bin/astap":               //astapBinaryPath
+            "/opt/astap/astap",
+        "/usr/bin/wcsinfo"              //wcsPath
+    };
 }
 
-void ExternalSextractorSolver::setLinuxInternalPaths()
+ExternalProgramPaths ExternalSextractorSolver::getLinuxInternalPaths()
 {
-    confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
-    sextractorBinaryPath = "/usr/bin/sextractor";
-    solverPath = "/usr/bin/solve-field";
-    if(QFile("/bin/astap").exists())
-        astapBinaryPath = "/bin/astap";
-    else
-        astapBinaryPath = "/opt/astap/astap";
-    wcsPath = "/usr/bin/wcsinfo";
+    return ExternalProgramPaths{
+        "$HOME/.local/share/kstars/astrometry/astrometry.cfg",  //confPath
+        "/usr/bin/sextractor",                                  //sextractorBinaryPath
+        "/usr/bin/solve-field",                                 //solverPath
+        (QFile("/bin/astap").exists())?
+            "/bin/astap":                                       //astapBinaryPath
+            "/opt/astap/astap",
+        "/usr/bin/wcsinfo"                                      //wcsPath
+    };
 }
 
-void ExternalSextractorSolver::setMacHomebrewPaths()
+ExternalProgramPaths ExternalSextractorSolver::getMacHomebrewPaths()
 {
-    confPath = "/usr/local/etc/astrometry.cfg";
-    sextractorBinaryPath = "/usr/local/bin/sex";
-    solverPath = "/usr/local/bin/solve-field";
-    astapBinaryPath = "/Applications/ASTAP.app/Contents/MacOS/astap";
-    wcsPath = "/usr/local/bin/wcsinfo";
+    return ExternalProgramPaths{
+        "/usr/local/etc/astrometry.cfg",                //confPath
+        "/usr/local/bin/sex",                           //sextractorBinaryPath
+        "/usr/local/bin/solve-field",                   //solverPath
+        "/Applications/ASTAP.app/Contents/MacOS/astap", //astapBinaryPath
+        "/usr/local/bin/wcsinfo"                        //wcsPath
+    };
 }
 
-void ExternalSextractorSolver::setMacInternalPaths()
+ExternalProgramPaths ExternalSextractorSolver::getMacInternalPaths()
 {
-    confPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg";
-    sextractorBinaryPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/sex";
-    solverPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/solve-field";
-    astapBinaryPath = "/Applications/ASTAP.app/Contents/MacOS/astap";
-    wcsPath = "/Applications/KStars.app/Contents/MacOS/astrometry/bin/wcsinfo";
+    return ExternalProgramPaths{
+        "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg",    //confPath
+        "/Applications/KStars.app/Contents/MacOS/astrometry/bin/sex",               //sextractorBinaryPath
+        "/Applications/KStars.app/Contents/MacOS/astrometry/bin/solve-field",       //solverPath
+        "/Applications/ASTAP.app/Contents/MacOS/astap",                             //astapBinaryPath
+        "/Applications/KStars.app/Contents/MacOS/astrometry/bin/wcsinfo"            //wcsPath
+    };
 }
 
-void ExternalSextractorSolver::setWinANSVRPaths()
+ExternalProgramPaths ExternalSextractorSolver::getWinANSVRPaths()
 {
-    confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg";
-    sextractorBinaryPath = "";
-    solverPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe";
-    astapBinaryPath = "C:/Program Files/astap/astap.exe";
-    wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
+    return ExternalProgramPaths{
+        QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg",    //confPath
+        "",                                                                             //sextractorBinaryPath
+        "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe",               //solverPath
+        "C:/Program Files/astap/astap.exe",                                             //astapBinaryPath
+        QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe" //wcsPath
+    };
 }
 
-void ExternalSextractorSolver::setWinCygwinPaths()
+ExternalProgramPaths ExternalSextractorSolver::getWinCygwinPaths()
 {
-    confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
-    sextractorBinaryPath = "";
-    solverPath = "C:/cygwin64/bin/solve-field";
-    astapBinaryPath = "C:/Program Files/astap/astap.exe";
-    wcsPath = "C:/cygwin64/bin/wcsinfo";
+    return ExternalProgramPaths{
+        "C:/cygwin64/usr/etc/astrometry.cfg",   //confPath
+        "",                                     //sextractorBinaryPath
+        "C:/cygwin64/bin/solve-field",          //solverPath
+        "C:/Program Files/astap/astap.exe",     //astapBinaryPath
+        "C:/cygwin64/bin/wcsinfo"               //wcsPath
+    };
+}
+
+void ExternalSextractorSolver::setExternalFilePaths(ExternalProgramPaths paths)
+{
+    confPath = paths.confPath;
+    sextractorBinaryPath = paths.sextractorBinaryPath;
+    solverPath = paths.solverPath;
+    astapBinaryPath = paths.astapBinaryPath;
+    wcsPath = paths.wcsPath;
 }
 
 int ExternalSextractorSolver::sextract()
