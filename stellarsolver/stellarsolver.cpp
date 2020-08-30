@@ -88,6 +88,14 @@ SextractorSolver* StellarSolver::createSextractorSolver()
     return solver;
 }
 
+//Methods to get default file paths
+ExternalProgramPaths StellarSolver::getLinuxDefaultPaths(){return ExternalSextractorSolver::getLinuxDefaultPaths();};
+ExternalProgramPaths StellarSolver::getLinuxInternalPaths(){return ExternalSextractorSolver::getLinuxInternalPaths();};
+ExternalProgramPaths StellarSolver::getMacHomebrewPaths(){return ExternalSextractorSolver::getMacHomebrewPaths();};
+ExternalProgramPaths StellarSolver::getMacInternalPaths(){return ExternalSextractorSolver::getMacInternalPaths();};
+ExternalProgramPaths StellarSolver::getWinANSVRPaths(){return ExternalSextractorSolver::getWinANSVRPaths();};
+ExternalProgramPaths StellarSolver::getWinCygwinPaths(){return ExternalSextractorSolver::getLinuxDefaultPaths();};
+
 
 void StellarSolver::sextract()
 {

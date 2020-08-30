@@ -13,15 +13,6 @@ enum Shape{
     SHAPE_ELLIPSE
 };
 
-typedef struct
-{
-    QString confPath;               //Path to the Astrometry Config File
-    QString sextractorBinaryPath;   //Path to the Sextractor Program binary
-    QString solverPath;             //Path to the Astrometry Solver binary
-    QString astapBinaryPath;        //Path to the ASTAP Program binary
-    QString wcsPath;                //Path to the WCSInfo binary
-} ExternalProgramPaths;
-
 //This gets a string for the Sextractor setting for calculating Flux using ellipses or circles
 static QString getShapeString(SSolver::Shape shape)
 
@@ -42,6 +33,17 @@ static QString getShapeString(SSolver::Shape shape)
         default: return ""; break;
     }
 }
+
+//This is a structure to hold the paths to the external programs for solving.
+//This makes the paths easier to access and set
+typedef struct
+{
+    QString confPath;               //Path to the Astrometry Config File
+    QString sextractorBinaryPath;   //Path to the Sextractor Program binary
+    QString solverPath;             //Path to the Astrometry Solver binary
+    QString astapBinaryPath;        //Path to the ASTAP Program binary
+    QString wcsPath;                //Path to the WCSInfo binary
+} ExternalProgramPaths;
 
 // This is the units used by astrometry.net for the scale for plate solving
 typedef enum{DEG_WIDTH,

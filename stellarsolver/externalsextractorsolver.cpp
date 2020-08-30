@@ -44,7 +44,7 @@ ExternalSextractorSolver::~ExternalSextractorSolver()
     delete magUnits;
 }
 
-//The following methods are available to set the default paths for different operating systems and configurations.
+//The following methods are available to get the default paths for different operating systems and configurations.
 
 ExternalProgramPaths ExternalSextractorSolver::getLinuxDefaultPaths()
 {
