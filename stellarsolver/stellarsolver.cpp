@@ -556,7 +556,7 @@ QList<SSolver::Parameters> StellarSolver::loadSavedOptionsProfiles(QString saved
         foreach(QString key, keys)
             map.insert(key, settings.value(key));
         SSolver::Parameters newParams = SSolver::Parameters::convertFromMap(map);
-        newParams.listName = group;
+        settings.endGroup();
         optionsList.append(newParams);
     }
     return optionsList;
