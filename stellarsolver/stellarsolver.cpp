@@ -456,7 +456,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     QList<Parameters> profileList;
 
     Parameters fastSolving;
-    fastSolving.listName = "FastSolving";
+    fastSolving.listName = "1-FastSolving";
     fastSolving.downsample = 2;
     fastSolving.minwidth = 1;
     fastSolving.maxwidth = 10;
@@ -466,7 +466,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     profileList.append(fastSolving);
 
     Parameters parSolving;
-    parSolving.listName = "ParallelSolving";
+    parSolving.listName = "2-ParallelSolving";
     parSolving.multiAlgorithm = MULTI_AUTO;
     parSolving.downsample = 2;
     parSolving.minwidth = 1;
@@ -477,7 +477,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     profileList.append(parSolving);
 
     Parameters parLargeSolving;
-    parLargeSolving.listName = "ParallelLargeScale";
+    parLargeSolving.listName = "3-ParallelLargeScale";
     parLargeSolving.multiAlgorithm = MULTI_AUTO;
     parLargeSolving.downsample = 2;
     parLargeSolving.minwidth = 1;
@@ -488,7 +488,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     profileList.append(parLargeSolving);
 
     Parameters fastSmallSolving;
-    fastSmallSolving.listName = "ParallelSmallScale";
+    fastSmallSolving.listName = "4-ParallelSmallScale";
     fastSmallSolving.multiAlgorithm = MULTI_AUTO;
     fastSmallSolving.downsample = 2;
     parLargeSolving.minwidth = 1;
@@ -499,14 +499,14 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     profileList.append(fastSmallSolving);
 
     Parameters stars;
-    stars.listName = "AllStars";
+    stars.listName = "5-AllStars";
     stars.maxEllipse = 1.5;
     createConvFilterFromFWHM(&stars, 1);
     stars.r_min = 2;
     profileList.append(stars);
 
     Parameters smallStars;
-    smallStars.listName = "SmallSizedStars";
+    smallStars.listName = "6-SmallSizedStars";
     smallStars.maxEllipse = 1.5;
     createConvFilterFromFWHM(&smallStars, 1);
     smallStars.r_min = 2;
@@ -515,7 +515,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     profileList.append(smallStars);
 
     Parameters mid;
-    mid.listName = "MidSizedStars";
+    mid.listName = "7-MidSizedStars";
     mid.maxEllipse = 1.5;
     mid.minarea = 20;
     createConvFilterFromFWHM(&mid, 4);
@@ -527,7 +527,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     profileList.append(mid);
 
     Parameters big;
-    big.listName = "BigSizedStars";
+    big.listName = "8-BigSizedStars";
     big.maxEllipse = 1.5;
     big.minarea = 40;
     createConvFilterFromFWHM(&big, 8);
@@ -556,10 +556,8 @@ QList<SSolver::Parameters> StellarSolver::loadSavedOptionsProfiles(QString saved
         foreach(QString key, keys)
             map.insert(key, settings.value(key));
         SSolver::Parameters newParams = SSolver::Parameters::convertFromMap(map);
-        foreach(SSolver::Parameters params, optionsList)
-        {
-            optionsList.append(newParams);
-        }
+        newParams.listName = group;
+        optionsList.append(newParams);
     }
     return optionsList;
 }
