@@ -2494,26 +2494,15 @@ void MainWindow::loadOptionsProfiles()
         QMessageBox::warning(this, "Message", "The file doesn't exist");
         return;
     }
-    QSettings settings(fileURL, QSettings::IniFormat);
-    QStringList groups = settings.childGroups();
-    foreach(QString group, groups)
-    {
-        settings.beginGroup(group);
-        QStringList keys = settings.childKeys();
-        QMap<QString, QVariant> map;
-        foreach(QString key, keys)
-            map.insert(key, settings.value(key));
-        SSolver::Parameters newParams = SSolver::Parameters::convertFromMap(map);
-        bool alreadyInThere = false;
-        foreach(SSolver::Parameters params, optionsList)
-            if(params == newParams  && group == params.listName)
-                alreadyInThere = true;
-        if(!alreadyInThere)
-        {
-            optionsList.append(newParams);
-            ui->optionsProfile->addItem(group);
-        }
-    }
+
+    ui->optionsProfile->blockSignals(true);
+    ui->optionsProfile->clear();
+    ui->optionsProfile->addItem("Unsaved Options");
+    ui->optionsProfile->addItem("Default Options");
+    optionsList = StellarSolver::loadSavedOptionsProfiles(fileURL);
+    foreach(SSolver::Parameters params, optionsList)
+        ui->optionsProfile->addItem(params.listName);
+    ui->optionsProfile->blockSignals(false);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
