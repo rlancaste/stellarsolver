@@ -18,6 +18,7 @@
 #include "externalsextractorsolver.h"
 #include "onlinesolver.h"
 #include <QApplication>
+#include <QSettings>
 
 using namespace SSolver;
 
@@ -536,6 +537,31 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     profileList.append(big);
 
     return profileList;
+}
+
+QList<SSolver::Parameters> loadSavedOptionsProfiles(QString savedOptionsProfiles)
+{
+    QList<SSolver::Parameters> optionsList;
+    if(!QFileInfo(savedOptionsProfiles).exists())
+    {
+        return StellarSolver::getBuiltInProfiles();
+    }
+    QSettings settings(savedOptionsProfiles, QSettings::IniFormat);
+    QStringList groups = settings.childGroups();
+    foreach(QString group, groups)
+    {
+        settings.beginGroup(group);
+        QStringList keys = settings.childKeys();
+        QMap<QString, QVariant> map;
+        foreach(QString key, keys)
+            map.insert(key, settings.value(key));
+        SSolver::Parameters newParams = SSolver::Parameters::convertFromMap(map);
+        foreach(SSolver::Parameters params, optionsList)
+        {
+            optionsList.append(newParams);
+        }
+    }
+    return optionsList;
 }
 
 void StellarSolver::setParameterProfile(SSolver::Parameters::ParametersProfile profile)
