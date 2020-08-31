@@ -120,7 +120,7 @@ public:
     //These static methods can be used by classes to configure parameters or paths
     static void createConvFilterFromFWHM(Parameters *params, double fwhm);                      //This creates the conv filter from a fwhm
     static QList<Parameters> getBuiltInProfiles();
-    QList<SSolver::Parameters> loadSavedOptionsProfiles(QString savedOptionsProfiles);
+    static QList<SSolver::Parameters> loadSavedOptionsProfiles(QString savedOptionsProfiles);
     static QStringList getDefaultIndexFolderPaths();
 
 
