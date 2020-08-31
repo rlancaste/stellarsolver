@@ -539,7 +539,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     return profileList;
 }
 
-QList<SSolver::Parameters> loadSavedOptionsProfiles(QString savedOptionsProfiles)
+QList<SSolver::Parameters> StellarSolver::loadSavedOptionsProfiles(QString savedOptionsProfiles)
 {
     QList<SSolver::Parameters> optionsList;
     if(!QFileInfo(savedOptionsProfiles).exists())
