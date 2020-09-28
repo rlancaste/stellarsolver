@@ -9,5 +9,5 @@ URL: https://github.com/rlancaste/stellarsolver
 Version: @StellarSolver_VERSION@
 Libs: -L${libdir} -lstellarsolver
 Libs.private: -lcfitsio -lwcslib -lpthread
-Cflags: -I${includedir} -I${includedir}/stellarsolver
+Cflags: -I${includedir} -I${includedir}/libstellarsolver
 
