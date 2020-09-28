@@ -8,6 +8,7 @@
 #if defined(__APPLE__)
 #include <sys/stat.h>
 #elif defined(_WIN32)
+#define NOMINMAX
 #include "windows.h"
 #else //Linux
 #include <sys/stat.h>

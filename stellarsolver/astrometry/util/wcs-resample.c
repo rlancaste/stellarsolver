@@ -22,7 +22,7 @@
 #include "fitsioutils.h"
 #include "anwcs.h"
 #include "resample.h"
-
+/**  /# Modified by Robert Lancaster for the StellarSolver Internal Library
 int resample_wcs_files(const char* infitsfn, int infitsext,
                        const char* inwcsfn, int inwcsext,
                        const char* outwcsfn, int outwcsext,
@@ -103,7 +103,7 @@ int resample_wcs_files(const char* infitsfn, int infitsext,
     {
         double pmin, pmax;
         int i;
-        /*
+        /// /# Modified by Robert Lancaster for the StellarSolver Internal Library, this commented out part was interfering with commenting out the whole block
          pmin =  HUGE_VAL;
          pmax = -HUGE_VAL;
          for (i=0; i<(inW*inH); i++) {
@@ -111,7 +111,7 @@ int resample_wcs_files(const char* infitsfn, int infitsext,
          pmax = MAX(pmax, inimg[i]);
          }
          logmsg("Input image bounds: %g to %g\n", pmin, pmax);
-         */
+         ///# Modified by Robert Lancaster for the StellarSolver Internal Library
         pmin =  HUGE_VAL;
         pmax = -HUGE_VAL;
         for (i=0; i<(outW*outH); i++) {
@@ -148,7 +148,7 @@ int resample_wcs_files(const char* infitsfn, int infitsext,
 
     return 0;
 }
-
+**/
 // Check whether output pixels overlap with input pixels,
 // on a grid of output pixel positions.
 static anbool* find_overlap_grid(int B, int outW, int outH,
