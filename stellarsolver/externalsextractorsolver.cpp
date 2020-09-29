@@ -99,7 +99,7 @@ ExternalProgramPaths ExternalSextractorSolver::getWinANSVRPaths()
     return ExternalProgramPaths{
         QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg",    //confPath
         "",                                                                             //sextractorBinaryPath
-        "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe",               //solverPath
+        QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe",               //solverPath
         "C:/Program Files/astap/astap.exe",                                             //astapBinaryPath
         QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe" //wcsPath
     };
