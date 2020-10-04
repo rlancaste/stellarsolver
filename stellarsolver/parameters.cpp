@@ -11,6 +11,7 @@ bool SSolver::Parameters::operator==(const Parameters& o)
             //skip inflags??  Not sure we even need them
 
             magzero == o.magzero &&
+            minarea == o.minarea &&
             deblend_thresh == o.deblend_thresh &&
             deblend_contrast == o.deblend_contrast &&
             clean == o.clean &&
