@@ -299,11 +299,10 @@ endif(WIN32)
 # If we are using windows, it can cause problems for the static and dynamic libraries to have the same name.
 if(NOT WIN32)
 set_target_properties(stellarsolverstatic PROPERTIES OUTPUT_NAME stellarsolver)
-endif(NOT WIN32)
-
 #This is intended to disable the many warnings that appear due to the way astrometry.net's logging functions are setup
 target_compile_options(stellarsolver PRIVATE -Wno-implicit-function-declaration)
 target_compile_options(stellarsolverstatic PRIVATE -Wno-implicit-function-declaration)
+endif(NOT WIN32)
 
 # What is this for??
 #install(TARGETS stellarsolverstatic DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
