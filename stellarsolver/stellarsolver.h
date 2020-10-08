@@ -186,6 +186,11 @@ class StellarSolver : public QObject
         {
             return hasSolved;
         }
+        bool isRunning()
+        {
+            return running;
+        }
+
         bool failed()
         {
             return hasFailed;
@@ -303,6 +308,7 @@ class StellarSolver : public QObject
         //StellarSolver Internal settings that are needed by ExternalSextractorSolver as well
         bool calculateHFR =
             false;          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
+        bool running = false;               //This boolean is set when it is running and gets set to false when done.
         bool hasSextracted = false;         //This boolean is set when the sextraction is done
         bool hasSolved = false;             //This boolean is set when the solving is done
         bool hasFailed = false;
