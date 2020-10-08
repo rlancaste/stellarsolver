@@ -19,10 +19,11 @@
 #include <QVariant>
 #include <QVector>
 #include <QRect>
+#include <QPointer>
 
 using namespace SSolver;
 
-class StellarSolver : public QThread
+class StellarSolver : public QObject
 {
         Q_OBJECT
     public:
@@ -279,8 +280,8 @@ class StellarSolver : public QThread
         bool useSubframe = false;
         QRect subframe;
         QList<SextractorSolver*> parallelSolvers;
-        SextractorSolver *sextractorSolver = nullptr;
-        SextractorSolver *solverWithWCS = nullptr;
+        QPointer<SextractorSolver> m_SextractorSolver;
+        QPointer<SextractorSolver> solverWithWCS;
         int parallelFails = 0;
         bool parallelSolversAreRunning();
 
@@ -326,7 +327,7 @@ class StellarSolver : public QThread
 
     private:
         bool checkParameters();
-        void run() override;
+        void run();
         SextractorSolver* createSextractorSolver();
 
     signals:

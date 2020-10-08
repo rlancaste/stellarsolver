@@ -23,7 +23,7 @@
 using namespace SSolver;
 
 StellarSolver::StellarSolver(ProcessType type, FITSImage::Statistic imagestats, const uint8_t *imageBuffer,
-                             QObject *parent) : QThread(parent)
+                             QObject *parent) : QObject(parent)
 {
     processType = type;
     stats = imagestats;
@@ -31,7 +31,7 @@ StellarSolver::StellarSolver(ProcessType type, FITSImage::Statistic imagestats, 
     subframe = QRect(0, 0, stats.width, stats.height);
 }
 
-StellarSolver::StellarSolver(FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : QThread(parent)
+StellarSolver::StellarSolver(FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : QObject(parent)
 {
     stats = imagestats;
     m_ImageBuffer = imageBuffer;
@@ -40,7 +40,6 @@ StellarSolver::StellarSolver(FITSImage::Statistic imagestats, uint8_t const *ima
 
 StellarSolver::~StellarSolver()
 {
-
 }
 
 SextractorSolver* StellarSolver::createSextractorSolver()
@@ -163,14 +162,14 @@ void StellarSolver::startSextractionWithHFR()
 
 void StellarSolver::startProcess()
 {
-    sextractorSolver = createSextractorSolver();
-    start();
+    m_SextractorSolver = createSextractorSolver();
+    run();
 }
 
 void StellarSolver::executeProcess()
 {
-    sextractorSolver = createSextractorSolver();
-    start();
+    m_SextractorSolver = createSextractorSolver();
+    run();
     while(!hasSextracted && !hasSolved && !hasFailed && !wasAborted)
         QApplication::processEvents();
 }
@@ -240,11 +239,11 @@ void StellarSolver::run()
     if(params.multiAlgorithm != NOT_MULTI && processType == SOLVE && (solverType == SOLVER_STELLARSOLVER
             || solverType == SOLVER_LOCALASTROMETRY))
     {
-        sextractorSolver->sextract();
+        m_SextractorSolver->sextract();
         parallelSolve();
 
         while(!hasSolved && !wasAborted && parallelSolversAreRunning())
-            msleep(100);
+            QThread::msleep(100);
 
         if(loadWCS && hasWCS && solverWithWCS)
         {
@@ -257,19 +256,19 @@ void StellarSolver::run()
             }
         }
         while(parallelSolversAreRunning())
-            msleep(100);
+            QThread::msleep(100);
     }
     else if(solverType == SOLVER_ONLINEASTROMETRY)
     {
-        connect(sextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
-        sextractorSolver->startProcess();
-        while(sextractorSolver->isRunning())
-            msleep(100);
+        connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
+        m_SextractorSolver->startProcess();
+        while(m_SextractorSolver->isRunning())
+            QThread::msleep(100);
     }
     else
     {
-        connect(sextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
-        sextractorSolver->executeProcess();
+        connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
+        m_SextractorSolver->executeProcess();
     }
     if(logLevel != LOG_NONE)
         emit logOutput("All Processes Complete");
@@ -283,7 +282,7 @@ void StellarSolver::parallelSolve()
         return;
     parallelSolvers.clear();
     parallelFails = 0;
-    int threads = idealThreadCount();
+    int threads = QThread::idealThreadCount();
 
     if(params.multiAlgorithm == MULTI_SCALES)
     {
@@ -312,7 +311,7 @@ void StellarSolver::parallelSolve()
         {
             double low = minScale + scaleConst * pow(thread, 2);
             double high = minScale + scaleConst * pow(thread + 1, 2);
-            SextractorSolver *solver = sextractorSolver->spawnChildSolver(thread);
+            SextractorSolver *solver = m_SextractorSolver->spawnChildSolver(thread);
             connect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             solver->setSearchScale(low, high, units);
             parallelSolvers.append(solver);
@@ -338,7 +337,7 @@ void StellarSolver::parallelSolve()
             emit logOutput(QString("Starting %1 threads to solve on multiple depths").arg(sourceNum / inc));
         for(int i = 1; i < sourceNum; i += inc)
         {
-            SextractorSolver *solver = sextractorSolver->spawnChildSolver(i);
+            SextractorSolver *solver = m_SextractorSolver->spawnChildSolver(i);
             connect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             solver->depthlo = i;
             solver->depthhi = i + inc;
@@ -360,26 +359,26 @@ bool StellarSolver::parallelSolversAreRunning()
 }
 void StellarSolver::processFinished(int code)
 {
-    numStars  = sextractorSolver->getNumStarsFound();
+    numStars  = m_SextractorSolver->getNumStarsFound();
     if(code == 0)
     {
         //This means it was a Solving Command
-        if(sextractorSolver->solvingDone())
+        if(m_SextractorSolver->solvingDone())
         {
-            solution = sextractorSolver->getSolution();
-            if(sextractorSolver->hasWCSData())
+            solution = m_SextractorSolver->getSolution();
+            if(m_SextractorSolver->hasWCSData())
             {
                 hasWCS = true;
-                solverWithWCS = sextractorSolver;
+                solverWithWCS = m_SextractorSolver;
             }
             hasSolved = true;
         }
         //This means it was a Sextraction Command
         else
         {
-            stars = sextractorSolver->getStarList();
-            background = sextractorSolver->getBackground();
-            calculateHFR = sextractorSolver->isCalculatingHFR();
+            stars = m_SextractorSolver->getStarList();
+            background = m_SextractorSolver->getBackground();
+            calculateHFR = m_SextractorSolver->isCalculatingHFR();
             if(solverWithWCS)
                 stars = solverWithWCS->appendStarsRAandDEC(stars);
             hasSextracted = true;
@@ -388,7 +387,7 @@ void StellarSolver::processFinished(int code)
     else
         hasFailed = true;
     emit finished(code);
-    if(sextractorSolver->solvingDone())
+    if(m_SextractorSolver->solvingDone())
     {
         if(loadWCS && hasWCS && solverWithWCS)
         {
@@ -452,8 +451,8 @@ void StellarSolver::abort()
 {
     foreach(SextractorSolver *solver, parallelSolvers)
         solver->abort();
-    if(sextractorSolver)
-        sextractorSolver->abort();
+    if(m_SextractorSolver)
+        m_SextractorSolver->abort();
     wasAborted = true;
 }
 
@@ -706,7 +705,7 @@ FITSImage::wcs_point * StellarSolver::getWCSCoord()
 QList<FITSImage::Star> StellarSolver::appendStarsRAandDEC(QList<FITSImage::Star> stars)
 {
 
-    return sextractorSolver->appendStarsRAandDEC(stars);
+    return m_SextractorSolver->appendStarsRAandDEC(stars);
 }
 
 //This function should get the system RAM in bytes.  I may revise it later to get the currently available RAM
