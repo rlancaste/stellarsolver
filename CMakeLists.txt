@@ -319,6 +319,7 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/stellarsolver.h DESTINAT
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/structuredefinitions.h DESTINATION "${INCLUDE_INSTALL_DIR}")
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sextractorsolver.h DESTINATION "${INCLUDE_INSTALL_DIR}")
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/parameters.h DESTINATION "${INCLUDE_INSTALL_DIR}")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h DESTINATION "${INCLUDE_INSTALL_DIR}")
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/include/astrometry DESTINATION "${INCLUDE_INSTALL_DIR}")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc @ONLY)

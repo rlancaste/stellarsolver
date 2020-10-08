@@ -11,6 +11,7 @@
 #include "structuredefinitions.h"
 #include "sextractorsolver.h"
 #include "parameters.h"
+#include "version.h"
 
 //QT Includes
 #include <QDir>
@@ -75,6 +76,16 @@ class StellarSolver : public QObject
         QString getLogLevelString()
         {
             return SSolver::getLogLevelString(logLevel);
+        }
+
+        static QString getVersion()
+        {
+            return QString("StellarSolver Library Version: %1, build: %2").arg(StellarSolver_VERSION).arg(StellarSolver_BUILD_TS);
+        }
+
+        static QString getVersionNumber()
+        {
+            return StellarSolver_VERSION;
         }
 
         //Logging Settings for Astrometry
