@@ -5,16 +5,16 @@
     License as published by the Free Software Foundation; either
     version 2 of the License, or (at your option) any later version.
 */
-#ifndef STRUCTUREDEFINITIONS_H
-#define STRUCTUREDEFINITIONS_H
+#pragma once
 
 //system includes
-#include "stdint.h"
+#include <stdint.h>
 #include <QString>
 #include <QVector>
-#include "math.h"
+#include <math.h>
 
-namespace FITSImage {
+namespace FITSImage
+{
 
 /// Stats struct to hold statisical data about the FITS data
 /// This is defined in both KStars and StellarSolver
@@ -88,4 +88,3 @@ typedef struct
 
 } // FITSImage
 
-#endif // STRUCTUREDEFINITIONS_H

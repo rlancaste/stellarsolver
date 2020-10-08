@@ -22,19 +22,20 @@
 
 using namespace SSolver;
 
-StellarSolver::StellarSolver(ProcessType type, FITSImage::Statistic imagestats, const uint8_t *imageBuffer, QObject *parent) : QThread(parent)
+StellarSolver::StellarSolver(ProcessType type, FITSImage::Statistic imagestats, const uint8_t *imageBuffer,
+                             QObject *parent) : QThread(parent)
 {
-     processType = type;
-     stats=imagestats;
-     m_ImageBuffer=imageBuffer;
-     subframe = QRect(0,0,stats.width,stats.height);
+    processType = type;
+    stats = imagestats;
+    m_ImageBuffer = imageBuffer;
+    subframe = QRect(0, 0, stats.width, stats.height);
 }
 
 StellarSolver::StellarSolver(FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : QThread(parent)
 {
-     stats=imagestats;
-     m_ImageBuffer=imageBuffer;
-     subframe = QRect(0,0,stats.width,stats.height);
+    stats = imagestats;
+    m_ImageBuffer = imageBuffer;
+    subframe = QRect(0, 0, stats.width, stats.height);
 }
 
 StellarSolver::~StellarSolver()
@@ -55,11 +56,13 @@ SextractorSolver* StellarSolver::createSextractorSolver()
         onlineSolver->sextractorBinaryPath = sextractorBinaryPath;
         solver = onlineSolver;
     }
-    else if((processType == SOLVE && solverType == SOLVER_STELLARSOLVER) || (processType != SOLVE && sextractorType != SEXTRACTOR_EXTERNAL))
+    else if((processType == SOLVE && solverType == SOLVER_STELLARSOLVER) || (processType != SOLVE
+            && sextractorType != SEXTRACTOR_EXTERNAL))
         solver = new InternalSextractorSolver(processType, sextractorType, solverType, stats, m_ImageBuffer, this);
     else
     {
-        ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(processType, sextractorType, solverType, stats, m_ImageBuffer, this);
+        ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(processType, sextractorType, solverType, stats,
+                m_ImageBuffer, this);
         extSolver->fileToProcess = fileToProcess;
         extSolver->sextractorBinaryPath = sextractorBinaryPath;
         extSolver->confPath = confPath;
@@ -90,12 +93,30 @@ SextractorSolver* StellarSolver::createSextractorSolver()
 }
 
 //Methods to get default file paths
-ExternalProgramPaths StellarSolver::getLinuxDefaultPaths(){return ExternalSextractorSolver::getLinuxDefaultPaths();};
-ExternalProgramPaths StellarSolver::getLinuxInternalPaths(){return ExternalSextractorSolver::getLinuxInternalPaths();};
-ExternalProgramPaths StellarSolver::getMacHomebrewPaths(){return ExternalSextractorSolver::getMacHomebrewPaths();};
-ExternalProgramPaths StellarSolver::getMacInternalPaths(){return ExternalSextractorSolver::getMacInternalPaths();};
-ExternalProgramPaths StellarSolver::getWinANSVRPaths(){return ExternalSextractorSolver::getWinANSVRPaths();};
-ExternalProgramPaths StellarSolver::getWinCygwinPaths(){return ExternalSextractorSolver::getLinuxDefaultPaths();};
+ExternalProgramPaths StellarSolver::getLinuxDefaultPaths()
+{
+    return ExternalSextractorSolver::getLinuxDefaultPaths();
+};
+ExternalProgramPaths StellarSolver::getLinuxInternalPaths()
+{
+    return ExternalSextractorSolver::getLinuxInternalPaths();
+};
+ExternalProgramPaths StellarSolver::getMacHomebrewPaths()
+{
+    return ExternalSextractorSolver::getMacHomebrewPaths();
+};
+ExternalProgramPaths StellarSolver::getMacInternalPaths()
+{
+    return ExternalSextractorSolver::getMacInternalPaths();
+};
+ExternalProgramPaths StellarSolver::getWinANSVRPaths()
+{
+    return ExternalSextractorSolver::getWinANSVRPaths();
+};
+ExternalProgramPaths StellarSolver::getWinCygwinPaths()
+{
+    return ExternalSextractorSolver::getLinuxDefaultPaths();
+};
 
 
 void StellarSolver::sextract()
@@ -216,7 +237,8 @@ void StellarSolver::run()
         hasSolved = false;
 
     //These are the solvers that support parallelization, ASTAP and the online ones do not
-    if(params.multiAlgorithm != NOT_MULTI && processType == SOLVE && (solverType == SOLVER_STELLARSOLVER || solverType == SOLVER_LOCALASTROMETRY))
+    if(params.multiAlgorithm != NOT_MULTI && processType == SOLVE && (solverType == SOLVER_STELLARSOLVER
+            || solverType == SOLVER_LOCALASTROMETRY))
     {
         sextractorSolver->sextract();
         parallelSolve();
@@ -283,19 +305,20 @@ void StellarSolver::parallelSolve()
             maxScale = params.maxwidth;
             units = DEG_WIDTH;
         }
-        double scaleConst = (maxScale - minScale) / pow(threads,2);
+        double scaleConst = (maxScale - minScale) / pow(threads, 2);
         if(logLevel != LOG_NONE)
             emit logOutput(QString("Starting %1 threads to solve on multiple scales").arg(threads));
         for(double thread = 0; thread < threads; thread++)
         {
-            double low = minScale + scaleConst * pow(thread,2);
+            double low = minScale + scaleConst * pow(thread, 2);
             double high = minScale + scaleConst * pow(thread + 1, 2);
             SextractorSolver *solver = sextractorSolver->spawnChildSolver(thread);
             connect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             solver->setSearchScale(low, high, units);
             parallelSolvers.append(solver);
             if(logLevel != LOG_NONE)
-                emit logOutput(QString("Solver # %1, Low %2, High %3 %4").arg(parallelSolvers.count()).arg(low).arg(high).arg(getScaleUnitString()));
+                emit logOutput(QString("Solver # %1, Low %2, High %3 %4").arg(parallelSolvers.count()).arg(low).arg(high).arg(
+                                   getScaleUnitString()));
         }
     }
     //Note: it might be useful to do a parallel solve on multiple positions, but I am afraid
@@ -305,7 +328,7 @@ void StellarSolver::parallelSolve()
     {
         //Attempt to search on multiple depths
         int sourceNum = 200;
-        if(params.keepNum !=0)
+        if(params.keepNum != 0)
             sourceNum = params.keepNum;
         int inc = sourceNum / threads;
         //We don't need an unnecessary number of threads
@@ -384,7 +407,7 @@ void StellarSolver::finishParallelSolve(int success)
 {
     SextractorSolver *reportingSolver = (SextractorSolver*)sender();
     int whichSolver = 0;
-    for(int i =0; i<parallelSolvers.count(); i++ )
+    for(int i = 0; i < parallelSolvers.count(); i++ )
     {
         SextractorSolver *solver = parallelSolvers.at(i);
         if(solver == reportingSolver)
@@ -445,7 +468,7 @@ void StellarSolver::createConvFilterFromFWHM(Parameters *params, double fwhm)
     {
         for(int x = -size; x <= size; x++ )
         {
-            double value = a * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x,2) + pow(y,2) ),2) ) / pow(fwhm,2));
+            double value = a * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(fwhm, 2));
             params->convFilter.append(value);
         }
     }
@@ -600,13 +623,13 @@ void StellarSolver::setUseSubframe(QRect frame)
 //This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.
 void StellarSolver::setSearchScale(double fov_low, double fov_high, QString scaleUnits)
 {
-    if(scaleUnits =="dw" || scaleUnits =="degw" || scaleUnits =="degwidth")
+    if(scaleUnits == "dw" || scaleUnits == "degw" || scaleUnits == "degwidth")
         setSearchScale(fov_low, fov_high, DEG_WIDTH);
     if(scaleUnits == "app" || scaleUnits == "arcsecperpix")
         setSearchScale(fov_low, fov_high, ARCSEC_PER_PIX);
-    if(scaleUnits =="aw" || scaleUnits =="amw" || scaleUnits =="arcminwidth")
+    if(scaleUnits == "aw" || scaleUnits == "amw" || scaleUnits == "arcminwidth")
         setSearchScale(fov_low, fov_high, ARCMIN_WIDTH);
-    if(scaleUnits =="focalmm")
+    if(scaleUnits == "focalmm")
         setSearchScale(fov_low, fov_high, FOCAL_MM);
 }
 
@@ -711,10 +734,13 @@ uint64_t StellarSolver::getAvailableRAM()
     MEMORYSTATUSEX memory_status;
     ZeroMemory(&memory_status, sizeof(MEMORYSTATUSEX));
     memory_status.dwLength = sizeof(MEMORYSTATUSEX);
-    if (GlobalMemoryStatusEx(&memory_status)) {
-      RAM = memory_status.ullTotalPhys;
-    } else {
-      RAM = 0;
+    if (GlobalMemoryStatusEx(&memory_status))
+    {
+        RAM = memory_status.ullTotalPhys;
+    }
+    else
+    {
+        RAM = 0;
     }
 #endif
     return RAM;
@@ -730,7 +756,7 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
         QDir dir(folder);
         if(dir.exists())
         {
-            dir.setNameFilters(QStringList()<<"*.fits"<<"*.fit");
+            dir.setNameFilters(QStringList() << "*.fits" << "*.fit");
             QFileInfoList indexInfoList = dir.entryInfoList();
             foreach(QFileInfo indexInfo, indexInfoList)
                 totalSize += indexInfo.size();
@@ -746,7 +772,9 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
     }
     float bytesInGB = 1024 * 1024 * 1024; // B -> KB -> MB -> GB , float to make sure it reports the answer with any decimals
     if(logLevel != LOG_NONE)
-        emit logOutput(QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB").arg(totalSize / bytesInGB).arg(availableRAM / bytesInGB));
+        emit logOutput(
+            QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB").arg(
+                totalSize / bytesInGB).arg(availableRAM / bytesInGB));
     return availableRAM > totalSize;
 }
 
@@ -757,16 +785,16 @@ double StellarSolver::snr(const FITSImage::Background &background,
 {
     const double numPixelsInSkyEstimate = background.bw * background.bh;
     const double varSky = background.globalrms * background.globalrms;
-    
+
     if (numPixelsInSkyEstimate <= 0 || gain <= 0)
         return 0;
 
     // It seems SEP flux subtracts out the background, so no need
     // for numer = flux - star.numPixels * mean;
-    const double numer = star.flux;  
+    const double numer = star.flux;
     const double denom = sqrt( numer / gain + star.numPixels * varSky  * (1 + 1 / numPixelsInSkyEstimate));
     if (denom <= 0)
         return 0;
     return numer / denom;
-    
+
 }
