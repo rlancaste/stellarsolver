@@ -5,8 +5,7 @@
     License as published by the Free Software Foundation; either
     version 2 of the License, or (at your option) any later version.
 */
-#ifndef ONLINESOLVER_H
-#define ONLINESOLVER_H
+#pragma once
 
 #include "externalsextractorsolver.h"
 
@@ -29,63 +28,63 @@ using namespace SSolver;
 
 class OnlineSolver : public ExternalSextractorSolver
 {
-    Q_OBJECT
-public:
-    explicit OnlineSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent);
+        Q_OBJECT
+    public:
+        explicit OnlineSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats,
+                              uint8_t const *imageBuffer, QObject *parent);
 
-    QString astrometryAPIKey;
-    QString astrometryAPIURL;
-    QString fileToProcess;
+        QString astrometryAPIKey;
+        QString astrometryAPIURL;
+        QString fileToProcess;
 
-    void startProcess() override;
-    //void executeProcess() override;
-    void abort() override;
+        void startProcess() override;
+        //void executeProcess() override;
+        void abort() override;
 
-    typedef enum
-    {
-        NO_STAGE,
-        AUTH_STAGE,
-        UPLOAD_STAGE,
-        JOB_PROCESSING_STAGE,
-        JOB_QUEUE_STAGE,
-        JOB_MONITORING_STAGE,
-        JOB_CALIBRATION_STAGE,
-        LOG_LOADING_STAGE,
-        WCS_LOADING_STAGE
-    } WorkflowStage;
+        typedef enum
+        {
+            NO_STAGE,
+            AUTH_STAGE,
+            UPLOAD_STAGE,
+            JOB_PROCESSING_STAGE,
+            JOB_QUEUE_STAGE,
+            JOB_MONITORING_STAGE,
+            JOB_CALIBRATION_STAGE,
+            LOG_LOADING_STAGE,
+            WCS_LOADING_STAGE
+        } WorkflowStage;
 
-public slots:
+    public slots:
 
-    void onResult(QNetworkReply *reply);
-    void checkJobs();
+        void onResult(QNetworkReply *reply);
+        void checkJobs();
 
-private:
+    private:
 
-    void runOnlineSolver();
-    void run() override;
-    bool aborted = false;
+        void runOnlineSolver();
+        void run() override;
+        bool aborted = false;
 
-    void authenticate();        //Starts Stage 1
-    void uploadFile();          //Starts Stage 2
-    void waitForProcessing();   //Starts Stage 3
-    void getJobID();            //Starts Stage 4
-    void startMonitoring();     //Starts Stage 5
-    void checkJobCalibration(); //Starts Stage 6
-    void getJobLogFile();       //Starts Stage 7
-    void getJobWCSFile();       //Starts Stage 8
+        void authenticate();        //Starts Stage 1
+        void uploadFile();          //Starts Stage 2
+        void waitForProcessing();   //Starts Stage 3
+        void getJobID();            //Starts Stage 4
+        void startMonitoring();     //Starts Stage 5
+        void checkJobCalibration(); //Starts Stage 6
+        void getJobLogFile();       //Starts Stage 7
+        void getJobWCSFile();       //Starts Stage 8
 
-    WorkflowStage workflowStage { NO_STAGE };
-    QNetworkAccessManager *networkManager { nullptr };
-    QString sessionKey;
-    int subID { 0 };
-    int jobID { 0 };
-    int job_retries { 0 };
-    QElapsedTimer solverTimer;
+        WorkflowStage workflowStage { NO_STAGE };
+        QNetworkAccessManager *networkManager { nullptr };
+        QString sessionKey;
+        int subID { 0 };
+        int jobID { 0 };
+        int job_retries { 0 };
+        QElapsedTimer solverTimer;
 
-signals:
-    void timeToCheckJobs();
-    void startupOnlineSolver();
+    signals:
+        void timeToCheckJobs();
+        void startupOnlineSolver();
 
 };
 
-#endif // ONLINESOLVER_H
