@@ -186,10 +186,6 @@ class StellarSolver : public QObject
         {
             return hasSolved;
         }
-        bool isRunning()
-        {
-            return running;
-        }
 
         bool failed()
         {
