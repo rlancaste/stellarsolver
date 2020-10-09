@@ -27,17 +27,11 @@ class StellarSolver : public QObject
 {
         Q_OBJECT
     public:
-        //This defines the type of process to perform.
-
-        ProcessType processType;
-        SextractorType sextractorType;
-        SolverType solverType;
-
-        //The constructor and destructor fo the StellarSolver Object
+        //The constructor and destructor foe the StellarSolver Object
         explicit StellarSolver(ProcessType type, FITSImage::Statistic imagestats, uint8_t const *imageBuffer,
                                QObject *parent = nullptr);
         explicit StellarSolver(FITSImage::Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
-        ~StellarSolver();
+        ~StellarSolver() = default;
 
         //Methods to get default file paths
         static ExternalProgramPaths getLinuxDefaultPaths();
@@ -50,14 +44,14 @@ class StellarSolver : public QObject
         //This gets the processType as a string explaining the command StellarSolver is Running
         QString getCommandString()
         {
-            return SSolver::getCommandString(processType, sextractorType, solverType);
+            return SSolver::getCommandString(m_ProcessType, m_SextractorType, m_SolverType);
         }
 
         //This gets the scale unit string for astrometry.net input
         //This should NOT be translated
         QString getScaleUnitString()
         {
-            return SSolver::getScaleUnitString(scaleunit);
+            return SSolver::getScaleUnitString(m_ScaleUnit);
         }
 
         //This gets a string for the Sextractor setting for calculating Flux using ellipses or circles
@@ -74,31 +68,38 @@ class StellarSolver : public QObject
 
         QString getLogLevelString()
         {
-            return SSolver::getLogLevelString(logLevel);
+            return SSolver::getLogLevelString(m_LogLevel);
         }
 
         //Logging Settings for Astrometry
-        bool logToFile = false;             //This determines whether or not to save the output from Astrometry.net to a file
-        QString logFileName;                //This is the path to the log file that it will save.
-        logging_level logLevel = LOG_MSG;       //This is the level of logging getting saved to the log file
+        bool m_LogToFile {false};             //This determines whether or not to save the output from Astrometry.net to a file
+        QString m_LogFileName;                //This is the path to the log file that it will save.
+        logging_level m_LogLevel {LOG_MSG};   //This is the level of logging getting saved to the log file
 
         //These are for creating temporary files
-        QString baseName;                   //This is the base name used for all temporary files.  It uses a random name based on the type of solver/sextractor.
-        QString basePath =
-            QDir::tempPath();//This is the path used for saving any temporary files.  They are by default saved to the default temp directory, you can change it if you want to.
+        //This is the base name used for all temporary files.  It uses a random name based on the type of solver/sextractor.
+        QString m_BaseName;
+        //This is the path used for saving any temporary files.  They are by default saved to the default temp directory, you can change it if you want to.
+        QString m_BasePath {QDir::tempPath()};
 
         //STELLARSOLVER METHODS
         //The public methods here are for you to start, stop, setup, and get results from the StellarSolver
 
         //These are the most important methods that you can use for the StellarSolver
+
+        /**
+         * @brief sextract Extracts stars from the image.
+         * @param calculateHFR If true, it will also calculated Half-Flux Radius for each detected star. HFR calculations can be very CPU-intensive.
+         * @param frame If set, it will only extract stars within this rectangular region of the image.
+         */
         void sextract(bool calculateHFR = false, QRect frame = QRect());
 
         void startsextraction();
         void startSextractionWithHFR();
         void solve();
-        virtual void executeProcess();                      //This runs the process without threading.
-        virtual void startProcess();                        //This starts the process in a separate thread
-        virtual void abort();                       //This will abort the solver
+        void executeProcess();                      //This runs the process without threading.
+        void startProcess();                        //This starts the process in a separate thread
+        void abort();                       //This will abort the solver
 
         //These set the settings for the StellarSolver
         void setParameters(Parameters parameters)
@@ -112,37 +113,37 @@ class StellarSolver : public QObject
         };
         void setUseScale(bool set)
         {
-            use_scale = set;
+            m_UseScale = set;
         };
         void setSearchScale(double fov_low, double fov_high, QString scaleUnits);
         void setSearchScale(double fov_low, double fov_high,
                             ScaleUnits units); //This sets the scale range for the image to speed up the solver
         void setUsePostion(bool set)
         {
-            use_position = set;
+            m_UsePosition = set;
         };
         void setSearchPositionRaDec(double ra,
                                     double dec);                                                    //This sets the search RA/DEC/Radius to speed up the solver
         void setSearchPositionInDegrees(double ra, double dec);
         void setProcessType(ProcessType type)
         {
-            processType = type;
+            m_ProcessType = type;
         };
         void setSextractorType(SextractorType type)
         {
-            sextractorType = type;
+            m_SextractorType = type;
         };
         void setSolverType(SolverType type)
         {
-            solverType = type;
+            m_SolverType = type;
         };
         void setLogToFile(bool change)
         {
-            logToFile = change;
+            m_LogToFile = change;
         };
         void setLogLevel(logging_level level)
         {
-            logLevel = level;
+            m_LogLevel = level;
         };
 
         //These static methods can be used by classes to configure parameters or paths
@@ -211,60 +212,11 @@ class StellarSolver : public QObject
         }
         bool isUsingScale()
         {
-            return use_scale;
+            return m_UseScale;
         }
         bool isUsingPosition()
         {
-            return use_position;
-        }
-
-        //Static Utility
-        static double snr(const FITSImage::Background &background,
-                          const FITSImage::Star &star, double gain = 0.5);
-
-        virtual FITSImage::wcs_point *getWCSCoord();
-        virtual QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars);
-
-        //External Options
-        QString fileToProcess;
-        bool cleanupTemporaryFiles = true;
-        bool autoGenerateAstroConfig = true;
-
-        //System File Paths
-        QStringList indexFilePaths;
-        QString astapBinaryPath;
-        QString sextractorBinaryPath;
-        QString confPath;
-        QString solverPath;
-        QString wcsPath;
-
-        //Online Options
-        QString astrometryAPIKey;
-        QString astrometryAPIURL;
-
-        uint64_t getAvailableRAM(); //This finds out the amount of available RAM on the system
-        bool enoughRAMisAvailableFor(QStringList
-                                     indexFolders);  //This determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
-
-        void setUseSubframe(QRect frame);
-        void clearSubFrame()
-        {
-            useSubframe = false;
-            subframe = QRect(0, 0, stats.width, stats.height);
-        };
-
-        static QString raString(double ra)
-        {
-            char rastr[32];
-            ra2hmsstring(ra, rastr);
-            return rastr;
-        }
-
-        static QString decString(double dec)
-        {
-            char decstr[32];
-            dec2dmsstring(dec, decstr);
-            return decstr;
+            return m_UsePosition;
         }
 
     public slots:
@@ -272,38 +224,96 @@ class StellarSolver : public QObject
         void parallelSolve();
         void finishParallelSolve(int success);
 
-    protected:  //Note: These items are not private because they are needed by ExternalSextractorSolver
+    private:
+        //Static Utility
+        static double snr(const FITSImage::Background &background,
+                          const FITSImage::Star &star, double gain = 0.5);
 
-        bool useSubframe = false;
-        QRect subframe;
+        virtual FITSImage::wcs_point *getWCSCoord();
+        virtual QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars);
+
+        bool checkParameters();
+        void run();
+        SextractorSolver* createSextractorSolver();
+
+        //This finds out the amount of available RAM on the system
+        uint64_t getAvailableRAM();
+        //This determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
+        bool enoughRAMisAvailableFor(QStringList indexFolders);
+
+        void setUseSubframe(QRect frame);
+        void clearSubFrame()
+        {
+            useSubframe = false;
+            m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
+        };
+
+        inline static QString raString(double ra)
+        {
+            char rastr[32];
+            ra2hmsstring(ra, rastr);
+            return rastr;
+        }
+
+        inline static QString decString(double dec)
+        {
+            char decstr[32];
+            dec2dmsstring(dec, decstr);
+            return decstr;
+        }
+
+        //This defines the type of process to perform.
+        ProcessType m_ProcessType { SEXTRACT };
+        SextractorType m_SextractorType { SEXTRACTOR_INTERNAL };
+        SolverType m_SolverType {SOLVER_STELLARSOLVER};
+
+        //External Options
+        QString fileToProcess;
+        bool m_CleanupTemporaryFiles {true};
+        bool m_AutoGenerateAstroConfig {true};
+
+        //System File Paths
+        QStringList m_IndexFilePaths;
+        QString m_ASTAPBinaryPath;
+        QString m_SextractorBinaryPath;
+        QString m_ConfPath;
+        QString m_SolverPath;
+        QString m_WCSPath;
+
+        //Online Options
+        QString astrometryAPIKey;
+        QString astrometryAPIURL;
+
+        bool useSubframe {false};
+        QRect m_Subframe;
         QList<SextractorSolver*> parallelSolvers;
         QPointer<SextractorSolver> m_SextractorSolver;
         QPointer<SextractorSolver> solverWithWCS;
-        int parallelFails = 0;
+        int m_ParallelFailsCount = 0;
         bool parallelSolversAreRunning();
 
-        Parameters params;           //The currently set parameters for StellarSolver
-        QStringList indexFolderPaths =
-            getDefaultIndexFolderPaths();       //This is the list of folder paths that the solver will use to search for index files
+        //The currently set parameters for StellarSolver
+        Parameters params;
+        //This is the list of folder paths that the solver will use to search for index files
+        QStringList indexFolderPaths {getDefaultIndexFolderPaths()};
 
         //Astrometry Scale Parameters, These are not saved parameters and change for each image, use the methods to set them
-        bool use_scale = false;             //Whether or not to use the image scale parameters
-        double scalelo = 0;                 //Lower bound of image scale estimate
-        double scalehi = 0;                 //Upper bound of image scale estimate
-        ScaleUnits scaleunit;               //In what units are the lower and upper bounds?
+        bool m_UseScale = false;             //Whether or not to use the image scale parameters
+        double m_ScaleLow = 0;                 //Lower bound of image scale estimate
+        double m_ScaleHigh = 0;                 //Upper bound of image scale estimate
+        ScaleUnits m_ScaleUnit;               //In what units are the lower and upper bounds?
 
         //Astrometry Position Parameters, These are not saved parameters and change for each image, use the methods to set them
-        bool use_position = false;          //Whether or not to use initial information about the position
-        double search_ra = HUGE_VAL;        //RA of field center for search, format: decimal degrees
-        double search_dec = HUGE_VAL;       //DEC of field center for search, format: decimal degrees
+        bool m_UsePosition = false;          //Whether or not to use initial information about the position
+        double m_SearchRA = HUGE_VAL;        //RA of field center for search, format: decimal degrees
+        double m_SearchDE = HUGE_VAL;       //DEC of field center for search, format: decimal degrees
 
         //StellarSolver Internal settings that are needed by ExternalSextractorSolver as well
-        bool calculateHFR =
-            false;          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
+        bool calculateHFR {false};          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
         bool hasSextracted = false;         //This boolean is set when the sextraction is done
         bool hasSolved = false;             //This boolean is set when the solving is done
         bool hasFailed = false;
-        FITSImage::Statistic stats;                    //This is information about the image
+        FITSImage::Statistic m_Statistics;                    //This is information about the image
         const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
 
         //The Results
@@ -322,13 +332,7 @@ class StellarSolver : public QObject
         QString cancelfn;           //Filename whose creation signals the process to stop
         QString solvedfn;           //Filename whose creation tells astrometry.net it already solved the field.
 
-    private:
-        bool checkParameters();
-        void run();
-        SextractorSolver* createSextractorSolver();
-
     signals:
-
         //This signals that there is infomation that should be printed to a log file or log window
         void logOutput(QString logText);
 

@@ -23,69 +23,66 @@
 using namespace SSolver;
 
 StellarSolver::StellarSolver(ProcessType type, FITSImage::Statistic imagestats, const uint8_t *imageBuffer,
-                             QObject *parent) : QObject(parent)
+                             QObject *parent) : QObject(parent), m_Statistics(imagestats)
 {
-    processType = type;
-    stats = imagestats;
+    m_ProcessType = type;
     m_ImageBuffer = imageBuffer;
-    subframe = QRect(0, 0, stats.width, stats.height);
+    m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
 }
 
-StellarSolver::StellarSolver(FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : QObject(parent)
+StellarSolver::StellarSolver(FITSImage::Statistic imagestats, uint8_t const *imageBuffer,
+                             QObject *parent) : QObject(parent), m_Statistics(imagestats)
 {
-    stats = imagestats;
     m_ImageBuffer = imageBuffer;
-    subframe = QRect(0, 0, stats.width, stats.height);
-}
-
-StellarSolver::~StellarSolver()
-{
+    m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
 }
 
 SextractorSolver* StellarSolver::createSextractorSolver()
 {
     SextractorSolver *solver;
 
-    if(processType == SOLVE && solverType == SOLVER_ONLINEASTROMETRY)
+    if(m_ProcessType == SOLVE && m_SolverType == SOLVER_ONLINEASTROMETRY)
     {
-        OnlineSolver *onlineSolver = new OnlineSolver(processType, sextractorType, solverType, stats, m_ImageBuffer, this);
+        OnlineSolver *onlineSolver = new OnlineSolver(m_ProcessType, m_SextractorType, m_SolverType, m_Statistics, m_ImageBuffer,
+                this);
         onlineSolver->fileToProcess = fileToProcess;
         onlineSolver->astrometryAPIKey = astrometryAPIKey;
         onlineSolver->astrometryAPIURL = astrometryAPIURL;
-        onlineSolver->sextractorBinaryPath = sextractorBinaryPath;
+        onlineSolver->sextractorBinaryPath = m_SextractorBinaryPath;
         solver = onlineSolver;
     }
-    else if((processType == SOLVE && solverType == SOLVER_STELLARSOLVER) || (processType != SOLVE
-            && sextractorType != SEXTRACTOR_EXTERNAL))
-        solver = new InternalSextractorSolver(processType, sextractorType, solverType, stats, m_ImageBuffer, this);
+    else if((m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER) || (m_ProcessType != SOLVE
+            && m_SextractorType != SEXTRACTOR_EXTERNAL))
+        solver = new InternalSextractorSolver(m_ProcessType, m_SextractorType, m_SolverType, m_Statistics, m_ImageBuffer, this);
     else
     {
-        ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(processType, sextractorType, solverType, stats,
+        ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(m_ProcessType, m_SextractorType, m_SolverType,
+                m_Statistics,
                 m_ImageBuffer, this);
         extSolver->fileToProcess = fileToProcess;
-        extSolver->sextractorBinaryPath = sextractorBinaryPath;
-        extSolver->confPath = confPath;
-        extSolver->solverPath = solverPath;
-        extSolver->astapBinaryPath = astapBinaryPath;
-        extSolver->wcsPath = wcsPath;
-        extSolver->cleanupTemporaryFiles = cleanupTemporaryFiles;
-        extSolver->autoGenerateAstroConfig = autoGenerateAstroConfig;
+        extSolver->sextractorBinaryPath = m_SextractorBinaryPath;
+        extSolver->confPath = m_ConfPath;
+        extSolver->solverPath = m_SolverPath;
+        extSolver->astapBinaryPath = m_ASTAPBinaryPath;
+        extSolver->wcsPath = m_WCSPath;
+        extSolver->cleanupTemporaryFiles = m_CleanupTemporaryFiles;
+        extSolver->autoGenerateAstroConfig = m_AutoGenerateAstroConfig;
         solver = extSolver;
     }
 
     if(useSubframe)
-        solver->setUseSubframe(subframe);
-    solver->logToFile = logToFile;
-    solver->logFileName = logFileName;
-    solver->logLevel = logLevel;
-    solver->basePath = basePath;
+        solver->setUseSubframe(m_Subframe);
+    solver->logToFile = m_LogToFile;
+    solver->logFileName = m_LogFileName;
+    solver->logLevel = m_LogLevel;
+    solver->basePath = m_BasePath;
     solver->params = params;
     solver->indexFolderPaths = indexFolderPaths;
-    if(use_scale)
-        solver->setSearchScale(scalelo, scalehi, scaleunit);
-    if(use_position)
-        solver->setSearchPositionInDegrees(search_ra, search_dec);
-    if(logLevel != LOG_NONE)
+    if(m_UseScale)
+        solver->setSearchScale(m_ScaleLow, m_ScaleHigh, m_ScaleUnit);
+    if(m_UsePosition)
+        solver->setSearchPositionInDegrees(m_SearchRA, m_SearchDE);
+    if(m_LogLevel != LOG_NONE)
         connect(solver, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
 
     return solver;
@@ -119,21 +116,21 @@ ExternalProgramPaths StellarSolver::getWinCygwinPaths()
 
 void StellarSolver::sextract(bool calculateHFR, QRect frame)
 {
-    processType = calculateHFR ? SEXTRACT_WITH_HFR : SEXTRACT;
+    m_ProcessType = calculateHFR ? SEXTRACT_WITH_HFR : SEXTRACT;
     useSubframe = frame.isNull() ? false : true;
-    subframe = frame;
+    m_Subframe = frame;
     executeProcess();
 }
 
 void StellarSolver::startsextraction()
 {
-    processType = SEXTRACT;
+    m_ProcessType = SEXTRACT;
     startProcess();
 }
 
 void StellarSolver::startSextractionWithHFR()
 {
-    processType = SEXTRACT_WITH_HFR;
+    m_ProcessType = SEXTRACT_WITH_HFR;
     startProcess();
 }
 
@@ -153,26 +150,26 @@ void StellarSolver::executeProcess()
 
 bool StellarSolver::checkParameters()
 {
-    if(params.multiAlgorithm != NOT_MULTI && solverType == SOLVER_ASTAP && processType == SOLVE)
+    if(params.multiAlgorithm != NOT_MULTI && m_SolverType == SOLVER_ASTAP && m_ProcessType == SOLVE)
     {
         emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
         params.multiAlgorithm = NOT_MULTI;
     }
 
-    if(processType == SOLVE && solverType == SOLVER_STELLARSOLVER && sextractorType != SEXTRACTOR_INTERNAL)
+    if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && m_SextractorType != SEXTRACTOR_INTERNAL)
     {
         emit logOutput("StellarSolver only uses the Internal SEP Sextractor since it doesn't save files to disk. Changing to Internal Sextractor.");
-        sextractorType = SEXTRACTOR_INTERNAL;
+        m_SextractorType = SEXTRACTOR_INTERNAL;
 
     }
 
     if(params.multiAlgorithm == MULTI_AUTO)
     {
-        if(use_scale && use_position)
+        if(m_UseScale && m_UsePosition)
             params.multiAlgorithm = NOT_MULTI;
-        else if(use_position)
+        else if(m_UsePosition)
             params.multiAlgorithm = MULTI_SCALES;
-        else if(use_scale)
+        else if(m_UseScale)
             params.multiAlgorithm = MULTI_DEPTHS;
         else
             params.multiAlgorithm = MULTI_SCALES;
@@ -182,14 +179,14 @@ bool StellarSolver::checkParameters()
     {
         if(enoughRAMisAvailableFor(indexFolderPaths))
         {
-            if(logLevel != LOG_NONE)
+            if(m_LogLevel != LOG_NONE)
                 emit logOutput("There should be enough RAM to load the indexes in parallel.");
         }
         else
         {
-            if(logLevel != LOG_NONE)
+            if(m_LogLevel != LOG_NONE)
                 emit logOutput("Not enough RAM is available on this system for loading the index files you have in parallel");
-            if(logLevel != LOG_NONE)
+            if(m_LogLevel != LOG_NONE)
                 emit logOutput("Disabling the inParallel option.");
             params.inParallel = false;
         }
@@ -207,14 +204,14 @@ void StellarSolver::run()
     }
 
     hasFailed = false;
-    if(processType == SEXTRACT || processType == SEXTRACT_WITH_HFR)
+    if(m_ProcessType == SEXTRACT || m_ProcessType == SEXTRACT_WITH_HFR)
         hasSextracted = false;
     else
         hasSolved = false;
 
     //These are the solvers that support parallelization, ASTAP and the online ones do not
-    if(params.multiAlgorithm != NOT_MULTI && processType == SOLVE && (solverType == SOLVER_STELLARSOLVER
-            || solverType == SOLVER_LOCALASTROMETRY))
+    if(params.multiAlgorithm != NOT_MULTI && m_ProcessType == SOLVE && (m_SolverType == SOLVER_STELLARSOLVER
+            || m_SolverType == SOLVER_LOCALASTROMETRY))
     {
         m_SextractorSolver->sextract();
         parallelSolve();
@@ -235,7 +232,7 @@ void StellarSolver::run()
         while(parallelSolversAreRunning())
             QThread::msleep(100);
     }
-    else if(solverType == SOLVER_ONLINEASTROMETRY)
+    else if(m_SolverType == SOLVER_ONLINEASTROMETRY)
     {
         connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
         m_SextractorSolver->startProcess();
@@ -247,7 +244,7 @@ void StellarSolver::run()
         connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
         m_SextractorSolver->executeProcess();
     }
-    if(logLevel != LOG_NONE)
+    if(m_LogLevel != LOG_NONE)
         emit logOutput("All Processes Complete");
 }
 
@@ -255,10 +252,10 @@ void StellarSolver::run()
 //to attempt to efficiently use modern multi core computers to speed up the solve
 void StellarSolver::parallelSolve()
 {
-    if(params.multiAlgorithm == NOT_MULTI || !(solverType == SOLVER_STELLARSOLVER || solverType == SOLVER_LOCALASTROMETRY))
+    if(params.multiAlgorithm == NOT_MULTI || !(m_SolverType == SOLVER_STELLARSOLVER || m_SolverType == SOLVER_LOCALASTROMETRY))
         return;
     parallelSolvers.clear();
-    parallelFails = 0;
+    m_ParallelFailsCount = 0;
     int threads = QThread::idealThreadCount();
 
     if(params.multiAlgorithm == MULTI_SCALES)
@@ -269,11 +266,11 @@ void StellarSolver::parallelSolve()
         double minScale;
         double maxScale;
         ScaleUnits units;
-        if(use_scale)
+        if(m_UseScale)
         {
-            minScale = scalelo;
-            maxScale = scalehi;
-            units = scaleunit;
+            minScale = m_ScaleLow;
+            maxScale = m_ScaleHigh;
+            units = m_ScaleUnit;
         }
         else
         {
@@ -282,7 +279,7 @@ void StellarSolver::parallelSolve()
             units = DEG_WIDTH;
         }
         double scaleConst = (maxScale - minScale) / pow(threads, 2);
-        if(logLevel != LOG_NONE)
+        if(m_LogLevel != LOG_NONE)
             emit logOutput(QString("Starting %1 threads to solve on multiple scales").arg(threads));
         for(double thread = 0; thread < threads; thread++)
         {
@@ -292,7 +289,7 @@ void StellarSolver::parallelSolve()
             connect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             solver->setSearchScale(low, high, units);
             parallelSolvers.append(solver);
-            if(logLevel != LOG_NONE)
+            if(m_LogLevel != LOG_NONE)
                 emit logOutput(QString("Solver # %1, Low %2, High %3 %4").arg(parallelSolvers.count()).arg(low).arg(high).arg(
                                    getScaleUnitString()));
         }
@@ -310,7 +307,7 @@ void StellarSolver::parallelSolve()
         //We don't need an unnecessary number of threads
         if(inc < 10)
             inc = 10;
-        if(logLevel != LOG_NONE)
+        if(m_LogLevel != LOG_NONE)
             emit logOutput(QString("Starting %1 threads to solve on multiple depths").arg(sourceNum / inc));
         for(int i = 1; i < sourceNum; i += inc)
         {
@@ -319,7 +316,7 @@ void StellarSolver::parallelSolve()
             solver->depthlo = i;
             solver->depthhi = i + inc;
             parallelSolvers.append(solver);
-            if(logLevel != LOG_NONE)
+            if(m_LogLevel != LOG_NONE)
                 emit logOutput(QString("Child Solver # %1, Depth Low %2, Depth High %3").arg(parallelSolvers.count()).arg(i).arg(i + inc));
         }
     }
@@ -393,9 +390,9 @@ void StellarSolver::finishParallelSolve(int success)
     if(success == 0)
     {
         numStars  = reportingSolver->getNumStarsFound();
-        if(logLevel != LOG_NONE)
+        if(m_LogLevel != LOG_NONE)
             emit logOutput(QString("Successfully solved with child solver: %1").arg(whichSolver));
-        if(logLevel != LOG_NONE)
+        if(m_LogLevel != LOG_NONE)
             emit logOutput("Shutting down other child solvers");
         foreach(SextractorSolver *solver, parallelSolvers)
         {
@@ -415,10 +412,10 @@ void StellarSolver::finishParallelSolve(int success)
     }
     else
     {
-        parallelFails++;
-        if(logLevel != LOG_NONE)
+        m_ParallelFailsCount++;
+        if(m_LogLevel != LOG_NONE)
             emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
-        if(parallelFails == parallelSolvers.count())
+        if(m_ParallelFailsCount == parallelSolvers.count())
             emit finished(-1);
     }
 }
@@ -587,13 +584,13 @@ void StellarSolver::setUseSubframe(QRect frame)
         x = 0;
     if(y < 0)
         y = 0;
-    if(x > stats.width)
-        x = stats.width;
-    if(y > stats.height)
-        y = stats.height;
+    if(x > m_Statistics.width)
+        x = m_Statistics.width;
+    if(y > m_Statistics.height)
+        y = m_Statistics.height;
 
     useSubframe = true;
-    subframe = QRect(x, y, w, h);
+    m_Subframe = QRect(x, y, w, h);
 }
 
 //This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.
@@ -612,13 +609,13 @@ void StellarSolver::setSearchScale(double fov_low, double fov_high, QString scal
 //This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.
 void StellarSolver::setSearchScale(double fov_low, double fov_high, ScaleUnits units)
 {
-    use_scale = true;
+    m_UseScale = true;
     //L
-    scalelo = fov_low;
+    m_ScaleLow = fov_low;
     //H
-    scalehi = fov_high;
+    m_ScaleHigh = fov_high;
     //u
-    scaleunit = units;
+    m_ScaleUnit = units;
 }
 
 //This is a convenience function used to set all the search position parameters based on the ra, dec, and radius
@@ -632,11 +629,11 @@ void StellarSolver::setSearchPositionRaDec(double ra, double dec)
 //Warning!!  This method accepts the RA in degrees just like the DEC
 void StellarSolver::setSearchPositionInDegrees(double ra, double dec)
 {
-    use_position = true;
+    m_UsePosition = true;
     //3
-    search_ra = ra;
+    m_SearchRA = ra;
     //4
-    search_dec = dec;
+    m_SearchDE = dec;
 }
 
 void addPathToListIfExists(QStringList *list, QString path)
@@ -742,12 +739,12 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
     uint64_t availableRAM = getAvailableRAM();
     if(availableRAM == 0)
     {
-        if(logLevel != LOG_NONE)
+        if(m_LogLevel != LOG_NONE)
             emit logOutput("Unable to determine system RAM for inParallel Option");
         return false;
     }
     float bytesInGB = 1024 * 1024 * 1024; // B -> KB -> MB -> GB , float to make sure it reports the answer with any decimals
-    if(logLevel != LOG_NONE)
+    if(m_LogLevel != LOG_NONE)
         emit logOutput(
             QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB").arg(
                 totalSize / bytesInGB).arg(availableRAM / bytesInGB));
