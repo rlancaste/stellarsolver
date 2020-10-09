@@ -47,56 +47,59 @@ MainWindow::MainWindow() :
     ui->setupUi(this);
 
 
-   this->show();
+    this->show();
 
     //The Options at the top of the Window
-    connect(ui->ImageLoad,&QAbstractButton::clicked, this, &MainWindow::imageLoad );
+    connect(ui->ImageLoad, &QAbstractButton::clicked, this, &MainWindow::imageLoad );
     ui->ImageLoad->setToolTip("Loads an Image into the Viewer");
-    connect(ui->zoomIn,&QAbstractButton::clicked, this, &MainWindow::zoomIn );
+    connect(ui->zoomIn, &QAbstractButton::clicked, this, &MainWindow::zoomIn );
     ui->zoomIn->setToolTip("Zooms In on the Image");
-    connect(ui->zoomOut,&QAbstractButton::clicked, this, &MainWindow::zoomOut );
+    connect(ui->zoomOut, &QAbstractButton::clicked, this, &MainWindow::zoomOut );
     ui->zoomOut->setToolTip("Zooms Out on the Image");
-    connect(ui->AutoScale,&QAbstractButton::clicked, this, &MainWindow::autoScale );
+    connect(ui->AutoScale, &QAbstractButton::clicked, this, &MainWindow::autoScale );
     ui->AutoScale->setToolTip("Rescales the image based on the available space");
 
     //The Options at the bottom of the Window
     ui->trials->setToolTip("The number of times to Sextract or Solve to get an average time that it takes.");
-    connect(ui->startProcess_1,&QAbstractButton::clicked, this, &MainWindow::startProcess1Clicked );
+    connect(ui->startProcess_1, &QAbstractButton::clicked, this, &MainWindow::startProcess1Clicked );
     //ui->SextractStars->setToolTip("Sextract the stars in the image using the chosen method and load them into the star table");
     //ui->sextractorType->setToolTip("Lets you choose the Internal StellarSolver SEP or external Sextractor program");
     //ui->optionsProfileSextract->setToolTip("The Options Profile to use for Sextracting.");
     //ui->editSextractorProfile->setToolTip("Loads the currently selected sextrctor profile into the profile editor");
-    connect(ui->editSextractorProfile, &QAbstractButton::clicked, this, [this](){
+    connect(ui->editSextractorProfile, &QAbstractButton::clicked, this, [this]()
+    {
         ui->optionsProfile->setCurrentIndex(ui->sextractionProfile->currentIndex());
         ui->optionsTab->setCurrentIndex(1);
         ui->sextractionProfile->setCurrentIndex(0);
     });
-   // ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box");
+    // ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box");
     //ui->solverType->setToolTip("Lets you choose how to solve the image");
     //ui->optionsProfileSolve->setToolTip("The Options Profile to use for Solving.");
     //ui->editSolverProfile->setToolTip("Loads the currently selected solver profile into the profile editor");
-    connect(ui->editSolverProfile, &QAbstractButton::clicked, this, [this](){
+    connect(ui->editSolverProfile, &QAbstractButton::clicked, this, [this]()
+    {
         ui->optionsProfile->setCurrentIndex(ui->solverProfile->currentIndex());
         ui->optionsTab->setCurrentIndex(1);
         ui->solverProfile->setCurrentIndex(0);
     });
-    connect(ui->Abort,&QAbstractButton::clicked, this, &MainWindow::abort );
+    connect(ui->Abort, &QAbstractButton::clicked, this, &MainWindow::abort );
     ui->Abort->setToolTip("Aborts the current process if one is running.");
-    connect(ui->ClearStars,&QAbstractButton::clicked, this, &MainWindow::clearStars );
+    connect(ui->ClearStars, &QAbstractButton::clicked, this, &MainWindow::clearStars );
     ui->ClearStars->setToolTip("Clears the star table and the stars from the image");
 
-    connect(ui->ClearResults,&QAbstractButton::clicked, this, &MainWindow::clearResults );
+    connect(ui->ClearResults, &QAbstractButton::clicked, this, &MainWindow::clearResults );
     ui->ClearResults->setToolTip("Clears the Results Table");
 
     //The Options for the StellarSolver Options
     ui->optionsProfile->setToolTip("The Options Profile currently in the options box. Selecting a profile will reset all the Sextractor and Solver settings to that profile.");
     connect(ui->optionsProfile, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::loadOptionsProfile);
     ui->addOptionProfile->setToolTip("Adds the current options in the left option pane to a new profile");
-    connect(ui->addOptionProfile,&QAbstractButton::clicked, this, [this](){
+    connect(ui->addOptionProfile, &QAbstractButton::clicked, this, [this]()
+    {
         bool ok;
         QString name = QInputDialog::getText(this, tr("New Options Profile"),
-                              tr("What would you like your profile to be called?"), QLineEdit::Normal,
-                              "", &ok);
+                                             tr("What would you like your profile to be called?"), QLineEdit::Normal,
+                                             "", &ok);
         if (ok && !name.isEmpty())
         {
             optionsAreSaved = true;
@@ -111,11 +114,12 @@ MainWindow::MainWindow() :
         }
     });
     ui->removeOptionProfile->setToolTip("Removes the selected profile from the list of profiles");
-    connect(ui->removeOptionProfile,&QAbstractButton::clicked, this, [this](){
+    connect(ui->removeOptionProfile, &QAbstractButton::clicked, this, [this]()
+    {
         int item = ui->optionsProfile->currentIndex();
         if(item < 2)
         {
-            QMessageBox::critical(nullptr,"Message","You can't delete this profile");
+            QMessageBox::critical(nullptr, "Message", "You can't delete this profile");
             return;
         }
         ui->optionsProfile->setCurrentIndex(0); //So we don't trigger any loading of any other profiles
@@ -178,15 +182,17 @@ MainWindow::MainWindow() :
     ui->cleanupTemp->setToolTip("This option allows the program to clean up temporary files created when running various processes");
     ui->generateAstrometryConfig->setToolTip("Determines whether to generate an astrometry.cfg file based on the options in the options panel or to use the external config file above.");
 
-    connect(ui->openTemp, &QAbstractButton::clicked, this, [this](){
+    connect(ui->openTemp, &QAbstractButton::clicked, this, [this]()
+    {
         QDesktopServices::openUrl(QUrl::fromLocalFile(ui->basePath->text()));
     });
     //StellarSolver Tester Options
-    connect(ui->showStars,&QAbstractButton::clicked, this, &MainWindow::updateImage );
+    connect(ui->showStars, &QAbstractButton::clicked, this, &MainWindow::updateImage );
     ui->setSubFrame->setToolTip("Sets or clears the Subframe for Sextraction if desired");
-    connect(ui->setSubFrame,&QAbstractButton::clicked, this, &MainWindow::setSubframe );
+    connect(ui->setSubFrame, &QAbstractButton::clicked, this, &MainWindow::setSubframe );
 
-    connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num){
+    connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num)
+    {
 
         ExternalProgramPaths paths;
         switch(num)
@@ -242,7 +248,10 @@ MainWindow::MainWindow() :
     ui->fwhm->setToolTip("A function that I made that creates a convolution filter based upon the desired FWHM for better star detection of that star size and shape");
 
     //Star Filter Settings
-    connect(ui->resortQT, &QCheckBox::stateChanged, this, [this](){ ui->resort->setChecked(ui->resortQT->isChecked());});
+    connect(ui->resortQT, &QCheckBox::stateChanged, this, [this]()
+    {
+        ui->resort->setChecked(ui->resortQT->isChecked());
+    });
     ui->resortQT->setToolTip("This resorts the stars based on magnitude.  It MUST be checked for the next couple of filters to be enabled.");
     ui->maxSize->setToolTip("This is the maximum diameter of stars to include in pixels");
     ui->minSize->setToolTip("This is the minimum diameter of stars to include in pixels");
@@ -259,7 +268,10 @@ MainWindow::MainWindow() :
     ui->minWidth->setToolTip("Sets a the minimum degree limit in the scales for Astrometry to search if the scale parameter isn't set");
     ui->maxWidth->setToolTip("Sets a the maximum degree limit in the scales for Astrometry to search if the scale parameter isn't set");
 
-    connect(ui->resort, &QCheckBox::stateChanged, this, [this](){ ui->resortQT->setChecked(ui->resort->isChecked()); });
+    connect(ui->resort, &QCheckBox::stateChanged, this, [this]()
+    {
+        ui->resortQT->setChecked(ui->resort->isChecked());
+    });
     ui->downsample->setToolTip("This downsamples or bins the image to hopefully make it solve faster.");
     ui->resort->setToolTip("This resorts the stars based on magnitude. It usually makes it solve faster.");
     ui->use_scale->setToolTip("Whether or not to use the estimated image scale below to try to speed up the solve");
@@ -279,15 +291,22 @@ MainWindow::MainWindow() :
     ui->logToFile->setToolTip("Whether the stellarsolver should just output to the log window or whether it should log to a file.");
     ui->logLevel->setToolTip("The verbosity level of the log to be displayed in the log window or saved to a file.");
 
-    connect(ui->indexFolderPaths, &QComboBox::currentTextChanged, this, [this](){ loadIndexFilesList(); });
+    connect(ui->indexFolderPaths, &QComboBox::currentTextChanged, this, [this]()
+    {
+        loadIndexFilesList();
+    });
     ui->indexFolderPaths->setToolTip("The paths on your compute to search for index files.  To add another, just start typing in the box.  To select one to look at, use the drop down.");
-    connect(ui->removeIndexPath, &QPushButton::clicked, this, [this](){ ui->indexFolderPaths->removeItem( ui->indexFolderPaths->currentIndex()); });
+    connect(ui->removeIndexPath, &QPushButton::clicked, this, [this]()
+    {
+        ui->indexFolderPaths->removeItem( ui->indexFolderPaths->currentIndex());
+    });
     ui->removeIndexPath->setToolTip("Removes the selected path in the index folder paths dropdown so that it won't get passed to the solver");
-    connect(ui->addIndexPath, &QPushButton::clicked, this, [this](){
+    connect(ui->addIndexPath, &QPushButton::clicked, this, [this]()
+    {
         QString dir = QFileDialog::getExistingDirectory(this, "Load Index File Directory",
-                                                        QDir::homePath(),
-                                                        QFileDialog::ShowDirsOnly
-                                                        | QFileDialog::DontResolveSymlinks);
+                      QDir::homePath(),
+                      QFileDialog::ShowDirsOnly
+                      | QFileDialog::DontResolveSymlinks);
         if (dir.isEmpty())
             return;
         ui->indexFolderPaths->addItem( dir );
@@ -298,33 +317,53 @@ MainWindow::MainWindow() :
     //Behaviors and Settings for the StarTable
     connect(this, &MainWindow::readyForStarTable, this, &MainWindow::displayTable);
     ui->starTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    connect(ui->starTable,&QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
+    connect(ui->starTable, &QTableWidget::itemSelectionChanged, this, &MainWindow::starClickedInTable);
     ui->starTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    connect(ui->exportStarTable,&QAbstractButton::clicked, this, &MainWindow::saveStarTable);
+    connect(ui->exportStarTable, &QAbstractButton::clicked, this, &MainWindow::saveStarTable);
     ui->showStars->setToolTip("This toggles the stars circles on and off in the image");
-    connect(ui->starOptions,QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::updateImage);
+    connect(ui->starOptions, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::updateImage);
     ui->starOptions->setToolTip("This allows you to select different types of star circles to put on the stars.  Warning, some require HFR to have been calculated first.");
-    connect(ui->showFluxInfo, &QCheckBox::stateChanged, this, [this](){ showFluxInfo = ui->showFluxInfo->isChecked(); updateHiddenStarTableColumns(); });
+    connect(ui->showFluxInfo, &QCheckBox::stateChanged, this, [this]()
+    {
+        showFluxInfo = ui->showFluxInfo->isChecked();
+        updateHiddenStarTableColumns();
+    });
     ui->showFluxInfo->setToolTip("This toggles whether to show or hide the HFR, peak, Flux columns in the star table after Sextraction.");
-    connect(ui->showStarShapeInfo, &QCheckBox::stateChanged, this, [this](){ showStarShapeInfo = ui->showStarShapeInfo->isChecked(); updateHiddenStarTableColumns();});
+    connect(ui->showStarShapeInfo, &QCheckBox::stateChanged, this, [this]()
+    {
+        showStarShapeInfo = ui->showStarShapeInfo->isChecked();
+        updateHiddenStarTableColumns();
+    });
     ui->showStarShapeInfo->setToolTip("This toggles whether to show or hide the information about each star's semi-major axis, semi-minor axis, and orientation in the star table after sextraction.");
 
     //Behaviors for the Mouse over the Image to interact with the StartList and the UI
-    connect(ui->Image,&ImageLabel::mouseMoved,this, &MainWindow::mouseMovedOverImage);
-    connect(ui->Image,&ImageLabel::mouseClicked,this, &MainWindow::mouseClickedInImage);
-    connect(ui->Image,&ImageLabel::mouseDown,this, &MainWindow::mousePressedInImage);
+    connect(ui->Image, &ImageLabel::mouseMoved, this, &MainWindow::mouseMovedOverImage);
+    connect(ui->Image, &ImageLabel::mouseClicked, this, &MainWindow::mouseClickedInImage);
+    connect(ui->Image, &ImageLabel::mouseDown, this, &MainWindow::mousePressedInImage);
 
     //Behavior and settings for the Results Table
     setupResultsTable();
     ui->resultsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->resultsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    connect(ui->exportResultsTable,&QAbstractButton::clicked, this, &MainWindow::saveResultsTable);
+    connect(ui->exportResultsTable, &QAbstractButton::clicked, this, &MainWindow::saveResultsTable);
     ui->exportResultsTable->setToolTip("Exports the log of processes executed during this session to a CSV file for further analysis");
-    connect(ui->showSextractorParams, &QCheckBox::stateChanged, this, [this](){ showSextractorParams = ui->showSextractorParams->isChecked(); updateHiddenResultsTableColumns(); });
+    connect(ui->showSextractorParams, &QCheckBox::stateChanged, this, [this]()
+    {
+        showSextractorParams = ui->showSextractorParams->isChecked();
+        updateHiddenResultsTableColumns();
+    });
     ui->showSextractorParams->setToolTip("This toggles whether to show or hide the Sextractor Settings in the Results table at the bottom");
-    connect(ui->showAstrometryParams, &QCheckBox::stateChanged, this, [this](){ showAstrometryParams = ui->showAstrometryParams->isChecked(); updateHiddenResultsTableColumns(); });
+    connect(ui->showAstrometryParams, &QCheckBox::stateChanged, this, [this]()
+    {
+        showAstrometryParams = ui->showAstrometryParams->isChecked();
+        updateHiddenResultsTableColumns();
+    });
     ui->showAstrometryParams->setToolTip("This toggles whether to show or hide the Astrometry Settings in the Results table at the bottom");
-    connect(ui->showSolutionDetails, &QCheckBox::stateChanged, this, [this](){ showSolutionDetails = ui->showSolutionDetails->isChecked(); updateHiddenResultsTableColumns(); });
+    connect(ui->showSolutionDetails, &QCheckBox::stateChanged, this, [this]()
+    {
+        showSolutionDetails = ui->showSolutionDetails->isChecked();
+        updateHiddenResultsTableColumns();
+    });
     ui->showSolutionDetails->setToolTip("This toggles whether to show or hide the Solution Details in the Results table at the bottom");
 
     debayerParams.method  = DC1394_BAYER_METHOD_NEAREST;
@@ -335,8 +374,9 @@ MainWindow::MainWindow() :
 
     ui->progressBar->setTextVisible(false);
     timerMonitor.setInterval(1000); //1 sec intervals
-    connect(&timerMonitor, &QTimer::timeout, this, [this](){
-        ui->status->setText(QString("Processing Trial %1: %2 s").arg(currentTrial).arg((int)processTimer.elapsed()/1000) + 1);
+    connect(&timerMonitor, &QTimer::timeout, this, [this]()
+    {
+        ui->status->setText(QString("Processing Trial %1: %2 s").arg(currentTrial).arg((int)processTimer.elapsed() / 1000) + 1);
     });
 
     setWindowIcon(QIcon(":/StellarSolverIcon.png"));
@@ -346,19 +386,19 @@ MainWindow::MainWindow() :
 
     //These will set the index
     int index = 0;
-    #if defined(Q_OS_OSX)
-        if(QFile("/usr/local/bin/solve-field").exists())
-           index = 2;
-        else
-           index = 3;
-    #elif defined(Q_OS_LINUX)
-        index = 0;
-    #else //Windows
-        index = 4;
-    #endif
+#if defined(Q_OS_OSX)
+    if(QFile("/usr/local/bin/solve-field").exists())
+        index = 2;
+    else
+        index = 3;
+#elif defined(Q_OS_LINUX)
+    index = 0;
+#else //Windows
+    index = 4;
+#endif
 
     index = programSettings.value("setPathsIndex", index).toInt();
-     ui->setPathsAutomatically->setCurrentIndex(index);
+    ui->setPathsAutomatically->setCurrentIndex(index);
 
     //This gets a temporary ExternalSextractorSolver to get the defaults
     //It tries to load from the saved settings if possible as well.
@@ -369,11 +409,12 @@ MainWindow::MainWindow() :
     ui->astapPath->setText(programSettings.value("astapBinaryPath", extTemp.astapBinaryPath).toString());
     ui->wcsPath->setText(programSettings.value("wcsPath", extTemp.wcsPath).toString());
     ui->cleanupTemp->setChecked(programSettings.value("cleanupTemporaryFiles", extTemp.cleanupTemporaryFiles).toBool());
-    ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig", extTemp.autoGenerateAstroConfig).toBool());
+    ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig",
+            extTemp.autoGenerateAstroConfig).toBool());
 
     //These load the default settings from the StellarSolver usting a temporary object
     StellarSolver temp(processType, stats, m_ImageBuffer, this);
-    ui->basePath->setText(temp.basePath);
+    ui->basePath->setText(temp.property("basePath").toString());
     sendSettingsToUI(temp.getCurrentParameters());
     optionsList = temp.getBuiltInProfiles();
     foreach(SSolver::Parameters param, optionsList)
@@ -400,7 +441,7 @@ MainWindow::MainWindow() :
 
 void MainWindow::settingJustChanged()
 {
-    if(ui->optionsProfile->currentIndex() !=0 )
+    if(ui->optionsProfile->currentIndex() != 0 )
         ui->optionsProfile->setCurrentIndex(0);
     optionsAreSaved = false;
 }
@@ -414,7 +455,8 @@ void MainWindow::loadOptionsProfile()
 
     if( !optionsAreSaved )
     {
-        if(QMessageBox::question(this, "Abort?", "You made unsaved changes in the settings, do you really wish to overwrite them?") == QMessageBox::No)
+        if(QMessageBox::question(this, "Abort?",
+                                 "You made unsaved changes in the settings, do you really wish to overwrite them?") == QMessageBox::No)
         {
             ui->optionsProfile->setCurrentIndex(0);
             return;
@@ -462,8 +504,8 @@ void MainWindow::clearResults()
 //These methods are for the logging of information to the textfield at the bottom of the window.
 void MainWindow::logOutput(QString text)
 {
-     ui->logDisplay->append(text);
-     ui->logDisplay->show();
+    ui->logDisplay->append(text);
+    ui->logDisplay->show();
 }
 
 void MainWindow::setSubframe()
@@ -484,7 +526,7 @@ void MainWindow::setSubframe()
 void MainWindow::startProcessMonitor()
 {
     ui->status->setText(QString("Processing Trial %1").arg(currentTrial));
-    ui->progressBar->setRange(0,0);
+    ui->progressBar->setRange(0, 0);
     timerMonitor.start();
     processTimer.start();
 }
@@ -492,7 +534,7 @@ void MainWindow::startProcessMonitor()
 void MainWindow::stopProcessMonitor()
 {
     timerMonitor.stop();
-    ui->progressBar->setRange(0,10);
+    ui->progressBar->setRange(0, 10);
     ui->status->setText("No Process Running");
 }
 
@@ -501,7 +543,7 @@ void MainWindow::stopProcessMonitor()
 bool MainWindow::prepareForProcesses()
 {
     if(ui->vertSplitter->sizes().last() < 10)
-         ui->vertSplitter->setSizes(QList<int>() << ui->vertSplitter->height() /2 << 100 );
+        ui->vertSplitter->setSizes(QList<int>() << ui->vertSplitter->height() / 2 << 100 );
     ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
 
     if(!imageLoaded)
@@ -548,7 +590,7 @@ void MainWindow::loadIndexFilesList()
     ui->indexFiles->clear();
     if(dir.exists())
     {
-        dir.setNameFilters(QStringList()<<"*.fits"<<"*.fit");
+        dir.setNameFilters(QStringList() << "*.fits" << "*.fit");
         if(dir.entryList().count() == 0)
             ui->indexFiles->addItem("No index files in Folder");
         ui->indexFiles->addItems(dir.entryList());
@@ -614,7 +656,7 @@ void MainWindow::sextractImage()
     connect(stellarSolver, &StellarSolver::finished, this, &MainWindow::sextractorComplete);
 
     startProcessMonitor();
-    stellarSolver->startProcess();
+    stellarSolver->startAsync();
 }
 
 //This method runs when the user clicks the Sextract and Solve buttton
@@ -639,14 +681,15 @@ void MainWindow::solveImage()
 
     //Setting the initial search scale settings
     if(ui->use_scale->isChecked())
-        stellarSolver->setSearchScale(ui->scale_low->text().toDouble(), ui->scale_high->text().toDouble(), (SSolver::ScaleUnits)ui->units->currentIndex());
+        stellarSolver->setSearchScale(ui->scale_low->text().toDouble(), ui->scale_high->text().toDouble(),
+                                      (SSolver::ScaleUnits)ui->units->currentIndex());
     else
-        stellarSolver->setUseScale(false);
+        stellarSolver->setProperty("useScale", false);
     //Setting the initial search location settings
     if(ui->use_position->isChecked())
         stellarSolver->setSearchPositionRaDec(ui->ra->text().toDouble(), ui->dec->text().toDouble());
     else
-        stellarSolver->setUsePostion(false);
+        stellarSolver->setProperty("usePosition", false);
 
     connect(stellarSolver, &StellarSolver::finished, this, &MainWindow::solverComplete);
     if(currentTrial >= numberOfTrials)
@@ -658,27 +701,27 @@ void MainWindow::solveImage()
         stellarSolver->setLoadWCS(false);
 
     startProcessMonitor();
-    stellarSolver->startProcess();
+    stellarSolver->startAsync();
 }
 
 //This sets up the External Sextractor and Solver and sets settings specific to them
 void MainWindow::setupExternalSextractorSolverIfNeeded()
 {
-        //External options
-        stellarSolver->fileToProcess = fileToProcess;
-        stellarSolver->basePath = ui->basePath->text();
-        stellarSolver->sextractorBinaryPath = ui->sextractorPath->text();
-        stellarSolver->confPath = ui->configFilePath->text();
-        stellarSolver->solverPath = ui->solverPath->text();
-        stellarSolver->astapBinaryPath = ui->astapPath->text();
-        stellarSolver->wcsPath = ui->wcsPath->text();
-        stellarSolver->cleanupTemporaryFiles = ui->cleanupTemp->isChecked();
-        stellarSolver->autoGenerateAstroConfig = ui->generateAstrometryConfig->isChecked();
+    //External options
+    stellarSolver->m_FileToProcess = fileToProcess;
+    stellarSolver->basePath = ui->basePath->text();
+    stellarSolver->sextractorBinaryPath = ui->sextractorPath->text();
+    stellarSolver->confPath = ui->configFilePath->text();
+    stellarSolver->solverPath = ui->solverPath->text();
+    stellarSolver->astapBinaryPath = ui->astapPath->text();
+    stellarSolver->wcsPath = ui->wcsPath->text();
+    stellarSolver->cleanupTemporaryFiles = ui->cleanupTemp->isChecked();
+    stellarSolver->autoGenerateAstroConfig = ui->generateAstrometryConfig->isChecked();
 
-        //Online Options
-        stellarSolver->basePath = ui->basePath->text();
-        stellarSolver->astrometryAPIKey = "iczikaqstszeptgs";
-        stellarSolver->astrometryAPIURL = "http://nova.astrometry.net";
+    //Online Options
+    stellarSolver->basePath = ui->basePath->text();
+    stellarSolver->m_AstrometryAPIKey = "iczikaqstszeptgs";
+    stellarSolver->m_AstrometryAPIURL = "http://nova.astrometry.net";
 }
 
 void MainWindow::setupStellarSolverParameters()
@@ -694,13 +737,13 @@ void MainWindow::setupStellarSolverParameters()
     //These setup Logging if desired
     stellarSolver->logToFile = ui->logToFile->isChecked();
 
-    if(ui->logLevel->currentIndex()==0)
+    if(ui->logLevel->currentIndex() == 0)
         stellarSolver->setLogLevel(SSolver::LOG_NONE);
-    if(ui->logLevel->currentIndex()==1)
+    if(ui->logLevel->currentIndex() == 1)
         stellarSolver->setLogLevel(SSolver::LOG_MSG);
-    if(ui->logLevel->currentIndex()==2)
+    if(ui->logLevel->currentIndex() == 2)
         stellarSolver->setLogLevel(SSolver::LOG_VERB);
-    if(ui->logLevel->currentIndex()==3)
+    if(ui->logLevel->currentIndex() == 3)
         stellarSolver->setLogLevel(SSolver::LOG_ALL);
 }
 
@@ -708,7 +751,7 @@ void MainWindow::setupStellarSolverParameters()
 //based on the requested settings in the mainwindow interface.
 //If you are implementing the StellarSolver Library in your progra, you may choose to change some or all of these settings or use the defaults.
 SSolver::Parameters MainWindow::getSettingsFromUI()
-{ 
+{
     SSolver::Parameters params;
     params.listName = "Custom";
     //These are to pass the parameters to the internal sextractor
@@ -759,46 +802,46 @@ void MainWindow::sendSettingsToUI(SSolver::Parameters a)
 {
     //Sextractor Settings
 
-        ui->apertureShape->setCurrentIndex(a.apertureShape);
-            connect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
-        ui->kron_fact->setText(QString::number(a.kron_fact));
-        ui->subpix->setText(QString::number(a.subpix));
-        ui->r_min->setText(QString::number(a.r_min));
+    ui->apertureShape->setCurrentIndex(a.apertureShape);
+    connect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
+    ui->kron_fact->setText(QString::number(a.kron_fact));
+    ui->subpix->setText(QString::number(a.subpix));
+    ui->r_min->setText(QString::number(a.r_min));
 
-        ui->magzero->setText(QString::number(a.magzero));
-        ui->minarea->setText(QString::number(a.minarea));
-        ui->deblend_thresh->setText(QString::number(a.deblend_thresh));
-        ui->deblend_contrast->setText(QString::number(a.deblend_contrast));
-        ui->cleanCheckBox->setChecked(a.clean == 1);
-        ui->clean_param->setText(QString::number(a.clean_param));
-        ui->fwhm->setText(QString::number(a.fwhm));
+    ui->magzero->setText(QString::number(a.magzero));
+    ui->minarea->setText(QString::number(a.minarea));
+    ui->deblend_thresh->setText(QString::number(a.deblend_thresh));
+    ui->deblend_contrast->setText(QString::number(a.deblend_contrast));
+    ui->cleanCheckBox->setChecked(a.clean == 1);
+    ui->clean_param->setText(QString::number(a.clean_param));
+    ui->fwhm->setText(QString::number(a.fwhm));
 
     //Star Filter Settings
 
-        ui->maxSize->setText(QString::number(a.maxSize));
-        ui->minSize->setText(QString::number(a.minSize));
-        ui->maxEllipse->setText(QString::number(a.maxEllipse));
-        ui->keepNum->setText(QString::number(a.keepNum));
-        ui->brightestPercent->setText(QString::number(a.removeBrightest));
-        ui->dimmestPercent->setText(QString::number(a.removeDimmest));
-        ui->saturationLimit->setText(QString::number(a.saturationLimit));
+    ui->maxSize->setText(QString::number(a.maxSize));
+    ui->minSize->setText(QString::number(a.minSize));
+    ui->maxEllipse->setText(QString::number(a.maxEllipse));
+    ui->keepNum->setText(QString::number(a.keepNum));
+    ui->brightestPercent->setText(QString::number(a.removeBrightest));
+    ui->dimmestPercent->setText(QString::number(a.removeDimmest));
+    ui->saturationLimit->setText(QString::number(a.saturationLimit));
 
     //Astrometry Settings
 
-        ui->downsample->setValue(a.downsample);
-        ui->inParallel->setChecked(a.inParallel);
-        ui->multiAlgo->setCurrentIndex(a.multiAlgorithm);
-        ui->solverTimeLimit->setText(QString::number(a.solverTimeLimit));
-        ui->minWidth->setText(QString::number(a.minwidth));
-        ui->maxWidth->setText(QString::number(a.maxwidth));
-        ui->radius->setText(QString::number(a.search_radius));
-        ui->resort->setChecked(a.resort);
+    ui->downsample->setValue(a.downsample);
+    ui->inParallel->setChecked(a.inParallel);
+    ui->multiAlgo->setCurrentIndex(a.multiAlgorithm);
+    ui->solverTimeLimit->setText(QString::number(a.solverTimeLimit));
+    ui->minWidth->setText(QString::number(a.minwidth));
+    ui->maxWidth->setText(QString::number(a.maxwidth));
+    ui->radius->setText(QString::number(a.search_radius));
+    ui->resort->setChecked(a.resort);
 
     //Astrometry Log Ratio Settings
 
-        ui->oddsToKeep->setText(QString::number(a.logratio_tokeep));
-        ui->oddsToSolve->setText(QString::number(a.logratio_tosolve));
-        ui->oddsToTune->setText(QString::number(a.logratio_totune));
+    ui->oddsToKeep->setText(QString::number(a.logratio_tokeep));
+    ui->oddsToSolve->setText(QString::number(a.logratio_tosolve));
+    ui->oddsToTune->setText(QString::number(a.logratio_totune));
 }
 
 
@@ -806,7 +849,7 @@ void MainWindow::sendSettingsToUI(SSolver::Parameters a)
 //It reports the time taken, prints a message, loads the sextraction stars to the startable, and adds the sextraction stats to the results table.
 bool MainWindow::sextractorComplete(int error)
 {
-    elapsed = processTimer.elapsed()/1000.0;
+    elapsed = processTimer.elapsed() / 1000.0;
 
 
     disconnect(stellarSolver, &StellarSolver::finished, this, &MainWindow::sextractorComplete);
@@ -814,7 +857,7 @@ bool MainWindow::sextractorComplete(int error)
     if(error == 0)
     {
         totalTime += elapsed; //Only add to total time if it was successful
-        if(currentTrial==numberOfTrials)
+        if(currentTrial == numberOfTrials)
             stars = stellarSolver->getStarList();
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         if(stellarSolver->isCalculatingHFR())
@@ -823,7 +866,7 @@ bool MainWindow::sextractorComplete(int error)
             logOutput(QString(stellarSolver->getCommandString() + " success! Got %1 stars").arg(stars.size()));
         logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        if(currentTrial<numberOfTrials)
+        if(currentTrial < numberOfTrials)
         {
             //This makes sure that it is all done before running again.
             while(stellarSolver->isRunning())
@@ -848,26 +891,29 @@ bool MainWindow::sextractorComplete(int error)
     emit readyForStarTable();
     ui->resultsTable->insertRow(ui->resultsTable->rowCount());
     addSextractionToTable();
-    QTimer::singleShot(100 , [this](){ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());});
+    QTimer::singleShot(100, [this]()
+    {
+        ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());
+    });
     return true;
 }
 
 //This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the results table.
 bool MainWindow::solverComplete(int error)
 {
-    elapsed = processTimer.elapsed()/1000.0;
+    elapsed = processTimer.elapsed() / 1000.0;
 
     disconnect(stellarSolver, &StellarSolver::finished, this, &MainWindow::solverComplete);
 
     if(error == 0)
     {
         totalTime += elapsed; //Only add to the total time if it was successful
-        ui->progressBar->setRange(0,10);
+        ui->progressBar->setRange(0, 10);
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput(QString(stellarSolver->getCommandString() + " took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         lastSolution = stellarSolver->getSolution();
-        if(currentTrial<numberOfTrials)
+        if(currentTrial < numberOfTrials)
         {
             //This makes sure that it is all done before running again.
             while(stellarSolver->isRunning())
@@ -894,7 +940,10 @@ bool MainWindow::solverComplete(int error)
         addSolutionToTable(stellarSolver->getSolution());
     else
         addSolutionToTable(lastSolution);
-    QTimer::singleShot(100 , [this](){ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());});
+    QTimer::singleShot(100, [this]()
+    {
+        ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());
+    });
     return true;
 }
 
@@ -953,11 +1002,11 @@ bool MainWindow::imageLoad()
 {
     if(!stellarSolver.isNull() && stellarSolver->isRunning())
     {
-        QMessageBox::critical(nullptr,"Message", "A Process is currently running on the image, please wait until it is completed");
+        QMessageBox::critical(nullptr, "Message", "A Process is currently running on the image, please wait until it is completed");
         return false;
     }
     QString fileURL = QFileDialog::getOpenFileName(nullptr, "Load Image", dirPath,
-                                               "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.tif *.tiff)");
+                      "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.tif *.tiff)");
     if (fileURL.isEmpty())
         return false;
     QFileInfo fileInfo(fileURL);
@@ -981,7 +1030,7 @@ bool MainWindow::imageLoad()
     }
 
     bool loadSuccess;
-    if(newFileInfo.suffix()=="fits"||newFileInfo.suffix()=="fit")
+    if(newFileInfo.suffix() == "fits" || newFileInfo.suffix() == "fit")
         loadSuccess = loadFits();
     else
         loadSuccess = loadOtherFormat();
@@ -1007,8 +1056,8 @@ bool MainWindow::loadFits()
     long naxes[3];
     QString errMessage;
 
-        // Use open diskfile as it does not use extended file names which has problems opening
-        // files with [ ] or ( ) in their names.
+    // Use open diskfile as it does not use extended file names which has problems opening
+    // files with [ ] or ( ) in their names.
     if (fits_open_diskfile(&fptr, fileToProcess.toLatin1(), READONLY, &status))
     {
         logOutput(QString("Error opening fits file %1").arg(fileToProcess));
@@ -1035,7 +1084,7 @@ bool MainWindow::loadFits()
     if (stats.ndim < 2)
     {
         errMessage = "1D FITS images are not supported.";
-        QMessageBox::critical(nullptr,"Message",errMessage);
+        QMessageBox::critical(nullptr, "Message", errMessage);
         logOutput(errMessage);
         fits_close_file(fptr, &status);
         return false;
@@ -1079,7 +1128,7 @@ bool MainWindow::loadFits()
             break;
         default:
             errMessage = QString("Bit depth %1 is not supported.").arg(fitsBitPix);
-            QMessageBox::critical(nullptr,"Message",errMessage);
+            QMessageBox::critical(nullptr, "Message", errMessage);
             logOutput(errMessage);
             fits_close_file(fptr, &status);
             return false;
@@ -1091,7 +1140,7 @@ bool MainWindow::loadFits()
     if (naxes[0] == 0 || naxes[1] == 0)
     {
         errMessage = QString("Image has invalid dimensions %1x%2").arg(naxes[0]).arg(naxes[1]);
-        QMessageBox::critical(nullptr,"Message",errMessage);
+        QMessageBox::critical(nullptr, "Message", errMessage);
         logOutput(errMessage);
     }
 
@@ -1118,7 +1167,7 @@ bool MainWindow::loadFits()
     if (fits_read_img(fptr, static_cast<uint16_t>(stats.dataType), 1, nelements, nullptr, m_ImageBuffer, &anynullptr, &status))
     {
         errMessage = "Error reading image.";
-        QMessageBox::critical(nullptr,"Message",errMessage);
+        QMessageBox::critical(nullptr, "Message", errMessage);
         logOutput(errMessage);
         fits_close_file(fptr, &status);
         return false;
@@ -1143,7 +1192,8 @@ bool MainWindow::loadOtherFormat()
 
     if (QImageReader::supportedImageFormats().contains(fileReader.format()) == false)
     {
-        logOutput("Failed to convert" + fileToProcess + "to FITS since format, " + fileReader.format() + ", is not supported in Qt");
+        logOutput("Failed to convert" + fileToProcess + "to FITS since format, " + fileReader.format() +
+                  ", is not supported in Qt");
         return false;
     }
 
@@ -1157,49 +1207,50 @@ bool MainWindow::loadOtherFormat()
 
     imageFromFile = imageFromFile.convertToFormat(QImage::Format_RGB32);
 
-    int fitsBitPix = 8; //Note: This will need to be changed.  I think QT only loads 8 bpp images.  Also the depth method gives the total bits per pixel in the image not just the bits per pixel in each channel.
-     switch (fitsBitPix)
-        {
-            case BYTE_IMG:
-                stats.dataType      = SEP_TBYTE;
-                stats.bytesPerPixel = sizeof(uint8_t);
-                break;
-            case SHORT_IMG:
-                // Read SHORT image as USHORT
-                stats.dataType      = TUSHORT;
-                stats.bytesPerPixel = sizeof(int16_t);
-                break;
-            case USHORT_IMG:
-                stats.dataType      = TUSHORT;
-                stats.bytesPerPixel = sizeof(uint16_t);
-                break;
-            case LONG_IMG:
-                // Read LONG image as ULONG
-                stats.dataType      = TULONG;
-                stats.bytesPerPixel = sizeof(int32_t);
-                break;
-            case ULONG_IMG:
-                stats.dataType      = TULONG;
-                stats.bytesPerPixel = sizeof(uint32_t);
-                break;
-            case FLOAT_IMG:
-                stats.dataType      = TFLOAT;
-                stats.bytesPerPixel = sizeof(float);
-                break;
-            case LONGLONG_IMG:
-                stats.dataType      = TLONGLONG;
-                stats.bytesPerPixel = sizeof(int64_t);
-                break;
-            case DOUBLE_IMG:
-                stats.dataType      = TDOUBLE;
-                stats.bytesPerPixel = sizeof(double);
-                break;
-            default:
-                errMessage = QString("Bit depth %1 is not supported.").arg(fitsBitPix);
-                QMessageBox::critical(nullptr,"Message",errMessage);
-                logOutput(errMessage);
-                return false;
-        }
+    int fitsBitPix =
+        8; //Note: This will need to be changed.  I think QT only loads 8 bpp images.  Also the depth method gives the total bits per pixel in the image not just the bits per pixel in each channel.
+    switch (fitsBitPix)
+    {
+        case BYTE_IMG:
+            stats.dataType      = SEP_TBYTE;
+            stats.bytesPerPixel = sizeof(uint8_t);
+            break;
+        case SHORT_IMG:
+            // Read SHORT image as USHORT
+            stats.dataType      = TUSHORT;
+            stats.bytesPerPixel = sizeof(int16_t);
+            break;
+        case USHORT_IMG:
+            stats.dataType      = TUSHORT;
+            stats.bytesPerPixel = sizeof(uint16_t);
+            break;
+        case LONG_IMG:
+            // Read LONG image as ULONG
+            stats.dataType      = TULONG;
+            stats.bytesPerPixel = sizeof(int32_t);
+            break;
+        case ULONG_IMG:
+            stats.dataType      = TULONG;
+            stats.bytesPerPixel = sizeof(uint32_t);
+            break;
+        case FLOAT_IMG:
+            stats.dataType      = TFLOAT;
+            stats.bytesPerPixel = sizeof(float);
+            break;
+        case LONGLONG_IMG:
+            stats.dataType      = TLONGLONG;
+            stats.bytesPerPixel = sizeof(int64_t);
+            break;
+        case DOUBLE_IMG:
+            stats.dataType      = TDOUBLE;
+            stats.bytesPerPixel = sizeof(double);
+            break;
+        default:
+            errMessage = QString("Bit depth %1 is not supported.").arg(fitsBitPix);
+            QMessageBox::critical(nullptr, "Message", errMessage);
+            logOutput(errMessage);
+            return false;
+    }
 
     stats.width = static_cast<uint16_t>(imageFromFile.width());
     stats.height = static_cast<uint16_t>(imageFromFile.height());
@@ -1326,7 +1377,8 @@ bool MainWindow::debayer_8bit()
         dc1394_source++;
     }
 
-    error_code = dc1394_bayer_decoding_8bit(dc1394_source, bayer_destination_buffer, stats.width, ds1394_height, debayerParams.filter,
+    error_code = dc1394_bayer_decoding_8bit(dc1394_source, bayer_destination_buffer, stats.width, ds1394_height,
+                                            debayerParams.filter,
                                             debayerParams.method);
 
     if (error_code != DC1394_SUCCESS)
@@ -1404,7 +1456,8 @@ bool MainWindow::debayer_16bit()
         dc1394_source++;
     }
 
-    error_code = dc1394_bayer_decoding_16bit(dc1394_source, bayer_destination_buffer, stats.width, ds1394_height, debayerParams.filter,
+    error_code = dc1394_bayer_decoding_16bit(dc1394_source, bayer_destination_buffer, stats.width, ds1394_height,
+                 debayerParams.filter,
                  debayerParams.method, 16);
 
     if (error_code != DC1394_SUCCESS)
@@ -1553,12 +1606,12 @@ QRect MainWindow::getStarSizeInImage(FITSImage::Star star, bool &accurate)
             break;
 
         case 1: //Circle from Sextraction
-            {
-                double size = 2 * sqrt( pow(a, 2) + pow(b, 2) );
-                width = size;
-                height = size;
-            }
-            break;
+        {
+            double size = 2 * sqrt( pow(a, 2) + pow(b, 2) );
+            width = size;
+            height = size;
+        }
+        break;
 
         case 2: //HFD Size, based on HFR, 2 x radius is the diameter
             width = 2 * HFR;
@@ -1575,7 +1628,7 @@ QRect MainWindow::getStarSizeInImage(FITSImage::Star star, bool &accurate)
     double stary = star.y * currentHeight / stats.height;
     double starw = width * currentWidth / stats.width;
     double starh = height * currentHeight / stats.height;
-    return QRect(starx - starw, stary - starh , starw*2, starh*2);
+    return QRect(starx - starw, stary - starh, starw * 2, starh * 2);
 }
 
 //This method is very loosely based on updateFrame in Fitsview in Kstars
@@ -1641,7 +1694,7 @@ void MainWindow::updateImage()
             double y = subframe.y() * currentHeight / stats.height;
             double w = subframe.width() * currentWidth / stats.width;
             double h = subframe.height() * currentHeight / stats.height;
-            p.drawRect(QRect(x,y,w,h));
+            p.drawRect(QRect(x, y, w, h));
         }
         p.end();
     }
@@ -1660,7 +1713,7 @@ void MainWindow::doStretch(QImage *outputImage)
                     static_cast<int>(stats.height),
                     m_Channels, static_cast<uint16_t>(stats.dataType));
 
-   // Compute new auto-stretch params.
+    // Compute new auto-stretch params.
     stretchParams = stretch.computeParams(m_ImageBuffer);
 
     stretch.setParams(stretchParams);
@@ -1708,13 +1761,15 @@ void MainWindow::mouseMovedOverImage(QPoint location)
         QString mouseText = "";
         if(hasWCSData)
         {
-            int index = x + y * stats.width;      
-            mouseText = QString("RA: %1, DEC: %2, Value: %3").arg(StellarSolver::raString(wcs_coord[index].ra)).arg(StellarSolver::decString(wcs_coord[index].dec)).arg(getValue(x,y));
+            int index = x + y * stats.width;
+            mouseText = QString("RA: %1, DEC: %2, Value: %3").arg(StellarSolver::raString(wcs_coord[index].ra)).arg(
+                            StellarSolver::decString(wcs_coord[index].dec)).arg(getValue(x, y));
         }
         else
-            mouseText = QString("X: %1, Y: %2, Value: %3").arg(x).arg(y).arg(getValue(x,y));
+            mouseText = QString("X: %1, Y: %2, Value: %3").arg(x).arg(y).arg(getValue(x, y));
         if(useSubframe)
-            mouseText = mouseText + QString(", Subframe X: %1, Y: %2, W: %3, H: %4").arg(subframe.x()).arg(subframe.y()).arg(subframe.width()).arg(subframe.height());
+            mouseText = mouseText + QString(", Subframe X: %1, Y: %2, W: %3, H: %4").arg(subframe.x()).arg(subframe.y()).arg(
+                            subframe.width()).arg(subframe.height());
         ui->mouseInfo->setText(mouseText);
 
         bool starFound = false;
@@ -1725,7 +1780,8 @@ void MainWindow::mouseMovedOverImage(QPoint location)
             QRect starInImage = getStarSizeInImage(star, accurate);
             if(starInImage.contains(location))
             {
-                QString text =QString("Star: %1, x: %2, y: %3\nmag: %4, flux: %5, peak:%6").arg(i + 1).arg(star.x).arg(star.y).arg(star.mag).arg(star.flux).arg(star.peak);
+                QString text = QString("Star: %1, x: %2, y: %3\nmag: %4, flux: %5, peak:%6").arg(i + 1).arg(star.x).arg(star.y).arg(
+                                   star.mag).arg(star.flux).arg(star.peak);
                 if(hasHFRData)
                     text += ", " + QString("HFR: %1").arg(star.HFR);
                 if(hasWCSData)
@@ -1838,7 +1894,7 @@ void MainWindow::starClickedInTable()
         double starx = star.x * currentWidth / stats.width ;
         double stary = star.y * currentHeight / stats.height;
         updateImage();
-        ui->imageScrollArea->ensureVisible(starx,stary);
+        ui->imageScrollArea->ensureVisible(starx, stary);
     }
 }
 
@@ -1849,7 +1905,7 @@ void MainWindow::sortStars()
     {
         //Note that a star is dimmer when the mag is greater!
         //We want to sort in decreasing order though!
-        std::sort(stars.begin(), stars.end(), [](const FITSImage::Star &s1, const FITSImage::Star &s2)
+        std::sort(stars.begin(), stars.end(), [](const FITSImage::Star & s1, const FITSImage::Star & s2)
         {
             return s1.mag < s2.mag;
         });
@@ -1862,7 +1918,7 @@ void addColumnToTable(QTableWidget *table, QString heading)
 {
     int colNum = table->columnCount();
     table->insertColumn(colNum);
-    table->setHorizontalHeaderItem(colNum,new QTableWidgetItem(heading));
+    table->setHorizontalHeaderItem(colNum, new QTableWidgetItem(heading));
 }
 
 //This is a method I wrote to hide the desired columns in a table based on their name
@@ -1884,7 +1940,7 @@ bool setItemInColumn(QTableWidget *table, QString colName, QString value)
     {
         if(table->horizontalHeaderItem(c)->text() == colName)
         {
-            table->setItem(row,c, new QTableWidgetItem(value));
+            table->setItem(row, c, new QTableWidgetItem(value));
             return true;
         }
     }
@@ -1899,21 +1955,21 @@ void MainWindow::updateStarTableFromList()
     table->setRowCount(0);
     table->setColumnCount(0);
     selectedStar = 0;
-    addColumnToTable(table,"MAG_AUTO");
-    addColumnToTable(table,"RA (J2000)");
-    addColumnToTable(table,"DEC (J2000)");
-    addColumnToTable(table,"X_IMAGE");
-    addColumnToTable(table,"Y_IMAGE");
+    addColumnToTable(table, "MAG_AUTO");
+    addColumnToTable(table, "RA (J2000)");
+    addColumnToTable(table, "DEC (J2000)");
+    addColumnToTable(table, "X_IMAGE");
+    addColumnToTable(table, "Y_IMAGE");
 
 
-    addColumnToTable(table,"FLUX_AUTO");
-    addColumnToTable(table,"PEAK");
+    addColumnToTable(table, "FLUX_AUTO");
+    addColumnToTable(table, "PEAK");
     if(hasHFRData)
-        addColumnToTable(table,"HFR");
+        addColumnToTable(table, "HFR");
 
-    addColumnToTable(table,"a");
-    addColumnToTable(table,"b");
-    addColumnToTable(table,"theta");
+    addColumnToTable(table, "a");
+    addColumnToTable(table, "b");
+    addColumnToTable(table, "theta");
 
     for(int i = 0; i < stars.size(); i ++)
     {
@@ -1945,13 +2001,13 @@ void MainWindow::updateHiddenStarTableColumns()
 {
     QTableWidget *table = ui->starTable;
 
-    setColumnHidden(table,"FLUX_AUTO", !showFluxInfo);
-    setColumnHidden(table,"PEAK", !showFluxInfo);
-    setColumnHidden(table,"RA (J2000)", !hasWCSData);
-    setColumnHidden(table,"DEC (J2000)", !hasWCSData);
-    setColumnHidden(table,"a", !showStarShapeInfo);
-    setColumnHidden(table,"b", !showStarShapeInfo);
-    setColumnHidden(table,"theta", !showStarShapeInfo);
+    setColumnHidden(table, "FLUX_AUTO", !showFluxInfo);
+    setColumnHidden(table, "PEAK", !showFluxInfo);
+    setColumnHidden(table, "RA (J2000)", !hasWCSData);
+    setColumnHidden(table, "DEC (J2000)", !hasWCSData);
+    setColumnHidden(table, "a", !showStarShapeInfo);
+    setColumnHidden(table, "b", !showStarShapeInfo);
+    setColumnHidden(table, "theta", !showStarShapeInfo);
 }
 
 //This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
@@ -1968,7 +2024,7 @@ bool MainWindow::getSolverOptionsFromFITS()
     fitsfile *fptr = nullptr;
 
     double fits_fov_x, fits_fov_y, fov_lower, fov_upper, fits_ccd_hor_pixel = -1,
-           fits_ccd_ver_pixel = -1, fits_focal_length = -1;
+                                                         fits_ccd_ver_pixel = -1, fits_focal_length = -1;
 
     status = 0;
 
@@ -2154,54 +2210,54 @@ bool MainWindow::getSolverOptionsFromFITS()
 void MainWindow::setupResultsTable()
 {
 
-     QTableWidget *table = ui->resultsTable;
+    QTableWidget *table = ui->resultsTable;
 
     //These are in the order that they will appear in the table.
 
-    addColumnToTable(table,"Avg Time");
-    addColumnToTable(table,"# Trials");
-    addColumnToTable(table,"Command");
-    addColumnToTable(table,"Profile");
-    addColumnToTable(table,"Loglvl");
-    addColumnToTable(table,"Stars");
+    addColumnToTable(table, "Avg Time");
+    addColumnToTable(table, "# Trials");
+    addColumnToTable(table, "Command");
+    addColumnToTable(table, "Profile");
+    addColumnToTable(table, "Loglvl");
+    addColumnToTable(table, "Stars");
     //Sextractor Parameters
-    addColumnToTable(table,"Shape");
-    addColumnToTable(table,"Kron");
-    addColumnToTable(table,"Subpix");
-    addColumnToTable(table,"r_min");
-    addColumnToTable(table,"minarea");
-    addColumnToTable(table,"d_thresh");
-    addColumnToTable(table,"d_cont");
-    addColumnToTable(table,"clean");
-    addColumnToTable(table,"clean param");
-    addColumnToTable(table,"fwhm");
+    addColumnToTable(table, "Shape");
+    addColumnToTable(table, "Kron");
+    addColumnToTable(table, "Subpix");
+    addColumnToTable(table, "r_min");
+    addColumnToTable(table, "minarea");
+    addColumnToTable(table, "d_thresh");
+    addColumnToTable(table, "d_cont");
+    addColumnToTable(table, "clean");
+    addColumnToTable(table, "clean param");
+    addColumnToTable(table, "fwhm");
     //Star Filtering Parameters
-    addColumnToTable(table,"Max Size");
-    addColumnToTable(table,"Min Size");
-    addColumnToTable(table,"Max Ell");
-    addColumnToTable(table,"Keep #");
-    addColumnToTable(table,"Cut Bri");
-    addColumnToTable(table,"Cut Dim");
-    addColumnToTable(table,"Sat Lim");
+    addColumnToTable(table, "Max Size");
+    addColumnToTable(table, "Min Size");
+    addColumnToTable(table, "Max Ell");
+    addColumnToTable(table, "Keep #");
+    addColumnToTable(table, "Cut Bri");
+    addColumnToTable(table, "Cut Dim");
+    addColumnToTable(table, "Sat Lim");
     //Astrometry Parameters
-    addColumnToTable(table,"Pos?");
-    addColumnToTable(table,"Scale?");
-    addColumnToTable(table,"Resort?");
-    addColumnToTable(table,"Down");
-    addColumnToTable(table,"in ||");
-    addColumnToTable(table,"Multi");
-    addColumnToTable(table,"# Thread");
+    addColumnToTable(table, "Pos?");
+    addColumnToTable(table, "Scale?");
+    addColumnToTable(table, "Resort?");
+    addColumnToTable(table, "Down");
+    addColumnToTable(table, "in ||");
+    addColumnToTable(table, "Multi");
+    addColumnToTable(table, "# Thread");
     //Results
-    addColumnToTable(table,"RA (J2000)");
-    addColumnToTable(table,"DEC (J2000)");
-    addColumnToTable(table,"RA ERR \"");
-    addColumnToTable(table,"DEC ERR \"");
-    addColumnToTable(table,"Orientation˚");
-    addColumnToTable(table,"Field Width \'");
-    addColumnToTable(table,"Field Height \'");
-    addColumnToTable(table,"PixScale \"");
-    addColumnToTable(table,"Parity");
-    addColumnToTable(table,"Field");
+    addColumnToTable(table, "RA (J2000)");
+    addColumnToTable(table, "DEC (J2000)");
+    addColumnToTable(table, "RA ERR \"");
+    addColumnToTable(table, "DEC ERR \"");
+    addColumnToTable(table, "Orientation˚");
+    addColumnToTable(table, "Field Width \'");
+    addColumnToTable(table, "Field Height \'");
+    addColumnToTable(table, "PixScale \"");
+    addColumnToTable(table, "Parity");
+    addColumnToTable(table, "Field");
 
     updateHiddenResultsTableColumns();
 }
@@ -2209,7 +2265,7 @@ void MainWindow::setupResultsTable()
 //This adds a Sextraction to the Results Table
 //To add, remove, or change the way certain columns are filled when a sextraction is finished, edit them here.
 void MainWindow::addSextractionToTable()
-{       
+{
     QTableWidget *table = ui->resultsTable;
     SSolver::Parameters params = stellarSolver->getCurrentParameters();
 
@@ -2223,26 +2279,26 @@ void MainWindow::addSextractionToTable()
     setItemInColumn(table, "Loglvl", stellarSolver->getLogLevelString());
     setItemInColumn(table, "Stars", QString::number(stellarSolver->getNumStarsFound()));
     //Sextractor Parameters
-    setItemInColumn(table,"Shape", stellarSolver->getShapeString());
-    setItemInColumn(table,"Kron", QString::number(params.kron_fact));
-    setItemInColumn(table,"Subpix", QString::number(params.subpix));
-    setItemInColumn(table,"r_min", QString::number(params.r_min));
-    setItemInColumn(table,"minarea", QString::number(params.minarea));
-    setItemInColumn(table,"d_thresh", QString::number(params.deblend_thresh));
-    setItemInColumn(table,"d_cont", QString::number(params.deblend_contrast));
-    setItemInColumn(table,"clean", QString::number(params.clean));
-    setItemInColumn(table,"clean param", QString::number(params.clean_param));
-    setItemInColumn(table,"fwhm", QString::number(params.fwhm));
+    setItemInColumn(table, "Shape", stellarSolver->getShapeString());
+    setItemInColumn(table, "Kron", QString::number(params.kron_fact));
+    setItemInColumn(table, "Subpix", QString::number(params.subpix));
+    setItemInColumn(table, "r_min", QString::number(params.r_min));
+    setItemInColumn(table, "minarea", QString::number(params.minarea));
+    setItemInColumn(table, "d_thresh", QString::number(params.deblend_thresh));
+    setItemInColumn(table, "d_cont", QString::number(params.deblend_contrast));
+    setItemInColumn(table, "clean", QString::number(params.clean));
+    setItemInColumn(table, "clean param", QString::number(params.clean_param));
+    setItemInColumn(table, "fwhm", QString::number(params.fwhm));
     setItemInColumn(table, "Field", ui->fileNameDisplay->text());
 
     //StarFilter Parameters
-    setItemInColumn(table,"Max Size", QString::number(params.maxSize));
-    setItemInColumn(table,"Min Size", QString::number(params.minSize));
-    setItemInColumn(table,"Max Ell", QString::number(params.maxEllipse));
-    setItemInColumn(table,"Keep #", QString::number(params.keepNum));
-    setItemInColumn(table,"Cut Bri", QString::number(params.removeBrightest));
-    setItemInColumn(table,"Cut Dim", QString::number(params.removeDimmest));
-    setItemInColumn(table,"Sat Lim", QString::number(params.saturationLimit));
+    setItemInColumn(table, "Max Size", QString::number(params.maxSize));
+    setItemInColumn(table, "Min Size", QString::number(params.minSize));
+    setItemInColumn(table, "Max Ell", QString::number(params.maxEllipse));
+    setItemInColumn(table, "Keep #", QString::number(params.keepNum));
+    setItemInColumn(table, "Cut Bri", QString::number(params.removeBrightest));
+    setItemInColumn(table, "Cut Dim", QString::number(params.removeDimmest));
+    setItemInColumn(table, "Sat Lim", QString::number(params.saturationLimit));
 
 }
 
@@ -2292,42 +2348,42 @@ void MainWindow::updateHiddenResultsTableColumns()
 {
     QTableWidget *table = ui->resultsTable;
     //Sextractor Params
-    setColumnHidden(table,"Shape", !showSextractorParams);
-    setColumnHidden(table,"Kron", !showSextractorParams);
-    setColumnHidden(table,"Subpix", !showSextractorParams);
-    setColumnHidden(table,"r_min", !showSextractorParams);
-    setColumnHidden(table,"minarea", !showSextractorParams);
-    setColumnHidden(table,"d_thresh", !showSextractorParams);
-    setColumnHidden(table,"d_cont", !showSextractorParams);
-    setColumnHidden(table,"clean", !showSextractorParams);
-    setColumnHidden(table,"clean param", !showSextractorParams);
-    setColumnHidden(table,"fwhm", !showSextractorParams);
+    setColumnHidden(table, "Shape", !showSextractorParams);
+    setColumnHidden(table, "Kron", !showSextractorParams);
+    setColumnHidden(table, "Subpix", !showSextractorParams);
+    setColumnHidden(table, "r_min", !showSextractorParams);
+    setColumnHidden(table, "minarea", !showSextractorParams);
+    setColumnHidden(table, "d_thresh", !showSextractorParams);
+    setColumnHidden(table, "d_cont", !showSextractorParams);
+    setColumnHidden(table, "clean", !showSextractorParams);
+    setColumnHidden(table, "clean param", !showSextractorParams);
+    setColumnHidden(table, "fwhm", !showSextractorParams);
     //Star Filtering Parameters
-    setColumnHidden(table,"Max Size", !showSextractorParams);
-    setColumnHidden(table,"Min Size", !showSextractorParams);
-    setColumnHidden(table,"Max Ell", !showSextractorParams);
-    setColumnHidden(table,"Keep #", !showSextractorParams);
-    setColumnHidden(table,"Cut Bri", !showSextractorParams);
-    setColumnHidden(table,"Cut Dim", !showSextractorParams);
-    setColumnHidden(table,"Sat Lim", !showSextractorParams);
+    setColumnHidden(table, "Max Size", !showSextractorParams);
+    setColumnHidden(table, "Min Size", !showSextractorParams);
+    setColumnHidden(table, "Max Ell", !showSextractorParams);
+    setColumnHidden(table, "Keep #", !showSextractorParams);
+    setColumnHidden(table, "Cut Bri", !showSextractorParams);
+    setColumnHidden(table, "Cut Dim", !showSextractorParams);
+    setColumnHidden(table, "Sat Lim", !showSextractorParams);
     //Astrometry Parameters
-    setColumnHidden(table,"Pos?", !showAstrometryParams);
-    setColumnHidden(table,"Scale?", !showAstrometryParams);
-    setColumnHidden(table,"Resort?", !showAstrometryParams);
-    setColumnHidden(table,"Down", !showAstrometryParams);
-    setColumnHidden(table,"in ||", !showAstrometryParams);
-    setColumnHidden(table,"Multi", !showAstrometryParams);
-    setColumnHidden(table,"# Thread", !showAstrometryParams);
+    setColumnHidden(table, "Pos?", !showAstrometryParams);
+    setColumnHidden(table, "Scale?", !showAstrometryParams);
+    setColumnHidden(table, "Resort?", !showAstrometryParams);
+    setColumnHidden(table, "Down", !showAstrometryParams);
+    setColumnHidden(table, "in ||", !showAstrometryParams);
+    setColumnHidden(table, "Multi", !showAstrometryParams);
+    setColumnHidden(table, "# Thread", !showAstrometryParams);
     //Results
-    setColumnHidden(table,"RA (J2000)", !showSolutionDetails);
-    setColumnHidden(table,"DEC (J2000)", !showSolutionDetails);
-    setColumnHidden(table,"RA ERR \"", !showSolutionDetails);
-    setColumnHidden(table,"DEC ERR \"", !showSolutionDetails);
-    setColumnHidden(table,"Orientation˚", !showSolutionDetails);
-    setColumnHidden(table,"Field Width \'", !showSolutionDetails);
-    setColumnHidden(table,"Field Height \'", !showSolutionDetails);
-    setColumnHidden(table,"PixScale \"", !showSolutionDetails);
-    setColumnHidden(table,"Parity", !showSolutionDetails);
+    setColumnHidden(table, "RA (J2000)", !showSolutionDetails);
+    setColumnHidden(table, "DEC (J2000)", !showSolutionDetails);
+    setColumnHidden(table, "RA ERR \"", !showSolutionDetails);
+    setColumnHidden(table, "DEC ERR \"", !showSolutionDetails);
+    setColumnHidden(table, "Orientation˚", !showSolutionDetails);
+    setColumnHidden(table, "Field Width \'", !showSolutionDetails);
+    setColumnHidden(table, "Field Height \'", !showSolutionDetails);
+    setColumnHidden(table, "PixScale \"", !showSolutionDetails);
+    setColumnHidden(table, "Parity", !showSolutionDetails);
 }
 
 //This will write the Results table to a csv file if the user desires
@@ -2349,7 +2405,7 @@ void MainWindow::saveResultsTable()
     if (QFile::exists(path))
     {
         int r = QMessageBox::question(this, "Overwrite it?",
-                QString("A file named \"%1\" already exists. Do you want to overwrite it?").arg(exportFile.fileName()));
+                                      QString("A file named \"%1\" already exists. Do you want to overwrite it?").arg(exportFile.fileName()));
         if (r == QMessageBox::No)
             return;
     }
@@ -2414,7 +2470,7 @@ void MainWindow::saveStarTable()
     if (QFile::exists(path))
     {
         int r = QMessageBox::question(this, "Overwrite it?",
-                QString("A file named \"%1\" already exists. Do you want to overwrite it?").arg(exportFile.fileName()));
+                                      QString("A file named \"%1\" already exists. Do you want to overwrite it?").arg(exportFile.fileName()));
         if (r == QMessageBox::No)
             return;
     }
@@ -2463,7 +2519,7 @@ void MainWindow::saveStarTable()
 void MainWindow::saveOptionsProfiles()
 {
     QString fileURL = QFileDialog::getSaveFileName(nullptr, "Save Options Profiles", dirPath,
-                                               "INI files(*.ini)");
+                      "INI files(*.ini)");
     if (fileURL.isEmpty())
         return;
     QSettings settings(fileURL, QSettings::IniFormat);
@@ -2486,7 +2542,7 @@ void MainWindow::saveOptionsProfiles()
 void MainWindow::loadOptionsProfiles()
 {
     QString fileURL = QFileDialog::getOpenFileName(nullptr, "Load Options Profiles File", dirPath,
-                                               "INI files(*.ini)");
+                      "INI files(*.ini)");
     if (fileURL.isEmpty())
         return;
     if(!QFileInfo(fileURL).exists())
