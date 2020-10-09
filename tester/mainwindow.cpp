@@ -642,8 +642,8 @@ void MainWindow::sextractImage()
     currentTrial++;
 
     clearStars();
-    stellarSolver->setSextractorType(sextractorType);
-    stellarSolver->setProcessType(processType);
+    stellarSolver->setProperty("SextractorType", sextractorType);
+    stellarSolver->setProperty("ProcessType", processType);
 
     setupExternalSextractorSolverIfNeeded();
     setupStellarSolverParameters();
@@ -653,10 +653,10 @@ void MainWindow::sextractImage()
     else
         stellarSolver->clearSubFrame();
 
-    connect(stellarSolver, &StellarSolver::finished, this, &MainWindow::sextractorComplete);
+    connect(stellarSolver, &StellarSolver::ready, this, &MainWindow::sextractorComplete);
 
     startProcessMonitor();
-    stellarSolver->startAsync();
+    stellarSolver->start();
 }
 
 //This method runs when the user clicks the Sextract and Solve buttton
@@ -670,9 +670,9 @@ void MainWindow::solveImage()
         delete [] wcs_coord;
     }
 
-    stellarSolver->setProcessType(processType);
-    stellarSolver->setSextractorType(sextractorType);
-    stellarSolver->setSolverType(solverType);
+    stellarSolver->setProperty("ProcessType", processType);
+    stellarSolver->setProperty("SextractorType", sextractorType);
+    stellarSolver->setProperty("SolverType", solverType);
 
     setupStellarSolverParameters();
     setupExternalSextractorSolverIfNeeded();
@@ -691,37 +691,37 @@ void MainWindow::solveImage()
     else
         stellarSolver->setProperty("usePosition", false);
 
-    connect(stellarSolver, &StellarSolver::finished, this, &MainWindow::solverComplete);
+    connect(stellarSolver, &StellarSolver::ready, this, &MainWindow::solverComplete);
     if(currentTrial >= numberOfTrials)
     {
         stellarSolver->setLoadWCS(true);
-        connect(stellarSolver, &StellarSolver::wcsDataisReady, this, &MainWindow::loadWCSComplete);
+        connect(stellarSolver, &StellarSolver::wcsReady, this, &MainWindow::loadWCSComplete);
     }
     else
         stellarSolver->setLoadWCS(false);
 
     startProcessMonitor();
-    stellarSolver->startAsync();
+    stellarSolver->start();
 }
 
 //This sets up the External Sextractor and Solver and sets settings specific to them
 void MainWindow::setupExternalSextractorSolverIfNeeded()
 {
     //External options
-    stellarSolver->m_FileToProcess = fileToProcess;
-    stellarSolver->basePath = ui->basePath->text();
-    stellarSolver->sextractorBinaryPath = ui->sextractorPath->text();
-    stellarSolver->confPath = ui->configFilePath->text();
-    stellarSolver->solverPath = ui->solverPath->text();
-    stellarSolver->astapBinaryPath = ui->astapPath->text();
-    stellarSolver->wcsPath = ui->wcsPath->text();
-    stellarSolver->cleanupTemporaryFiles = ui->cleanupTemp->isChecked();
-    stellarSolver->autoGenerateAstroConfig = ui->generateAstrometryConfig->isChecked();
+    stellarSolver->setProperty("FileToProcess", fileToProcess);
+    stellarSolver->setProperty("BasePath", ui->basePath->text());
+    stellarSolver->setProperty("SextractorBinaryPath", ui->sextractorPath->text());
+    stellarSolver->setProperty("ConfPath", ui->configFilePath->text());
+    stellarSolver->setProperty("SolverPath", ui->solverPath->text());
+    stellarSolver->setProperty("ASTAPBinaryPath", ui->astapPath->text());
+    stellarSolver->setProperty("WCSPath", ui->wcsPath->text());
+    //stellarSolver->setProperty("cleanupTemporaryFiles = ui->cleanupTemp->isChecked();
+    stellarSolver->setProperty("AutoGenerateAstroConfig", ui->generateAstrometryConfig->isChecked());
 
     //Online Options
-    stellarSolver->basePath = ui->basePath->text();
-    stellarSolver->m_AstrometryAPIKey = "iczikaqstszeptgs";
-    stellarSolver->m_AstrometryAPIURL = "http://nova.astrometry.net";
+    stellarSolver->setProperty("BasePath",  ui->basePath->text());
+    stellarSolver->setProperty("AstrometryAPIKey", "iczikaqstszeptgs");
+    stellarSolver->setProperty("AstrometryAPIURL", "http://nova.astrometry.net");
 }
 
 void MainWindow::setupStellarSolverParameters()
@@ -735,7 +735,7 @@ void MainWindow::setupStellarSolverParameters()
     stellarSolver->setIndexFolderPaths(indexFolderPaths);
 
     //These setup Logging if desired
-    stellarSolver->logToFile = ui->logToFile->isChecked();
+    stellarSolver->setProperty("LogToFile", ui->logToFile->isChecked());
 
     if(ui->logLevel->currentIndex() == 0)
         stellarSolver->setLogLevel(SSolver::LOG_NONE);
@@ -847,14 +847,14 @@ void MainWindow::sendSettingsToUI(SSolver::Parameters a)
 
 //This runs when the sextractor is complete.
 //It reports the time taken, prints a message, loads the sextraction stars to the startable, and adds the sextraction stats to the results table.
-bool MainWindow::sextractorComplete(int error)
+bool MainWindow::sextractorComplete()
 {
     elapsed = processTimer.elapsed() / 1000.0;
 
 
-    disconnect(stellarSolver, &StellarSolver::finished, this, &MainWindow::sextractorComplete);
+    disconnect(stellarSolver, &StellarSolver::ready, this, &MainWindow::sextractorComplete);
 
-    if(error == 0)
+    if(!stellarSolver->failed() && stellarSolver->sextractionDone())
     {
         totalTime += elapsed; //Only add to total time if it was successful
         if(currentTrial == numberOfTrials)
@@ -899,13 +899,13 @@ bool MainWindow::sextractorComplete(int error)
 }
 
 //This runs when the solver is complete.  It reports the time taken, prints a message, and adds the solution to the results table.
-bool MainWindow::solverComplete(int error)
+bool MainWindow::solverComplete()
 {
     elapsed = processTimer.elapsed() / 1000.0;
 
-    disconnect(stellarSolver, &StellarSolver::finished, this, &MainWindow::solverComplete);
+    disconnect(stellarSolver, &StellarSolver::ready, this, &MainWindow::solverComplete);
 
-    if(error == 0)
+    if(!stellarSolver->failed() && stellarSolver->solvingDone())
     {
         totalTime += elapsed; //Only add to the total time if it was successful
         ui->progressBar->setRange(0, 10);
@@ -949,7 +949,7 @@ bool MainWindow::solverComplete(int error)
 
 bool MainWindow::loadWCSComplete()
 {
-    disconnect(stellarSolver, &StellarSolver::wcsDataisReady, this, &MainWindow::loadWCSComplete);
+    disconnect(stellarSolver, &StellarSolver::wcsReady, this, &MainWindow::loadWCSComplete);
     FITSImage::wcs_point * coord = stellarSolver->getWCSCoord();
     if(coord)
     {
@@ -2315,8 +2315,8 @@ void MainWindow::addSolutionToTable(FITSImage::Solution solution)
     setItemInColumn(table, "Profile", params.listName);
 
     //Astrometry Parameters
-    setItemInColumn(table, "Pos?", QVariant(stellarSolver->isUsingPosition()).toString());
-    setItemInColumn(table, "Scale?", QVariant(stellarSolver->isUsingScale()).toString());
+    setItemInColumn(table, "Pos?", stellarSolver->property("UsePosition").toString());
+    setItemInColumn(table, "Scale?", stellarSolver->property("UseScale").toString());
     setItemInColumn(table, "Resort?", QVariant(params.resort).toString());
     setItemInColumn(table, "Down", QVariant(params.downsample).toString());
     setItemInColumn(table, "in ||", QVariant(params.inParallel).toString());

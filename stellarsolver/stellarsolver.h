@@ -226,28 +226,6 @@ class StellarSolver : public QObject
             return m_isRunning;
         }
 
-    public slots:
-        void processFinished(int code);
-        void parallelSolve();
-        void finishParallelSolve(int success);
-
-    private:
-        //Static Utility
-        static double snr(const FITSImage::Background &background,
-                          const FITSImage::Star &star, double gain = 0.5);
-
-        virtual FITSImage::wcs_point *getWCSCoord();
-        virtual QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars);
-
-        bool checkParameters();
-        void run();
-        SextractorSolver* createSextractorSolver();
-
-        //This finds out the amount of available RAM on the system
-        uint64_t getAvailableRAM();
-        //This determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
-        bool enoughRAMisAvailableFor(QStringList indexFolders);
-
         inline static QString raString(double ra)
         {
             char rastr[32];
@@ -261,6 +239,30 @@ class StellarSolver : public QObject
             dec2dmsstring(dec, decstr);
             return decstr;
         }
+
+        virtual FITSImage::wcs_point *getWCSCoord();
+
+    public slots:
+        void processFinished(int code);
+        void parallelSolve();
+        void finishParallelSolve(int success);
+
+    private:
+        //Static Utility
+        static double snr(const FITSImage::Background &background,
+                          const FITSImage::Star &star, double gain = 0.5);
+
+
+        virtual QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars);
+
+        bool checkParameters();
+        void run();
+        SextractorSolver* createSextractorSolver();
+
+        //This finds out the amount of available RAM on the system
+        uint64_t getAvailableRAM();
+        //This determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
+        bool enoughRAMisAvailableFor(QStringList indexFolders);
 
         //This defines the type of process to perform.
         ProcessType m_ProcessType { SEXTRACT };

@@ -213,8 +213,8 @@ public slots:
     void setupStellarSolverParameters();
 
     //These functions get called when the sextractor or solver finishes
-    bool sextractorComplete(int error);
-    bool solverComplete(int error);
+    bool sextractorComplete();
+    bool solverComplete();
     bool loadWCSComplete();
 
     //These functions handle the solution table
