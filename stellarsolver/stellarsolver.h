@@ -91,10 +91,7 @@ class StellarSolver : public QObject
         //The public methods here are for you to start, stop, setup, and get results from the StellarSolver
 
         //These are the most important methods that you can use for the StellarSolver
-        void sextract();
-        void sextract(QRect frame);
-        void sextractWithHFR();
-        void sextractWithHFR(QRect frame);
+        void sextract(bool calculateHFR = false, QRect frame = QRect());
 
         void startsextraction();
         void startSextractionWithHFR();

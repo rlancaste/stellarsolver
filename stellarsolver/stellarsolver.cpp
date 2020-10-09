@@ -117,34 +117,11 @@ ExternalProgramPaths StellarSolver::getWinCygwinPaths()
     return ExternalSextractorSolver::getLinuxDefaultPaths();
 };
 
-
-void StellarSolver::sextract()
+void StellarSolver::sextract(bool calculateHFR, QRect frame)
 {
-    processType = SEXTRACT;
-    useSubframe = false;
-    executeProcess();
-}
-
-void StellarSolver::sextractWithHFR()
-{
-    processType = SEXTRACT_WITH_HFR;
-    useSubframe = false;
-    executeProcess();
-}
-
-void StellarSolver::sextract(QRect frame)
-{
-    processType = SEXTRACT;
+    processType = calculateHFR ? SEXTRACT_WITH_HFR : SEXTRACT;
+    useSubframe = frame.isNull() ? false : true;
     subframe = frame;
-    useSubframe = true;
-    executeProcess();
-}
-
-void StellarSolver::sextractWithHFR(QRect frame)
-{
-    processType = SEXTRACT_WITH_HFR;
-    subframe = frame;
-    useSubframe = true;
     executeProcess();
 }
 
