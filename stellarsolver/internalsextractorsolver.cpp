@@ -17,17 +17,19 @@
 #include "internalsextractorsolver.h"
 #include "qmath.h"
 
-extern "C"{
-    #include "astrometry/log.h"
+extern "C" {
+#include "astrometry/log.h"
 }
 
 using namespace SSolver;
 
-InternalSextractorSolver::InternalSextractorSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : SextractorSolver(type, sexType, solType, imagestats, imageBuffer, parent)
+InternalSextractorSolver::InternalSextractorSolver(ProcessType type, SextractorType sexType, SolverType solType,
+        FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : SextractorSolver(type, sexType, solType,
+                    imagestats, imageBuffer, parent)
 {
     processType = type;
-    stats=imagestats;
-    m_ImageBuffer=imageBuffer;
+    stats = imagestats;
+    m_ImageBuffer = imageBuffer;
 
     //This sets the base name used for the temp files.
     srand(time(NULL));
@@ -59,7 +61,8 @@ void InternalSextractorSolver::abort()
 //This method generates child solvers with the options of the current solver
 SextractorSolver* InternalSextractorSolver::spawnChildSolver(int n)
 {
-    InternalSextractorSolver *solver = new InternalSextractorSolver(processType, sextractorType, solverType, stats, m_ImageBuffer, nullptr);
+    InternalSextractorSolver *solver = new InternalSextractorSolver(processType, sextractorType, solverType, stats,
+            m_ImageBuffer, nullptr);
     solver->stars = stars;
     solver->basePath = basePath;
     //They will all share the same basename
@@ -112,7 +115,10 @@ void InternalSextractorSolver::run()
     {
         case SEXTRACT:
         case SEXTRACT_WITH_HFR:
-            emit finished(sextract());
+        {
+            int result = sextract();
+            emit finished(result);
+        }
         break;
 
         case SOLVE:
@@ -120,13 +126,17 @@ void InternalSextractorSolver::run()
             if(!hasSextracted)
                 sextract();
             if(hasSextracted)
-                emit finished(runInternalSolver());
+            {
+                int result = runInternalSolver();
+                emit finished(result);
+            }
             else
                 emit finished(-1);
         }
         break;
 
-        default: break;
+        default:
+            break;
     }
     if(!isChildSolver)
     {
@@ -155,10 +165,10 @@ int InternalSextractorSolver::runSEPSextractor()
     int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
     if(useSubframe)
     {
-         x = subframe.x();
-         w = subframe.width();
-         y = subframe.y();
-         h = subframe.height();
+        x = subframe.x();
+        w = subframe.width();
+        y = subframe.y();
+        h = subframe.height();
     }
 
     auto * data = new float[w * h];
@@ -182,7 +192,7 @@ int InternalSextractorSolver::runSEPSextractor()
             break;
         case TFLOAT:
             delete [] data;
-            memcpy(data, m_ImageBuffer, sizeof(float)*w*h);
+            memcpy(data, m_ImageBuffer, sizeof(float)*w * h);
             break;
         case TDOUBLE:
             getFloatBuffer<double>(data, x, y, w, h);
@@ -230,12 +240,14 @@ int InternalSextractorSolver::runSEPSextractor()
 
     // #4 Source Extraction
     // Note that we set deblend_cont = 1.0 to turn off deblending.
-    status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, params.minarea, params.convFilter.data(), sqrt(params.convFilter.size()), sqrt(params.convFilter.size()), SEP_FILTER_CONV, params.deblend_thresh, params.deblend_contrast, params.clean, params.clean_param, &catalog);
+    status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, params.minarea, params.convFilter.data(),
+                         sqrt(params.convFilter.size()), sqrt(params.convFilter.size()), SEP_FILTER_CONV, params.deblend_thresh,
+                         params.deblend_contrast, params.clean, params.clean_param, &catalog);
     if (status != 0) goto exit;
 
     // Record the number of stars detected.
     background.num_stars_detected = catalog->nobj;
-    
+
     // Find the oval sizes for each detection in the detected star catalog, and sort by that. Oval size
     // correlates very well with HFR and likely magnitude.
     for (int i = 0; i < catalog->nobj; i++)
@@ -244,7 +256,7 @@ int InternalSextractorSolver::runSEPSextractor()
         ovals.push_back(std::pair<int, double>(i, ovalSizeSq));
     }
     std::sort(ovals.begin(), ovals.end(), [](const std::pair<int, double> &o1, const std::pair<int, double> &o2) -> bool { return o1.second > o2.second;});
-    
+
     stars.clear();
     numToProcess = std::min(catalog->nobj, params.initialKeep);
     for (int index = 0; index < numToProcess; index++)
@@ -253,7 +265,8 @@ int InternalSextractorSolver::runSEPSextractor()
         int i = ovals[index].first;
 
         //Constant values
-        double r = 6;  //The instructions say to use a fixed value of 6: https://sep.readthedocs.io/en/v1.0.x/api/sep.kron_radius.html
+        double r =
+            6;  //The instructions say to use a fixed value of 6: https://sep.readthedocs.io/en/v1.0.x/api/sep.kron_radius.html
 
         //Variables that are obtained from the catalog
         //FOR SOME REASON, I FOUND THAT THE POSITIONS WERE OFF BY 1 PIXEL??
@@ -288,15 +301,15 @@ int InternalSextractorSolver::runSEPSextractor()
         {
             case SHAPE_AUTO:
                 use_circle = kronrad * sqrt(a * b) < params.r_min;
-            break;
+                break;
 
             case SHAPE_CIRCLE:
                 use_circle = true;
-            break;
+                break;
 
             case SHAPE_ELLIPSE:
                 use_circle = false;
-            break;
+                break;
 
         }
 
@@ -306,7 +319,8 @@ int InternalSextractorSolver::runSEPSextractor()
         }
         else
         {
-            sep_sum_ellipse(&im, xPos, yPos, a, b, theta, params.kron_fact*kronrad, params.subpix, params.inflags, &sum, &sumerr, &area, &flag);
+            sep_sum_ellipse(&im, xPos, yPos, a, b, theta, params.kron_fact * kronrad, params.subpix, params.inflags, &sum, &sumerr,
+                            &area, &flag);
         }
 
         float mag = params.magzero - 2.5 * log10(sum);
@@ -315,7 +329,8 @@ int InternalSextractorSolver::runSEPSextractor()
         if(processType == SEXTRACT_WITH_HFR)
         {
             //Get HFR
-            sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, params.subpix, 0, &flux, requested_frac, 2, flux_fractions, &flux_flag);
+            sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, params.subpix, 0, &flux, requested_frac, 2, flux_fractions,
+                            &flux_flag);
             HFR = flux_fractions[0];
         }
 
@@ -368,7 +383,7 @@ void InternalSextractorSolver::applyStarFilters()
         {
             //Note that a star is dimmer when the mag is greater!
             //We want to sort in decreasing order though!
-            std::sort(stars.begin(), stars.end(), [](const FITSImage::Star &s1, const FITSImage::Star &s2)
+            std::sort(stars.begin(), stars.end(), [](const FITSImage::Star & s1, const FITSImage::Star & s2)
             {
                 return s1.mag < s2.mag;
             });
@@ -377,7 +392,7 @@ void InternalSextractorSolver::applyStarFilters()
         if(params.maxSize > 0.0)
         {
             emit logOutput(QString("Removing stars wider than %1 pixels").arg(params.maxSize));
-            for(int i = 0; i<stars.size();i++)
+            for(int i = 0; i < stars.size(); i++)
             {
                 FITSImage::Star star = stars.at(i);
                 if(star.a > params.maxSize || star.b > params.maxSize)
@@ -391,7 +406,7 @@ void InternalSextractorSolver::applyStarFilters()
         if(params.minSize > 0.0)
         {
             emit logOutput(QString("Removing stars smaller than %1 pixels").arg(params.minSize));
-            for(int i = 0; i<stars.size();i++)
+            for(int i = 0; i < stars.size(); i++)
             {
                 FITSImage::Star star = stars.at(i);
                 if(star.a < params.minSize || star.b < params.minSize)
@@ -404,22 +419,22 @@ void InternalSextractorSolver::applyStarFilters()
 
         if(params.resort && params.removeBrightest > 0.0 && params.removeBrightest < 100.0)
         {
-            int numToRemove = stars.count() * (params.removeBrightest/100.0);
+            int numToRemove = stars.count() * (params.removeBrightest / 100.0);
             emit logOutput(QString("Removing the %1 brightest stars").arg(numToRemove));
             if(numToRemove > 1)
             {
-                for(int i = 0; i<numToRemove;i++)
+                for(int i = 0; i < numToRemove; i++)
                     stars.removeFirst();
             }
         }
 
         if(params.resort && params.removeDimmest > 0.0 && params.removeDimmest < 100.0)
         {
-            int numToRemove = stars.count() * (params.removeDimmest/100.0);
+            int numToRemove = stars.count() * (params.removeDimmest / 100.0);
             emit logOutput(QString("Removing the %1 dimmest stars").arg(numToRemove));
             if(numToRemove > 1)
             {
-                for(int i = 0; i<numToRemove;i++)
+                for(int i = 0; i < numToRemove; i++)
                     stars.removeLast();
             }
         }
@@ -427,11 +442,11 @@ void InternalSextractorSolver::applyStarFilters()
         if(params.maxEllipse > 1)
         {
             emit logOutput(QString("Removing the stars with a/b ratios greater than %1").arg(params.maxEllipse));
-            for(int i = 0; i<stars.size();i++)
+            for(int i = 0; i < stars.size(); i++)
             {
                 FITSImage::Star star = stars.at(i);
-                double ratio = star.a/star.b;
-                if(ratio>params.maxEllipse)
+                double ratio = star.a / star.b;
+                if(ratio > params.maxEllipse)
                 {
                     stars.removeAt(i);
                     i--;
@@ -455,11 +470,12 @@ void InternalSextractorSolver::applyStarFilters()
             }
             else
             {
-                emit logOutput(QString("Removing the saturated stars with peak values greater than %1 Percent of %2").arg(params.saturationLimit).arg(maxSizeofDataType));
-                for(int i = 0; i<stars.size();i++)
+                emit logOutput(QString("Removing the saturated stars with peak values greater than %1 Percent of %2").arg(
+                                   params.saturationLimit).arg(maxSizeofDataType));
+                for(int i = 0; i < stars.size(); i++)
                 {
                     FITSImage::Star star = stars.at(i);
-                    if(star.peak > (params.saturationLimit/100.0) * maxSizeofDataType)
+                    if(star.peak > (params.saturationLimit / 100.0) * maxSizeofDataType)
                     {
                         stars.removeAt(i);
                         i--;
@@ -474,7 +490,7 @@ void InternalSextractorSolver::applyStarFilters()
             int numToRemove = stars.size() - params.keepNum;
             if(numToRemove > 1)
             {
-                for(int i = 0; i<numToRemove;i++)
+                for(int i = 0; i < numToRemove; i++)
                     stars.removeLast();
             }
         }
@@ -545,7 +561,7 @@ void InternalSextractorSolver::downSampleImageType(int d)
         numChannels = 3;
     int oldBufferSize = stats.samples_per_channel * numChannels * stats.bytesPerPixel;
     int newBufferSize = oldBufferSize / (d * d); //It is d times smaller in width and height
-    downSampledBuffer =new uint8_t[newBufferSize];
+    downSampledBuffer = new uint8_t[newBufferSize];
     auto * sourceBuffer = reinterpret_cast<T const *>(m_ImageBuffer);
     auto * destinationBuffer = reinterpret_cast<T *>(downSampledBuffer);
 
@@ -554,9 +570,9 @@ void InternalSextractorSolver::downSampleImageType(int d)
     auto * gSource = sourceBuffer + (w * h);
     auto * bSource = sourceBuffer + (w * h * 2);
 
-    for(int y = 0; y < h - d; y+=d)
+    for(int y = 0; y < h - d; y += d)
     {
-        for (int x = 0; x < w - d; x+=d)
+        for (int x = 0; x < w - d; x += d)
         {
             //The sum of all the pixels in the sample
             double total = 0;
@@ -572,7 +588,7 @@ void InternalSextractorSolver::downSampleImageType(int d)
                 auto *bSample = bSource + currentLine + x;
                 for(int x2 = 0; x2 < d; x2++)
                 {
-                     //This iterates the sample x2 spots to the right,
+                    //This iterates the sample x2 spots to the right,
                     total += *rSample++;
                     //This only samples frome the G and B spots if it is an RGB image
                     if(numChannels == 3)
@@ -583,7 +599,7 @@ void InternalSextractorSolver::downSampleImageType(int d)
                 }
             }
             //This calculates the average pixel value and puts it in the new downsampled image.
-            int pixel = (x/d) + (y/d) * (w/d);
+            int pixel = (x / d) + (y / d) * (w / d);
             destinationBuffer[pixel] = total / (d * d) / numChannels;
         }
         //Shifts each pointer by a whole line, d times
@@ -602,7 +618,8 @@ void InternalSextractorSolver::downSampleImageType(int d)
 
 //This method prepares the job file.  It is based upon the methods parse_job_from_qfits_header and engine_read_job_file in engine.c of astrometry.net
 //as well as the part of the method augment_xylist in augment_xylist.c where it handles xyls files
-bool InternalSextractorSolver::prepare_job() {
+bool InternalSextractorSolver::prepare_job()
+{
     blind_t* bp = &(job->bp);
     solver_t* sp = &(bp->solver);
 
@@ -630,11 +647,12 @@ bool InternalSextractorSolver::prepare_job() {
     sp->set_crpix_center = TRUE;
 
     blind_set_cancel_file(bp, cancelfn.toLatin1().constData());
-    blind_set_solved_file(bp,solvedfn.toLatin1().constData());
+    blind_set_solved_file(bp, solvedfn.toLatin1().constData());
 
     //Logratios for Solving
     bp->logratio_tosolve = params.logratio_tosolve;
-    emit logOutput(QString("Set odds ratio to solve to %1 (log = %2)\n").arg( exp(bp->logratio_tosolve)).arg( bp->logratio_tosolve));
+    emit logOutput(QString("Set odds ratio to solve to %1 (log = %2)\n").arg( exp(bp->logratio_tosolve)).arg(
+                       bp->logratio_tosolve));
     sp->logratio_tokeep = params.logratio_tokeep;
     sp->logratio_totune = params.logratio_totune;
     sp->logratio_bail_threshold = log(DEFAULT_BAIL_THRESHOLD);
@@ -652,42 +670,44 @@ bool InternalSextractorSolver::prepare_job() {
     sp->tweak_aborder = 2;
     sp->tweak_abporder = 2;
 
-    if (use_scale) {
+    if (use_scale)
+    {
         double appu, appl;
-        switch (scaleunit) {
-        case DEG_WIDTH:
-            emit logOutput(QString("Scale range: %1 to %2 degrees wide\n").arg(scalelo).arg(scalehi));
-            appl = deg2arcsec(scalelo) / (double)stats.width;
-            appu = deg2arcsec(scalehi) / (double)stats.width;
-            emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg( stats.width).arg (appl).arg( appu));
-            break;
-        case ARCMIN_WIDTH:
-            emit logOutput(QString("Scale range: %1 to %2 arcmin wide\n").arg (scalelo).arg(scalehi));
-            appl = arcmin2arcsec(scalelo) / (double)stats.width;
-            appu = arcmin2arcsec(scalehi) / (double)stats.width;
-            emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg (stats.width).arg( appl).arg (appu));
-            break;
-        case ARCSEC_PER_PIX:
-            emit logOutput(QString("Scale range: %1 to %2 arcsec/pixel\n").arg (scalelo).arg (scalehi));
-            appl = scalelo;
-            appu = scalehi;
-            break;
-        case FOCAL_MM:
-            emit logOutput(QString("Scale range: %1 to %2 mm focal length\n").arg (scalelo).arg (scalehi));
-            // "35 mm" film is 36 mm wide.
-            appu = rad2arcsec(atan(36. / (2. * scalelo))) / (double)stats.width;
-            appl = rad2arcsec(atan(36. / (2. * scalehi))) / (double)stats.width;
-            emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg (stats.width).arg (appl).arg (appu));
-            break;
-        default:
-            emit logOutput(QString("Unknown scale unit code %1\n").arg (scaleunit));
-            return false;
+        switch (scaleunit)
+        {
+            case DEG_WIDTH:
+                emit logOutput(QString("Scale range: %1 to %2 degrees wide\n").arg(scalelo).arg(scalehi));
+                appl = deg2arcsec(scalelo) / (double)stats.width;
+                appu = deg2arcsec(scalehi) / (double)stats.width;
+                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg( stats.width).arg (appl).arg( appu));
+                break;
+            case ARCMIN_WIDTH:
+                emit logOutput(QString("Scale range: %1 to %2 arcmin wide\n").arg (scalelo).arg(scalehi));
+                appl = arcmin2arcsec(scalelo) / (double)stats.width;
+                appu = arcmin2arcsec(scalehi) / (double)stats.width;
+                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg (stats.width).arg( appl).arg (appu));
+                break;
+            case ARCSEC_PER_PIX:
+                emit logOutput(QString("Scale range: %1 to %2 arcsec/pixel\n").arg (scalelo).arg (scalehi));
+                appl = scalelo;
+                appu = scalehi;
+                break;
+            case FOCAL_MM:
+                emit logOutput(QString("Scale range: %1 to %2 mm focal length\n").arg (scalelo).arg (scalehi));
+                // "35 mm" film is 36 mm wide.
+                appu = rad2arcsec(atan(36. / (2. * scalelo))) / (double)stats.width;
+                appl = rad2arcsec(atan(36. / (2. * scalehi))) / (double)stats.width;
+                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg (stats.width).arg (appl).arg (appu));
+                break;
+            default:
+                emit logOutput(QString("Unknown scale unit code %1\n").arg (scaleunit));
+                return false;
         }
 
         dl_append(job->scales, appl);
         dl_append(job->scales, appu);
         blind_add_field_range(bp, appl, appu);
-        if(params.downsample !=1)
+        if(params.downsample != 1)
             emit logOutput(QString("Downsampling is multiplying the scale by: %1").arg(params.downsample));
     }
 
@@ -700,7 +720,7 @@ bool InternalSextractorSolver::prepare_job() {
 //This method was adapted from the main method in engine-main.c in astrometry.net
 int InternalSextractorSolver::runInternalSolver()
 {
-   emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Configuring StellarSolver");
 
     //This creates and sets up the engine
@@ -723,11 +743,11 @@ int InternalSextractorSolver::runInternalSolver()
     {
         if(logToFile)
         {
-            logFile = fopen(logFileName.toLatin1().constData(),"w");
+            logFile = fopen(logFileName.toLatin1().constData(), "w");
         }
         else
         {
-        #ifndef _WIN32 //Windows does not support FIFO files
+#ifndef _WIN32 //Windows does not support FIFO files
             logFileName = basePath + "/" + baseName + ".logFIFO.txt";
             int mkFifoSuccess = 0; //Note if the return value of the command is 0 it succeeded, -1 means it failed.
             if ((mkFifoSuccess = mkfifo(logFileName.toLatin1(), S_IRUSR | S_IWUSR) == 0))
@@ -740,7 +760,7 @@ int InternalSextractorSolver::runInternalSolver()
                 emit logOutput("Error making FIFO file");
                 logLevel = SSolver::LOG_NONE; //No need to completely fail the sovle just because of a fifo error
             }
-        #endif
+#endif
         }
         if(logFile)
             log_to(logFile);
@@ -751,20 +771,21 @@ int InternalSextractorSolver::runInternalSolver()
     //These set the folders in which Astrometry.net will look for index files, based on the folers set before the solver was started.
     foreach(QString path, indexFolderPaths)
     {
-        engine_add_search_path(engine,path.toLatin1().constData());
+        engine_add_search_path(engine, path.toLatin1().constData());
     }
 
     //This actually adds the index files in the directories above.
     engine_autoindex_search_paths(engine);
 
     //This checks to see that index files were found in the paths above, if not, it prints this warning and aborts.
-    if (!pl_size(engine->indexes)) {
+    if (!pl_size(engine->indexes))
+    {
         emit logOutput(QString("\n\n"
-               "---------------------------------------------------------------------\n"
-               "You must include at least one index file in the index file directories\n\n"
-               "See http://astrometry.net/use.html about how to get some index files.\n"
-               "---------------------------------------------------------------------\n"
-               "\n"));
+                               "---------------------------------------------------------------------\n"
+                               "You must include at least one index file in the index file directories\n\n"
+                               "See http://astrometry.net/use.html about how to get some index files.\n"
+                               "---------------------------------------------------------------------\n"
+                               "\n"));
         return -1;
     }
 
@@ -802,28 +823,34 @@ int InternalSextractorSolver::runInternalSolver()
     else
     {
         //This sets the depths for the job.
-        if (!il_size(engine->default_depths)) {
+        if (!il_size(engine->default_depths))
+        {
             parse_depth_string(engine->default_depths,
                                "10 20 30 40 50 60 70 80 90 100 "
                                "110 120 130 140 150 160 170 180 190 200");
         }
-        if (il_size(job->depths) == 0) {
-            if (engine->inparallel) {
+        if (il_size(job->depths) == 0)
+        {
+            if (engine->inparallel)
+            {
                 // no limit.
                 il_append(job->depths, 0);
                 il_append(job->depths, 0);
-            } else
+            }
+            else
                 il_append_list(job->depths, engine->default_depths);
         }
     }
 
     //This makes sure the min and max widths for the engine make sense, aborting if not.
-    if (engine->minwidth <= 0.0 || engine->maxwidth <= 0.0 || engine->minwidth > engine->maxwidth) {
+    if (engine->minwidth <= 0.0 || engine->maxwidth <= 0.0 || engine->minwidth > engine->maxwidth)
+    {
         emit logOutput(QString("\"minwidth\" and \"maxwidth\" must be positive and the maxwidth must be greater!\n"));
         return -1;
     }
     ///This sets the scales based on the minwidth and maxwidth if the image scale isn't known
-    if (!dl_size(job->scales)) {
+    if (!dl_size(job->scales))
+    {
         double arcsecperpix;
         arcsecperpix = deg2arcsec(engine->minwidth) / stats.width;
         dl_append(job->scales, arcsecperpix);
@@ -838,7 +865,8 @@ int InternalSextractorSolver::runInternalSolver()
 #endif
 
     // If not running inparallel, set total limits = limits.
-    if (!engine->inparallel) {
+    if (!engine->inparallel)
+    {
         bp->total_timelimit = bp->timelimit;
         bp->total_cpulimit  = bp->cpulimit ;
     }
@@ -854,23 +882,23 @@ int InternalSextractorSolver::runInternalSolver()
         fclose(logFile);
 
     //These things need to be done if it is running off the FIFO file
-    #ifndef _WIN32
-        if(!logToFile && logLevel != SSolver::LOG_NONE)
-        {
-            if(logMonitor)
-                logMonitor->quit();
+#ifndef _WIN32
+    if(!logToFile && logLevel != SSolver::LOG_NONE)
+    {
+        if(logMonitor)
+            logMonitor->quit();
 
-            //Wait up to 10 seconds for the log to finish writing
-            int maxLogTime = 10000;
-            int time = 0;
-            int inc = 10;
-            while(logMonitorRunning && time < maxLogTime)
-            {
-                msleep(inc);
-                time+=inc;
-            }
+        //Wait up to 10 seconds for the log to finish writing
+        int maxLogTime = 10000;
+        int time = 0;
+        int inc = 10;
+        while(logMonitorRunning && time < maxLogTime)
+        {
+            msleep(inc);
+            time += inc;
         }
-    #endif
+    }
+#endif
 
     //This deletes or frees the items that are no longer needed.
     engine_free(engine);
@@ -944,7 +972,8 @@ int InternalSextractorSolver::runInternalSolver()
 
     //This code was taken from engine.c and blind.c so that we can clean up all of the allocated memory after we get the solution information out of it so that we can prevent memory leaks.
 
-    for (size_t i=0; i<bl_size(bp->solutions); i++) {
+    for (size_t i = 0; i < bl_size(bp->solutions); i++)
+    {
         MatchObj* mo = (MatchObj*)bl_access(bp->solutions, i);
         verify_free_matchobj(mo);
         blind_free_matchobj(mo);
@@ -980,7 +1009,7 @@ FITSImage::wcs_point * InternalSextractorSolver::getWCSCoord()
         {
             double ra;
             double dec;
-            sip_pixelxy2radec(&wcs, x/d, y/d, &ra, &dec);
+            sip_pixelxy2radec(&wcs, x / d, y / d, &ra, &dec);
             p->ra = ra;
             p->dec = dec;
             p++;
@@ -1020,14 +1049,14 @@ QList<FITSImage::Star> InternalSextractorSolver::appendStarsRAandDEC(QList<FITSI
 void InternalSextractorSolver::startLogMonitor()
 {
     logMonitor = new QThread();
-    connect(logMonitor, &QThread::started, [=]()
+    connect(logMonitor, &QThread::started, [ = ]()
     {
         QString message;
         FILE *FIFOReader = fopen(logFileName.toLatin1().constData(), "r");
         if(FIFOReader)
         {
             char c;
-            while((c=getc(FIFOReader)) != EOF)
+            while((c = getc(FIFOReader)) != EOF)
             {
                 if( c != '\n')
                     message += c;

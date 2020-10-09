@@ -22,7 +22,7 @@
 
 using namespace SSolver;
 
-StellarSolver::StellarSolver(ProcessType type, FITSImage::Statistic imagestats, const uint8_t *imageBuffer,
+StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &imagestats, const uint8_t *imageBuffer,
                              QObject *parent) : QObject(parent), m_Statistics(imagestats)
 {
     m_ProcessType = type;
@@ -30,7 +30,7 @@ StellarSolver::StellarSolver(ProcessType type, FITSImage::Statistic imagestats, 
     m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
 }
 
-StellarSolver::StellarSolver(FITSImage::Statistic imagestats, uint8_t const *imageBuffer,
+StellarSolver::StellarSolver(const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer,
                              QObject *parent) : QObject(parent), m_Statistics(imagestats)
 {
     m_ImageBuffer = imageBuffer;
@@ -45,9 +45,9 @@ SextractorSolver* StellarSolver::createSextractorSolver()
     {
         OnlineSolver *onlineSolver = new OnlineSolver(m_ProcessType, m_SextractorType, m_SolverType, m_Statistics, m_ImageBuffer,
                 this);
-        onlineSolver->fileToProcess = fileToProcess;
-        onlineSolver->astrometryAPIKey = astrometryAPIKey;
-        onlineSolver->astrometryAPIURL = astrometryAPIURL;
+        onlineSolver->fileToProcess = m_FileToProcess;
+        onlineSolver->astrometryAPIKey = m_AstrometryAPIKey;
+        onlineSolver->astrometryAPIURL = m_AstrometryAPIURL;
         onlineSolver->sextractorBinaryPath = m_SextractorBinaryPath;
         solver = onlineSolver;
     }
@@ -57,9 +57,8 @@ SextractorSolver* StellarSolver::createSextractorSolver()
     else
     {
         ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(m_ProcessType, m_SextractorType, m_SolverType,
-                m_Statistics,
-                m_ImageBuffer, this);
-        extSolver->fileToProcess = fileToProcess;
+                m_Statistics, m_ImageBuffer, this);
+        extSolver->fileToProcess = m_FileToProcess;
         extSolver->sextractorBinaryPath = m_SextractorBinaryPath;
         extSolver->confPath = m_ConfPath;
         extSolver->solverPath = m_SolverPath;
@@ -114,38 +113,19 @@ ExternalProgramPaths StellarSolver::getWinCygwinPaths()
     return ExternalSextractorSolver::getLinuxDefaultPaths();
 };
 
-void StellarSolver::sextract(bool calculateHFR, QRect frame)
+void StellarSolver::extract(bool calculateHFR, QRect frame)
 {
+    m_isRunning = false;
     m_ProcessType = calculateHFR ? SEXTRACT_WITH_HFR : SEXTRACT;
     useSubframe = frame.isNull() ? false : true;
     m_Subframe = frame;
-    executeProcess();
+    start();
 }
 
-void StellarSolver::startsextraction()
-{
-    m_ProcessType = SEXTRACT;
-    startProcess();
-}
-
-void StellarSolver::startSextractionWithHFR()
-{
-    m_ProcessType = SEXTRACT_WITH_HFR;
-    startProcess();
-}
-
-void StellarSolver::startProcess()
+void StellarSolver::start()
 {
     m_SextractorSolver = createSextractorSolver();
     run();
-}
-
-void StellarSolver::executeProcess()
-{
-    m_SextractorSolver = createSextractorSolver();
-    run();
-    while(!hasSextracted && !hasSolved && !hasFailed && !wasAborted)
-        QApplication::processEvents();
 }
 
 bool StellarSolver::checkParameters()
@@ -185,9 +165,10 @@ bool StellarSolver::checkParameters()
         else
         {
             if(m_LogLevel != LOG_NONE)
+            {
                 emit logOutput("Not enough RAM is available on this system for loading the index files you have in parallel");
-            if(m_LogLevel != LOG_NONE)
                 emit logOutput("Disabling the inParallel option.");
+            }
             params.inParallel = false;
         }
     }
@@ -199,10 +180,12 @@ void StellarSolver::run()
 {
     if(checkParameters() == false)
     {
-        emit logOutput("There is an issue with your parameters.  Terminating the process.");
+        emit logOutput("There is an issue with your parameters. Terminating the process.");
+        emit ready();
         return;
     }
 
+    m_isRunning = true;
     hasFailed = false;
     if(m_ProcessType == SEXTRACT || m_ProcessType == SEXTRACT_WITH_HFR)
         hasSextracted = false;
@@ -226,7 +209,7 @@ void StellarSolver::run()
             {
                 if(stars.count() > 0)
                     stars = solverWithWCS->appendStarsRAandDEC(stars);
-                emit wcsDataisReady();
+                emit wcsReady();
             }
         }
         while(parallelSolversAreRunning())
@@ -244,6 +227,7 @@ void StellarSolver::run()
         connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
         m_SextractorSolver->executeProcess();
     }
+
     if(m_LogLevel != LOG_NONE)
         emit logOutput("All Processes Complete");
 }
@@ -320,13 +304,13 @@ void StellarSolver::parallelSolve()
                 emit logOutput(QString("Child Solver # %1, Depth Low %2, Depth High %3").arg(parallelSolvers.count()).arg(i).arg(i + inc));
         }
     }
-    foreach(SextractorSolver *solver, parallelSolvers)
+    for(auto solver : parallelSolvers)
         solver->startProcess();
 }
 
 bool StellarSolver::parallelSolversAreRunning()
 {
-    foreach(SextractorSolver *solver, parallelSolvers)
+    for(auto solver : parallelSolvers)
         if(solver->isRunning())
             return true;
     return false;
@@ -360,7 +344,8 @@ void StellarSolver::processFinished(int code)
     }
     else
         hasFailed = true;
-    emit finished(code);
+
+    emit ready();
     if(m_SextractorSolver->solvingDone())
     {
         if(loadWCS && hasWCS && solverWithWCS)
@@ -368,9 +353,11 @@ void StellarSolver::processFinished(int code)
             wcs_coord = solverWithWCS->getWCSCoord();
             stars = solverWithWCS->appendStarsRAandDEC(stars);
             if(wcs_coord)
-                emit wcsDataisReady();
+                emit wcsReady();
         }
     }
+
+    m_isRunning = false;
 }
 
 
@@ -378,7 +365,7 @@ void StellarSolver::processFinished(int code)
 //If they
 void StellarSolver::finishParallelSolve(int success)
 {
-    SextractorSolver *reportingSolver = (SextractorSolver*)sender();
+    SextractorSolver *reportingSolver = qobject_cast<SextractorSolver*>(sender());
     int whichSolver = 0;
     for(int i = 0; i < parallelSolvers.count(); i++ )
     {
@@ -391,10 +378,11 @@ void StellarSolver::finishParallelSolve(int success)
     {
         numStars  = reportingSolver->getNumStarsFound();
         if(m_LogLevel != LOG_NONE)
+        {
             emit logOutput(QString("Successfully solved with child solver: %1").arg(whichSolver));
-        if(m_LogLevel != LOG_NONE)
             emit logOutput("Shutting down other child solvers");
-        foreach(SextractorSolver *solver, parallelSolvers)
+        }
+        for(auto solver : parallelSolvers)
         {
             disconnect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             disconnect(solver, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
@@ -408,7 +396,7 @@ void StellarSolver::finishParallelSolve(int success)
             hasWCS = true;
         }
         hasSolved = true;
-        emit finished(0);
+        emit ready();
     }
     else
     {
@@ -416,14 +404,14 @@ void StellarSolver::finishParallelSolve(int success)
         if(m_LogLevel != LOG_NONE)
             emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
         if(m_ParallelFailsCount == parallelSolvers.count())
-            emit finished(-1);
+            emit ready();
     }
 }
 
 //This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
 void StellarSolver::abort()
 {
-    foreach(SextractorSolver *solver, parallelSolvers)
+    for(auto solver : parallelSolvers)
         solver->abort();
     if(m_SextractorSolver)
         m_SextractorSolver->abort();
@@ -594,7 +582,7 @@ void StellarSolver::setUseSubframe(QRect frame)
 }
 
 //This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.
-void StellarSolver::setSearchScale(double fov_low, double fov_high, QString scaleUnits)
+void StellarSolver::setSearchScale(double fov_low, double fov_high, const QString &scaleUnits)
 {
     if(scaleUnits == "dw" || scaleUnits == "degw" || scaleUnits == "degwidth")
         setSearchScale(fov_low, fov_high, DEG_WIDTH);
