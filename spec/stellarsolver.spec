@@ -14,6 +14,7 @@ Source0: https://github.com/rlancaste/stellarsolver/archive/master.tar.gz
 %define __find_requires %{nil}
 
 Provides: stellarsolver.so(64-bit)
+Provides: libstellarsolver.so.1()(64bit)
 Provides: stellarsolver.so
 Provides: stellarsolver.a
 
