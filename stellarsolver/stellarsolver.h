@@ -11,6 +11,7 @@
 #include "structuredefinitions.h"
 #include "sextractorsolver.h"
 #include "parameters.h"
+#include "version.h"
 
 //QT Includes
 #include <QDir>
@@ -87,6 +88,16 @@ class StellarSolver : public QObject
         QString getLogLevelString()
         {
             return SSolver::getLogLevelString(m_LogLevel);
+        }
+
+        static QString getVersion()
+        {
+            return QString("StellarSolver Library Version: %1, build: %2").arg(StellarSolver_VERSION).arg(StellarSolver_BUILD_TS);
+        }
+
+        static QString getVersionNumber()
+        {
+            return StellarSolver_VERSION;
         }
 
         //Logging Settings for Astrometry
@@ -175,6 +186,11 @@ class StellarSolver : public QObject
         {
             return hasSolved;
         }
+        bool isRunning()
+        {
+            return running;
+        }
+
         bool failed()
         {
             return hasFailed;
@@ -303,6 +319,7 @@ class StellarSolver : public QObject
         bool hasSolved {false};             //This boolean is set when the solving is done
         bool hasFailed {false};
         FITSImage::Statistic m_Statistics;                    //This is information about the image
+        
         const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
 
         //The Results

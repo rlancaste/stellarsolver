@@ -191,6 +191,7 @@ void StellarSolver::run()
         hasSextracted = false;
     else
         hasSolved = false;
+    running = true;
 
     //These are the solvers that support parallelization, ASTAP and the online ones do not
     if(params.multiAlgorithm != NOT_MULTI && m_ProcessType == SOLVE && (m_SolverType == SOLVER_STELLARSOLVER
@@ -356,7 +357,6 @@ void StellarSolver::processFinished(int code)
                 emit wcsReady();
         }
     }
-
     m_isRunning = false;
 }
 

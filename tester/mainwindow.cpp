@@ -370,8 +370,7 @@ MainWindow::MainWindow() :
     debayerParams.filter  = DC1394_COLOR_FILTER_RGGB;
     debayerParams.offsetX = debayerParams.offsetY = 0;
 
-    setWindowTitle(QString("StellarSolver Library Tester %1, build: %2").arg(StellarSolver_VERSION).arg(
-                       StellarSolver_BUILD_TS));
+    setWindowTitle(StellarSolver::getVersion());
 
     ui->progressBar->setTextVisible(false);
     timerMonitor.setInterval(1000); //1 sec intervals
