@@ -25,6 +25,9 @@ using namespace SSolver;
 StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &imagestats, const uint8_t *imageBuffer,
                              QObject *parent) : QObject(parent), m_Statistics(imagestats)
 {
+    qRegisterMetaType<SolverType>("SolverType");
+    qRegisterMetaType<ProcessType>("ProcessType");
+    qRegisterMetaType<SextractorType>("SextractorType");
     m_ProcessType = type;
     m_ImageBuffer = imageBuffer;
     m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
@@ -33,6 +36,9 @@ StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &image
 StellarSolver::StellarSolver(const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer,
                              QObject *parent) : QObject(parent), m_Statistics(imagestats)
 {
+    qRegisterMetaType<SolverType>("SolverType");
+    qRegisterMetaType<ProcessType>("ProcessType");
+    qRegisterMetaType<SextractorType>("SextractorType");
     m_ImageBuffer = imageBuffer;
     m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
 }
