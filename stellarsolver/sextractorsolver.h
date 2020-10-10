@@ -143,8 +143,8 @@ class SextractorSolver : public QThread
             useSubframe = true;
             subframe = frame;
         };
-        bool computingWCS;          //This boolean gets set when the SextractorSolver is computing WCS Data
-        bool computeWCSForStars;    //This boolean determines whether to update the star list with the WCS information.
+        bool computingWCS = false;          //This boolean gets set when the SextractorSolver is computing WCS Data
+        bool computeWCSForStars = false;    //This boolean determines whether to update the star list with the WCS information.
 
 
     protected:  //Note: These items are not private because they are needed by ExternalSextractorSolver
