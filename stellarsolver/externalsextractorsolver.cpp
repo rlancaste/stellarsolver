@@ -12,12 +12,13 @@
 #include <wcshdr.h>
 #include <wcsfix.h>
 
+static int solverNum = 1;
+
 ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalSextractorSolver(type, sexType, solType, imagestats, imageBuffer, parent)
 {
 
     //This sets the base name used for the temp files.
-    srand(time(NULL));
-    baseName = "externalSextractorSolver_" + QString::number(rand());
+    baseName = "externalSextractorSolver_" + QString::number(solverNum++);
 
     //The code below sets default paths for these key external file settings.
 
@@ -190,6 +191,11 @@ void ExternalSextractorSolver::run()
         cancelfn = basePath + "/" + baseName + ".cancel";
     if(solutionFile == "")
         solutionFile = basePath + "/" + baseName + ".wcs";
+
+    if(QFile(cancelfn).exists())
+        QFile(cancelfn).remove();
+    if(QFile(solutionFile).exists())
+        QFile(solutionFile).remove();
 
     //These are the solvers that use External Astrometry.
     if(solverType == SOLVER_LOCALASTROMETRY)

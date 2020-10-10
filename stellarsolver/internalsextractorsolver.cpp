@@ -23,6 +23,8 @@ extern "C" {
 
 using namespace SSolver;
 
+static int solverNum = 1;
+
 InternalSextractorSolver::InternalSextractorSolver(ProcessType type, SextractorType sexType, SolverType solType,
         FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : SextractorSolver(type, sexType, solType,
                     imagestats, imageBuffer, parent)
@@ -32,8 +34,7 @@ InternalSextractorSolver::InternalSextractorSolver(ProcessType type, SextractorT
     m_ImageBuffer = imageBuffer;
 
     //This sets the base name used for the temp files.
-    srand(time(NULL));
-    baseName = "internalSextractorSolver_" + QString::number(rand());
+    baseName = "internalSextractorSolver_" + QString::number(solverNum++);
 
 }
 
@@ -124,6 +125,11 @@ void InternalSextractorSolver::run()
         cancelfn = basePath + "/" + baseName + ".cancel";
     if(solvedfn == "")
         solvedfn = basePath + "/" + baseName + ".solved";
+
+    if(QFile(cancelfn).exists())
+        QFile(cancelfn).remove();
+    if(QFile(solvedfn).exists())
+        QFile(solvedfn).remove();
 
     switch(processType)
     {

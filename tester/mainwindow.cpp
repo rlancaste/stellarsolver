@@ -552,16 +552,11 @@ bool MainWindow::prepareForProcesses()
         logOutput("Please Load an Image First");
         return false;
     }
-    if(!stellarSolver.isNull() && stellarSolver->isRunning())
+    if(stellarSolver != nullptr && stellarSolver->isRunning())
     {
         if(QMessageBox::question(this, "Abort?", "A Process is currently running. Abort it?") == QMessageBox::Yes)
             stellarSolver->abort();
         return false;
-    }
-    if(stellarSolver.isNull())
-    {
-        stellarSolver = new StellarSolver(stats, m_ImageBuffer, this);
-        connect(stellarSolver, &StellarSolver::logOutput, this, &MainWindow::logOutput);
     }
     numberOfTrials = ui->trials->value();
     totalTime = 0;
@@ -611,26 +606,6 @@ void MainWindow::startProcess1Clicked()
         return;
 
     processType = (SSolver::ProcessType) ui->processType_1->currentIndex();
-    int profileSelection;
-    if(processType == SOLVE)
-    {
-        sextractorType = (SSolver::SextractorType) ui->sextractorTypeForSolving->currentIndex();
-        solverType = (SSolver::SolverType) ui->solverType->currentIndex();
-        profileSelection = ui->solverProfile->currentIndex();
-    }
-    else
-    {
-        sextractorType = (SSolver::SextractorType) ui->sextractorTypeForSextraction->currentIndex();
-        profileSelection = ui->sextractionProfile->currentIndex();
-    }
-
-    //These set the StellarSolver Parameters
-    if(profileSelection == 0)
-        stellarSolver->setParameters(getSettingsFromUI());
-    else if(profileSelection == 1)
-        stellarSolver->setParameters(SSolver::Parameters());
-    else
-        stellarSolver->setParameters(optionsList.at(profileSelection - 2));
 
     if(processType == SOLVE)
         solveImage();
@@ -641,10 +616,24 @@ void MainWindow::startProcess1Clicked()
 void MainWindow::sextractImage()
 {
     currentTrial++;
-
     clearStars();
+
+    stellarSolver.reset(new StellarSolver(stats, m_ImageBuffer, this));
+    connect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
+
+    sextractorType = (SSolver::SextractorType) ui->sextractorTypeForSextraction->currentIndex();
     stellarSolver->setProperty("SextractorType", sextractorType);
     stellarSolver->setProperty("ProcessType", processType);
+
+    //These set the StellarSolver Parameters
+    int profileSelection = ui->sextractionProfile->currentIndex();
+    if(profileSelection == 0)
+        stellarSolver->setParameters(getSettingsFromUI());
+    else if(profileSelection == 1)
+        stellarSolver->setParameters(SSolver::Parameters());
+    else
+        stellarSolver->setParameters(optionsList.at(profileSelection - 2));
+
 
     setupExternalSextractorSolverIfNeeded();
     setupStellarSolverParameters();
@@ -654,7 +643,7 @@ void MainWindow::sextractImage()
     else
         stellarSolver->clearSubFrame();
 
-    connect(stellarSolver, &StellarSolver::ready, this, &MainWindow::sextractorComplete);
+    connect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::sextractorComplete);
 
     startProcessMonitor();
     stellarSolver->start();
@@ -671,9 +660,24 @@ void MainWindow::solveImage()
         delete [] wcs_coord;
     }
 
+    stellarSolver.reset(new StellarSolver(stats, m_ImageBuffer, this));
+    connect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
+
+    sextractorType = (SSolver::SextractorType) ui->sextractorTypeForSolving->currentIndex();
+    solverType = (SSolver::SolverType) ui->solverType->currentIndex();
+
     stellarSolver->setProperty("ProcessType", processType);
     stellarSolver->setProperty("SextractorType", sextractorType);
     stellarSolver->setProperty("SolverType", solverType);
+
+    //These set the StellarSolver Parameters
+    int profileSelection = ui->solverProfile->currentIndex();
+    if(profileSelection == 0)
+        stellarSolver->setParameters(getSettingsFromUI());
+    else if(profileSelection == 1)
+        stellarSolver->setParameters(SSolver::Parameters());
+    else
+        stellarSolver->setParameters(optionsList.at(profileSelection - 2));
 
     setupStellarSolverParameters();
     setupExternalSextractorSolverIfNeeded();
@@ -692,11 +696,11 @@ void MainWindow::solveImage()
     else
         stellarSolver->setProperty("usePosition", false);
 
-    connect(stellarSolver, &StellarSolver::ready, this, &MainWindow::solverComplete);
+    connect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::solverComplete);
     if(currentTrial >= numberOfTrials)
     {
         stellarSolver->setLoadWCS(true);
-        connect(stellarSolver, &StellarSolver::wcsReady, this, &MainWindow::loadWCSComplete);
+        connect(stellarSolver.get(), &StellarSolver::wcsReady, this, &MainWindow::loadWCSComplete);
     }
     else
         stellarSolver->setLoadWCS(false);
@@ -853,7 +857,7 @@ bool MainWindow::sextractorComplete()
     elapsed = processTimer.elapsed() / 1000.0;
 
 
-    disconnect(stellarSolver, &StellarSolver::ready, this, &MainWindow::sextractorComplete);
+    disconnect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::sextractorComplete);
 
     if(!stellarSolver->failed() && stellarSolver->sextractionDone())
     {
@@ -869,9 +873,6 @@ bool MainWindow::sextractorComplete()
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         if(currentTrial < numberOfTrials)
         {
-            //This makes sure that it is all done before running again.
-            while(stellarSolver->isRunning())
-                qApp->processEvents();
             sextractImage();
             return true;
         }
@@ -904,7 +905,7 @@ bool MainWindow::solverComplete()
 {
     elapsed = processTimer.elapsed() / 1000.0;
 
-    disconnect(stellarSolver, &StellarSolver::ready, this, &MainWindow::solverComplete);
+    disconnect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::solverComplete);
 
     if(!stellarSolver->failed() && stellarSolver->solvingDone())
     {
@@ -916,9 +917,6 @@ bool MainWindow::solverComplete()
         lastSolution = stellarSolver->getSolution();
         if(currentTrial < numberOfTrials)
         {
-            //This makes sure that it is all done before running again.
-            while(stellarSolver->isRunning())
-                qApp->processEvents();
             solveImage();
             return true;
         }
@@ -950,7 +948,7 @@ bool MainWindow::solverComplete()
 
 bool MainWindow::loadWCSComplete()
 {
-    disconnect(stellarSolver, &StellarSolver::wcsReady, this, &MainWindow::loadWCSComplete);
+    disconnect(stellarSolver.get(), &StellarSolver::wcsReady, this, &MainWindow::loadWCSComplete);
     FITSImage::wcs_point * coord = stellarSolver->getWCSCoord();
     if(coord)
     {
@@ -969,7 +967,7 @@ bool MainWindow::loadWCSComplete()
 void MainWindow::abort()
 {
     numberOfTrials = currentTrial;
-    if(!stellarSolver.isNull() && stellarSolver->isRunning())
+    if(stellarSolver != nullptr && stellarSolver->isRunning())
     {
         stellarSolver->abort();
         logOutput("Aborting Process. . .");
@@ -1001,7 +999,7 @@ void MainWindow::clearAstrometrySettings()
 //I wrote this method to select the file name for the image and call the load methods below to load it
 bool MainWindow::imageLoad()
 {
-    if(!stellarSolver.isNull() && stellarSolver->isRunning())
+    if(stellarSolver != nullptr && stellarSolver->isRunning())
     {
         QMessageBox::critical(nullptr, "Message", "A Process is currently running on the image, please wait until it is completed");
         return false;
@@ -1019,11 +1017,8 @@ bool MainWindow::imageLoad()
     fileToProcess = fileURL;
 
     clearAstrometrySettings();
-    if(!stellarSolver.isNull())
-    {
-        disconnect(stellarSolver, &StellarSolver::logOutput, this, &MainWindow::logOutput);
-        stellarSolver.clear();
-    }
+    if(stellarSolver != nullptr)
+        disconnect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
     if(hasWCSData)
     {
         delete [] wcs_coord;

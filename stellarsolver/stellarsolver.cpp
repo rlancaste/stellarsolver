@@ -340,10 +340,11 @@ void StellarSolver::processFinished(int code)
         m_isRunning = false;
     }
 
-    emit ready();
-
     if(m_ProcessType != SOLVE || m_SextractorSolver->hasWCSData() || !loadWCS)
         m_isRunning = false;
+    emit ready();
+
+
 }
 
 //This slot listens for signals from the child solvers that they are in fact done with the solve
@@ -401,8 +402,8 @@ void StellarSolver::finishParallelSolve(int success)
         {
             if(!hasSolved)
                 hasFailed = true;
-            emit ready();
             m_isRunning = false;
+            emit ready();
         }
     }
 }

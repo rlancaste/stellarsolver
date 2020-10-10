@@ -59,7 +59,7 @@ class SextractorSolver : public QThread
         logging_level logLevel = LOG_MSG;       //This is the level of logging getting saved to the log file
 
         //These are for creating temporary files
-        QString baseName;                   //This is the base name used for all temporary files.  It uses a random name based on the type of solver/sextractor.
+        QString baseName;                   //This is the base name used for all temporary files.  If it is not set, it will use a number based on the order of solvers created.
         QString basePath;                   //This is the path used for saving any temporary files.  They are by default saved to the default temp directory, you can change it if you want to.
 
         Parameters params;                  //The currently set parameters for StellarSolver

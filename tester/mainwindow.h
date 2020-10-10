@@ -90,7 +90,7 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    QPointer<StellarSolver> stellarSolver;
+    std::unique_ptr<StellarSolver> stellarSolver;
     QString fileToProcess;
     QList<FITSImage::Star> stars;
     int selectedStar;
