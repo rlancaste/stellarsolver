@@ -185,7 +185,7 @@ bool StellarSolver::checkParameters()
 
     }
 
-    if(params.multiAlgorithm == MULTI_AUTO)
+    if(m_ProcessType == SOLVE && params.multiAlgorithm == MULTI_AUTO)
     {
         if(m_UseScale && m_UsePosition)
             params.multiAlgorithm = NOT_MULTI;
@@ -197,7 +197,7 @@ bool StellarSolver::checkParameters()
             params.multiAlgorithm = MULTI_SCALES;
     }
 
-    if(params.inParallel)
+    if(m_ProcessType == SOLVE && params.inParallel)
     {
         if(enoughRAMisAvailableFor(indexFolderPaths))
         {
