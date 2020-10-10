@@ -98,6 +98,20 @@ int InternalSextractorSolver::sextract()
 //This is the method that runs the solver or sextractor.  Do not call it, use the methods above instead, so that it can start a new thread.
 void InternalSextractorSolver::run()
 {
+    if(computingWCS)
+    {
+        if(hasSolved){
+            computeWCSCoord();
+            if(computeWCSForStars)
+                stars = appendStarsRAandDEC(stars);
+            emit finished(0);
+        }
+        else
+            emit finished(-1);
+        computingWCS = false;
+        return;
+    }
+
     if(logLevel != SSolver::LOG_NONE && logToFile)
     {
         if(logFileName == "")
@@ -757,7 +771,7 @@ int InternalSextractorSolver::runInternalSolver()
             }
             else
             {
-                emit logOutput("Error making FIFO file");
+                emit logOutput("Error making FIFO file: " + logFileName);
                 logLevel = SSolver::LOG_NONE; //No need to completely fail the sovle just because of a fifo error
             }
 #endif
@@ -987,20 +1001,17 @@ int InternalSextractorSolver::runInternalSolver()
 }
 
 
-FITSImage::wcs_point * InternalSextractorSolver::getWCSCoord()
+void InternalSextractorSolver::computeWCSCoord()
 {
     if(!hasWCS)
-    {
         emit logOutput("There is no WCS Data.");
-        return nullptr;
-    }
     //We have to upscale back to the full size image
     int d = params.downsample;
     int w = stats.width * d;
     int h = stats.height * d;
 
 
-    FITSImage::wcs_point *wcs_coord = new FITSImage::wcs_point[w * h];
+    wcs_coord = new FITSImage::wcs_point[w * h];
     FITSImage::wcs_point * p = wcs_coord;
 
     for (int y = 0; y < h; y++)
@@ -1015,7 +1026,6 @@ FITSImage::wcs_point * InternalSextractorSolver::getWCSCoord()
             p++;
         }
     }
-    return wcs_coord;
 }
 
 QList<FITSImage::Star> InternalSextractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> stars)

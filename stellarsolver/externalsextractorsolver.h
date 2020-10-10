@@ -76,7 +76,7 @@ class ExternalSextractorSolver : public InternalSextractorSolver
         void cleanupTempFiles();
 
         int loadWCS();
-        FITSImage::wcs_point * getWCSCoord() override;
+        void computeWCSCoord() override;
         QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars) override;
         /// WCS Struct
         struct wcsprm *m_wcs

@@ -164,6 +164,20 @@ int ExternalSextractorSolver::sextract()
 
 void ExternalSextractorSolver::run()
 {
+    if(computingWCS)
+    {
+        if(hasSolved){
+            computeWCSCoord();
+            if(computeWCSForStars)
+                stars = appendStarsRAandDEC(stars);
+            emit finished(0);
+        }
+        else
+            emit finished(-1);
+        computingWCS = false;
+        return;
+    }
+
     if(logLevel != LOG_NONE && logToFile)
     {
         if(logFileName == "")
@@ -247,6 +261,9 @@ void ExternalSextractorSolver::run()
             }
 
         }
+        break;
+
+        default:
             break;
     }
 
@@ -1492,17 +1509,14 @@ int ExternalSextractorSolver::loadWCS()
 }
 
 //This was essentially copied from KStars' loadWCS method and split in half with some modifications
-FITSImage::wcs_point *ExternalSextractorSolver::getWCSCoord()
+void ExternalSextractorSolver::computeWCSCoord()
 {
     if(!hasWCS)
-    {
         emit logOutput("There is no WCS Data.  Did you solve the image first?");
-        return nullptr;
-    }
 
     int w  = stats.width;
     int h = stats.height;
-    FITSImage::wcs_point * wcs_coord = new FITSImage::wcs_point[w * h];
+    wcs_coord = new FITSImage::wcs_point[w * h];
     FITSImage::wcs_point * p = wcs_coord;
     double imgcrd[2], phi = 0, pixcrd[2], theta = 0, world[2];
     int status;
@@ -1528,7 +1542,6 @@ FITSImage::wcs_point *ExternalSextractorSolver::getWCSCoord()
             }
         }
     }
-    return wcs_coord;
 }
 
 QList<FITSImage::Star> ExternalSextractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> stars)

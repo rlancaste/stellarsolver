@@ -246,6 +246,7 @@ class StellarSolver : public QObject
         void processFinished(int code);
         void parallelSolve();
         void finishParallelSolve(int success);
+        void finishWCS();
 
     private:
         //Static Utility
@@ -256,7 +257,6 @@ class StellarSolver : public QObject
         virtual QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars);
 
         bool checkParameters();
-        void run();
         SextractorSolver* createSextractorSolver();
 
         //This finds out the amount of available RAM on the system
@@ -331,6 +331,7 @@ class StellarSolver : public QObject
         FITSImage::Solution solution;          //This is the solution that comes back from the Solver
         bool loadWCS {true};
         bool hasWCS {false};        //This boolean gets set if the StellarSolver has WCS data to retrieve
+        bool hasWCSCoord{false};    //This boolean gets set if the Stellrsolver has already computed WCS Coordinates
         FITSImage::wcs_point * wcs_coord {nullptr};
 
         bool wasAborted {false};

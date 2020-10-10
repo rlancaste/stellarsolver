@@ -414,7 +414,7 @@ MainWindow::MainWindow() :
 
     //These load the default settings from the StellarSolver usting a temporary object
     StellarSolver temp(processType, stats, m_ImageBuffer, this);
-    ui->basePath->setText(temp.property("basePath").toString());
+    ui->basePath->setText(QDir::tempPath());
     sendSettingsToUI(temp.getCurrentParameters());
     optionsList = temp.getBuiltInProfiles();
     foreach(SSolver::Parameters param, optionsList)
@@ -426,8 +426,9 @@ MainWindow::MainWindow() :
     optionsAreSaved = true;  //This way the next command won't trigger the unsaved warning.
     ui->optionsProfile->setCurrentIndex(1); //This is default
     ui->processType_1->setCurrentIndex(SOLVE);
-    ui->sextractionProfile->setCurrentText("AllStars"); //Best Sextraction Profile for Stars
-    ui->solverProfile->setCurrentText("ParallelSmallScale"); //Best Solving Profile for telescopes
+    ui->sextractionProfile->setCurrentIndex(programSettings.value("sextractionProfile", 6).toInt());
+    ui->solverProfile->setCurrentIndex(programSettings.value("solverProfile", 7).toInt());
+
     QString storedPaths = programSettings.value("indexFolderPaths", "").toString();
     QStringList indexFilePaths;
     if(storedPaths == "")
@@ -2568,8 +2569,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
     programSettings.setValue("setPathsIndex", ui->setPathsAutomatically->currentIndex());
 
     programSettings.setValue("sextractorBinaryPath", ui->sextractorPath->text());
+    programSettings.setValue("sextractionProfile", ui->sextractionProfile->currentIndex());
     programSettings.setValue("confPath", ui->configFilePath->text());
     programSettings.setValue("solverPath", ui->solverPath->text());
+    programSettings.setValue("solverProfile", ui->solverProfile->currentIndex());
     programSettings.setValue("astapBinaryPath", ui->astapPath->text());
     programSettings.setValue("wcsPath", ui->wcsPath->text());
     programSettings.setValue("cleanupTemporaryFiles",  ui->cleanupTemp->isChecked());

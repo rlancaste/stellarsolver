@@ -131,7 +131,43 @@ void StellarSolver::extract(bool calculateHFR, QRect frame)
 void StellarSolver::start()
 {
     m_SextractorSolver = createSextractorSolver();
-    run();
+    if(checkParameters() == false)
+    {
+        emit logOutput("There is an issue with your parameters. Terminating the process.");
+        emit ready();
+        return;
+    }
+
+    m_isRunning = true;
+    hasFailed = false;
+    if(m_ProcessType == SEXTRACT || m_ProcessType == SEXTRACT_WITH_HFR)
+        hasSextracted = false;
+    else
+    {
+        hasSolved = false;
+        hasWCS = false;
+        hasWCSCoord = false;
+        wcs_coord = nullptr;
+    }
+
+    //These are the solvers that support parallelization, ASTAP and the online ones do not
+    if(params.multiAlgorithm != NOT_MULTI && m_ProcessType == SOLVE && (m_SolverType == SOLVER_STELLARSOLVER
+            || m_SolverType == SOLVER_LOCALASTROMETRY))
+    {
+        m_SextractorSolver->sextract();
+        parallelSolve();
+    }
+    else if(m_SolverType == SOLVER_ONLINEASTROMETRY)
+    {
+        connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
+        m_SextractorSolver->startProcess();
+    }
+    else
+    {
+        connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
+        m_SextractorSolver->startProcess();
+    }
+
 }
 
 bool StellarSolver::checkParameters()
@@ -180,62 +216,6 @@ bool StellarSolver::checkParameters()
     }
 
     return true; //For now
-}
-
-void StellarSolver::run()
-{
-    if(checkParameters() == false)
-    {
-        emit logOutput("There is an issue with your parameters. Terminating the process.");
-        emit ready();
-        return;
-    }
-
-    m_isRunning = true;
-    hasFailed = false;
-    if(m_ProcessType == SEXTRACT || m_ProcessType == SEXTRACT_WITH_HFR)
-        hasSextracted = false;
-    else
-        hasSolved = false;
-
-    //These are the solvers that support parallelization, ASTAP and the online ones do not
-    if(params.multiAlgorithm != NOT_MULTI && m_ProcessType == SOLVE && (m_SolverType == SOLVER_STELLARSOLVER
-            || m_SolverType == SOLVER_LOCALASTROMETRY))
-    {
-        m_SextractorSolver->sextract();
-        parallelSolve();
-
-        while(!hasSolved && !wasAborted && parallelSolversAreRunning())
-            QThread::msleep(100);
-
-        if(loadWCS && hasWCS && solverWithWCS)
-        {
-            wcs_coord = solverWithWCS->getWCSCoord();
-            if(wcs_coord)
-            {
-                if(stars.count() > 0)
-                    stars = solverWithWCS->appendStarsRAandDEC(stars);
-                emit wcsReady();
-            }
-        }
-        while(parallelSolversAreRunning())
-            QThread::msleep(100);
-    }
-    else if(m_SolverType == SOLVER_ONLINEASTROMETRY)
-    {
-        connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
-        m_SextractorSolver->startProcess();
-        while(m_SextractorSolver->isRunning())
-            QThread::msleep(100);
-    }
-    else
-    {
-        connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
-        m_SextractorSolver->executeProcess();
-    }
-
-    if(m_LogLevel != LOG_NONE)
-        emit logOutput("All Processes Complete");
 }
 
 //This allows us to start multiple threads to search simulaneously in separate threads/cores
@@ -326,19 +306,25 @@ void StellarSolver::processFinished(int code)
     numStars  = m_SextractorSolver->getNumStarsFound();
     if(code == 0)
     {
-        //This means it was a Solving Command
-        if(m_SextractorSolver->solvingDone())
+        if(m_ProcessType == SOLVE && m_SextractorSolver->solvingDone())
         {
             solution = m_SextractorSolver->getSolution();
             if(m_SextractorSolver->hasWCSData())
             {
                 hasWCS = true;
                 solverWithWCS = m_SextractorSolver;
+                if(loadWCS)
+                {
+                    solverWithWCS->computeWCSForStars = stars.count() > 0;
+                    solverWithWCS->computingWCS = true;
+                    disconnect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::processFinished);
+                    connect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishWCS);
+                    solverWithWCS->start();
+                }
             }
             hasSolved = true;
         }
-        //This means it was a Sextraction Command
-        else
+        else if((m_ProcessType == SEXTRACT || m_ProcessType == SEXTRACT_WITH_HFR) && m_SextractorSolver->sextractionDone())
         {
             stars = m_SextractorSolver->getStarList();
             background = m_SextractorSolver->getBackground();
@@ -349,22 +335,16 @@ void StellarSolver::processFinished(int code)
         }
     }
     else
+    {
         hasFailed = true;
+        m_isRunning = false;
+    }
 
     emit ready();
-    if(m_SextractorSolver->solvingDone())
-    {
-        if(loadWCS && hasWCS && solverWithWCS)
-        {
-            wcs_coord = solverWithWCS->getWCSCoord();
-            stars = solverWithWCS->appendStarsRAandDEC(stars);
-            if(wcs_coord)
-                emit wcsReady();
-        }
-    }
-    m_isRunning = false;
-}
 
+    if(m_ProcessType != SOLVE || m_SextractorSolver->hasWCSData() || !loadWCS)
+        m_isRunning = false;
+}
 
 //This slot listens for signals from the child solvers that they are in fact done with the solve
 //If they
@@ -395,13 +375,22 @@ void StellarSolver::finishParallelSolve(int success)
                 solver->abort();
         }
         solution = reportingSolver->getSolution();
-        if(reportingSolver->hasWCSData())
+        if(reportingSolver->hasWCSData() && loadWCS)
         {
             solverWithWCS = reportingSolver;
             hasWCS = true;
+            solverWithWCS->computeWCSForStars = stars.count() > 0;
+            solverWithWCS->computingWCS = true;
+            disconnect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
+            connect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishWCS);
+            connect(solverWithWCS, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
+            solverWithWCS->start();
         }
         hasSolved = true;
         emit ready();
+
+        if(!reportingSolver->hasWCSData() || !loadWCS)
+            m_isRunning = false;
     }
     else
     {
@@ -409,8 +398,28 @@ void StellarSolver::finishParallelSolve(int success)
         if(m_LogLevel != LOG_NONE)
             emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
         if(m_ParallelFailsCount == parallelSolvers.count())
+        {
+            if(!hasSolved)
+                hasFailed = true;
             emit ready();
+            m_isRunning = false;
+        }
     }
+}
+
+void StellarSolver::finishWCS()
+{
+    if(solverWithWCS)
+    {
+        wcs_coord = solverWithWCS->getWCSCoord();
+        if(solverWithWCS->computeWCSForStars)
+            stars = solverWithWCS->getStarList();
+        if(wcs_coord){
+            hasWCSCoord = true;
+            emit wcsReady();
+        }
+    }
+    m_isRunning = false;
 }
 
 //This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
@@ -663,7 +672,7 @@ QStringList StellarSolver::getDefaultIndexFolderPaths()
 
 FITSImage::wcs_point * StellarSolver::getWCSCoord()
 {
-    if(hasWCS)
+    if(hasWCS && hasWCSCoord)
         return wcs_coord;
     else
         return nullptr;
