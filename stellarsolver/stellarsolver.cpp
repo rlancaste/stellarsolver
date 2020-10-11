@@ -430,6 +430,26 @@ void StellarSolver::finishWCS()
     m_isRunning = false;
 }
 
+bool StellarSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
+{
+    if(hasWCS && solverWithWCS)
+    {
+        solverWithWCS->wcsToPixel(skyPoint, pixelPoint);
+        return true;
+    }
+     return false;
+}
+
+bool StellarSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
+{
+    if(hasWCS && solverWithWCS)
+    {
+        solverWithWCS->pixelToWCS(pixelPoint, skyPoint);
+        return true;
+    }
+     return false;
+}
+
 //This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
 void StellarSolver::abort()
 {

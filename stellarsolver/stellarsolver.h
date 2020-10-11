@@ -247,6 +247,10 @@ class StellarSolver : public QObject
 
         virtual FITSImage::wcs_point *getWCSCoord();
 
+        bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint);
+        bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint);
+
+
     public slots:
         void processFinished(int code);
         void parallelSolve();
