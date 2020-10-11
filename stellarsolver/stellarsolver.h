@@ -339,6 +339,8 @@ class StellarSolver : public QObject
         QString cancelfn;           //Filename whose creation signals the process to stop
         QString solvedfn;           //Filename whose creation tells astrometry.net it already solved the field.
 
+        bool m_isBlocking = false;              //This boolean determines whether to run in a blocking way.
+
     signals:
         //This signals that there is infomation that should be printed to a log file or log window
         void logOutput(QString logText);

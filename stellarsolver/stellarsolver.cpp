@@ -121,11 +121,14 @@ ExternalProgramPaths StellarSolver::getWinCygwinPaths()
 
 void StellarSolver::extract(bool calculateHFR, QRect frame)
 {
-    m_isRunning = false;
     m_ProcessType = calculateHFR ? SEXTRACT_WITH_HFR : SEXTRACT;
     useSubframe = frame.isNull() ? false : true;
     m_Subframe = frame;
+    m_isBlocking = true;
     start();
+    m_SextractorSolver->executeProcess();
+    processFinished(m_SextractorSolver->sextractionDone() ? 0 : 1);
+    m_isBlocking = false;
 }
 
 void StellarSolver::start()
@@ -149,6 +152,9 @@ void StellarSolver::start()
         hasWCSCoord = false;
         wcs_coord = nullptr;
     }
+
+    if(m_isBlocking)
+        return;
 
     //These are the solvers that support parallelization, ASTAP and the online ones do not
     if(params.multiAlgorithm != NOT_MULTI && m_ProcessType == SOLVE && (m_SolverType == SOLVER_STELLARSOLVER
