@@ -146,6 +146,9 @@ class SextractorSolver : public QThread
         bool computingWCS = false;          //This boolean gets set when the SextractorSolver is computing WCS Data
         bool computeWCSForStars = false;    //This boolean determines whether to update the star list with the WCS information.
 
+        virtual bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) = 0;
+        virtual bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) = 0;
+
 
     protected:  //Note: These items are not private because they are needed by ExternalSextractorSolver
 

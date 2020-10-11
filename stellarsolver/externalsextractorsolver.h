@@ -78,6 +78,11 @@ class ExternalSextractorSolver : public InternalSextractorSolver
         int loadWCS();
         void computeWCSCoord() override;
         QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars) override;
+
+        bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) override;
+        bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) override;
+
+
         /// WCS Struct
         struct wcsprm *m_wcs
         {

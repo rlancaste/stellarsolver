@@ -1516,8 +1516,10 @@ int ExternalSextractorSolver::loadWCS()
 void ExternalSextractorSolver::computeWCSCoord()
 {
     if(!hasWCS)
+    {
         emit logOutput("There is no WCS Data.  Did you solve the image first?");
-
+        return;
+    }
     int w  = stats.width;
     int h = stats.height;
     wcs_coord = new FITSImage::wcs_point[w * h];
@@ -1546,6 +1548,55 @@ void ExternalSextractorSolver::computeWCSCoord()
             }
         }
     }
+}
+
+bool ExternalSextractorSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
+{
+    if(!hasWCSData())
+    {
+        emit logOutput("There is no WCS Data.");
+        return false;
+    }
+    double imgcrd[2], phi, pixcrd[2], theta, world[2];
+    int stat[2];
+    pixcrd[0] = pixelPoint.x();
+    pixcrd[1] = pixelPoint.y();
+
+    int status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0]);
+   if(status != 0)
+    {
+        emit logOutput(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+        return false;
+    }
+    else
+    {
+        skyPoint.ra = world[0];
+        skyPoint.dec = world[1];
+    }
+    return true;
+}
+
+bool ExternalSextractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
+{
+    if(!hasWCSData())
+    {
+        emit logOutput("There is no WCS Data.");
+        return false;
+    }
+    double imgcrd[2], worldcrd[2], pixcrd[2], phi[2], theta[2];
+    int stat[2];
+    worldcrd[0] = skyPoint.ra;
+    worldcrd[1] = skyPoint.dec;
+
+    int status = wcss2p(m_wcs, 1, 2, &worldcrd[0], &phi[0], &theta[0], &imgcrd[0], &pixcrd[0], &stat[0]);
+    if(status !=0)
+    {
+        emit logOutput(QString("wcss2p error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+        return false;
+    }
+    pixelPoint.setX(pixcrd[0]);
+    pixelPoint.setY(pixcrd[1]);
+    return true;
 }
 
 QList<FITSImage::Star> ExternalSextractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> stars)

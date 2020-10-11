@@ -28,6 +28,8 @@ class InternalSextractorSolver: public SextractorSolver
         QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars) override;
         SextractorSolver* spawnChildSolver(int n) override;
 
+        bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) override;
+        bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) override;
     protected:
         int runSEPSextractor();    //This is the method that actually runs the internal sextractor
         void applyStarFilters();    //This applies the star filter to the stars list.

@@ -1002,7 +1002,10 @@ int InternalSextractorSolver::runInternalSolver()
 void InternalSextractorSolver::computeWCSCoord()
 {
     if(!hasWCS)
+    {
         emit logOutput("There is no WCS Data.");
+        return;
+    }
     //We have to upscale back to the full size image
     int d = params.downsample;
     int w = stats.width * d;
@@ -1024,6 +1027,39 @@ void InternalSextractorSolver::computeWCSCoord()
             p++;
         }
     }
+}
+
+bool InternalSextractorSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
+{
+    if(!hasWCSData())
+    {
+        emit logOutput("There is no WCS Data.");
+        return false;
+    }
+    int d = params.downsample;
+    double ra;
+    double dec;
+    sip_pixelxy2radec(&wcs, pixelPoint.x() / d, pixelPoint.y() / d, &ra, &dec);
+    skyPoint.ra = ra;
+    skyPoint.dec = dec;
+    return true;
+}
+
+bool InternalSextractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
+{
+    if(!hasWCSData())
+    {
+        emit logOutput("There is no WCS Data.");
+        return false;
+    }
+    double x;
+    double y;
+    anbool error = sip_radec2pixelxy(&wcs, skyPoint.ra, skyPoint.dec, &x, &y);
+    if(error != 0)
+        return false;
+    pixelPoint.setX(x);
+    pixelPoint.setY(y);
+    return true;
 }
 
 QList<FITSImage::Star> InternalSextractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> stars)
