@@ -55,7 +55,7 @@ void OnlineSolver::runOnlineSolver()
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Configuring Online Solver");
 
-    if(logToFile && logLevel != LOG_NONE)
+    if(logToFile && astrometryLogLevel != LOG_NONE)
     {
         if(logFileName == "")
             logFileName = basePath + "/" + baseName + ".log.txt";
@@ -359,7 +359,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
     QString status;
     QList<QVariant> jsonArray;
 
-    if(logLevel == LOG_VERB || logLevel == LOG_ALL)
+    if(m_SSLogLevel != LOG_OFF)
         emit logOutput("Reply Received");
 
     if (workflowStage == NO_STAGE)
@@ -394,7 +394,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
         json_result = json_doc.toVariant();
         result   = json_result.toMap();
 
-        if(logLevel == LOG_VERB || logLevel == LOG_ALL)
+        if(m_SSLogLevel != LOG_OFF)
             emit logOutput(json_doc.toJson(QJsonDocument::Compact));
     }
     switch (workflowStage)
@@ -410,7 +410,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
 
             sessionKey = result["session"].toString();
 
-            if(logLevel == LOG_VERB || logLevel == LOG_ALL)
+            if(m_SSLogLevel != LOG_OFF)
                 emit logOutput(QString("Authentication to astrometry.net is successful. Session: %1").arg(sessionKey));
 
             uploadFile(); //Go to NEXT STAGE
@@ -545,7 +545,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             solution = {fieldw, fieldh, ra, dec, orientation, pixscale, par, raErr, decErr};
             hasSolved = true;
 
-            if(logLevel == LOG_ALL || logToFile)
+            if(astrometryLogLevel != LOG_NONE || logToFile)
                 getJobLogFile(); //Go to next stage
             else
                 getJobWCSFile(); //Go to Last Stage
@@ -556,7 +556,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
         {
             QByteArray responseData = reply->readAll();
 
-            if(logLevel == LOG_ALL)
+            if(astrometryLogLevel != LOG_NONE && !logToFile)
                 emit logOutput(responseData);
 
             if(logToFile)

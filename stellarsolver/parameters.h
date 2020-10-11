@@ -190,6 +190,15 @@ static QString getMultiAlgoString(SSolver::MultiAlgo multi)
 
 // Astrometry.net struct for defining the log level
 // It is defined both here and in log.h so that we can set the log level here without including all of log.h.
+typedef enum
+{
+    LOG_OFF,
+    LOG_NORMAL,
+    LOG_VERBOSE
+} SSolverLogLevel;
+
+// Astrometry.net struct for defining the log level
+// It is defined both here and in log.h so that we can set the log level here without including all of log.h.
 enum logging_level
 {
     LOG_NONE,

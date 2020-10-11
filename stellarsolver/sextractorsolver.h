@@ -56,8 +56,8 @@ class SextractorSolver : public QThread
         //Logging Settings for Astrometry
         bool logToFile = false;             //This determines whether or not to save the output from Astrometry.net to a file
         QString logFileName;                //This is the path to the log file that it will save.
-        logging_level logLevel = LOG_MSG;       //This is the level of logging getting saved to the log file
-
+        logging_level astrometryLogLevel = LOG_NONE;       //This is the level of logging getting saved to the log file
+        SSolverLogLevel m_SSLogLevel {LOG_NORMAL};   //This is the level for the StellarSolver Logging
         //These are for creating temporary files
         QString baseName;                   //This is the base name used for all temporary files.  If it is not set, it will use a number based on the order of solvers created.
         QString basePath;                   //This is the path used for saving any temporary files.  They are by default saved to the default temp directory, you can change it if you want to.

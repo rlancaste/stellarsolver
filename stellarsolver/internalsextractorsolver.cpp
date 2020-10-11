@@ -72,17 +72,15 @@ SextractorSolver* InternalSextractorSolver::spawnChildSolver(int n)
     solver->params = params;
     solver->indexFolderPaths = indexFolderPaths;
     //Set the log level one less than the main solver
-    if(logLevel == SSolver::LOG_MSG || logLevel == SSolver::LOG_NONE)
-        solver->logLevel = SSolver::LOG_NONE;
-    if(logLevel == SSolver::LOG_VERB)
-        solver->logLevel = SSolver::LOG_MSG;
-    if(logLevel == SSolver::LOG_ALL)
-        solver->logLevel = SSolver::LOG_VERB;
+    if(m_SSLogLevel == LOG_VERBOSE )
+        solver->m_SSLogLevel = LOG_NORMAL;
+    if(m_SSLogLevel == LOG_NORMAL || m_SSLogLevel == LOG_OFF)
+        solver->m_SSLogLevel = LOG_OFF;
     if(use_scale)
         solver->setSearchScale(scalelo, scalehi, scaleunit);
     if(use_position)
         solver->setSearchPositionInDegrees(search_ra, search_dec);
-    if(logLevel != SSolver::LOG_NONE)
+    if(astrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
         connect(solver, &SextractorSolver::logOutput, this,  &SextractorSolver::logOutput);
     //This way they all share a solved and cancel fn
     solver->cancelfn = cancelfn;
@@ -113,7 +111,7 @@ void InternalSextractorSolver::run()
         return;
     }
 
-    if(logLevel != SSolver::LOG_NONE && logToFile)
+    if(astrometryLogLevel != SSolver::LOG_NONE && logToFile)
     {
         if(logFileName == "")
             logFileName = basePath + "/" + baseName + ".log.txt";
@@ -751,15 +749,9 @@ int InternalSextractorSolver::runInternalSolver()
     engine->minwidth = params.minwidth;
     engine->maxwidth = params.maxwidth;
 
-    if(isChildSolver)
-    {
-        if(logLevel == SSolver::LOG_VERB || logLevel == SSolver::LOG_ALL)
-            log_init((log_level)logLevel);
-    }
-    else
-        log_init((log_level)logLevel);
+    log_init((log_level)astrometryLogLevel);
 
-    if(logLevel != SSolver::LOG_NONE)
+    if(astrometryLogLevel != SSolver::LOG_NONE)
     {
         if(logToFile)
         {
@@ -778,7 +770,7 @@ int InternalSextractorSolver::runInternalSolver()
             else
             {
                 emit logOutput("Error making FIFO file: " + logFileName);
-                logLevel = SSolver::LOG_NONE; //No need to completely fail the sovle just because of a fifo error
+                astrometryLogLevel = SSolver::LOG_NONE; //No need to completely fail the solve just because of a fifo error
             }
 #endif
         }
@@ -898,12 +890,12 @@ int InternalSextractorSolver::runInternalSolver()
         emit logOutput("Failed to run job");
 
     //Needs to be done whether FIFO or regular file
-    if(logLevel != SSolver::LOG_NONE && logFile)
+    if(astrometryLogLevel != SSolver::LOG_NONE && logFile)
         fclose(logFile);
 
     //These things need to be done if it is running off the FIFO file
 #ifndef _WIN32
-    if(!logToFile && logLevel != SSolver::LOG_NONE)
+    if(!logToFile && astrometryLogLevel != SSolver::LOG_NONE)
     {
         if(logMonitor)
             logMonitor->quit();
@@ -1081,7 +1073,7 @@ void InternalSextractorSolver::startLogMonitor()
                     emit logOutput(message);
                     message = "";
                     //If we don't do this, it could freeze your program it is so much output
-                    if(logLevel == SSolver::LOG_ALL)
+                    if(astrometryLogLevel == SSolver::LOG_ALL)
                         msleep(1);
                 }
             }

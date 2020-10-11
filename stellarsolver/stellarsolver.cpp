@@ -79,7 +79,8 @@ SextractorSolver* StellarSolver::createSextractorSolver()
         solver->setUseSubframe(m_Subframe);
     solver->logToFile = m_LogToFile;
     solver->logFileName = m_LogFileName;
-    solver->logLevel = m_LogLevel;
+    solver->astrometryLogLevel = m_AstrometryLogLevel;
+    solver->m_SSLogLevel = m_SSLogLevel;
     solver->basePath = m_BasePath;
     solver->params = params;
     solver->indexFolderPaths = indexFolderPaths;
@@ -87,7 +88,7 @@ SextractorSolver* StellarSolver::createSextractorSolver()
         solver->setSearchScale(m_ScaleLow, m_ScaleHigh, m_ScaleUnit);
     if(m_UsePosition)
         solver->setSearchPositionInDegrees(m_SearchRA, m_SearchDE);
-    if(m_LogLevel != LOG_NONE)
+    if(m_SSLogLevel != LOG_OFF)
         connect(solver, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
 
     return solver;
@@ -207,12 +208,12 @@ bool StellarSolver::checkParameters()
     {
         if(enoughRAMisAvailableFor(indexFolderPaths))
         {
-            if(m_LogLevel != LOG_NONE)
+            if(m_SSLogLevel != LOG_OFF)
                 emit logOutput("There should be enough RAM to load the indexes in parallel.");
         }
         else
         {
-            if(m_LogLevel != LOG_NONE)
+            if(m_SSLogLevel != LOG_OFF)
             {
                 emit logOutput("Not enough RAM is available on this system for loading the index files you have in parallel");
                 emit logOutput("Disabling the inParallel option.");
@@ -255,7 +256,7 @@ void StellarSolver::parallelSolve()
             units = DEG_WIDTH;
         }
         double scaleConst = (maxScale - minScale) / pow(threads, 2);
-        if(m_LogLevel != LOG_NONE)
+        if(m_SSLogLevel != LOG_OFF)
             emit logOutput(QString("Starting %1 threads to solve on multiple scales").arg(threads));
         for(double thread = 0; thread < threads; thread++)
         {
@@ -265,7 +266,7 @@ void StellarSolver::parallelSolve()
             connect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             solver->setSearchScale(low, high, units);
             parallelSolvers.append(solver);
-            if(m_LogLevel != LOG_NONE)
+            if(m_SSLogLevel != LOG_OFF)
                 emit logOutput(QString("Solver # %1, Low %2, High %3 %4").arg(parallelSolvers.count()).arg(low).arg(high).arg(
                                    getScaleUnitString()));
         }
@@ -283,7 +284,7 @@ void StellarSolver::parallelSolve()
         //We don't need an unnecessary number of threads
         if(inc < 10)
             inc = 10;
-        if(m_LogLevel != LOG_NONE)
+        if(m_SSLogLevel != LOG_OFF)
             emit logOutput(QString("Starting %1 threads to solve on multiple depths").arg(sourceNum / inc));
         for(int i = 1; i < sourceNum; i += inc)
         {
@@ -292,7 +293,7 @@ void StellarSolver::parallelSolve()
             solver->depthlo = i;
             solver->depthhi = i + inc;
             parallelSolvers.append(solver);
-            if(m_LogLevel != LOG_NONE)
+            if(m_SSLogLevel != LOG_OFF)
                 emit logOutput(QString("Child Solver # %1, Depth Low %2, Depth High %3").arg(parallelSolvers.count()).arg(i).arg(i + inc));
         }
     }
@@ -369,7 +370,7 @@ void StellarSolver::finishParallelSolve(int success)
     if(success == 0)
     {
         numStars  = reportingSolver->getNumStarsFound();
-        if(m_LogLevel != LOG_NONE)
+        if(m_SSLogLevel != LOG_OFF)
         {
             emit logOutput(QString("Successfully solved with child solver: %1").arg(whichSolver));
             emit logOutput("Shutting down other child solvers");
@@ -402,7 +403,7 @@ void StellarSolver::finishParallelSolve(int success)
     else
     {
         m_ParallelFailsCount++;
-        if(m_LogLevel != LOG_NONE)
+        if(m_SSLogLevel != LOG_OFF)
             emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
         if(m_ParallelFailsCount == parallelSolvers.count())
         {
@@ -748,12 +749,12 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
     uint64_t availableRAM = getAvailableRAM();
     if(availableRAM == 0)
     {
-        if(m_LogLevel != LOG_NONE)
+        if(m_SSLogLevel != LOG_OFF)
             emit logOutput("Unable to determine system RAM for inParallel Option");
         return false;
     }
     float bytesInGB = 1024 * 1024 * 1024; // B -> KB -> MB -> GB , float to make sure it reports the answer with any decimals
-    if(m_LogLevel != LOG_NONE)
+    if(m_SSLogLevel != LOG_OFF)
         emit logOutput(
             QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB").arg(
                 totalSize / bytesInGB).arg(availableRAM / bytesInGB));

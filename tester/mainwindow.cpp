@@ -742,14 +742,8 @@ void MainWindow::setupStellarSolverParameters()
     //These setup Logging if desired
     stellarSolver->setProperty("LogToFile", ui->logToFile->isChecked());
 
-    if(ui->logLevel->currentIndex() == 0)
-        stellarSolver->setLogLevel(SSolver::LOG_NONE);
-    if(ui->logLevel->currentIndex() == 1)
-        stellarSolver->setLogLevel(SSolver::LOG_MSG);
-    if(ui->logLevel->currentIndex() == 2)
-        stellarSolver->setLogLevel(SSolver::LOG_VERB);
-    if(ui->logLevel->currentIndex() == 3)
-        stellarSolver->setLogLevel(SSolver::LOG_ALL);
+    stellarSolver->setLogLevel((SSolver::logging_level)ui->logLevel->currentIndex());
+    stellarSolver->setSSLogLevel((SSolver::SSolverLogLevel)ui->stellarSolverLogLevel->currentIndex());
 }
 
 //This sets all the settings for either the internal or external sextractor

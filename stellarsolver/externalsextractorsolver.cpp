@@ -179,7 +179,7 @@ void ExternalSextractorSolver::run()
         return;
     }
 
-    if(logLevel != LOG_NONE && logToFile)
+    if(astrometryLogLevel != LOG_NONE && logToFile)
     {
         if(logFileName == "")
             logFileName = basePath + "/" + baseName + ".log.txt";
@@ -302,17 +302,15 @@ SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
     solver->params = params;
     solver->indexFolderPaths = indexFolderPaths;
     //Set the log level one less than the main solver
-    if(logLevel == LOG_MSG || logLevel == LOG_NONE)
-        solver->logLevel = LOG_NONE;
-    if(logLevel == LOG_VERB)
-        solver->logLevel = LOG_MSG;
-    if(logLevel == LOG_ALL)
-        solver->logLevel = LOG_VERB;
+    if(m_SSLogLevel == LOG_VERBOSE )
+        solver->m_SSLogLevel = LOG_NORMAL;
+    if(m_SSLogLevel == LOG_NORMAL || m_SSLogLevel == LOG_OFF)
+        solver->m_SSLogLevel = LOG_OFF;
     if(use_scale)
         solver->setSearchScale(scalelo, scalehi, scaleunit);
     if(use_position)
         solver->setSearchPositionInDegrees(search_ra, search_dec);
-    if(logLevel != LOG_NONE)
+    if(astrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
         connect(solver, &SextractorSolver::logOutput, this, &SextractorSolver::logOutput);
     //This way they all share a solved and cancel fn
     solver->solutionFile = solutionFile;
@@ -499,7 +497,7 @@ int ExternalSextractorSolver::runExternalSextractor()
 
     sextractorProcess->setWorkingDirectory(basePath);
     sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
-    if(logLevel != LOG_NONE)
+    if(astrometryLogLevel != LOG_NONE)
         connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSextractor);
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -595,7 +593,7 @@ int ExternalSextractorSolver::runExternalSolver()
     solver = new QProcess();
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
-    if(logLevel != LOG_NONE)
+    if(astrometryLogLevel != LOG_NONE)
         connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
 
     #ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work when started from this program.  This is needed for all types of astrometry solvers using ANSVR
@@ -685,14 +683,14 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
         solverArgs << "-spd" << QString::number(search_dec + 90); //Convert dec to spd
         solverArgs << "-r" << QString::number(params.search_radius);
     }
-    if(logLevel == LOG_ALL || logLevel == LOG_VERB)
+    if(astrometryLogLevel == LOG_ALL || astrometryLogLevel == LOG_VERB)
         solverArgs << "-log";
 
     solver.clear();
     solver = new QProcess();
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
-    if(logLevel != LOG_NONE)
+    if(astrometryLogLevel != LOG_NONE)
         connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
 
     solver->start(astapBinaryPath, solverArgs);
@@ -792,9 +790,9 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     }
 
     //Don't need any argument for default level
-    if(logLevel == LOG_VERB)
+    if(astrometryLogLevel == LOG_MSG || astrometryLogLevel == LOG_ERROR)
         solverArgs << "-v";
-    else if(logLevel == LOG_ALL)
+    else if(astrometryLogLevel == LOG_VERB || astrometryLogLevel == LOG_ALL)
         solverArgs << "-vv";
 
     if(autoGenerateAstroConfig && !QFile(confPath).exists())
