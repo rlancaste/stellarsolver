@@ -283,12 +283,8 @@ SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
     solver->stars = stars;
     solver->basePath = basePath;
     solver->baseName = baseName + "_" + QString::number(n);
-
-    if(solverType!= SOLVER_ASTAP && solverType != SOLVER_LOCALASTROMETRY)
-    {
-        solver->hasSextracted = true;
-        solver->sextractorFilePath = sextractorFilePath;
-    }
+    solver->hasSextracted = true;
+    solver->sextractorFilePath = sextractorFilePath;
     solver->fileToProcess = fileToProcess;
     solver->sextractorBinaryPath = sextractorBinaryPath;
     solver->confPath = confPath;
