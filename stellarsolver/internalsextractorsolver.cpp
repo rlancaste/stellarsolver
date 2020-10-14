@@ -209,8 +209,7 @@ int InternalSextractorSolver::runSEPSextractor()
             getFloatBuffer<uint32_t>(data, x, y, w, h);
             break;
         case TFLOAT:
-            delete [] data;
-            memcpy(data, m_ImageBuffer, sizeof(float)*w * h);
+            getFloatBuffer<float>(data, x, y, w, h);
             break;
         case TDOUBLE:
             getFloatBuffer<double>(data, x, y, w, h);
@@ -361,8 +360,7 @@ int InternalSextractorSolver::runSEPSextractor()
 
     hasSextracted = true;
 
-    if (stats.dataType != TFLOAT)
-        delete [] data;
+    delete [] data;
     sep_bkg_free(bkg);
     sep_catalog_free(catalog);
     free(imback);
@@ -372,8 +370,7 @@ int InternalSextractorSolver::runSEPSextractor()
     return 0;
 
 exit:
-    if (stats.dataType != TFLOAT)
-        delete [] data;
+    delete [] data;
     sep_bkg_free(bkg);
     sep_catalog_free(catalog);
     free(imback);
