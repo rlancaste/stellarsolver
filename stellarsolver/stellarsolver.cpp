@@ -359,6 +359,8 @@ void StellarSolver::processFinished(int code)
 void StellarSolver::finishParallelSolve(int success)
 {
     SextractorSolver *reportingSolver = qobject_cast<SextractorSolver*>(sender());
+    if(!reportingSolver)
+        return;
     int whichSolver = 0;
     for(int i = 0; i < parallelSolvers.count(); i++ )
     {
