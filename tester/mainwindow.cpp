@@ -662,10 +662,10 @@ void MainWindow::resetStellarSolver()
         {
             solver->setLoadWCS(false);
             connect(solver, &StellarSolver::finished, solver, &StellarSolver::deleteLater);
+            solver->abort();
         }
         else
             solver->deleteLater();
-        solver->abort();
     }
 
     stellarSolver.reset(new StellarSolver(stats, m_ImageBuffer, this));
