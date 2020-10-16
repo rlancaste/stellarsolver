@@ -776,7 +776,7 @@ void MainWindow::setupExternalSextractorSolverIfNeeded()
     stellarSolver->setProperty("SolverPath", ui->solverPath->text());
     stellarSolver->setProperty("ASTAPBinaryPath", ui->astapPath->text());
     stellarSolver->setProperty("WCSPath", ui->wcsPath->text());
-    stellarSolver->setProperty("cleanupTemporaryFiles", ui->cleanupTemp->isChecked());
+    stellarSolver->setProperty("CleanupTemporaryFiles", ui->cleanupTemp->isChecked());
     stellarSolver->setProperty("AutoGenerateAstroConfig", ui->generateAstrometryConfig->isChecked());
 
     //Online Options
