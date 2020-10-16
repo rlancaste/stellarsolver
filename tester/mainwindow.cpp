@@ -552,12 +552,35 @@ bool MainWindow::prepareForProcesses()
         logOutput("Please Load an Image First");
         return false;
     }
-    if(stellarSolver != nullptr && stellarSolver->isRunning())
+    if(stellarSolver != nullptr)
     {
-        if(QMessageBox::question(this, "Abort?", "A Process is currently running. Abort it?") == QMessageBox::Yes)
-            stellarSolver->abort();
-        return false;
+        if(stellarSolver->isRunning())
+        {
+            const SSolver::ProcessType type = static_cast<SSolver::ProcessType>(stellarSolver->property("ProcessType").toInt());
+            if(type == SOLVE && !stellarSolver->solvingDone())
+            {
+                if(QMessageBox::question(this, "Abort?", "StellarSolver is solving now. Abort it?") == QMessageBox::No)
+                    return false;
+            }
+            else if((type == SEXTRACT || type == SEXTRACT_WITH_HFR) && !sextractorComplete()){
+                if(QMessageBox::question(this, "Abort?", "StellarSolver is extracting sources now. Abort it?") == QMessageBox::No)
+                    return false;
+            }
+        }
+
+        auto *solver = stellarSolver.release();
+        solver->disconnect(this);
+        if(solver->isRunning())
+        {
+            solver->setLoadWCS(false);
+            connect(solver, &StellarSolver::finished, solver, &StellarSolver::deleteLater);
+        }
+        else
+            solver->deleteLater();
+        solver->abort();
+
     }
+
     numberOfTrials = ui->trials->value();
     totalTime = 0;
     currentTrial = 0;

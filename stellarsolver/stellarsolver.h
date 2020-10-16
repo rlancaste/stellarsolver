@@ -299,7 +299,7 @@ class StellarSolver : public QObject
         QList<SextractorSolver*> parallelSolvers;
         QPointer<SextractorSolver> m_SextractorSolver;
         QPointer<SextractorSolver> solverWithWCS;
-        int m_ParallelFailsCount {0};
+        int m_ParallelSolversFinishedCount {0};
         bool parallelSolversAreRunning();
 
         //The currently set parameters for StellarSolver
@@ -357,6 +357,8 @@ class StellarSolver : public QObject
         void ready();
 
         void wcsReady();
+
+        void finished();
 
 };
 

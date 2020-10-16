@@ -232,7 +232,7 @@ void StellarSolver::parallelSolve()
     if(params.multiAlgorithm == NOT_MULTI || !(m_SolverType == SOLVER_STELLARSOLVER || m_SolverType == SOLVER_LOCALASTROMETRY))
         return;
     parallelSolvers.clear();
-    m_ParallelFailsCount = 0;
+    m_ParallelSolversFinishedCount = 0;
     int threads = QThread::idealThreadCount();
 
     if(params.multiAlgorithm == MULTI_SCALES)
@@ -347,11 +347,13 @@ void StellarSolver::processFinished(int code)
         m_isRunning = false;
     }
 
-    if(m_ProcessType != SOLVE || m_SextractorSolver->hasWCSData() || !loadWCS)
-        m_isRunning = false;
     emit ready();
 
-
+    if(m_ProcessType != SOLVE || !m_SextractorSolver->hasWCSData() || !loadWCS)
+    {
+        m_isRunning = false;
+        emit finished();
+    }
 }
 
 //This slot listens for signals from the child solvers that they are in fact done with the solve
@@ -369,7 +371,7 @@ void StellarSolver::finishParallelSolve(int success)
             whichSolver = i + 1;
     }
 
-    if(success == 0)
+    if(success == 0 && !hasSolved)
     {
         numStars  = reportingSolver->getNumStarsFound();
         if(m_SSLogLevel != LOG_OFF)
@@ -398,21 +400,24 @@ void StellarSolver::finishParallelSolve(int success)
         }
         hasSolved = true;
         emit ready();
-
-        if(!reportingSolver->hasWCSData() || !loadWCS)
-            m_isRunning = false;
+        m_ParallelSolversFinishedCount++;
     }
     else
     {
-        m_ParallelFailsCount++;
+        m_ParallelSolversFinishedCount++;
         if(m_SSLogLevel != LOG_OFF)
-            emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
-        if(m_ParallelFailsCount == parallelSolvers.count())
+        {
+            if(!hasSolved)
+                emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
+        }
+        if(m_ParallelSolversFinishedCount == parallelSolvers.count())
         {
             if(!hasSolved)
                 hasFailed = true;
             m_isRunning = false;
             emit ready();
+            if(!loadWCS)
+                emit finished();
         }
     }
 }
@@ -430,6 +435,7 @@ void StellarSolver::finishWCS()
         }
     }
     m_isRunning = false;
+    emit finished();
 }
 
 bool StellarSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
