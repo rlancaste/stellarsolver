@@ -716,9 +716,9 @@ QList<FITSImage::Star> StellarSolver::appendStarsRAandDEC(QList<FITSImage::Star>
 
 //This function should get the system RAM in bytes.  I may revise it later to get the currently available RAM
 //But from what I read, getting the Available RAM is inconsistent and buggy on many systems.
-uint64_t StellarSolver::getAvailableRAM()
+double StellarSolver::getAvailableRAM()
 {
-    uint64_t RAM = 0;
+    double RAM = 0;
 
 #if defined(Q_OS_OSX)
     int mib[2];
@@ -726,14 +726,16 @@ uint64_t StellarSolver::getAvailableRAM()
     mib[0] = CTL_HW;
     mib[1] = HW_MEMSIZE;
     length = sizeof(int64_t);
-    if(sysctl(mib, 2, &RAM, &length, NULL, 0))
+    int64_t RAMcheck;
+    if(sysctl(mib, 2, &RAMcheck, &length, NULL, 0))
         return 0; // On Error
+    RAM = RAMcheck;
 #elif defined(Q_OS_LINUX)
     QProcess p;
     p.start("awk", QStringList() << "/MemTotal/ { print $2 }" << "/proc/meminfo");
     p.waitForFinished();
     QString memory = p.readAllStandardOutput();
-    RAM = memory.toLong() * 1024; //It is in kB on this system
+    RAM = memory.toLong() * 1024.0; //It is in kB on this system
     p.close();
 #else
     MEMORYSTATUSEX memory_status;
@@ -754,7 +756,7 @@ uint64_t StellarSolver::getAvailableRAM()
 //This should determine if enough RAM is available to load all the index files in parallel
 bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
 {
-    uint64_t totalSize = 0;
+    double totalSize = 0;
 
     foreach(QString folder, indexFolders)
     {
@@ -775,7 +777,7 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
             emit logOutput("Unable to determine system RAM for inParallel Option");
         return false;
     }
-    float bytesInGB = 1024 * 1024 * 1024; // B -> KB -> MB -> GB , float to make sure it reports the answer with any decimals
+    double bytesInGB = 1024.0 * 1024.0 * 1024.0; // B -> KB -> MB -> GB , float to make sure it reports the answer with any decimals
     if(m_SSLogLevel != LOG_OFF)
         emit logOutput(
             QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB").arg(
