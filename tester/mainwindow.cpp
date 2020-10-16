@@ -61,7 +61,8 @@ MainWindow::MainWindow() :
 
     //The Options at the bottom of the Window
     ui->trials->setToolTip("The number of times to Sextract or Solve to get an average time that it takes.");
-    connect(ui->startProcess_1, &QAbstractButton::clicked, this, &MainWindow::startProcess1Clicked );
+    connect(ui->startSextraction, &QAbstractButton::clicked, this, &MainWindow::sextractButtonClicked );
+    connect(ui->startSolving, &QAbstractButton::clicked, this, &MainWindow::solveButtonClicked );
     //ui->SextractStars->setToolTip("Sextract the stars in the image using the chosen method and load them into the star table");
     //ui->sextractorType->setToolTip("Lets you choose the Internal StellarSolver SEP or external Sextractor program");
     //ui->optionsProfileSextract->setToolTip("The Options Profile to use for Sextracting.");
@@ -425,7 +426,6 @@ MainWindow::MainWindow() :
     }
     optionsAreSaved = true;  //This way the next command won't trigger the unsaved warning.
     ui->optionsProfile->setCurrentIndex(1); //This is default
-    ui->processType_1->setCurrentIndex(SOLVE);
     ui->sextractionProfile->setCurrentIndex(programSettings.value("sextractionProfile", 6).toInt());
     ui->solverProfile->setCurrentIndex(programSettings.value("solverProfile", 7).toInt());
 
@@ -600,17 +600,45 @@ void MainWindow::loadIndexFilesList()
 //The methods run when the buttons are clicked.  They call the methods inside StellarSolver and ExternalSextractorSovler
 
 //This method responds when the user clicks the Sextract Button
-void MainWindow::startProcess1Clicked()
+void MainWindow::sextractButtonClicked()
 {
     if(!prepareForProcesses())
         return;
 
-    processType = (SSolver::ProcessType) ui->processType_1->currentIndex();
+    int type = ui->sextractorTypeForSextraction->currentIndex();
+    switch(type){
+    case 0:
+        processType = SEXTRACT;
+        sextractorType = SEXTRACTOR_INTERNAL;
+        break;
+    case 1:
+        processType = SEXTRACT_WITH_HFR;
+        sextractorType = SEXTRACTOR_INTERNAL;
+        break;
+    case 2:
+        processType = SEXTRACT;
+        sextractorType = SEXTRACTOR_EXTERNAL;
+        break;
+    case 3:
+        processType = SEXTRACT_WITH_HFR;
+        sextractorType = SEXTRACTOR_EXTERNAL;
+        break;
 
-    if(processType == SOLVE)
-        solveImage();
-    else
-        sextractImage();
+    }
+    profileSelection = ui->sextractionProfile->currentIndex();
+    sextractImage();
+}
+
+//This method responds when the user clicks the Sextract Button
+void MainWindow::solveButtonClicked()
+{
+    if(!prepareForProcesses())
+        return;
+
+    processType = SOLVE;
+    profileSelection = ui->solverProfile->currentIndex();
+
+    solveImage();
 }
 
 void MainWindow::sextractImage()
@@ -621,12 +649,10 @@ void MainWindow::sextractImage()
     stellarSolver.reset(new StellarSolver(stats, m_ImageBuffer, this));
     connect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
 
-    sextractorType = (SSolver::SextractorType) ui->sextractorTypeForSextraction->currentIndex();
     stellarSolver->setProperty("SextractorType", sextractorType);
     stellarSolver->setProperty("ProcessType", processType);
 
     //These set the StellarSolver Parameters
-    int profileSelection = ui->sextractionProfile->currentIndex();
     if(profileSelection == 0)
         stellarSolver->setParameters(getSettingsFromUI());
     else if(profileSelection == 1)
@@ -671,7 +697,6 @@ void MainWindow::solveImage()
     stellarSolver->setProperty("SolverType", solverType);
 
     //These set the StellarSolver Parameters
-    int profileSelection = ui->solverProfile->currentIndex();
     if(profileSelection == 0)
         stellarSolver->setParameters(getSettingsFromUI());
     else if(profileSelection == 1)

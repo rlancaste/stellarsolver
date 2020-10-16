@@ -115,6 +115,7 @@ private:
     SSolver::ProcessType processType;
     SSolver::SextractorType sextractorType;
     SSolver::SolverType solverType;
+    int profileSelection;
 
     //This allows for averaging over multiple trials
     int currentTrial = 0;
@@ -167,7 +168,8 @@ public slots:
     void setSubframe();
 
     //These are the functions that run when the bottom buttons are clicked
-    void startProcess1Clicked();
+    void sextractButtonClicked();
+    void solveButtonClicked();
     void sextractImage();
     void solveImage();
 
