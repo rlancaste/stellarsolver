@@ -462,6 +462,20 @@ void StellarSolver::abort()
     wasAborted = true;
 }
 
+//This method checks all the solvers and the internal running boolean to determine if anything is running.
+bool StellarSolver::isRunning()
+{
+    for(auto solver : parallelSolvers)
+    {
+        if(solver->isRunning())
+            return true;
+    }
+    if(m_SextractorSolver && m_SextractorSolver->isRunning())
+        return true;
+
+    return m_isRunning;
+}
+
 //This method uses a fwhm value to generate the conv filter the sextractor will use.
 void StellarSolver::createConvFilterFromFWHM(Parameters *params, double fwhm)
 {

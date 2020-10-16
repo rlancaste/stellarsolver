@@ -227,10 +227,7 @@ class StellarSolver : public QObject
             m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
         };
 
-        inline bool isRunning() const
-        {
-            return m_isRunning;
-        }
+        bool isRunning();
 
         inline static QString raString(double ra)
         {
