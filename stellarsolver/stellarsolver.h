@@ -40,6 +40,7 @@ class StellarSolver : public QObject
         Q_PROPERTY(bool UsePosition MEMBER m_UsePosition)
         Q_PROPERTY(bool UseScale MEMBER m_UseScale)
         Q_PROPERTY(bool AutoGenerateAstroConfig MEMBER m_AutoGenerateAstroConfig)
+        Q_PROPERTY(bool CleanupTemporaryFiles MEMBER m_CleanupTemporaryFiles)
         Q_PROPERTY(bool LogToFile MEMBER m_LogToFile)
         Q_PROPERTY(SolverType SolverType MEMBER m_SolverType)
         Q_PROPERTY(ProcessType ProcessType MEMBER m_ProcessType)

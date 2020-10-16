@@ -791,7 +791,7 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     else if(astrometryLogLevel == LOG_VERB || astrometryLogLevel == LOG_ALL)
         solverArgs << "-vv";
 
-    if(autoGenerateAstroConfig && !QFile(confPath).exists())
+    if(autoGenerateAstroConfig || !QFile(confPath).exists())
         generateAstrometryConfigFile();
 
     //This sends the path to the config file.  Note that backend-config seems to be more universally recognized across
@@ -812,8 +812,7 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
 //for the external solvers from inside the program.
 bool ExternalSextractorSolver::generateAstrometryConfigFile()
 {
-    if(confPath == "")
-        confPath =  basePath + "/" + baseName + ".cfg";
+    confPath =  basePath + "/" + baseName + ".cfg";
     QFile configFile(confPath);
     if (configFile.open(QIODevice::WriteOnly) == false)
     {
