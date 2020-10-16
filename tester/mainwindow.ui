@@ -127,8 +127,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>336</width>
-                 <height>394</height>
+                 <width>350</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -161,8 +161,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>336</width>
-                 <height>394</height>
+                 <width>350</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -264,8 +264,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>336</width>
-                 <height>394</height>
+                 <width>350</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -446,8 +446,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>336</width>
-                 <height>394</height>
+                 <width>350</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -564,8 +564,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>336</width>
-                 <height>394</height>
+                 <width>350</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1087,8 +1087,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>336</width>
-                 <height>300</height>
+                 <width>350</width>
+                 <height>294</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1120,7 +1120,7 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>334</width>
+                     <width>348</width>
                      <height>311</height>
                     </rect>
                    </property>
@@ -1469,8 +1469,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>490</width>
-                 <height>146</height>
+                 <width>486</width>
+                 <height>144</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="gridLayout_2">
@@ -1855,7 +1855,7 @@
           <number>0</number>
          </property>
          <property name="topMargin">
-          <number>0</number>
+          <number>10</number>
          </property>
          <property name="rightMargin">
           <number>0</number>
@@ -1959,7 +1959,7 @@
           <number>0</number>
          </property>
          <property name="topMargin">
-          <number>0</number>
+          <number>10</number>
          </property>
          <property name="rightMargin">
           <number>0</number>
