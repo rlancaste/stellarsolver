@@ -173,6 +173,8 @@ public slots:
     void sextractImage();
     void solveImage();
 
+    void resetStellarSolver();
+
     void abort();
 
     //These functions are for loading and displaying the image

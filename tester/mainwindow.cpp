@@ -567,18 +567,6 @@ bool MainWindow::prepareForProcesses()
                     return false;
             }
         }
-
-        auto *solver = stellarSolver.release();
-        solver->disconnect(this);
-        if(solver->isRunning())
-        {
-            solver->setLoadWCS(false);
-            connect(solver, &StellarSolver::finished, solver, &StellarSolver::deleteLater);
-        }
-        else
-            solver->deleteLater();
-        solver->abort();
-
     }
 
     numberOfTrials = ui->trials->value();
@@ -664,12 +652,32 @@ void MainWindow::solveButtonClicked()
     solveImage();
 }
 
+void MainWindow::resetStellarSolver()
+{
+    if(stellarSolver != nullptr)
+    {
+        auto *solver = stellarSolver.release();
+        solver->disconnect(this);
+        if(solver->isRunning())
+        {
+            solver->setLoadWCS(false);
+            connect(solver, &StellarSolver::finished, solver, &StellarSolver::deleteLater);
+        }
+        else
+            solver->deleteLater();
+        solver->abort();
+    }
+
+    stellarSolver.reset(new StellarSolver(stats, m_ImageBuffer, this));
+}
+
+
 void MainWindow::sextractImage()
 {
     currentTrial++;
     clearStars();
 
-    stellarSolver.reset(new StellarSolver(stats, m_ImageBuffer, this));
+    resetStellarSolver();
     connect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
 
     stellarSolver->setProperty("SextractorType", sextractorType);
@@ -709,7 +717,7 @@ void MainWindow::solveImage()
         delete [] wcs_coord;
     }
 
-    stellarSolver.reset(new StellarSolver(stats, m_ImageBuffer, this));
+    resetStellarSolver();
     connect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
 
     sextractorType = (SSolver::SextractorType) ui->sextractorTypeForSolving->currentIndex();
