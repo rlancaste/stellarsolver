@@ -153,12 +153,14 @@ int ExternalSextractorSolver::sextract()
     {
         int fail = 0;
         if(sextractorType == SEXTRACTOR_INTERNAL)
+        {
             fail = runSEPSextractor();
+            if(fail != 0)
+                return fail;
+            return(writeSextractorTable());
+        }
         else if(sextractorType == SEXTRACTOR_EXTERNAL)
-            fail = runExternalSextractor();
-        if(fail != 0)
-            return fail;
-        return(writeSextractorTable());
+            return(runExternalSextractor());
     }
     return -1;
 }
@@ -493,7 +495,7 @@ int ExternalSextractorSolver::runExternalSextractor()
 
     sextractorProcess->setWorkingDirectory(basePath);
     sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
-    if(astrometryLogLevel != LOG_NONE)
+    if(m_SSLogLevel != LOG_OFF)
         connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSextractor);
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
