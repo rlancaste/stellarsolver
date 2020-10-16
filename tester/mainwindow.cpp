@@ -669,6 +669,7 @@ void MainWindow::resetStellarSolver()
     }
 
     stellarSolver.reset(new StellarSolver(stats, m_ImageBuffer, this));
+    connect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
 }
 
 
@@ -677,8 +678,8 @@ void MainWindow::sextractImage()
     currentTrial++;
     clearStars();
 
-    resetStellarSolver();
-    connect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
+    //Since this tester uses it many times, it doesn't *need* to replace the stellarsolver every time
+    //resetStellarSolver();
 
     stellarSolver->setProperty("SextractorType", sextractorType);
     stellarSolver->setProperty("ProcessType", processType);
@@ -717,8 +718,8 @@ void MainWindow::solveImage()
         delete [] wcs_coord;
     }
 
-    resetStellarSolver();
-    connect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
+    //Since this tester uses it many times, it doesn't *need* to replace the stellarsolver every time
+    //resetStellarSolver();
 
     sextractorType = (SSolver::SextractorType) ui->sextractorTypeForSolving->currentIndex();
     solverType = (SSolver::SolverType) ui->solverType->currentIndex();
@@ -923,6 +924,8 @@ bool MainWindow::sextractorComplete()
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         if(currentTrial < numberOfTrials)
         {
+            while(stellarSolver->isRunning())
+                qApp->processEvents();
             sextractImage();
             return true;
         }
@@ -967,6 +970,8 @@ bool MainWindow::solverComplete()
         lastSolution = stellarSolver->getSolution();
         if(currentTrial < numberOfTrials)
         {
+            while(stellarSolver->isRunning())
+                qApp->processEvents();
             solveImage();
             return true;
         }
@@ -1088,6 +1093,8 @@ bool MainWindow::imageLoad()
         ui->horSplitter->setSizes(QList<int>() << ui->optionsBox->width() << ui->horSplitter->width() << 0 );
         ui->fileNameDisplay->setText("Image: " + fileURL);
         initDisplayImage();
+
+        resetStellarSolver();
         return true;
     }
     return false;

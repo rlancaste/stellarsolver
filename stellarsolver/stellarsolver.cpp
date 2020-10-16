@@ -322,7 +322,11 @@ void StellarSolver::processFinished(int code)
                 solverWithWCS = m_SextractorSolver;
                 if(loadWCS)
                 {
-                    solverWithWCS->computeWCSForStars = stars.count() > 0;
+                    if(stars.count() > 0)
+                    {
+                        solverWithWCS->computeWCSForStars = true;
+                        solverWithWCS->setStarList(stars);
+                    }
                     solverWithWCS->computingWCS = true;
                     disconnect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::processFinished);
                     connect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishWCS);
