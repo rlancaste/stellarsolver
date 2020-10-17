@@ -774,7 +774,7 @@ bool StellarSolver::getAvailableRAM(double &availableRAM, double &totalRAM)
 
     p.start("awk", QStringList() << "/MemTotal/ { print $2 }" << "/proc/meminfo");
     p.waitForFinished();
-    QString memory = p.readAllStandardOutput();
+    memory = p.readAllStandardOutput();
     totalRAM = memory.toLong() * 1024.0; //It is in kB on this system
     p.close();
 #else
