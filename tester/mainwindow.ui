@@ -1121,7 +1121,7 @@
                      <x>0</x>
                      <y>0</y>
                      <width>348</width>
-                     <height>311</height>
+                     <height>334</height>
                     </rect>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_5">
@@ -1140,106 +1140,48 @@
                     <property name="spacing">
                      <number>-1</number>
                     </property>
-                    <item row="27" column="0">
-                     <widget class="QLabel" name="label_36">
+                    <item row="23" column="2">
+                     <widget class="QLineEdit" name="solverTimeLimit">
                       <property name="text">
-                       <string>KeepOdds</string>
+                       <string>600</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="28" column="1">
-                     <widget class="QLineEdit" name="oddsToTune">
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="34" column="1">
-                     <spacer name="verticalSpacer_7">
-                      <property name="orientation">
-                       <enum>Qt::Vertical</enum>
-                      </property>
-                      <property name="sizeHint" stdset="0">
-                       <size>
-                        <width>20</width>
-                        <height>40</height>
-                       </size>
-                      </property>
-                     </spacer>
-                    </item>
-                    <item row="19" column="0">
-                     <widget class="QLabel" name="label_33">
-                      <property name="text">
-                       <string>MultiAlgo</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="26" column="1">
-                     <widget class="QLineEdit" name="oddsToSolve">
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="27" column="1">
-                     <widget class="QLineEdit" name="oddsToKeep">
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="24" column="0">
-                     <widget class="QLabel" name="label_28">
-                      <property name="text">
-                       <string>MaxWidth</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="25" column="1">
+                    <item row="27" column="2">
                      <widget class="QLineEdit" name="radius"/>
                     </item>
-                    <item row="23" column="1">
-                     <widget class="QLineEdit" name="minWidth">
-                      <property name="text">
-                       <string>0.1</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="25" column="0">
+                    <item row="27" column="0">
                      <widget class="QLabel" name="label_9">
                       <property name="text">
                        <string>Radius</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="20" column="1">
-                     <widget class="QSpinBox" name="downsample">
-                      <property name="minimum">
-                       <number>1</number>
-                      </property>
-                      <property name="maximum">
-                       <number>5</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="23" column="0">
-                     <widget class="QLabel" name="label_27">
+                    <item row="29" column="0">
+                     <widget class="QLabel" name="label_36">
                       <property name="text">
-                       <string>MinWidth</string>
+                       <string>KeepOdds</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="28" column="0">
+                    <item row="25" column="2">
+                     <widget class="QLineEdit" name="minWidth">
+                      <property name="text">
+                       <string>0.1</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="30" column="0">
                      <widget class="QLabel" name="label_37">
                       <property name="text">
                        <string>TuneOdds</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="24" column="1">
-                     <widget class="QLineEdit" name="maxWidth">
+                    <item row="20" column="0">
+                     <widget class="QLabel" name="label_33">
                       <property name="text">
-                       <string>180</string>
+                       <string>MultiAlgo</string>
                       </property>
                      </widget>
                     </item>
@@ -1253,7 +1195,62 @@
                       </property>
                      </widget>
                     </item>
-                    <item row="19" column="1">
+                    <item row="26" column="0">
+                     <widget class="QLabel" name="label_28">
+                      <property name="text">
+                       <string>MaxWidth</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="30" column="2">
+                     <widget class="QLineEdit" name="oddsToTune">
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="23" column="0">
+                     <widget class="QLabel" name="label_29">
+                      <property name="text">
+                       <string>MaxTime</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="36" column="2">
+                     <spacer name="verticalSpacer_7">
+                      <property name="orientation">
+                       <enum>Qt::Vertical</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>20</width>
+                        <height>40</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item row="25" column="0">
+                     <widget class="QLabel" name="label_27">
+                      <property name="text">
+                       <string>MinWidth</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="28" column="2">
+                     <widget class="QLineEdit" name="oddsToSolve">
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="26" column="2">
+                     <widget class="QLineEdit" name="maxWidth">
+                      <property name="text">
+                       <string>180</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="20" column="2">
                      <widget class="QComboBox" name="multiAlgo">
                       <property name="currentIndex">
                        <number>0</number>
@@ -1280,38 +1277,48 @@
                       </item>
                      </widget>
                     </item>
-                    <item row="18" column="1">
-                     <widget class="QCheckBox" name="resort">
+                    <item row="29" column="2">
+                     <widget class="QLineEdit" name="oddsToKeep">
                       <property name="text">
-                       <string>Resort</string>
+                       <string/>
                       </property>
                      </widget>
                     </item>
-                    <item row="20" column="0">
+                    <item row="22" column="0">
                      <widget class="QLabel" name="label_16">
                       <property name="text">
                        <string>DownSam</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="21" column="1">
-                     <widget class="QLineEdit" name="solverTimeLimit">
-                      <property name="text">
-                       <string>600</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="26" column="0">
+                    <item row="28" column="0">
                      <widget class="QLabel" name="label_35">
                       <property name="text">
                        <string>SolveOdds</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="21" column="0">
-                     <widget class="QLabel" name="label_29">
+                    <item row="22" column="2">
+                     <widget class="QSpinBox" name="downsample">
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>5</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="18" column="2">
+                     <widget class="QCheckBox" name="resort">
                       <property name="text">
-                       <string>MaxTime</string>
+                       <string>Resort</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="21" column="2">
+                     <widget class="QCheckBox" name="autoDown">
+                      <property name="text">
+                       <string>AutoDownsample</string>
                       </property>
                      </widget>
                     </item>

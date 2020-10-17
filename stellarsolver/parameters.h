@@ -314,6 +314,8 @@ class Parameters
         //Astrometry Basic Parameters
         bool resort =
             true;                 // Whether to resort the stars based on magnitude NOTE: This is REQUIRED to be true for the filters above
+        bool autoDownsample =       // Whether or not to automatically determine the downsample size based on the image size.
+                true;
         int downsample =
             1;                 // Factor to use for downsampling the image before SEP for plate solving.  Can speed it up.  This is not used for Source Extraction
         int search_parity = 2;              // Only check for matches with positive/negative parity (default: try both)

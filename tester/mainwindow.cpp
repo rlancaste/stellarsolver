@@ -273,6 +273,7 @@ MainWindow::MainWindow() :
     {
         ui->resortQT->setChecked(ui->resort->isChecked());
     });
+    ui->autoDown->setToolTip("This determines whether to automatically downsample or use the parameter below.");
     ui->downsample->setToolTip("This downsamples or bins the image to hopefully make it solve faster.");
     ui->resort->setToolTip("This resorts the stars based on magnitude. It usually makes it solve faster.");
     ui->use_scale->setToolTip("Whether or not to use the estimated image scale below to try to speed up the solve");
@@ -843,6 +844,7 @@ SSolver::Parameters MainWindow::getSettingsFromUI()
     params.solverTimeLimit = ui->solverTimeLimit->text().toInt();
 
     params.resort = ui->resort->isChecked();
+    params.autoDownsample = ui->autoDown->isChecked();
     params.downsample = ui->downsample->value();
     params.search_radius = ui->radius->text().toDouble();
 
@@ -884,6 +886,7 @@ void MainWindow::sendSettingsToUI(SSolver::Parameters a)
 
     //Astrometry Settings
 
+    ui->autoDown->setChecked(a.autoDownsample);
     ui->downsample->setValue(a.downsample);
     ui->inParallel->setChecked(a.inParallel);
     ui->multiAlgo->setCurrentIndex(a.multiAlgorithm);
@@ -2371,6 +2374,7 @@ void MainWindow::addSolutionToTable(FITSImage::Solution solution)
     setItemInColumn(table, "Pos?", stellarSolver->property("UsePosition").toString());
     setItemInColumn(table, "Scale?", stellarSolver->property("UseScale").toString());
     setItemInColumn(table, "Resort?", QVariant(params.resort).toString());
+    setItemInColumn(table, "AutoDown", QVariant(params.autoDownsample).toString());
     setItemInColumn(table, "Down", QVariant(params.downsample).toString());
     setItemInColumn(table, "in ||", QVariant(params.inParallel).toString());
     setItemInColumn(table, "Multi", stellarSolver->getMultiAlgoString());

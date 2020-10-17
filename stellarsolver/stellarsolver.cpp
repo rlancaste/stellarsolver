@@ -181,15 +181,26 @@ bool StellarSolver::checkParameters()
 {
     if(params.multiAlgorithm != NOT_MULTI && m_SolverType == SOLVER_ASTAP && m_ProcessType == SOLVE)
     {
-        emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
+        if(m_SSLogLevel != LOG_OFF)
+            emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
         params.multiAlgorithm = NOT_MULTI;
     }
 
     if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && m_SextractorType != SEXTRACTOR_INTERNAL)
     {
-        emit logOutput("StellarSolver only uses the Internal SEP Sextractor since it doesn't save files to disk. Changing to Internal Sextractor.");
+        if(m_SSLogLevel != LOG_OFF)
+            emit logOutput("StellarSolver only uses the Internal SEP Sextractor since it doesn't save files to disk. Changing to Internal Sextractor.");
         m_SextractorType = SEXTRACTOR_INTERNAL;
 
+    }
+
+    if(m_ProcessType == SOLVE  && params.autoDownsample)
+    {
+        //Take whichever one is bigger
+        int imageSize = m_Statistics.width > m_Statistics.height ? m_Statistics.width : m_Statistics.height;
+        params.downsample = imageSize / 1024 + 1;
+        if(m_SSLogLevel != LOG_OFF)
+            emit logOutput(QString("Automatically downsampling the image by %1").arg(params.downsample));
     }
 
     if(m_ProcessType == SOLVE && params.multiAlgorithm == MULTI_AUTO)
