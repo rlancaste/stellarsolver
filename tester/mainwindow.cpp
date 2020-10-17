@@ -2299,6 +2299,7 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table, "Pos?");
     addColumnToTable(table, "Scale?");
     addColumnToTable(table, "Resort?");
+    addColumnToTable(table, "AutoDown");
     addColumnToTable(table, "Down");
     addColumnToTable(table, "in ||");
     addColumnToTable(table, "Multi");
@@ -2427,6 +2428,7 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table, "Pos?", !showAstrometryParams);
     setColumnHidden(table, "Scale?", !showAstrometryParams);
     setColumnHidden(table, "Resort?", !showAstrometryParams);
+    setColumnHidden(table, "AutoDown", !showAstrometryParams);
     setColumnHidden(table, "Down", !showAstrometryParams);
     setColumnHidden(table, "in ||", !showAstrometryParams);
     setColumnHidden(table, "Multi", !showAstrometryParams);
