@@ -5,13 +5,15 @@
  * Original cython version by Thomas Robitaille. Converted to C by Kyle
  * Barbary. */
 
-#pragma once
-
-#include <math.h>
+#if defined(_MSC_VER)
+  #define INLINE _inline
+#else
+  #define INLINE inline
+#endif
 
 /* Return area of a circle arc between (x1, y1) and (x2, y2) with radius r */
 /* reference: http://mathworld.wolfram.com/CircularSegment.html */
-static double area_arc(double x1, double y1, double x2, double y2,
+static INLINE double area_arc(double x1, double y1, double x2, double y2,
 			      double r)
 {
   double a, theta;
@@ -21,8 +23,8 @@ static double area_arc(double x1, double y1, double x2, double y2,
   return 0.5 * r * r * (theta - sin(theta));
 }
 
-/* Area of a triangle defined by three vertices */
-static double area_triangle(double x1, double y1, double x2, double y2,
+/* Area of a triangle defined by three verticies */
+static INLINE double area_triangle(double x1, double y1, double x2, double y2,
 				   double x3, double y3)
 {
   return 0.5 * fabs(x1*(y2-y3) + x2*(y3-y1) + x3*(y1-y2));
@@ -32,7 +34,7 @@ static double area_triangle(double x1, double y1, double x2, double y2,
  * Assumes that xmax >= xmin >= 0.0, ymax >= ymin >= 0.0.
  * (can always modify input to conform to this).
  */
-static double circoverlap_core(double xmin, double ymin,
+static INLINE double circoverlap_core(double xmin, double ymin,
 				      double xmax, double ymax, double r)
 {
   double a, b, x1, x2, y1, y2, r2, xmin2, ymin2, xmax2, ymax2;
@@ -185,7 +187,7 @@ typedef struct
   point p1, p2;
 } intersections;
 
-static void swap(double *a, double *b)
+static INLINE void swap(double *a, double *b)
 {
   double temp;
   temp = *a;
@@ -193,7 +195,7 @@ static void swap(double *a, double *b)
   *b = temp;
 }
 
-static void swap_point(point *a, point *b)
+static INLINE void swap_point(point *a, point *b)
 {
   point temp;
   temp = *a;
@@ -202,7 +204,7 @@ static void swap_point(point *a, point *b)
 }
 
 /* rotate values to the left: a=b, b=c, c=a */
-static void rotate(double *a, double *b, double *c)
+static INLINE void rotate(double *a, double *b, double *c)
 {
   double temp;
   temp = *a;

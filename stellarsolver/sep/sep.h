@@ -63,9 +63,11 @@ typedef struct {
   void *data;        /* data array                */
   void *noise;       /* noise array (can be NULL) */
   void *mask;        /* mask array (can be NULL)  */
+  void *segmap;      /* segmap array (can be NULL)  */
   int dtype;         /* element type of image     */
   int ndtype;        /* element type of noise     */
   int mdtype;        /* element type of mask      */
+  int sdtype;        /* element type of segmap    */
   int w;             /* array width               */
   int h;             /* array height              */
   double noiseval;   /* scalar noise value; used only if noise == NULL */
@@ -122,9 +124,6 @@ typedef struct {
   int    *objectspix;      /* buffer holding pixel indicies for all objects */
 } sep_catalog;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /*--------------------- global background estimation ------------------------*/
 
@@ -170,7 +169,7 @@ float sep_bkg_pix(sep_bkg *bkg, int x, int y);
 /* sep_bkg_[sub,rms]line()
  * 
  * Evaluate the background or RMS at line `y`.
- * Uses bicubic spline interpolation between background map vertices.
+ * Uses bicubic spline interpolation between background map verticies.
  * The second function subtracts the background from the input array.
  * Line must be an array with same width as original image.
  */
@@ -182,7 +181,7 @@ int sep_bkg_rmsline(sep_bkg *bkg, int y, void *line, int dtype);
 /* sep_bkg_[sub,rms]array()
  * 
  * Evaluate the background or RMS for entire image.
- * Uses bicubic spline interpolation between background map vertices.
+ * Uses bicubic spline interpolation between background map verticies.
  * The second function subtracts the background from the input array.
  * `arr` must be an array of the same size as original image.
  */
@@ -259,6 +258,7 @@ int sep_sum_circle(sep_image *image,
 		   double x,          /* center of aperture in x */
 		   double y,          /* center of aperture in y */
 		   double r,          /* radius of aperture */
+		   int id,            /* optional id to test against segmap array */
 		   int subpix,        /* subpixel sampling */
 		   short inflags,     /* input flags (see below) */
 		   double *sum,       /* OUTPUT: sum */
@@ -269,17 +269,17 @@ int sep_sum_circle(sep_image *image,
 
 int sep_sum_circann(sep_image *image,
                     double x, double y, double rin, double rout,
-                    int subpix, short inflags,
+                    int id, int subpix, short inflags,
 		    double *sum, double *sumerr, double *area, short *flag);
 
 int sep_sum_ellipse(sep_image *image,
 		    double x, double y, double a, double b, double theta,
-		    double r, int subpix, short inflags,
+		    double r, int id, int subpix, short inflags,
 		    double *sum, double *sumerr, double *area, short *flag);
 
 int sep_sum_ellipann(sep_image *image,
 		     double x, double y, double a, double b, double theta,
-		     double rin, double rout, int subpix, short inflags,
+		     double rin, double rout, int id, int subpix, short inflags,
 		     double *sum, double *sumerr, double *area, short *flag);
 
 /* sep_sum_circann_multi()
@@ -291,7 +291,7 @@ int sep_sum_ellipann(sep_image *image,
  * rmax:     Input radii are  [rmax/n, 2*rmax/n, 3*rmax/n, ..., rmax].
  * n:        Length of input and output arrays.
  * sum:      Preallocated array of length n holding sums in annuli. sum[0]
- *           corresponds to r=[0, rmax/n], sum[n-1] to outermost annulus.
+ *           corrresponds to r=[0, rmax/n], sum[n-1] to outermost annulus.
  * sumvar:   Preallocated array of length n holding variance on sums.
  * area:     Preallocated array of length n holding area summed in each annulus.
  * maskarea: Preallocated array of length n holding masked area in each
@@ -299,7 +299,7 @@ int sep_sum_ellipann(sep_image *image,
  * flag:     Output flag (non-array).
  */
 int sep_sum_circann_multi(sep_image *im,
-			  double x, double y, double rmax, int n, int subpix,
+			  double x, double y, double rmax, int n, int id, int subpix,
                           short inflag,
 			  double *sum, double *sumvar, double *area,
 			  double *maskarea, short *flag);
@@ -319,7 +319,7 @@ int sep_sum_circann_multi(sep_image *im,
  * flag : (output) scalar flag
  */
 int sep_flux_radius(sep_image *im,
-		    double x, double y, double rmax, int subpix, short inflag,
+		    double x, double y, double rmax, int id, int subpix, short inflag,
 		    double *fluxtot, double *fluxfrac, int n,
 		    double *r, short *flag);
 
@@ -336,11 +336,11 @@ int sep_flux_radius(sep_image *im,
  * Flags that might be set:
  * SEP_APER_HASMASKED - at least one of the pixels in the ellipse is masked.
  * SEP_APER_ALLMASKED - All pixels in the ellipse are masked. kronrad = 0.
- * SEP_APER_NONPOSITIVE - There was a non-positive numerator or denominator.
+ * SEP_APER_NONPOSITIVE - There was a nonpositive numerator or deminator.
  *                        kronrad = 0.
  */
 int sep_kron_radius(sep_image *im, double x, double y,
-		    double cxx, double cyy, double cxy, double r,
+		    double cxx, double cyy, double cxy, double r, int id, 
 		    double *kronrad, short *flag);
 
 
@@ -409,7 +409,3 @@ void sep_get_errmsg(int status, char *errtext);
  * The message may be up to 512 characters.
  */
 void sep_get_errdetail(char *errtext);
-
-#ifdef __cplusplus
-}
-#endif
