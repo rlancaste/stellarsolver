@@ -53,26 +53,26 @@ typedef void (*array_writer)(float *ptr, int n, void *target);
 #define	QCALLOC(ptr, typ, nel, status)				     	\
   {if (!(ptr = (typ *)calloc((size_t)(nel),sizeof(typ))))		\
       {									\
-	char errtext[160];						\
-	sprintf(errtext, #ptr " (" #nel "=%lu elements) "		\
-		"at line %d in module " __FILE__ " !",			\
-		(size_t)(nel)*sizeof(typ), __LINE__);			\
-	put_errdetail(errtext);						\
-	status = MEMORY_ALLOC_ERROR;					\
-	goto exit;							\
+    char errtext[160];						\
+    sprintf(errtext, #ptr " (" #nel "=%lu elements) "		\
+        "at line %d in module " __FILE__ " !",			\
+        (size_t)(nel)*sizeof(typ), __LINE__);			\
+    put_errdetail(errtext);						\
+    status = MEMORY_ALLOC_ERROR;					\
+    goto exit;							\
       };								\
   }
 
 #define	QMALLOC(ptr, typ, nel, status)					\
   {if (!(ptr = (typ *)malloc((size_t)(nel)*sizeof(typ))))		\
       {									\
-	char errtext[160];						\
-	sprintf(errtext, #ptr " (" #nel "=%lu elements) "		\
-		"at line %d in module " __FILE__ " !",			\
-		(size_t)(nel)*sizeof(typ), __LINE__);			\
-	put_errdetail(errtext);						\
-	status = MEMORY_ALLOC_ERROR;					\
-	goto exit;							\
+    char errtext[160];						\
+    sprintf(errtext, #ptr " (" #nel "=%lu elements) "		\
+        "at line %d in module " __FILE__ " !",			\
+        (size_t)(nel)*sizeof(typ), __LINE__);			\
+    put_errdetail(errtext);						\
+    status = MEMORY_ALLOC_ERROR;					\
+    goto exit;							\
       };								\
   }
 

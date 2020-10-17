@@ -263,6 +263,7 @@ target_link_libraries(stellarsolverstatic
     Qt5::Core
     Qt5::Network
     Qt5::Widgets
+    Qt5::Concurrent
     )
 
 add_library(stellarsolver SHARED
@@ -282,6 +283,7 @@ target_link_libraries(stellarsolver
     Qt5::Core
     Qt5::Network
     Qt5::Widgets
+    Qt5::Concurrent
     )
 
 set_target_properties(stellarsolver PROPERTIES VERSION ${StellarSolver_VERSION_STRING} SOVERSION ${StellarSolver_SOVERSION} OUTPUT_NAME stellarsolver)

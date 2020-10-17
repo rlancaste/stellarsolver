@@ -81,15 +81,15 @@ static QString getScaleUnitString(SSolver::ScaleUnits scaleunit)
 
 // This is the list of operations that the Stellarsolver can do.
 // You need to set this either directly or using a method before starting the process.
-typedef enum { SEXTRACT,            //This just sextracts the sources
-               SEXTRACT_WITH_HFR,   //This sextracts the sources and finds the HFR
+typedef enum { EXTRACT,            //This just sextracts the sources
+               EXTRACT_WITH_HFR,   //This sextracts the sources and finds the HFR
                SOLVE                //This solves the image
              } ProcessType;
 
-typedef enum { SEXTRACTOR_INTERNAL, //This uses internal SEP to Sextract Sources
-               SEXTRACTOR_EXTERNAL,  //This uses the external sextractor to Sextract Sources.
-               SEXTRACTOR_BUILTIN  //This uses whatever default sextraction method the selected solver uses
-             } SextractorType;
+typedef enum { EXTRACTOR_INTERNAL, //This uses internal SEP to Sextract Sources
+               EXTRACTOR_EXTERNAL,  //This uses the external sextractor to Sextract Sources.
+               EXTRACTOR_BUILTIN  //This uses whatever default sextraction method the selected solver uses
+             } ExtractorType;
 
 typedef enum { SOLVER_STELLARSOLVER,    //This uses the internal build of astrometry.net
                SOLVER_LOCALASTROMETRY,  //This uses an astrometry.net or ANSVR locally on this computer
@@ -98,38 +98,38 @@ typedef enum { SOLVER_STELLARSOLVER,    //This uses the internal build of astrom
              } SolverType;
 
 //This gets the processType as a string explaining the command StellarSolver is Running
-static QString getCommandString(SSolver::ProcessType processType, SSolver::SextractorType sextractorType,
+static QString getCommandString(SSolver::ProcessType processType, SSolver::ExtractorType sextractorType,
                                 SSolver::SolverType solverType)
 {
     QString commandString = "";
 
     switch(sextractorType)
     {
-        case SEXTRACTOR_INTERNAL:
+        case EXTRACTOR_INTERNAL:
             commandString += "Internal ";
             break;
 
-        case SEXTRACTOR_EXTERNAL:
+        case EXTRACTOR_EXTERNAL:
             commandString += "External ";
             break;
 
-        case SEXTRACTOR_BUILTIN:
+        case EXTRACTOR_BUILTIN:
             commandString += "Built In ";
             break;
     }
 
     switch(processType)
     {
-        case SEXTRACT:
-            commandString += "Sextractor ";
+        case EXTRACT:
+            commandString += "Extractor ";
             break;
 
-        case SEXTRACT_WITH_HFR:
-            commandString += "Sextractor w/HFR ";
+        case EXTRACT_WITH_HFR:
+            commandString += "Extractor w/HFR ";
             break;
 
         case SOLVE:
-            commandString += "Sextractor w/ ";
+            commandString += "Extractor w/ ";
             break;
     }
 

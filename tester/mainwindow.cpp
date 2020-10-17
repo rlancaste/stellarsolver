@@ -562,7 +562,7 @@ bool MainWindow::prepareForProcesses()
                 if(QMessageBox::question(this, "Abort?", "StellarSolver is solving now. Abort it?") == QMessageBox::No)
                     return false;
             }
-            else if((type == SEXTRACT || type == SEXTRACT_WITH_HFR) && !sextractorComplete()){
+            else if((type == EXTRACT || type == EXTRACT_WITH_HFR) && !sextractorComplete()){
                 if(QMessageBox::question(this, "Abort?", "StellarSolver is extracting sources now. Abort it?") == QMessageBox::No)
                     return false;
             }
@@ -619,20 +619,20 @@ void MainWindow::sextractButtonClicked()
     int type = ui->sextractorTypeForSextraction->currentIndex();
     switch(type){
     case 0:
-        processType = SEXTRACT;
-        sextractorType = SEXTRACTOR_INTERNAL;
+        processType = EXTRACT;
+        sextractorType = EXTRACTOR_INTERNAL;
         break;
     case 1:
-        processType = SEXTRACT_WITH_HFR;
-        sextractorType = SEXTRACTOR_INTERNAL;
+        processType = EXTRACT_WITH_HFR;
+        sextractorType = EXTRACTOR_INTERNAL;
         break;
     case 2:
-        processType = SEXTRACT;
-        sextractorType = SEXTRACTOR_EXTERNAL;
+        processType = EXTRACT;
+        sextractorType = EXTRACTOR_EXTERNAL;
         break;
     case 3:
-        processType = SEXTRACT_WITH_HFR;
-        sextractorType = SEXTRACTOR_EXTERNAL;
+        processType = EXTRACT_WITH_HFR;
+        sextractorType = EXTRACTOR_EXTERNAL;
         break;
 
     }
@@ -720,7 +720,7 @@ void MainWindow::solveImage()
     resetStellarSolver();
     connect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
 
-    sextractorType = (SSolver::SextractorType) ui->sextractorTypeForSolving->currentIndex();
+    sextractorType = (SSolver::ExtractorType) ui->sextractorTypeForSolving->currentIndex();
     solverType = (SSolver::SolverType) ui->solverType->currentIndex();
 
     stellarSolver->setProperty("ProcessType", processType);

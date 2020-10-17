@@ -36,19 +36,97 @@ void lutzsort(infostruct *, objliststruct *);
 
 /*------------------------- Static buffers for lutz() -----------------------*/
 
-static infostruct  *info=NULL, *store=NULL;
-static char	   *marker=NULL;
-static pixstatus   *psstack=NULL;
-static int         *start=NULL, *end=NULL, *discan=NULL;
-static int         xmin, ymin, xmax, ymax;
+//static infostruct  *info=NULL, *store=NULL;
+//static char	   *marker=NULL;
+//static pixstatus   *psstack=NULL;
+//static int         *start=NULL, *end=NULL, *discan=NULL;
+//static int         xmin, ymin, xmax, ymax;
 
 
 /******************************* lutzalloc ***********************************/
 /*
 Allocate once for all memory space for buffers used by lutz().
 */
-int lutzalloc(int width, int height)
+//int lutzalloc(int width, int height)
+//{
+//  int *discant;
+//  int stacksize, i, status=RETURN_OK;
+
+//  stacksize = width+1;
+//  xmin = ymin = 0;
+//  xmax = width-1;
+//  ymax = height-1;
+//  QMALLOC(info, infostruct, stacksize, status);
+//  QMALLOC(store, infostruct, stacksize, status);
+//  QMALLOC(marker, char, stacksize, status);
+//  QMALLOC(psstack, pixstatus, stacksize, status);
+//  QMALLOC(start, int, stacksize, status);
+//  QMALLOC(end, int, stacksize, status);
+//  QMALLOC(discan, int, stacksize, status);
+//  discant = discan;
+//  for (i=stacksize; i--;)
+//    *(discant++) = -1;
+
+//  return status;
+
+// exit:
+//  lutzfree();
+
+//  return status;
+//}
+
+/******************************* lutzfree ************************************/
+/*
+Free once for all memory space for buffers used by lutz().
+*/
+//void lutzfree()
+//{
+//  free(discan);
+//  discan = NULL;
+//  free(info);
+//  info = NULL;
+//  free(store);
+//  store = NULL;
+//  free(marker);
+//  marker = NULL;
+//  free(psstack);
+//  psstack = NULL;
+//  free(start);
+//  start = NULL;
+//  free(end);
+//  end = NULL;
+//  return;
+//}
+
+
+/********************************** lutz *************************************/
+/*
+C implementation of R.K LUTZ' algorithm for the extraction of 8-connected pi-
+xels in an image
+*/
+int lutz(pliststruct *plistin, int width, int height,
+     int *objrootsubmap, int subx, int suby, int subw,
+     objstruct *objparent, objliststruct *objlist, int minarea)
 {
+  static infostruct	curpixinfo,initinfo;
+  objstruct		*obj;
+  pliststruct		*plist,*pixel, *plistint;
+
+  char			newmarker;
+  int			cn, co, luflag, pstop, xl,xl2,yl,
+                        out, deb_maxarea, stx,sty,enx,eny, step,
+                        nobjm = NOBJ,
+            inewsymbol, *iscan;
+  short		        trunflag;
+  PIXTYPE		thresh;
+  pixstatus		cs, ps;
+
+  infostruct  *info=NULL, *store=NULL;
+  char	   *marker=NULL;
+  pixstatus   *psstack=NULL;
+  int         *start=NULL, *end=NULL, *discan=NULL;
+  int         xmin, ymin, xmax, ymax;
+
   int *discant;
   int stacksize, i, status=RETURN_OK;
 
@@ -66,60 +144,6 @@ int lutzalloc(int width, int height)
   discant = discan;
   for (i=stacksize; i--;)
     *(discant++) = -1;
-
-  return status;
-
- exit:
-  lutzfree();
-
-  return status;
-}
-
-/******************************* lutzfree ************************************/
-/*
-Free once for all memory space for buffers used by lutz().
-*/
-void lutzfree()
-{
-  free(discan);
-  discan = NULL;
-  free(info);
-  info = NULL;
-  free(store);
-  store = NULL;
-  free(marker);
-  marker = NULL;
-  free(psstack);
-  psstack = NULL;
-  free(start);
-  start = NULL;
-  free(end);
-  end = NULL;
-  return;
-}
-
-
-/********************************** lutz *************************************/
-/*
-C implementation of R.K LUTZ' algorithm for the extraction of 8-connected pi-
-xels in an image
-*/
-int lutz(pliststruct *plistin,
-	 int *objrootsubmap, int subx, int suby, int subw,
-	 objstruct *objparent, objliststruct *objlist, int minarea)
-{
-  static infostruct	curpixinfo,initinfo;
-  objstruct		*obj;
-  pliststruct		*plist,*pixel, *plistint;
-  
-  char			newmarker;
-  int			cn, co, luflag, pstop, xl,xl2,yl,
-                        out, deb_maxarea, stx,sty,enx,eny, step,
-                        nobjm = NOBJ,
-			inewsymbol, *iscan;
-  short		        trunflag;
-  PIXTYPE		thresh;
-  pixstatus		cs, ps;
 
   out = RETURN_OK;
 
@@ -148,17 +172,17 @@ int lutz(pliststruct *plistin,
     {
       out = MEMORY_ALLOC_ERROR;
       plist = NULL;			/* To avoid gcc -Wall warnings */
-      goto exit_lutz;
+      goto exit;
     }
 
   /*------Allocate memory for the pixel list */
   free(objlist->plist);
   if (!(objlist->plist
-	= (pliststruct *)malloc((eny-sty)*(enx-stx)*plistsize)))
+    = (pliststruct *)malloc((eny-sty)*(enx-stx)*plistsize)))
     {
       out = MEMORY_ALLOC_ERROR;
       plist = NULL;			/* To avoid gcc -Wall warnings */
-      goto exit_lutz;
+      goto exit;
     }
 
   pixel = plist = objlist->plist;
@@ -177,151 +201,151 @@ int lutz(pliststruct *plistin,
       cs = NONOBJECT;
       trunflag = (yl==0 || yl==ymax) ? SEP_OBJ_TRUNC : 0;
       if (yl==eny)
-	iscan = discan;
+    iscan = discan;
 
       for (xl=stx; xl<=enx; xl++)
-	{
-	  newmarker = marker[xl];
-	  marker[xl] = 0;
-	  if ((inewsymbol = (xl!=enx)?*(iscan++):-1) < 0)
-	    luflag = 0;
-	  else
-	    {
-	      curpixinfo.flag = trunflag;
-	      plistint = plistin+inewsymbol;
-	      luflag = (PLISTPIX(plistint, cdvalue) > thresh?1:0);
-	    }
-	  if (luflag)
-	    {
-	      if (xl==0 || xl==xmax)
-		curpixinfo.flag |= SEP_OBJ_TRUNC;
-	      memcpy(pixel, plistint, (size_t)plistsize);
-	      PLIST(pixel, nextpix) = -1;
-	      curpixinfo.lastpix = curpixinfo.firstpix = cn;
-	      cn += plistsize;
-	      pixel += plistsize;
+    {
+      newmarker = marker[xl];
+      marker[xl] = 0;
+      if ((inewsymbol = (xl!=enx)?*(iscan++):-1) < 0)
+        luflag = 0;
+      else
+        {
+          curpixinfo.flag = trunflag;
+          plistint = plistin+inewsymbol;
+          luflag = (PLISTPIX(plistint, cdvalue) > thresh?1:0);
+        }
+      if (luflag)
+        {
+          if (xl==0 || xl==xmax)
+        curpixinfo.flag |= SEP_OBJ_TRUNC;
+          memcpy(pixel, plistint, (size_t)plistsize);
+          PLIST(pixel, nextpix) = -1;
+          curpixinfo.lastpix = curpixinfo.firstpix = cn;
+          cn += plistsize;
+          pixel += plistsize;
 
-	      /*----------------- Start Segment -----------------------------*/
-	      if (cs != OBJECT)
-		{
-		  cs = OBJECT;
-		  if (ps == OBJECT)
-		    {
-		      if (start[co] == UNKNOWN)
-			{
-			  marker[xl] = 'S';
-			  start[co] = xl;
-			}
-		      else  marker[xl] = 's';
-		    }
-		  else
-		    {
-		      psstack[pstop++] = ps;
-		      marker[xl] = 'S';
-		      start[++co] = xl;
-		      ps = COMPLETE;
-		      info[co] = initinfo;
-		    }
-		}
-	    }
+          /*----------------- Start Segment -----------------------------*/
+          if (cs != OBJECT)
+        {
+          cs = OBJECT;
+          if (ps == OBJECT)
+            {
+              if (start[co] == UNKNOWN)
+            {
+              marker[xl] = 'S';
+              start[co] = xl;
+            }
+              else  marker[xl] = 's';
+            }
+          else
+            {
+              psstack[pstop++] = ps;
+              marker[xl] = 'S';
+              start[++co] = xl;
+              ps = COMPLETE;
+              info[co] = initinfo;
+            }
+        }
+        }
 
-	  /*-------------------Process New Marker ---------------------------*/
-	  if (newmarker)
-	    {
-	      if (newmarker == 'S')
-		{
-		  psstack[pstop++] = ps;
-		  if (cs == NONOBJECT)
-		    {
-		      psstack[pstop++] = COMPLETE;
-		      info[++co] = store[xl];
-		      start[co] = UNKNOWN;
-		    }
-		  else
-		    update(&info[co], &store[xl], plist);
-		  ps = OBJECT;
-		}
+      /*-------------------Process New Marker ---------------------------*/
+      if (newmarker)
+        {
+          if (newmarker == 'S')
+        {
+          psstack[pstop++] = ps;
+          if (cs == NONOBJECT)
+            {
+              psstack[pstop++] = COMPLETE;
+              info[++co] = store[xl];
+              start[co] = UNKNOWN;
+            }
+          else
+            update(&info[co], &store[xl], plist);
+          ps = OBJECT;
+        }
 
-	      else if (newmarker == 's')
-		{
-		  if ((cs == OBJECT) && (ps == COMPLETE))
-		    {
-		      pstop--;
-		      xl2 = start[co];
-		      update(&info[co-1], &info[co], plist);
-		      if (start[--co] == UNKNOWN)
-			start[co] = xl2;
-		      else
-			marker[xl2] = 's';
-		    }
-		  ps = OBJECT;
-		}
-	      else if (newmarker == 'f')
-		ps = INCOMPLETE;
-	      else if (newmarker == 'F')
-		{
-		  ps = psstack[--pstop];
-		  if ((cs == NONOBJECT) && (ps == COMPLETE))
-		    {
-		      if (start[co] == UNKNOWN)
-			{
-			  if ((int)info[co].pixnb >= deb_maxarea)
-			    {
-			      if (objlist->nobj>=nobjm)
-				if (!(obj = objlist->obj = (objstruct *)
-				      realloc(obj, (nobjm+=nobjm/2)*
-					      sizeof(objstruct))))
-				  {
-				    out = MEMORY_ALLOC_ERROR;
-				    goto exit_lutz;
-				  }
-			      lutzsort(&info[co], objlist);
-			    }
-			}
-		      else
-			{
-			  marker[end[co]] = 'F';
-			  store[start[co]] = info[co];
-			}
-		      co--;
-		      ps = psstack[--pstop];
-		    }
-		}
-	    }
-	  /* end process new marker -----------------------------------------*/
+          else if (newmarker == 's')
+        {
+          if ((cs == OBJECT) && (ps == COMPLETE))
+            {
+              pstop--;
+              xl2 = start[co];
+              update(&info[co-1], &info[co], plist);
+              if (start[--co] == UNKNOWN)
+            start[co] = xl2;
+              else
+            marker[xl2] = 's';
+            }
+          ps = OBJECT;
+        }
+          else if (newmarker == 'f')
+        ps = INCOMPLETE;
+          else if (newmarker == 'F')
+        {
+          ps = psstack[--pstop];
+          if ((cs == NONOBJECT) && (ps == COMPLETE))
+            {
+              if (start[co] == UNKNOWN)
+            {
+              if ((int)info[co].pixnb >= deb_maxarea)
+                {
+                  if (objlist->nobj>=nobjm)
+                if (!(obj = objlist->obj = (objstruct *)
+                      realloc(obj, (nobjm+=nobjm/2)*
+                          sizeof(objstruct))))
+                  {
+                    out = MEMORY_ALLOC_ERROR;
+                    goto exit;
+                  }
+                  lutzsort(&info[co], objlist);
+                }
+            }
+              else
+            {
+              marker[end[co]] = 'F';
+              store[start[co]] = info[co];
+            }
+              co--;
+              ps = psstack[--pstop];
+            }
+        }
+        }
+      /* end process new marker -----------------------------------------*/
 
-	  if (luflag)
-	    update (&info[co],&curpixinfo, plist);
-	  else
-	    {
-	      /* ----------------- End Segment ------------------------------*/
-	      if (cs == OBJECT)
-		{
-		  cs = NONOBJECT;
-		  if (ps != COMPLETE)
-		    {
-		      marker[xl] = 'f';
-		      end[co] = xl;
-		    }
-		  else
-		    {
-		      ps = psstack[--pstop];
-		      marker[xl] = 'F';
-		      store[start[co]] = info[co];
-		      co--;
-		    }
-		}
-	    }
-	}
+      if (luflag)
+        update (&info[co],&curpixinfo, plist);
+      else
+        {
+          /* ----------------- End Segment ------------------------------*/
+          if (cs == OBJECT)
+        {
+          cs = NONOBJECT;
+          if (ps != COMPLETE)
+            {
+              marker[xl] = 'f';
+              end[co] = xl;
+            }
+          else
+            {
+              ps = psstack[--pstop];
+              marker[xl] = 'F';
+              store[start[co]] = info[co];
+              co--;
+            }
+        }
+        }
+    }
     }
 
- exit_lutz:
+ exit:
 
   if (objlist->nobj && out == RETURN_OK)
     {
       if (!(objlist->obj=
-	    (objstruct *)realloc(obj, objlist->nobj*sizeof(objstruct))))
-	out = MEMORY_ALLOC_ERROR;
+        (objstruct *)realloc(obj, objlist->nobj*sizeof(objstruct))))
+    out = MEMORY_ALLOC_ERROR;
     }
   else
     {
@@ -332,13 +356,28 @@ int lutz(pliststruct *plistin,
   if (cn && out == RETURN_OK)
     {
       if (!(objlist->plist=(pliststruct *)realloc(plist,cn)))
-	out = MEMORY_ALLOC_ERROR;
+    out = MEMORY_ALLOC_ERROR;
     }
   else
     {
       free(objlist->plist);
       objlist->plist = NULL;
     }
+
+  free(discan);
+  discan = NULL;
+  free(info);
+  info = NULL;
+  free(store);
+  store = NULL;
+  free(marker);
+  marker = NULL;
+  free(psstack);
+  psstack = NULL;
+  free(start);
+  start = NULL;
+  free(end);
+  end = NULL;
 
   return out;
 }
@@ -356,11 +395,11 @@ void  lutzsort(infostruct *info, objliststruct *objlist)
   obj->lastpix = info->lastpix;
   obj->flag = info->flag;
   objlist->npix += info->pixnb;
-  
+
   preanalyse(objlist->nobj, objlist);
-  
+
   objlist->nobj++;
-  
+
   return;
 }
 
