@@ -147,7 +147,7 @@ SSolver::Parameters SSolver::Parameters::convertFromMap(QMap<QString, QVariant> 
 
     //Astrometry Basic Parameters
     params.resort = settingsMap.value("resort", params.resort).toBool();
-    params.downsample = settingsMap.value("downsample", params.downsample).toBool() ;
+    params.downsample = settingsMap.value("downsample", params.downsample).toInt();
     params.search_radius = settingsMap.value("search_radius", params.search_radius).toDouble() ;
 
     //Setting the settings to know when to stop or keep searching for solutions
