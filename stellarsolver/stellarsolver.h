@@ -267,7 +267,7 @@ class StellarSolver : public QObject
         SextractorSolver* createSextractorSolver();
 
         //This finds out the amount of available RAM on the system
-        double getAvailableRAM();
+        bool getAvailableRAM(double &availableRAM, double &totalRAM);
         //This determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
         bool enoughRAMisAvailableFor(QStringList indexFolders);
 

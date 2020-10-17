@@ -666,8 +666,6 @@ bool InternalSextractorSolver::prepare_job()
 
     //Logratios for Solving
     bp->logratio_tosolve = params.logratio_tosolve;
-    emit logOutput(QString("Set odds ratio to solve to %1 (log = %2)\n").arg( exp(bp->logratio_tosolve)).arg(
-                       bp->logratio_tosolve));
     sp->logratio_tokeep = params.logratio_tokeep;
     sp->logratio_totune = params.logratio_totune;
     sp->logratio_bail_threshold = log(DEFAULT_BAIL_THRESHOLD);
@@ -691,31 +689,31 @@ bool InternalSextractorSolver::prepare_job()
         switch (scaleunit)
         {
             case DEG_WIDTH:
-                emit logOutput(QString("Scale range: %1 to %2 degrees wide\n").arg(scalelo).arg(scalehi));
+                emit logOutput(QString("Scale range: %1 to %2 degrees wide").arg(scalelo).arg(scalehi));
                 appl = deg2arcsec(scalelo) / (double)stats.width;
                 appu = deg2arcsec(scalehi) / (double)stats.width;
-                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg( stats.width).arg (appl).arg( appu));
+                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3").arg( stats.width).arg (appl).arg( appu));
                 break;
             case ARCMIN_WIDTH:
-                emit logOutput(QString("Scale range: %1 to %2 arcmin wide\n").arg (scalelo).arg(scalehi));
+                emit logOutput(QString("Scale range: %1 to %2 arcmin wide").arg (scalelo).arg(scalehi));
                 appl = arcmin2arcsec(scalelo) / (double)stats.width;
                 appu = arcmin2arcsec(scalehi) / (double)stats.width;
-                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg (stats.width).arg( appl).arg (appu));
+                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3").arg (stats.width).arg( appl).arg (appu));
                 break;
             case ARCSEC_PER_PIX:
-                emit logOutput(QString("Scale range: %1 to %2 arcsec/pixel\n").arg (scalelo).arg (scalehi));
+                emit logOutput(QString("Scale range: %1 to %2 arcsec/pixel").arg (scalelo).arg (scalehi));
                 appl = scalelo;
                 appu = scalehi;
                 break;
             case FOCAL_MM:
-                emit logOutput(QString("Scale range: %1 to %2 mm focal length\n").arg (scalelo).arg (scalehi));
+                emit logOutput(QString("Scale range: %1 to %2 mm focal length").arg (scalelo).arg (scalehi));
                 // "35 mm" film is 36 mm wide.
                 appu = rad2arcsec(atan(36. / (2. * scalelo))) / (double)stats.width;
                 appl = rad2arcsec(atan(36. / (2. * scalehi))) / (double)stats.width;
-                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg (stats.width).arg (appl).arg (appu));
+                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3").arg (stats.width).arg (appl).arg (appu));
                 break;
             default:
-                emit logOutput(QString("Unknown scale unit code %1\n").arg (scaleunit));
+                emit logOutput(QString("Unknown scale unit code %1").arg (scaleunit));
                 return false;
         }
 

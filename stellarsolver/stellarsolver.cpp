@@ -751,26 +751,31 @@ QList<FITSImage::Star> StellarSolver::appendStarsRAandDEC(QList<FITSImage::Star>
 
 //This function should get the system RAM in bytes.  I may revise it later to get the currently available RAM
 //But from what I read, getting the Available RAM is inconsistent and buggy on many systems.
-double StellarSolver::getAvailableRAM()
+bool StellarSolver::getAvailableRAM(double &availableRAM, double &totalRAM)
 {
     double RAM = 0;
 
 #if defined(Q_OS_OSX)
-    int mib[2];
+    int mib [] = { CTL_HW, HW_MEMSIZE };
     size_t length;
-    mib[0] = CTL_HW;
-    mib[1] = HW_MEMSIZE;
     length = sizeof(int64_t);
     int64_t RAMcheck;
     if(sysctl(mib, 2, &RAMcheck, &length, NULL, 0))
-        return 0; // On Error
-    RAM = RAMcheck;
+        return false; // On Error
+    //Until I can figure out how to get free RAM on Mac
+    availableRAM = RAMcheck;
+    totalRAM = RAMcheck;
 #elif defined(Q_OS_LINUX)
     QProcess p;
+    p.start("awk", QStringList() << "/MemFree/ { print $2 }" << "/proc/meminfo");
+    p.waitForFinished();
+    QString memory = p.readAllStandardOutput();
+    availableRAM = memory.toLong() * 1024.0; //It is in kB on this system
+
     p.start("awk", QStringList() << "/MemTotal/ { print $2 }" << "/proc/meminfo");
     p.waitForFinished();
     QString memory = p.readAllStandardOutput();
-    RAM = memory.toLong() * 1024.0; //It is in kB on this system
+    totalRAM = memory.toLong() * 1024.0; //It is in kB on this system
     p.close();
 #else
     MEMORYSTATUSEX memory_status;
@@ -778,14 +783,15 @@ double StellarSolver::getAvailableRAM()
     memory_status.dwLength = sizeof(MEMORYSTATUSEX);
     if (GlobalMemoryStatusEx(&memory_status))
     {
-        RAM = memory_status.ullTotalPhys;
+        avaialableRAM = memory_status.ullAvailPhys;
+        totalRAM = memory_status.ullTotalPhys;
     }
     else
     {
-        RAM = 0;
+        return false;
     }
 #endif
-    return RAM;
+    return true;
 }
 
 //This should determine if enough RAM is available to load all the index files in parallel
@@ -805,7 +811,9 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
         }
 
     }
-    uint64_t availableRAM = getAvailableRAM();
+    double availableRAM;
+    double totalRAM;
+    getAvailableRAM(availableRAM, totalRAM);
     if(availableRAM == 0)
     {
         if(m_SSLogLevel != LOG_OFF)
@@ -814,9 +822,14 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
     }
     double bytesInGB = 1024.0 * 1024.0 * 1024.0; // B -> KB -> MB -> GB , float to make sure it reports the answer with any decimals
     if(m_SSLogLevel != LOG_OFF)
+    {
         emit logOutput(
-            QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB").arg(
-                totalSize / bytesInGB).arg(availableRAM / bytesInGB));
+            QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB, Free RAM: %3 GB").arg(
+                totalSize / bytesInGB).arg(totalRAM / bytesInGB).arg(availableRAM / bytesInGB));
+        #if defined(Q_OS_OSX)
+            emit logOutput("Note: Free RAM for now is reported as Installed RAM on MacOS until I figure out how to get available RAM");
+        #endif
+    }
     return availableRAM > totalSize;
 }
 
