@@ -733,8 +733,11 @@ bool InternalSextractorSolver::prepare_job()
 //This method was adapted from the main method in engine-main.c in astrometry.net
 int InternalSextractorSolver::runInternalSolver()
 {
-    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Configuring StellarSolver");
+    if(!isChildSolver)
+    {
+        emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        emit logOutput("Configuring StellarSolver");
+    }
 
     //This creates and sets up the engine
     engine_t* engine = engine_new();

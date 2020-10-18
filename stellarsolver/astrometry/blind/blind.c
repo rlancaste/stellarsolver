@@ -1062,7 +1062,8 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
             logerr(".\n");
             if (sp->have_best_match) {
                 logverb("Best match encountered: ");
-                matchobj_print(&(sp->best_match), log_get_level());
+                if(log_get_level()>LOG_ERROR) //# Modified by Robert Lancaster for the StellarSolver Internal Library
+                    matchobj_print(&(sp->best_match), log_get_level());
             } else {
                 logverb("Best odds encountered: %g\n", exp(sp->best_logodds));
             }

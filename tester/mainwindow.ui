@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1247</width>
+    <width>1195</width>
     <height>808</height>
    </rect>
   </property>
@@ -127,7 +127,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>350</width>
+                 <width>333</width>
                  <height>388</height>
                 </rect>
                </property>
@@ -1476,7 +1476,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>486</width>
+                 <width>465</width>
                  <height>144</height>
                 </rect>
                </property>
@@ -1934,28 +1934,6 @@
         </layout>
        </widget>
       </item>
-      <item row="3" column="6">
-       <widget class="QLabel" name="label_32">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>15</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Trials:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="5" rowspan="2">
        <widget class="QGroupBox" name="groupBox_3">
         <property name="title">
@@ -2057,7 +2035,43 @@
         </layout>
        </widget>
       </item>
-      <item row="3" column="7">
+      <item row="3" column="6">
+       <widget class="QPushButton" name="ClearResults">
+        <property name="text">
+         <string>Clear</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="6">
+       <widget class="QPushButton" name="Abort">
+        <property name="text">
+         <string>Abort</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="9">
+       <widget class="QLabel" name="label_32">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>15</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Trials:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="10">
        <widget class="QSpinBox" name="trials">
         <property name="suffix">
          <string/>
@@ -2070,24 +2084,10 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="9">
-       <widget class="QPushButton" name="ClearResults">
-        <property name="text">
-         <string>Clear</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="9">
+      <item row="4" column="9" colspan="2">
        <widget class="QPushButton" name="exportResultsTable">
         <property name="text">
          <string>Export Results</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="6" colspan="2">
-       <widget class="QPushButton" name="Abort">
-        <property name="text">
-         <string>Abort</string>
         </property>
        </widget>
       </item>

@@ -51,7 +51,7 @@ class StellarSolver : public QObject
         explicit StellarSolver(ProcessType type, const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer,
                                QObject *parent = nullptr);
         explicit StellarSolver(const FITSImage::Statistic &imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
-        ~StellarSolver() = default;
+        ~StellarSolver();
 
         //Methods to get default file paths
         static ExternalProgramPaths getLinuxDefaultPaths();
@@ -127,6 +127,7 @@ class StellarSolver : public QObject
 
         void solve();
         void start();
+        void releaseSextractorSolver(SextractorSolver *solver);
         void abort();
 
         //These set the settings for the StellarSolver

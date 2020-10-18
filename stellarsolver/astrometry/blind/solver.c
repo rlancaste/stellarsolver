@@ -1430,7 +1430,8 @@ static int solver_handle_hit(solver_t* sp, MatchObj* mo, sip_t* sip,
     update_timeused(sp);
     mo->timeused = sp->timeused;
 
-    matchobj_print(mo, log_get_level());
+    if(log_get_level()>LOG_ERROR) //# Modified by Robert Lancaster for the StellarSolver Internal Library
+        matchobj_print(mo, log_get_level());
 
     if (mo->logodds < sp->logratio_tokeep)
         return FALSE;

@@ -916,8 +916,7 @@ bool MainWindow::sextractorComplete()
     if(!stellarSolver->failed() && stellarSolver->sextractionDone())
     {
         totalTime += elapsed; //Only add to total time if it was successful
-        if(currentTrial == numberOfTrials)
-            stars = stellarSolver->getStarList();
+        stars = stellarSolver->getStarList();
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         if(stellarSolver->isCalculatingHFR())
             logOutput(QString(stellarSolver->getCommandString() + " with HFR success! Got %1 stars").arg(stars.size()));

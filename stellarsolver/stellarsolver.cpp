@@ -42,6 +42,10 @@ StellarSolver::StellarSolver(const FITSImage::Statistic &imagestats, uint8_t con
     m_ImageBuffer = imageBuffer;
     m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
 }
+StellarSolver::~StellarSolver()
+{
+
+}
 
 SextractorSolver* StellarSolver::createSextractorSolver()
 {
@@ -132,6 +136,24 @@ void StellarSolver::extract(bool calculateHFR, QRect frame)
     m_isBlocking = false;
 }
 
+//This will allow the solver to gracefully disconnect, abort, finish, and get deleted
+//Right now the internal solvers are all deleted when StellarSolver is deleted
+//I might try experimenting with this.
+void StellarSolver::releaseSextractorSolver(SextractorSolver *solver)
+{
+    if(solver != nullptr)
+    {
+        if(solver->isRunning())
+        {
+            connect(solver, &SextractorSolver::finished, solver, &SextractorSolver::deleteLater);
+            solver->disconnect(this);
+            solver->abort();
+        }
+        else
+            solver->deleteLater();
+    }
+}
+
 void StellarSolver::start()
 {
 
@@ -139,8 +161,10 @@ void StellarSolver::start()
     {
         emit logOutput("There is an issue with your parameters. Terminating the process.");
         emit ready();
+        emit finished();
         return;
     }
+
     m_SextractorSolver = createSextractorSolver();
 
     m_isRunning = true;
@@ -358,24 +382,22 @@ void StellarSolver::processFinished(int code)
         }
     }
     else
-    {
         hasFailed = true;
+
+    if(m_ProcessType != SOLVE || !m_SextractorSolver->hasWCSData() || !loadWCS)
         m_isRunning = false;
-    }
 
     emit ready();
 
     if(m_ProcessType != SOLVE || !m_SextractorSolver->hasWCSData() || !loadWCS)
-    {
-        m_isRunning = false;
         emit finished();
-    }
 }
 
 //This slot listens for signals from the child solvers that they are in fact done with the solve
 //If they
 void StellarSolver::finishParallelSolve(int success)
 {
+    m_ParallelSolversFinishedCount++;
     SextractorSolver *reportingSolver = qobject_cast<SextractorSolver*>(sender());
     if(!reportingSolver)
         return;
@@ -397,7 +419,6 @@ void StellarSolver::finishParallelSolve(int success)
         }
         for(auto solver : parallelSolvers)
         {
-            disconnect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             disconnect(solver, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
             if(solver != reportingSolver && solver->isRunning())
                 solver->abort();
@@ -416,24 +437,31 @@ void StellarSolver::finishParallelSolve(int success)
         }
         hasSolved = true;
         emit ready();
-        m_ParallelSolversFinishedCount++;
     }
     else
     {
-        m_ParallelSolversFinishedCount++;
-        if(m_SSLogLevel != LOG_OFF)
+        if(m_SSLogLevel != LOG_OFF && !hasSolved)
+            emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
+    }
+
+    if(m_ParallelSolversFinishedCount == parallelSolvers.count())
+    {
+
+        if(hasSolved)
         {
-            if(!hasSolved)
-                emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
-        }
-        if(m_ParallelSolversFinishedCount == parallelSolvers.count())
-        {
-            if(!hasSolved)
-                hasFailed = true;
-            m_isRunning = false;
-            emit ready();
-            if(!loadWCS)
+            //Don't emit finished until WCS is done if we are doing WCS extraction.
+            if(!(loadWCS && hasWCS))
+            {
+                m_isRunning = false;
                 emit finished();
+            }
+        }
+        else
+        {
+            m_isRunning = false;
+            hasFailed = true;
+            emit ready();
+            emit finished();
         }
     }
 }
