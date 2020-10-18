@@ -695,13 +695,11 @@ bool InternalSextractorSolver::prepare_job()
                 emit logOutput(QString("Scale range: %1 to %2 degrees wide").arg(scalelo).arg(scalehi));
                 appl = deg2arcsec(scalelo) / (double)stats.width;
                 appu = deg2arcsec(scalehi) / (double)stats.width;
-                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3").arg( stats.width).arg (appl).arg( appu));
                 break;
             case ARCMIN_WIDTH:
                 emit logOutput(QString("Scale range: %1 to %2 arcmin wide").arg (scalelo).arg(scalehi));
                 appl = arcmin2arcsec(scalelo) / (double)stats.width;
                 appu = arcmin2arcsec(scalehi) / (double)stats.width;
-                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3").arg (stats.width).arg( appl).arg (appu));
                 break;
             case ARCSEC_PER_PIX:
                 emit logOutput(QString("Scale range: %1 to %2 arcsec/pixel").arg (scalelo).arg (scalehi));
@@ -713,7 +711,6 @@ bool InternalSextractorSolver::prepare_job()
                 // "35 mm" film is 36 mm wide.
                 appu = rad2arcsec(atan(36. / (2. * scalelo))) / (double)stats.width;
                 appl = rad2arcsec(atan(36. / (2. * scalehi))) / (double)stats.width;
-                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3").arg (stats.width).arg (appl).arg (appu));
                 break;
             default:
                 emit logOutput(QString("Unknown scale unit code %1").arg (scaleunit));
@@ -723,6 +720,14 @@ bool InternalSextractorSolver::prepare_job()
         dl_append(job->scales, appl);
         dl_append(job->scales, appu);
         blind_add_field_range(bp, appl, appu);
+
+        if(scaleunit == ARCMIN_WIDTH || scaleunit == DEG_WIDTH || scaleunit == FOCAL_MM)
+        {
+             if(params.downsample == 1)
+                 emit logOutput(QString("Image width %1 pixels; arcsec per pixel range: %2 to %3").arg (stats.width).arg (appl).arg (appu));
+             else
+                 emit logOutput(QString("Image width: %1 pixels, Downsampled Image width: %2 pixels; arcsec per pixel range: %3 to %4").arg(stats.width * params.downsample).arg (stats.width).arg (appl).arg (appu));
+        }
         if(params.downsample != 1 && scaleunit == ARCSEC_PER_PIX)
             emit logOutput(QString("Downsampling is multiplying the pixel scale by: %1").arg(params.downsample));
     }
