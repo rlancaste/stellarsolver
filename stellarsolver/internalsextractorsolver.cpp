@@ -946,7 +946,7 @@ int InternalSextractorSolver::runInternalSolver()
         // Note, negative determinant = positive parity.
         double det = sip_det_cd(&wcs);
         parity = (det < 0 ? "pos" : "neg");
-        if(usingDownsampledImage && scaleunit == ARCSEC_PER_PIX)
+        if(usingDownsampledImage)
             pixscale = sip_pixel_scale(&wcs) / params.downsample;
         else
             pixscale = sip_pixel_scale(&wcs);
