@@ -626,8 +626,11 @@ void InternalSextractorSolver::downSampleImageType(int d)
     m_ImageBuffer = downSampledBuffer;
     stats.width /= d;
     stats.height /= d;
-    scalelo *= d;
-    scalehi *= d;
+    if(scaleunit == ARCSEC_PER_PIX)
+    {
+        scalelo *= d;
+        scalehi *= d;
+    }
     usingDownsampledImage = true;
 }
 
@@ -720,8 +723,8 @@ bool InternalSextractorSolver::prepare_job()
         dl_append(job->scales, appl);
         dl_append(job->scales, appu);
         blind_add_field_range(bp, appl, appu);
-        if(params.downsample != 1)
-            emit logOutput(QString("Downsampling is multiplying the scale by: %1").arg(params.downsample));
+        if(params.downsample != 1 && scaleunit == ARCSEC_PER_PIX)
+            emit logOutput(QString("Downsampling is multiplying the pixel scale by: %1").arg(params.downsample));
     }
 
     blind_add_field(bp, 1);
@@ -943,7 +946,7 @@ int InternalSextractorSolver::runInternalSolver()
         // Note, negative determinant = positive parity.
         double det = sip_det_cd(&wcs);
         parity = (det < 0 ? "pos" : "neg");
-        if(usingDownsampledImage)
+        if(usingDownsampledImage && scaleunit == ARCSEC_PER_PIX)
             pixscale = sip_pixel_scale(&wcs) / params.downsample;
         else
             pixscale = sip_pixel_scale(&wcs);
