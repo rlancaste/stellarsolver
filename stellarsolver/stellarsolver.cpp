@@ -134,13 +134,14 @@ void StellarSolver::extract(bool calculateHFR, QRect frame)
 
 void StellarSolver::start()
 {
-    m_SextractorSolver = createSextractorSolver();
+
     if(checkParameters() == false)
     {
         emit logOutput("There is an issue with your parameters. Terminating the process.");
         emit ready();
         return;
     }
+    m_SextractorSolver = createSextractorSolver();
 
     m_isRunning = true;
     hasFailed = false;
