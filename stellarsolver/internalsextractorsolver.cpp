@@ -15,8 +15,10 @@
 #endif
 
 #include <QtConcurrent>
+#include <memory>
 
 #include "internalsextractorsolver.h"
+#include "sep/extract.h"
 #include "qmath.h"
 
 extern "C" {
@@ -24,6 +26,7 @@ extern "C" {
 }
 
 using namespace SSolver;
+using namespace SEP;
 
 static int solverNum = 1;
 
@@ -280,7 +283,7 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(float *data, u
     auto cleanup = [ = ]()
     {
         sep_bkg_free(bkg);
-        sep_catalog_free(catalog);
+        Extract::sep_catalog_free(catalog);
         free(imback);
         free(fluxerr);
         free(area);
@@ -303,7 +306,21 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(float *data, u
 
     uint32_t offset = subX + (subY * subW);
     // #0 Create SEP Image structure
-    sep_image im = {data + offset, nullptr, nullptr, SEP_TFLOAT, 0, 0, static_cast<int>(subW), static_cast<int>(subH), 0.0, SEP_NOISE_NONE, 1.0, 0.0};
+    sep_image im = {data + offset,
+                    nullptr,
+                    nullptr,
+                    nullptr,
+                    SEP_TFLOAT,
+                    0,
+                    0,
+                    0,
+                    static_cast<int>(subW),
+                    static_cast<int>(subH),
+                    0,
+                    SEP_NOISE_NONE,
+                    1.0,
+                    0
+                   };
 
     // #1 Background estimate
     status = sep_background(&im, 64, 64, 3, 3, 0.0, &bkg);
@@ -336,11 +353,13 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(float *data, u
         return stars;
     }
 
+    std::unique_ptr<Extract> extractor;
+    extractor.reset(new Extract());
     // #4 Source Extraction
     // Note that we set deblend_cont = 1.0 to turn off deblending.
-    status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, params.minarea, params.convFilter.data(),
-                         sqrt(params.convFilter.size()), sqrt(params.convFilter.size()), SEP_FILTER_CONV, params.deblend_thresh,
-                         params.deblend_contrast, params.clean, params.clean_param, &catalog);
+    status = extractor->sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, params.minarea, params.convFilter.data(),
+                                    sqrt(params.convFilter.size()), sqrt(params.convFilter.size()), SEP_FILTER_CONV, params.deblend_thresh,
+                                    params.deblend_contrast, params.clean, params.clean_param, &catalog);
     if (status != 0)
     {
         cleanup();
@@ -375,6 +394,9 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(float *data, u
         float a = catalog->a[i];
         float b = catalog->b[i];
         float theta = catalog->theta[i];
+        float cxx = catalog->cxx[i];
+        float cyy = catalog->cxx[i];
+        float cxy = catalog->cxy[i];
         double flux = catalog->flux[i];
         double peak = catalog->peak[i];
         int numPixels = catalog->npix[i];
@@ -392,7 +414,8 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(float *data, u
             //Constant values
             //The instructions say to use a fixed value of 6: https://sep.readthedocs.io/en/v1.0.x/api/sep.kron_radius.html
             //Finding the kron radius for the sextraction
-            sep_kron_radius(&im, xPos, yPos, a, b, theta, 6, &kronrad, &kron_flag);
+
+            sep_kron_radius(&im, xPos, yPos, cxx, cyy, cxy, 6, 0, &kronrad, &kron_flag);
         }
 
         bool use_circle;
@@ -415,11 +438,11 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(float *data, u
 
         if(use_circle)
         {
-            sep_sum_circle(&im, xPos, yPos, params.r_min, params.subpix, params.inflags, &sum, &sumerr, &kron_area, &kron_flag);
+            sep_sum_circle(&im, xPos, yPos, params.r_min, 0, params.subpix, params.inflags, &sum, &sumerr, &kron_area, &kron_flag);
         }
         else
         {
-            sep_sum_ellipse(&im, xPos, yPos, a, b, theta, params.kron_fact * kronrad, params.subpix, params.inflags, &sum, &sumerr,
+            sep_sum_ellipse(&im, xPos, yPos, a, b, theta, params.kron_fact * kronrad, 0, params.subpix, params.inflags, &sum, &sumerr,
                             &kron_area, &kron_flag);
         }
 
@@ -429,7 +452,7 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(float *data, u
         if(m_ProcessType == EXTRACT_WITH_HFR)
         {
             //Get HFR
-            sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, params.subpix, 0, &flux, requested_frac, 2, flux_fractions,
+            sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, 0, params.subpix, 0, &flux, requested_frac, 2, flux_fractions,
                             &flux_flag);
             HFR = flux_fractions[0];
         }

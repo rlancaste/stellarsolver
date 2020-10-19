@@ -227,14 +227,14 @@ set(engine_SRCS
     )
 
 set (sep_SRCS
-   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/analyse.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/aperture.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/background.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/convolve.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/deblend.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/extract.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/lutz.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/util.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/analyse.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/aperture.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/background.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/convolve.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/deblend.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/extract.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/lutz.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sep/util.cpp
     )
 
 set(StellarSolver_SRCS
