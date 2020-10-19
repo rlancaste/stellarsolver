@@ -393,6 +393,16 @@ void StellarSolver::processFinished(int code)
         emit finished();
 }
 
+int StellarSolver::whichSolver(SextractorSolver *solver)
+{
+    for(int i = 0; i < parallelSolvers.count(); i++ )
+    {
+        if(parallelSolvers.at(i) == solver)
+            return i + 1;
+    }
+    return 0;
+}
+
 //This slot listens for signals from the child solvers that they are in fact done with the solve
 //If they
 void StellarSolver::finishParallelSolve(int success)
@@ -401,29 +411,24 @@ void StellarSolver::finishParallelSolve(int success)
     SextractorSolver *reportingSolver = qobject_cast<SextractorSolver*>(sender());
     if(!reportingSolver)
         return;
-    int whichSolver = 0;
-    for(int i = 0; i < parallelSolvers.count(); i++ )
-    {
-        SextractorSolver *solver = parallelSolvers.at(i);
-        if(solver == reportingSolver)
-            whichSolver = i + 1;
-    }
 
     if(success == 0 && !hasSolved)
     {
-        numStars  = reportingSolver->getNumStarsFound();
-        if(m_SSLogLevel != LOG_OFF)
-        {
-            emit logOutput(QString("Successfully solved with child solver: %1").arg(whichSolver));
-            emit logOutput("Shutting down other child solvers");
-        }
         for(auto solver : parallelSolvers)
         {
             disconnect(solver, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
             if(solver != reportingSolver && solver->isRunning())
                 solver->abort();
         }
+        if(m_SSLogLevel != LOG_OFF)
+        {
+            emit logOutput(QString("Successfully solved with child solver: %1").arg(whichSolver(reportingSolver)));
+            emit logOutput("Shutting down other child solvers");
+        }
+
+        numStars = reportingSolver->getNumStarsFound();
         solution = reportingSolver->getSolution();
+
         if(reportingSolver->hasWCSData() && loadWCS)
         {
             solverWithWCS = reportingSolver;
@@ -441,7 +446,7 @@ void StellarSolver::finishParallelSolve(int success)
     else
     {
         if(m_SSLogLevel != LOG_OFF && !hasSolved)
-            emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
+            emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver(reportingSolver)));
     }
 
     if(m_ParallelSolversFinishedCount == parallelSolvers.count())
@@ -515,14 +520,10 @@ void StellarSolver::abort()
 //This method checks all the solvers and the internal running boolean to determine if anything is running.
 bool StellarSolver::isRunning()
 {
-    for(auto solver : parallelSolvers)
-    {
-        if(solver->isRunning())
-            return true;
-    }
+    if(parallelSolversAreRunning())
+        return true;
     if(m_SextractorSolver && m_SextractorSolver->isRunning())
         return true;
-
     return m_isRunning;
 }
 
@@ -782,8 +783,6 @@ QList<FITSImage::Star> StellarSolver::appendStarsRAandDEC(QList<FITSImage::Star>
 //But from what I read, getting the Available RAM is inconsistent and buggy on many systems.
 bool StellarSolver::getAvailableRAM(double &availableRAM, double &totalRAM)
 {
-    double RAM = 0;
-
 #if defined(Q_OS_OSX)
     int mib [] = { CTL_HW, HW_MEMSIZE };
     size_t length;

@@ -257,6 +257,7 @@ class StellarSolver : public QObject
         void finishWCS();
 
     private:
+        int whichSolver(SextractorSolver *solver);
         //Static Utility
         static double snr(const FITSImage::Background &background,
                           const FITSImage::Star &star, double gain = 0.5);

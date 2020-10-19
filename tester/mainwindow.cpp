@@ -567,6 +567,7 @@ bool MainWindow::prepareForProcesses()
                 if(QMessageBox::question(this, "Abort?", "StellarSolver is extracting sources now. Abort it?") == QMessageBox::No)
                     return false;
             }
+            stellarSolver->abort();
         }
     }
 
@@ -676,6 +677,11 @@ void MainWindow::resetStellarSolver()
 
 void MainWindow::sextractImage()
 {
+    //This makes sure the solver is done before starting another time
+    //That way the timer is accurate.
+    while(stellarSolver->isRunning())
+        qApp->processEvents();
+
     currentTrial++;
     clearStars();
 
@@ -711,6 +717,11 @@ void MainWindow::sextractImage()
 //This method runs when the user clicks the Sextract and Solve buttton
 void MainWindow::solveImage()
 {
+    //This makes sure the solver is done before starting another time
+    //That way the timer is accurate.
+    while(stellarSolver->isRunning())
+        qApp->processEvents();
+
     currentTrial++;
 
     if(hasWCSData)
@@ -747,12 +758,12 @@ void MainWindow::solveImage()
         stellarSolver->setSearchScale(ui->scale_low->text().toDouble(), ui->scale_high->text().toDouble(),
                                       (SSolver::ScaleUnits)ui->units->currentIndex());
     else
-        stellarSolver->setProperty("useScale", false);
+        stellarSolver->setProperty("UseScale", false);
     //Setting the initial search location settings
     if(ui->use_position->isChecked())
         stellarSolver->setSearchPositionRaDec(ui->ra->text().toDouble(), ui->dec->text().toDouble());
     else
-        stellarSolver->setProperty("usePosition", false);
+        stellarSolver->setProperty("UsePosition", false);
 
     connect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::solverComplete);
     if(currentTrial >= numberOfTrials)
@@ -926,8 +937,6 @@ bool MainWindow::sextractorComplete()
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         if(currentTrial < numberOfTrials)
         {
-            while(stellarSolver->isRunning())
-                qApp->processEvents();
             sextractImage();
             return true;
         }
@@ -972,8 +981,6 @@ bool MainWindow::solverComplete()
         lastSolution = stellarSolver->getSolution();
         if(currentTrial < numberOfTrials)
         {
-            while(stellarSolver->isRunning())
-                qApp->processEvents();
             solveImage();
             return true;
         }
