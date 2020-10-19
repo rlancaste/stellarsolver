@@ -811,7 +811,7 @@ bool StellarSolver::getAvailableRAM(double &availableRAM, double &totalRAM)
     memory_status.dwLength = sizeof(MEMORYSTATUSEX);
     if (GlobalMemoryStatusEx(&memory_status))
     {
-        avaialableRAM = memory_status.ullAvailPhys;
+        availableRAM = memory_status.ullAvailPhys;
         totalRAM = memory_status.ullTotalPhys;
     }
     else
