@@ -374,9 +374,10 @@ int Extract::sep_extract(sep_image *image, float thresh, int thresh_type,
     plist_values.plistoff_thresh = plistoff_thresh;
     plist_values.plistoff_var = plistoff_var;
 
-    lutz.reset(new Lutz(image->w, image->h, plist_values));
-    deblend.reset(new Deblend(deblend_nthresh, plist_values));
     analyze.reset(new Analyze(plist_values));
+    lutz.reset(new Lutz(image->w, image->h, analyze.get(), plist_values));
+    deblend.reset(new Deblend(deblend_nthresh, plist_values));
+
 
     /*----- MAIN LOOP ------ */
     for (yl = 0; yl <= h; yl++)

@@ -76,8 +76,10 @@ typedef struct
     int ndtype;        /* element type of noise     */
     int mdtype;        /* element type of mask      */
     int sdtype;        /* element type of segmap    */
-    int w;             /* array width               */
-    int h;             /* array height              */
+    int raw_w;         /* data raw image width      */
+    int raw_h;         /* data raw image height     */
+    int w;             /* array sub width           */
+    int h;             /* array sub height          */
     double noiseval;   /* scalar noise value; used only if noise == NULL */
     short noise_type;  /* interpretation of noise value                  */
     double gain;       /* (poisson counts / data unit)                   */

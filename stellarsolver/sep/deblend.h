@@ -30,33 +30,34 @@ namespace SEP
 {
 
 class Lutz;
+class Analyze;
 
 class Deblend
 {
-public:
-    Deblend(int deblend_nthresh, const plistvalues &values);
-    ~Deblend();
+    public:
+        Deblend(int deblend_nthresh, const plistvalues &values);
+        ~Deblend();
 
-    int deblend(objliststruct *objlistin, int l, objliststruct *objlistout,
-                int deblend_nthresh, double deblend_mincont, int minarea, SEP::Lutz *lutz);
+        int deblend(objliststruct *objlistin, int l, objliststruct *objlistout,
+                    int deblend_nthresh, double deblend_mincont, int minarea, SEP::Lutz *lutz);
 
-protected:
+    protected:
 
-    int belong(int, objliststruct *, int, objliststruct *);
-    int *createsubmap(objliststruct *, int, int *, int *, int *, int *);
-    int gatherup(objliststruct *, objliststruct *);
+        int belong(int, objliststruct *, int, objliststruct *);
+        int *createsubmap(objliststruct *, int, int *, int *, int *, int *);
+        int gatherup(objliststruct *, objliststruct *);
 
 
-private:
+    private:
 
-    int allocdeblend(int deblend_nthresh);
-    void freedeblend(void);
+        int allocdeblend(int deblend_nthresh);
+        void freedeblend(void);
 
-    objliststruct *objlist=nullptr;
-    short *son=nullptr, *ok=nullptr;
+        objliststruct *objlist = nullptr;
+        short *son = nullptr, *ok = nullptr;
 
-    plistvalues plist_values;
-    int plistsize;
+        plistvalues plist_values;
+        int plistsize;
 };
 
 }

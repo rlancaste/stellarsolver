@@ -119,6 +119,10 @@ class SextractorSolver : public QThread
         {
             return stars;
         }
+        void setStarList(QList<FITSImage::Star> starList)
+        {
+            stars = starList;
+        }
         FITSImage::Solution getSolution()
         {
             return solution;

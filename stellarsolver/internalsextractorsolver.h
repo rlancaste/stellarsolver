@@ -29,12 +29,24 @@ class InternalSextractorSolver: public SextractorSolver
 
         bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) override;
         bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) override;
+
+        typedef struct
+        {
+            float *data;
+            uint32_t width;
+            uint32_t height;
+            uint32_t subX;
+            uint32_t subY;
+            uint32_t subW;
+            uint32_t subH;
+        } ImageParams;
+
     protected:
         //This is the method that actually runs the internal sextractor
         int runSEPSextractor();
         //This applies the star filter to the stars list.
         void applyStarFilters();
-        QList<FITSImage::Star> extractPartition(float *data, uint32_t subX, uint32_t subY, uint32_t subW, uint32_t subH);
+        QList<FITSImage::Star> extractPartition(const ImageParams &parameters);
         void addToStarList(QList<FITSImage::Star> &stars, QList<FITSImage::Star> &partialStarList);
         //This boolean gets set internally if we are using a downsampled image buffer for SEP
         bool usingDownsampledImage = false;
@@ -72,7 +84,7 @@ class InternalSextractorSolver: public SextractorSolver
         FILE *logFile = nullptr;
 
         // Anything below 200 pixels will NOT be partitioned.
-        static const uint32_t PARTITION_SIZE { 200 };
+        static const uint32_t PARTITION_SIZE { 20000 };
         // Partition overlap catch any stars that are on the frame EDGE
         static const uint32_t PARTITION_OVERLAP { 20 };
 };

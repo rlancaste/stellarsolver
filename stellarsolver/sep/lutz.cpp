@@ -33,12 +33,13 @@
 namespace SEP
 {
 
-Lutz::Lutz(int width, int height, const plistvalues &values)
+Lutz::Lutz(int width, int height, Analyze *a, const plistvalues &values)
 {
     plist_values = values;
     plistsize = values.plistsize;
     plistoff_cdvalue = values.plistoff_cdvalue;
     lutzalloc(width, height);
+    analyzer = a;
 }
 
 Lutz::~Lutz()
@@ -359,8 +360,7 @@ void Lutz::lutzsort(infostruct *info, objliststruct *objlist)
     obj->flag = info->flag;
     objlist->npix += info->pixnb;
 
-    Analyze a(plist_values);
-    a.preanalyse(objlist->nobj, objlist);
+    analyzer->preanalyse(objlist->nobj, objlist);
 
     objlist->nobj++;
 

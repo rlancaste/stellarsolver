@@ -98,12 +98,12 @@ typedef enum { SOLVER_STELLARSOLVER,    //This uses the internal build of astrom
              } SolverType;
 
 //This gets the processType as a string explaining the command StellarSolver is Running
-static QString getCommandString(SSolver::ProcessType processType, SSolver::ExtractorType sextractorType,
+static QString getCommandString(SSolver::ProcessType processType, SSolver::ExtractorType m_ExtractorType,
                                 SSolver::SolverType solverType)
 {
     QString commandString = "";
 
-    switch(sextractorType)
+    switch(m_ExtractorType)
     {
         case EXTRACTOR_INTERNAL:
             commandString += "Internal ";
@@ -314,8 +314,10 @@ class Parameters
         //Astrometry Basic Parameters
         bool resort =
             true;                 // Whether to resort the stars based on magnitude NOTE: This is REQUIRED to be true for the filters above
+        bool autoDownsample =       // Whether or not to automatically determine the downsample size based on the image size.
+                true;
         int downsample =
-            1;                 // Factor to use for downsampling the image before SEP for plate solving.  Can speed it up.  Note: This should ONLY be used for SEP used for solving, not for Sextraction
+            1;                 // Factor to use for downsampling the image before SEP for plate solving.  Can speed it up.  This is not used for Source Extraction
         int search_parity = 2;              // Only check for matches with positive/negative parity (default: try both)
         double search_radius = 15;          // Only search in indexes within 'radius' of the field center given by RA and DEC
 

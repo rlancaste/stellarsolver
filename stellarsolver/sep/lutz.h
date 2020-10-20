@@ -26,39 +26,42 @@
 
 namespace SEP
 {
+class Analyze;
 class Lutz
 {
-public:
-    explicit Lutz(int width, int height, const plistvalues &values);
-    ~Lutz();
+    public:
+        explicit Lutz(int width, int height, Analyze *a, const plistvalues &values);
+        ~Lutz();
 
-    void lutzsort(infostruct *, objliststruct *);
+        void lutzsort(infostruct *, objliststruct *);
 
-    int lutz(pliststruct *plistin,
-             int *objrootsubmap, int subx, int suby, int subw,
-             objstruct *objparent, objliststruct *objlist, int minarea);
+        int lutz(pliststruct *plistin,
+                 int *objrootsubmap, int subx, int suby, int subw,
+                 objstruct *objparent, objliststruct *objlist, int minarea);
 
-    void  update(infostruct *infoptr1, infostruct *infoptr2, pliststruct *pixel);
+        void  update(infostruct *infoptr1, infostruct *infoptr2, pliststruct *pixel);
 
 
-protected:
-    int lutzalloc(int width, int height);
-    void lutzfree();
+    protected:
+        int lutzalloc(int width, int height);
+        void lutzfree();
 
-private:
+    private:
 
-    infostruct  *info = nullptr, *store = nullptr;
-    char	   *marker = nullptr;
-    pixstatus   *psstack = nullptr;
-    int         *start = nullptr, *end = nullptr, *discan = nullptr;
-    int         xmin, ymin, xmax, ymax;
-    infostruct	curpixinfo, initinfo;
+        infostruct  *info = nullptr, *store = nullptr;
+        char	   *marker = nullptr;
+        pixstatus   *psstack = nullptr;
+        int         *start = nullptr, *end = nullptr, *discan = nullptr;
+        int         xmin, ymin, xmax, ymax;
+        infostruct	curpixinfo, initinfo;
 
-    plistvalues plist_values;
-    int plistoff_cdvalue;
-    int plistsize;
+        plistvalues plist_values;
+        int plistoff_cdvalue;
+        int plistsize;
 
-    static const uint32_t NOBJ {256};
+        Analyze *analyzer {nullptr};
+
+        static const uint32_t NOBJ {256};
 };
 
 }

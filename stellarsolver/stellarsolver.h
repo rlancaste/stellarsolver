@@ -51,7 +51,7 @@ class StellarSolver : public QObject
         explicit StellarSolver(ProcessType type, const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer,
                                QObject *parent = nullptr);
         explicit StellarSolver(const FITSImage::Statistic &imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
-        ~StellarSolver() = default;
+        ~StellarSolver();
 
         //Methods to get default file paths
         static ExternalProgramPaths getLinuxDefaultPaths();
@@ -127,6 +127,7 @@ class StellarSolver : public QObject
 
         void solve();
         void start();
+        void releaseSextractorSolver(SextractorSolver *solver);
         void abort();
 
         //These set the settings for the StellarSolver
@@ -256,6 +257,7 @@ class StellarSolver : public QObject
         void finishWCS();
 
     private:
+        int whichSolver(SextractorSolver *solver);
         //Static Utility
         static double snr(const FITSImage::Background &background,
                           const FITSImage::Star &star, double gain = 0.5);
@@ -267,7 +269,7 @@ class StellarSolver : public QObject
         SextractorSolver* createSextractorSolver();
 
         //This finds out the amount of available RAM on the system
-        double getAvailableRAM();
+        bool getAvailableRAM(double &availableRAM, double &totalRAM);
         //This determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
         bool enoughRAMisAvailableFor(QStringList indexFolders);
 

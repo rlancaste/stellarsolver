@@ -158,6 +158,7 @@ void InternalSextractorSolver::run()
         default:
             break;
     }
+
     if(!isChildSolver)
     {
         QFile(solvedfn).remove();
@@ -244,19 +245,25 @@ int InternalSextractorSolver::runSEPSextractor()
                 int offsetW = (j == horizontalPartitions - 1) ? horizontalOffset : 0;
                 int offsetH = (i == verticalPartitions - 1) ? verticalOffset : 0;
 
-                futures.append(QtConcurrent::run(this,
-                                                 &InternalSextractorSolver::extractPartition,
-                                                 data,
-                                                 x + j * PARTITION_SIZE,
-                                                 y + i * PARTITION_SIZE,
-                                                 PARTITION_SIZE + offsetW,
-                                                 PARTITION_SIZE + offsetH));
+                ImageParams parameters = {data,
+                                          static_cast<uint32_t>(m_Statistics.width),
+                                          static_cast<uint32_t>(m_Statistics.height),
+                                          x + j * PARTITION_SIZE,
+                                          y + i * PARTITION_SIZE,
+                                          PARTITION_SIZE + offsetW,
+                                          PARTITION_SIZE + offsetH
+                                         };
+                futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
             }
         }
     }
     else
     {
-        futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, data, x, y, w, h));
+        ImageParams parameters = {data, m_Statistics.width,
+                                  m_Statistics.height,
+                                  x, y, w, h
+                                 };
+        futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
     }
 
     for (auto oneFuture : futures)
@@ -265,11 +272,12 @@ int InternalSextractorSolver::runSEPSextractor()
         stars.append(oneFuture.result());
     }
 
-    return stars.count();
+    hasSextracted = true;
+
+    return 0;
 }
 
-QList<FITSImage::Star> InternalSextractorSolver::extractPartition(float *data, uint32_t subX, uint32_t subY, uint32_t subW,
-        uint32_t subH)
+QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImageParams &parameters)
 {
     float *imback = nullptr;
     double *fluxerr = nullptr, *area = nullptr;
@@ -304,9 +312,9 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(float *data, u
     std::vector<std::pair<int, double>> ovals;
     int numToProcess = 0;
 
-    uint32_t offset = subX + (subY * subW);
+    uint32_t offset = parameters.subX + (parameters.subY * parameters.width);
     // #0 Create SEP Image structure
-    sep_image im = {data + offset,
+    sep_image im = {parameters.data + offset,
                     nullptr,
                     nullptr,
                     nullptr,
@@ -314,8 +322,10 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(float *data, u
                     0,
                     0,
                     0,
-                    static_cast<int>(subW),
-                    static_cast<int>(subH),
+                    static_cast<int>(parameters.width),
+                    static_cast<int>(parameters.height),
+                    static_cast<int>(parameters.subW),
+                    static_cast<int>(parameters.subH),
                     0,
                     SEP_NOISE_NONE,
                     1.0,
@@ -331,7 +341,7 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(float *data, u
     }
 
     // #2 Background evaluation
-    imback = (float *)malloc((subW * subH) * sizeof(float));
+    imback = (float *)malloc((parameters.subW * parameters.subH) * sizeof(float));
     status = sep_bkg_array(bkg, imback, SEP_TFLOAT);
     if (status != 0)
     {
@@ -457,8 +467,8 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(float *data, u
             HFR = flux_fractions[0];
         }
 
-        FITSImage::Star oneStar = {xPos + subX,
-                                   yPos + subY,
+        FITSImage::Star oneStar = {xPos + parameters.subX,
+                                   yPos + parameters.subY,
                                    mag,
                                    static_cast<float>(sum),
                                    static_cast<float>(peak),
@@ -697,8 +707,11 @@ void InternalSextractorSolver::downSampleImageType(int d)
     m_ImageBuffer = downSampledBuffer;
     m_Statistics.width /= d;
     m_Statistics.height /= d;
-    scalelo *= d;
-    scalehi *= d;
+    if(scaleunit == ARCSEC_PER_PIX)
+    {
+        scalelo *= d;
+        scalehi *= d;
+    }
     usingDownsampledImage = true;
 }
 
@@ -737,8 +750,6 @@ bool InternalSextractorSolver::prepare_job()
 
     //Logratios for Solving
     bp->logratio_tosolve = params.logratio_tosolve;
-    emit logOutput(QString("Set odds ratio to solve to %1 (log = %2)\n").arg( exp(bp->logratio_tosolve)).arg(
-                       bp->logratio_tosolve));
     sp->logratio_tokeep = params.logratio_tokeep;
     sp->logratio_totune = params.logratio_totune;
     sp->logratio_bail_threshold = log(DEFAULT_BAIL_THRESHOLD);
@@ -762,42 +773,46 @@ bool InternalSextractorSolver::prepare_job()
         switch (scaleunit)
         {
             case DEG_WIDTH:
-                emit logOutput(QString("Scale range: %1 to %2 degrees wide\n").arg(scalelo).arg(scalehi));
+                emit logOutput(QString("Scale range: %1 to %2 degrees wide").arg(scalelo).arg(scalehi));
                 appl = deg2arcsec(scalelo) / (double)m_Statistics.width;
                 appu = deg2arcsec(scalehi) / (double)m_Statistics.width;
-                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg( m_Statistics.width).arg (appl).arg(
-                                   appu));
                 break;
             case ARCMIN_WIDTH:
-                emit logOutput(QString("Scale range: %1 to %2 arcmin wide\n").arg (scalelo).arg(scalehi));
+                emit logOutput(QString("Scale range: %1 to %2 arcmin wide").arg (scalelo).arg(scalehi));
                 appl = arcmin2arcsec(scalelo) / (double)m_Statistics.width;
                 appu = arcmin2arcsec(scalehi) / (double)m_Statistics.width;
-                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg (m_Statistics.width).arg( appl).arg (
-                                   appu));
                 break;
             case ARCSEC_PER_PIX:
-                emit logOutput(QString("Scale range: %1 to %2 arcsec/pixel\n").arg (scalelo).arg (scalehi));
+                emit logOutput(QString("Scale range: %1 to %2 arcsec/pixel").arg (scalelo).arg (scalehi));
                 appl = scalelo;
                 appu = scalehi;
                 break;
             case FOCAL_MM:
-                emit logOutput(QString("Scale range: %1 to %2 mm focal length\n").arg (scalelo).arg (scalehi));
+                emit logOutput(QString("Scale range: %1 to %2 mm focal length").arg (scalelo).arg (scalehi));
                 // "35 mm" film is 36 mm wide.
                 appu = rad2arcsec(atan(36. / (2. * scalelo))) / (double)m_Statistics.width;
                 appl = rad2arcsec(atan(36. / (2. * scalehi))) / (double)m_Statistics.width;
-                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range %2 %3\n").arg (m_Statistics.width).arg (appl).arg (
-                                   appu));
                 break;
             default:
-                emit logOutput(QString("Unknown scale unit code %1\n").arg (scaleunit));
+                emit logOutput(QString("Unknown scale unit code %1").arg (scaleunit));
                 return false;
         }
 
         dl_append(job->scales, appl);
         dl_append(job->scales, appu);
         blind_add_field_range(bp, appl, appu);
-        if(params.downsample != 1)
-            emit logOutput(QString("Downsampling is multiplying the scale by: %1").arg(params.downsample));
+
+        if(scaleunit == ARCMIN_WIDTH || scaleunit == DEG_WIDTH || scaleunit == FOCAL_MM)
+        {
+            if(params.downsample == 1)
+                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range: %2 to %3").arg (m_Statistics.width).arg (appl).arg (
+                                   appu));
+            else
+                emit logOutput(QString("Image width: %1 pixels, Downsampled Image width: %2 pixels; arcsec per pixel range: %3 to %4").arg(
+                                   m_Statistics.width * params.downsample).arg (m_Statistics.width).arg (appl).arg (appu));
+        }
+        if(params.downsample != 1 && scaleunit == ARCSEC_PER_PIX)
+            emit logOutput(QString("Downsampling is multiplying the pixel scale by: %1").arg(params.downsample));
     }
 
     blind_add_field(bp, 1);
@@ -809,8 +824,11 @@ bool InternalSextractorSolver::prepare_job()
 //This method was adapted from the main method in engine-main.c in astrometry.net
 int InternalSextractorSolver::runInternalSolver()
 {
-    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Configuring StellarSolver");
+    if(!isChildSolver)
+    {
+        emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        emit logOutput("Configuring StellarSolver");
+    }
 
     //This creates and sets up the engine
     engine_t* engine = engine_new();

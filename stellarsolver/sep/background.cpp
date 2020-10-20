@@ -177,7 +177,7 @@ int sep_background(sep_image* image, int bw, int bh, int fw, int fh,
         }
 
         /* Get clipped mean, sigma for all boxes in the row */
-        backstat(backmesh, buft, mbuft, bufsize, nx, image->w, bw, maskthresh);
+        backstat(backmesh, buft, mbuft, bufsize, nx, image->raw_w, bw, maskthresh);
 
         /* Allocate histograms in each box in this row. */
         bm = backmesh;

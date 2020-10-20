@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1247</width>
+    <width>1195</width>
     <height>808</height>
    </rect>
   </property>
@@ -127,8 +127,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>336</width>
-                 <height>394</height>
+                 <width>333</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -161,8 +161,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>336</width>
-                 <height>394</height>
+                 <width>350</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -264,8 +264,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>336</width>
-                 <height>394</height>
+                 <width>350</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -446,8 +446,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>336</width>
-                 <height>394</height>
+                 <width>350</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -564,8 +564,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>336</width>
-                 <height>394</height>
+                 <width>350</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1087,8 +1087,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>336</width>
-                 <height>300</height>
+                 <width>350</width>
+                 <height>294</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1120,8 +1120,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>334</width>
-                     <height>311</height>
+                     <width>348</width>
+                     <height>334</height>
                     </rect>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_5">
@@ -1140,106 +1140,48 @@
                     <property name="spacing">
                      <number>-1</number>
                     </property>
-                    <item row="27" column="0">
-                     <widget class="QLabel" name="label_36">
+                    <item row="23" column="2">
+                     <widget class="QLineEdit" name="solverTimeLimit">
                       <property name="text">
-                       <string>KeepOdds</string>
+                       <string>600</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="28" column="1">
-                     <widget class="QLineEdit" name="oddsToTune">
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="34" column="1">
-                     <spacer name="verticalSpacer_7">
-                      <property name="orientation">
-                       <enum>Qt::Vertical</enum>
-                      </property>
-                      <property name="sizeHint" stdset="0">
-                       <size>
-                        <width>20</width>
-                        <height>40</height>
-                       </size>
-                      </property>
-                     </spacer>
-                    </item>
-                    <item row="19" column="0">
-                     <widget class="QLabel" name="label_33">
-                      <property name="text">
-                       <string>MultiAlgo</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="26" column="1">
-                     <widget class="QLineEdit" name="oddsToSolve">
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="27" column="1">
-                     <widget class="QLineEdit" name="oddsToKeep">
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="24" column="0">
-                     <widget class="QLabel" name="label_28">
-                      <property name="text">
-                       <string>MaxWidth</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="25" column="1">
+                    <item row="27" column="2">
                      <widget class="QLineEdit" name="radius"/>
                     </item>
-                    <item row="23" column="1">
-                     <widget class="QLineEdit" name="minWidth">
-                      <property name="text">
-                       <string>0.1</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="25" column="0">
+                    <item row="27" column="0">
                      <widget class="QLabel" name="label_9">
                       <property name="text">
                        <string>Radius</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="20" column="1">
-                     <widget class="QSpinBox" name="downsample">
-                      <property name="minimum">
-                       <number>1</number>
-                      </property>
-                      <property name="maximum">
-                       <number>5</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="23" column="0">
-                     <widget class="QLabel" name="label_27">
+                    <item row="29" column="0">
+                     <widget class="QLabel" name="label_36">
                       <property name="text">
-                       <string>MinWidth</string>
+                       <string>KeepOdds</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="28" column="0">
+                    <item row="25" column="2">
+                     <widget class="QLineEdit" name="minWidth">
+                      <property name="text">
+                       <string>0.1</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="30" column="0">
                      <widget class="QLabel" name="label_37">
                       <property name="text">
                        <string>TuneOdds</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="24" column="1">
-                     <widget class="QLineEdit" name="maxWidth">
+                    <item row="20" column="0">
+                     <widget class="QLabel" name="label_33">
                       <property name="text">
-                       <string>180</string>
+                       <string>MultiAlgo</string>
                       </property>
                      </widget>
                     </item>
@@ -1253,7 +1195,62 @@
                       </property>
                      </widget>
                     </item>
-                    <item row="19" column="1">
+                    <item row="26" column="0">
+                     <widget class="QLabel" name="label_28">
+                      <property name="text">
+                       <string>MaxWidth</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="30" column="2">
+                     <widget class="QLineEdit" name="oddsToTune">
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="23" column="0">
+                     <widget class="QLabel" name="label_29">
+                      <property name="text">
+                       <string>MaxTime</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="36" column="2">
+                     <spacer name="verticalSpacer_7">
+                      <property name="orientation">
+                       <enum>Qt::Vertical</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>20</width>
+                        <height>40</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item row="25" column="0">
+                     <widget class="QLabel" name="label_27">
+                      <property name="text">
+                       <string>MinWidth</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="28" column="2">
+                     <widget class="QLineEdit" name="oddsToSolve">
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="26" column="2">
+                     <widget class="QLineEdit" name="maxWidth">
+                      <property name="text">
+                       <string>180</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="20" column="2">
                      <widget class="QComboBox" name="multiAlgo">
                       <property name="currentIndex">
                        <number>0</number>
@@ -1280,38 +1277,48 @@
                       </item>
                      </widget>
                     </item>
-                    <item row="18" column="1">
-                     <widget class="QCheckBox" name="resort">
+                    <item row="29" column="2">
+                     <widget class="QLineEdit" name="oddsToKeep">
                       <property name="text">
-                       <string>Resort</string>
+                       <string/>
                       </property>
                      </widget>
                     </item>
-                    <item row="20" column="0">
+                    <item row="22" column="0">
                      <widget class="QLabel" name="label_16">
                       <property name="text">
                        <string>DownSam</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="21" column="1">
-                     <widget class="QLineEdit" name="solverTimeLimit">
-                      <property name="text">
-                       <string>600</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="26" column="0">
+                    <item row="28" column="0">
                      <widget class="QLabel" name="label_35">
                       <property name="text">
                        <string>SolveOdds</string>
                       </property>
                      </widget>
                     </item>
-                    <item row="21" column="0">
-                     <widget class="QLabel" name="label_29">
+                    <item row="22" column="2">
+                     <widget class="QSpinBox" name="downsample">
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>5</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="18" column="2">
+                     <widget class="QCheckBox" name="resort">
                       <property name="text">
-                       <string>MaxTime</string>
+                       <string>Resort</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="21" column="2">
+                     <widget class="QCheckBox" name="autoDown">
+                      <property name="text">
+                       <string>AutoDownsample</string>
                       </property>
                      </widget>
                     </item>
@@ -1469,8 +1476,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>490</width>
-                 <height>146</height>
+                 <width>465</width>
+                 <height>144</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="gridLayout_2">
@@ -1855,7 +1862,7 @@
           <number>0</number>
          </property>
          <property name="topMargin">
-          <number>0</number>
+          <number>10</number>
          </property>
          <property name="rightMargin">
           <number>0</number>
@@ -1927,28 +1934,6 @@
         </layout>
        </widget>
       </item>
-      <item row="3" column="6">
-       <widget class="QLabel" name="label_32">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>15</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Trials:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="5" rowspan="2">
        <widget class="QGroupBox" name="groupBox_3">
         <property name="title">
@@ -1959,7 +1944,7 @@
           <number>0</number>
          </property>
          <property name="topMargin">
-          <number>0</number>
+          <number>10</number>
          </property>
          <property name="rightMargin">
           <number>0</number>
@@ -2050,7 +2035,43 @@
         </layout>
        </widget>
       </item>
-      <item row="3" column="7">
+      <item row="3" column="6">
+       <widget class="QPushButton" name="ClearResults">
+        <property name="text">
+         <string>Clear</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="6">
+       <widget class="QPushButton" name="Abort">
+        <property name="text">
+         <string>Abort</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="9">
+       <widget class="QLabel" name="label_32">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>15</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Trials:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="10">
        <widget class="QSpinBox" name="trials">
         <property name="suffix">
          <string/>
@@ -2063,24 +2084,10 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="9">
-       <widget class="QPushButton" name="ClearResults">
-        <property name="text">
-         <string>Clear</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="9">
+      <item row="4" column="9" colspan="2">
        <widget class="QPushButton" name="exportResultsTable">
         <property name="text">
          <string>Export Results</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="6" colspan="2">
-       <widget class="QPushButton" name="Abort">
-        <property name="text">
-         <string>Abort</string>
         </property>
        </widget>
       </item>

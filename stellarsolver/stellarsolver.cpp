@@ -42,6 +42,10 @@ StellarSolver::StellarSolver(const FITSImage::Statistic &imagestats, uint8_t con
     m_ImageBuffer = imageBuffer;
     m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
 }
+StellarSolver::~StellarSolver()
+{
+
+}
 
 SextractorSolver* StellarSolver::createSextractorSolver()
 {
@@ -125,22 +129,42 @@ void StellarSolver::extract(bool calculateHFR, QRect frame)
     m_ProcessType = calculateHFR ? EXTRACT_WITH_HFR : EXTRACT;
     useSubframe = frame.isNull() ? false : true;
     m_Subframe = frame;
-    m_isBlocking = true;
+    //m_isBlocking = true;
     start();
-    m_SextractorSolver->start();
-    processFinished(m_SextractorSolver->sextractionDone() ? 0 : 1);
-    m_isBlocking = false;
+    //m_SextractorSolver->start();
+    //processFinished(m_SextractorSolver->sextractionDone() ? 0 : 1);
+    //m_isBlocking = false;
+}
+
+//This will allow the solver to gracefully disconnect, abort, finish, and get deleted
+//Right now the internal solvers are all deleted when StellarSolver is deleted
+//I might try experimenting with this.
+void StellarSolver::releaseSextractorSolver(SextractorSolver *solver)
+{
+    if(solver != nullptr)
+    {
+        if(solver->isRunning())
+        {
+            connect(solver, &SextractorSolver::finished, solver, &SextractorSolver::deleteLater);
+            solver->disconnect(this);
+            solver->abort();
+        }
+        else
+            solver->deleteLater();
+    }
 }
 
 void StellarSolver::start()
 {
-    m_SextractorSolver = createSextractorSolver();
     if(checkParameters() == false)
     {
         emit logOutput("There is an issue with your parameters. Terminating the process.");
         emit ready();
+        emit finished();
         return;
     }
+
+    m_SextractorSolver = createSextractorSolver();
 
     m_isRunning = true;
     hasFailed = false;
@@ -154,8 +178,8 @@ void StellarSolver::start()
         wcs_coord = nullptr;
     }
 
-    if(m_isBlocking)
-        return;
+    //    if(m_isBlocking)
+    //        return;
 
     //These are the solvers that support parallelization, ASTAP and the online ones do not
     if(params.multiAlgorithm != NOT_MULTI && m_ProcessType == SOLVE && (m_SolverType == SOLVER_STELLARSOLVER
@@ -163,11 +187,6 @@ void StellarSolver::start()
     {
         m_SextractorSolver->extract();
         parallelSolve();
-    }
-    else if(m_SolverType == SOLVER_ONLINEASTROMETRY)
-    {
-        connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
-        m_SextractorSolver->start();
     }
     else
     {
@@ -181,15 +200,25 @@ bool StellarSolver::checkParameters()
 {
     if(params.multiAlgorithm != NOT_MULTI && m_SolverType == SOLVER_ASTAP && m_ProcessType == SOLVE)
     {
-        emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
+        if(m_SSLogLevel != LOG_OFF)
+            emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
         params.multiAlgorithm = NOT_MULTI;
     }
 
     if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && m_SextractorType != EXTRACTOR_INTERNAL)
     {
-        emit logOutput("StellarSolver only uses the Internal SEP Sextractor since it doesn't save files to disk. Changing to Internal Sextractor.");
+        if(m_SSLogLevel != LOG_OFF)
+            emit logOutput("StellarSolver only uses the Internal SEP Sextractor since it doesn't save files to disk. Changing to Internal Sextractor.");
         m_SextractorType = EXTRACTOR_INTERNAL;
+    }
 
+    if(m_ProcessType == SOLVE  && params.autoDownsample)
+    {
+        //Take whichever one is bigger
+        int imageSize = m_Statistics.width > m_Statistics.height ? m_Statistics.width : m_Statistics.height;
+        params.downsample = imageSize / 1024 + 1;
+        if(m_SSLogLevel != LOG_OFF)
+            emit logOutput(QString("Automatically downsampling the image by %1").arg(params.downsample));
     }
 
     if(m_ProcessType == SOLVE && params.multiAlgorithm == MULTI_AUTO)
@@ -322,7 +351,11 @@ void StellarSolver::processFinished(int code)
                 solverWithWCS = m_SextractorSolver;
                 if(loadWCS)
                 {
-                    solverWithWCS->computeWCSForStars = m_ExtractorStars.count() > 0;
+                    if(m_ExtractorStars.count() > 0)
+                    {
+                        solverWithWCS->computeWCSForStars = true;
+                        solverWithWCS->setStarList(m_ExtractorStars);
+                    }
                     solverWithWCS->computingWCS = true;
                     disconnect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::processFinished);
                     connect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishWCS);
@@ -342,51 +375,53 @@ void StellarSolver::processFinished(int code)
         }
     }
     else
-    {
         hasFailed = true;
+
+    if(m_ProcessType != SOLVE || !m_SextractorSolver->hasWCSData() || !loadWCS)
         m_isRunning = false;
-    }
 
     emit ready();
 
     if(m_ProcessType != SOLVE || !m_SextractorSolver->hasWCSData() || !loadWCS)
-    {
-        m_isRunning = false;
         emit finished();
+}
+
+int StellarSolver::whichSolver(SextractorSolver *solver)
+{
+    for(int i = 0; i < parallelSolvers.count(); i++ )
+    {
+        if(parallelSolvers.at(i) == solver)
+            return i + 1;
     }
+    return 0;
 }
 
 //This slot listens for signals from the child solvers that they are in fact done with the solve
 //If they
 void StellarSolver::finishParallelSolve(int success)
 {
+    m_ParallelSolversFinishedCount++;
     SextractorSolver *reportingSolver = qobject_cast<SextractorSolver*>(sender());
     if(!reportingSolver)
         return;
-    int whichSolver = 0;
-    for(int i = 0; i < parallelSolvers.count(); i++ )
-    {
-        SextractorSolver *solver = parallelSolvers.at(i);
-        if(solver == reportingSolver)
-            whichSolver = i + 1;
-    }
 
     if(success == 0 && !hasSolved)
     {
-        numStars  = reportingSolver->getNumStarsFound();
-        if(m_SSLogLevel != LOG_OFF)
-        {
-            emit logOutput(QString("Successfully solved with child solver: %1").arg(whichSolver));
-            emit logOutput("Shutting down other child solvers");
-        }
         for(auto solver : parallelSolvers)
         {
-            disconnect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             disconnect(solver, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
             if(solver != reportingSolver && solver->isRunning())
                 solver->abort();
         }
+        if(m_SSLogLevel != LOG_OFF)
+        {
+            emit logOutput(QString("Successfully solved with child solver: %1").arg(whichSolver(reportingSolver)));
+            emit logOutput("Shutting down other child solvers");
+        }
+
+        numStars = reportingSolver->getNumStarsFound();
         solution = reportingSolver->getSolution();
+
         if(reportingSolver->hasWCSData() && loadWCS)
         {
             solverWithWCS = reportingSolver;
@@ -400,24 +435,31 @@ void StellarSolver::finishParallelSolve(int success)
         }
         hasSolved = true;
         emit ready();
-        m_ParallelSolversFinishedCount++;
     }
     else
     {
-        m_ParallelSolversFinishedCount++;
-        if(m_SSLogLevel != LOG_OFF)
+        if(m_SSLogLevel != LOG_OFF && !hasSolved)
+            emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver(reportingSolver)));
+    }
+
+    if(m_ParallelSolversFinishedCount == parallelSolvers.count())
+    {
+
+        if(hasSolved)
         {
-            if(!hasSolved)
-                emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver));
-        }
-        if(m_ParallelSolversFinishedCount == parallelSolvers.count())
-        {
-            if(!hasSolved)
-                hasFailed = true;
-            m_isRunning = false;
-            emit ready();
-            if(!loadWCS)
+            //Don't emit finished until WCS is done if we are doing WCS extraction.
+            if(!(loadWCS && hasWCS))
+            {
+                m_isRunning = false;
                 emit finished();
+            }
+        }
+        else
+        {
+            m_isRunning = false;
+            hasFailed = true;
+            emit ready();
+            emit finished();
         }
     }
 }
@@ -472,14 +514,10 @@ void StellarSolver::abort()
 //This method checks all the solvers and the internal running boolean to determine if anything is running.
 bool StellarSolver::isRunning()
 {
-    for(auto solver : parallelSolvers)
-    {
-        if(solver->isRunning())
-            return true;
-    }
+    if(parallelSolversAreRunning())
+        return true;
     if(m_SextractorSolver && m_SextractorSolver->isRunning())
         return true;
-
     return m_isRunning;
 }
 
@@ -737,26 +775,29 @@ bool StellarSolver::appendStarsRAandDEC()
 
 //This function should get the system RAM in bytes.  I may revise it later to get the currently available RAM
 //But from what I read, getting the Available RAM is inconsistent and buggy on many systems.
-double StellarSolver::getAvailableRAM()
+bool StellarSolver::getAvailableRAM(double &availableRAM, double &totalRAM)
 {
-    double RAM = 0;
-
 #if defined(Q_OS_OSX)
-    int mib[2];
+    int mib [] = { CTL_HW, HW_MEMSIZE };
     size_t length;
-    mib[0] = CTL_HW;
-    mib[1] = HW_MEMSIZE;
     length = sizeof(int64_t);
     int64_t RAMcheck;
     if(sysctl(mib, 2, &RAMcheck, &length, NULL, 0))
-        return 0; // On Error
-    RAM = RAMcheck;
+        return false; // On Error
+    //Until I can figure out how to get free RAM on Mac
+    availableRAM = RAMcheck;
+    totalRAM = RAMcheck;
 #elif defined(Q_OS_LINUX)
     QProcess p;
-    p.start("awk", QStringList() << "/MemTotal/ { print $2 }" << "/proc/meminfo");
+    p.start("awk", QStringList() << "/MemFree/ { print $2 }" << "/proc/meminfo");
     p.waitForFinished();
     QString memory = p.readAllStandardOutput();
-    RAM = memory.toLong() * 1024.0; //It is in kB on this system
+    availableRAM = memory.toLong() * 1024.0; //It is in kB on this system
+
+    p.start("awk", QStringList() << "/MemTotal/ { print $2 }" << "/proc/meminfo");
+    p.waitForFinished();
+    memory = p.readAllStandardOutput();
+    totalRAM = memory.toLong() * 1024.0; //It is in kB on this system
     p.close();
 #else
     MEMORYSTATUSEX memory_status;
@@ -764,14 +805,15 @@ double StellarSolver::getAvailableRAM()
     memory_status.dwLength = sizeof(MEMORYSTATUSEX);
     if (GlobalMemoryStatusEx(&memory_status))
     {
-        RAM = memory_status.ullTotalPhys;
+        availableRAM = memory_status.ullAvailPhys;
+        totalRAM = memory_status.ullTotalPhys;
     }
     else
     {
-        RAM = 0;
+        return false;
     }
 #endif
-    return RAM;
+    return true;
 }
 
 //This should determine if enough RAM is available to load all the index files in parallel
@@ -791,7 +833,9 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
         }
 
     }
-    uint64_t availableRAM = getAvailableRAM();
+    double availableRAM;
+    double totalRAM;
+    getAvailableRAM(availableRAM, totalRAM);
     if(availableRAM == 0)
     {
         if(m_SSLogLevel != LOG_OFF)
@@ -801,9 +845,14 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
     double bytesInGB = 1024.0 * 1024.0 *
                        1024.0; // B -> KB -> MB -> GB , float to make sure it reports the answer with any decimals
     if(m_SSLogLevel != LOG_OFF)
+    {
         emit logOutput(
-            QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB").arg(
-                totalSize / bytesInGB).arg(availableRAM / bytesInGB));
+            QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB, Free RAM: %3 GB").arg(
+                totalSize / bytesInGB).arg(totalRAM / bytesInGB).arg(availableRAM / bytesInGB));
+#if defined(Q_OS_OSX)
+        emit logOutput("Note: Free RAM for now is reported as Installed RAM on MacOS until I figure out how to get available RAM");
+#endif
+    }
     return availableRAM > totalSize;
 }
 

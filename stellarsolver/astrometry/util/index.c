@@ -154,11 +154,13 @@ anbool index_is_file_index(const char* filename) {
 
     if (!(qfits_is_fits(quadfn) &&
           (singlefile || (qfits_is_fits(ckdtfn) && qfits_is_fits(skdtfn))))) {
+        /* //# Modified by Robert Lancaster for the StellarSolver Internal Library (so that we don't keep getting messages saying that the config file isn't FITS)
         if (singlefile)
             ERROR("Index file %s is not FITS.\n", quadfn);
         else
             ERROR("Index files %s , %s , and %s are not FITS.\n",
                   quadfn, skdtfn, ckdtfn);
+        */
         rtn = FALSE;
         goto finish;
     }

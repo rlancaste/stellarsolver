@@ -16,9 +16,12 @@ bool SSolver::Parameters::operator==(const Parameters& o)
             deblend_contrast == o.deblend_contrast &&
             clean == o.clean &&
             clean_param == o.clean_param &&
+
+            //This is a StellarSolver parameter used for the creation of the convolution filter
             fwhm == o.fwhm &&
             //skip conv filter?? This might be hard to compare
 
+            //StellarSolver Star Filter Settings
             maxSize == o.maxSize &&
             minSize == o.minSize &&
             maxEllipse == o.maxEllipse &&
@@ -27,16 +30,23 @@ bool SSolver::Parameters::operator==(const Parameters& o)
             removeDimmest == o.removeDimmest &&
             saturationLimit == o.saturationLimit &&
 
+            //The setting for parallel thread solving
             multiAlgorithm == o.multiAlgorithm &&
+
+            //Settings from the Astrometry Config file
             inParallel == o.inParallel &&
             solverTimeLimit == o.solverTimeLimit &&
             minwidth == o.minwidth &&
             maxwidth == o.maxwidth &&
 
+            //Basic Astrometry settings
             resort == o.resort &&
+            autoDownsample == o.autoDownsample &&
             downsample == o.downsample &&
             search_parity == o.search_parity &&
             search_radius == o.search_radius &&
+
+            //Astrometry settings that determine when to keep solutions or keep searching for better solutions
             //They need to be turned into a qstring because they are sometimes very close but not exactly the same
             QString::number(logratio_tosolve) == QString::number(o.logratio_tosolve) &&
             QString::number(logratio_tokeep) == QString::number(o.logratio_tokeep) &&
@@ -61,7 +71,10 @@ QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
     settingsMap.insert("clean", QVariant(params.clean));
     settingsMap.insert("clean_param", QVariant(params.clean_param));
 
+    //This is a StellarSolver parameter used for the creation of the convolution filter
     settingsMap.insert("fwhm", QVariant(params.fwhm));
+
+    //This is the convolution filter itself
     QStringList conv;
     foreach(float num, params.convFilter)
     {
@@ -69,7 +82,7 @@ QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
     }
     settingsMap.insert("convFilter", QVariant(conv.join(",")));
 
-    //Star Filter Settings
+    //StellarSolver Star Filter Settings
     settingsMap.insert("maxSize", QVariant(params.maxSize));
     settingsMap.insert("minSize", QVariant(params.minSize));
     settingsMap.insert("maxEllipse", QVariant(params.maxEllipse));
@@ -78,19 +91,22 @@ QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
     settingsMap.insert("removeDimmest", QVariant(params.removeDimmest ));
     settingsMap.insert("saturationLimit", QVariant(params.saturationLimit));
 
+    //A setting specifig to StellarSovler for choosing the algorithm to use to solve with parallel threads.
+    settingsMap.insert("multiAlgo", QVariant(params.multiAlgorithm)) ;
+
     //Settings that usually get set by the Astrometry config file
     settingsMap.insert("maxwidth", QVariant(params.maxwidth)) ;
     settingsMap.insert("minwidth", QVariant(params.minwidth)) ;
     settingsMap.insert("inParallel", QVariant(params.inParallel)) ;
-    settingsMap.insert("multiAlgo", QVariant(params.multiAlgorithm)) ;
     settingsMap.insert("solverTimeLimit", QVariant(params.solverTimeLimit));
 
     //Astrometry Basic Parameters
     settingsMap.insert("resort", QVariant(params.resort)) ;
+    settingsMap.insert("autoDownsample", QVariant(params.autoDownsample)) ;
     settingsMap.insert("downsample", QVariant(params.downsample)) ;
     settingsMap.insert("search_radius", QVariant(params.search_radius)) ;
 
-    //Setting the settings to know when to stop or keep searching for solutions
+    //Astrometry settings that determine when to keep solutions or keep searching for better solutions
     settingsMap.insert("logratio_tokeep", QVariant(params.logratio_tokeep)) ;
     settingsMap.insert("logratio_totune", QVariant(params.logratio_totune)) ;
     settingsMap.insert("logratio_tosolve", QVariant(params.logratio_tosolve)) ;
@@ -118,8 +134,10 @@ SSolver::Parameters SSolver::Parameters::convertFromMap(QMap<QString, QVariant> 
     params.clean = settingsMap.value("clean", params.clean).toInt();
     params.clean_param = settingsMap.value("clean_param", params.clean_param).toDouble();
 
-    //The Conv Filter
+    //This is a StellarSolver parameter used for the creation of the convolution filter
     params.fwhm = settingsMap.value("fwhm",params.fwhm).toDouble();
+
+    //This is the convolution filter itself
     if(settingsMap.contains("convFilter"))
     {
         QStringList conv = settingsMap.value("convFilter", "").toString().split(",");
@@ -129,7 +147,7 @@ SSolver::Parameters SSolver::Parameters::convertFromMap(QMap<QString, QVariant> 
         params.convFilter = filter;
     }
 
-    //Star Filter Settings
+    //StellarSolver Star Filter Settings
     params.maxSize = settingsMap.value("maxSize", params.maxSize).toDouble();
     params.minSize = settingsMap.value("minSize", params.minSize).toDouble();
     params.maxEllipse = settingsMap.value("maxEllipse", params.maxEllipse).toDouble();
@@ -138,19 +156,22 @@ SSolver::Parameters SSolver::Parameters::convertFromMap(QMap<QString, QVariant> 
     params.removeDimmest = settingsMap.value("removeDimmest", params.removeDimmest ).toDouble();
     params.saturationLimit = settingsMap.value("saturationLimit", params.saturationLimit).toDouble();
 
+    //This is a parameter specific to StellarSolver.  It determines the algorithm to use to run parallel threads for solving
+    params.multiAlgorithm = (MultiAlgo)(settingsMap.value("multiAlgo", params.multiAlgorithm)).toInt();
+
     //Settings that usually get set by the Astrometry config file
     params.maxwidth = settingsMap.value("maxwidth", params.maxwidth).toDouble() ;
     params.minwidth = settingsMap.value("minwidth", params.minwidth).toDouble() ;
     params.inParallel = settingsMap.value("inParallel", params.inParallel).toBool() ;
-    params.multiAlgorithm = (MultiAlgo)(settingsMap.value("multiAlgo", params.multiAlgorithm)).toInt();
     params.solverTimeLimit = settingsMap.value("solverTimeLimit", params.solverTimeLimit).toInt();
 
     //Astrometry Basic Parameters
     params.resort = settingsMap.value("resort", params.resort).toBool();
-    params.downsample = settingsMap.value("downsample", params.downsample).toBool() ;
+    params.autoDownsample = settingsMap.value("autoDownsample", params.autoDownsample).toBool();
+    params.downsample = settingsMap.value("downsample", params.downsample).toInt();
     params.search_radius = settingsMap.value("search_radius", params.search_radius).toDouble() ;
 
-    //Setting the settings to know when to stop or keep searching for solutions
+    //Astrometry settings that determine when to keep solutions or keep searching for better solutions
     params.logratio_tokeep = settingsMap.value("logratio_tokeep", params.logratio_tokeep).toDouble() ;
     params.logratio_totune = settingsMap.value("logratio_totune", params.logratio_totune).toDouble() ;
     params.logratio_tosolve = settingsMap.value("logratio_tosolve", params.logratio_tosolve).toDouble();

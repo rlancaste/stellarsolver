@@ -161,12 +161,14 @@ int ExternalSextractorSolver::extract()
     {
         int fail = 0;
         if(m_ExtractorType == EXTRACTOR_INTERNAL)
+        {
             fail = runSEPSextractor();
+            if(fail != 0)
+                return fail;
+            return(writeSextractorTable());
+        }
         else if(m_ExtractorType == EXTRACTOR_EXTERNAL)
-            fail = runExternalSextractor();
-        if(fail != 0)
-            return fail;
-        return(writeSextractorTable());
+            return(runExternalSextractor());
     }
     return -1;
 }
@@ -503,7 +505,7 @@ int ExternalSextractorSolver::runExternalSextractor()
 
     sextractorProcess->setWorkingDirectory(basePath);
     sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
-    if(astrometryLogLevel != LOG_NONE)
+    if(m_SSLogLevel != LOG_OFF)
         connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSextractor);
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -614,7 +616,7 @@ int ExternalSextractorSolver::runExternalSolver()
 #endif
 
 #ifdef Q_OS_OSX //This is needed so that astrometry.net can find netpbm and python on Mac when started from this program.  It is not needed when using an alternate sextractor
-    if(sextractorType == SEXTRACTOR_BUILTIN && solverType == SOLVER_LOCALASTROMETRY)
+    if(m_ExtractorType == SEXTRACTOR_BUILTIN && solverType == SOLVER_LOCALASTROMETRY)
     {
         QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
         QString path            = env.value("PATH", "");
