@@ -373,6 +373,7 @@ int Extract::sep_extract(sep_image *image, float thresh, int thresh_type,
     plist_values.plistoff_cdvalue = plistoff_cdvalue;
     plist_values.plistoff_thresh = plistoff_thresh;
     plist_values.plistoff_var = plistoff_var;
+    plist_values.plistsize = plistsize;
 
     analyze.reset(new Analyze(plist_values));
     lutz.reset(new Lutz(image->w, image->h, analyze.get(), plist_values));
