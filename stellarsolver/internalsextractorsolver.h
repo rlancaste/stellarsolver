@@ -84,7 +84,7 @@ class InternalSextractorSolver: public SextractorSolver
         FILE *logFile = nullptr;
 
         // Anything below 200 pixels will NOT be partitioned.
-        static const uint32_t PARTITION_SIZE { 20000 };
+        static const uint32_t PARTITION_SIZE { 200 };
         // Partition overlap catch any stars that are on the frame EDGE
         static const uint32_t PARTITION_OVERLAP { 20 };
 };

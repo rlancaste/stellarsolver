@@ -281,18 +281,18 @@ int Extract::sep_extract(sep_image *image, float thresh, int thresh_type,
      * the buffer height equals the height of the convolution kernel.
      */
     bufh = conv ? convh : 1;
-    status = arraybuffer_init(&dbuf, image->data, image->dtype, w, h, stacksize,
+    status = arraybuffer_init(&dbuf, image->data, image->dtype, image->raw_w, image->raw_h, stacksize,
                               bufh);
     if (status != RETURN_OK) goto exit;
     if (isvarnoise)
     {
-        status = arraybuffer_init(&nbuf, image->noise, image->ndtype, w, h,
+        status = arraybuffer_init(&nbuf, image->noise, image->ndtype, image->raw_w, image->raw_h,
                                   stacksize, bufh);
         if (status != RETURN_OK) goto exit;
     }
     if (image->mask)
     {
-        status = arraybuffer_init(&mbuf, image->mask, image->mdtype, w, h,
+        status = arraybuffer_init(&mbuf, image->mask, image->mdtype, image->raw_w, image->raw_h,
                                   stacksize, bufh);
         if (status != RETURN_OK) goto exit;
     }
