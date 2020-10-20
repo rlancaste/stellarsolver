@@ -74,7 +74,7 @@ int APER_NAME(sep_image *im,
     for (iy = ymin; iy < ymax; iy++)
     {
         /* set pointers to the start of this row */
-        pos = (iy % im->h) * im->w + xmin;
+        pos = (iy % im->raw_h) * im->raw_w + xmin;
         datat = reinterpret_cast<uint8_t*>(im->data) + pos * size;
         if (errisarray)
             errort = reinterpret_cast<uint8_t*>(im->noise) + pos * esize;

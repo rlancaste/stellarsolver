@@ -62,7 +62,6 @@ int Deblend::deblend(objliststruct *objlistin, int l, objliststruct *objlistout,
                      int deblend_nthresh, double deblend_mincont, int minarea, Lutz *lutz)
 {
     objstruct		*obj;
-    static objliststruct	debobjlist, debobjlist2;
     double		thresh, thresh0, value0;
     int			h, i, j, k, m, subx, suby, subh, subw,
                 xn,

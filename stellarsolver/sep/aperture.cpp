@@ -401,7 +401,7 @@ int sep_sum_circann_multi(sep_image *im,
     for (iy = ymin; iy < ymax; iy++)
     {
         /* set pointers to the start of this row */
-        pos = (iy % im->h) * im->w + xmin;
+        pos = (iy % im->raw_h) * im->raw_w + xmin;
         datat = reinterpret_cast<uint8_t *>(im->data) + pos * size;
         if (errisarray)
             errort = reinterpret_cast<uint8_t *>(im->noise) + pos * esize;
@@ -647,7 +647,7 @@ int sep_kron_radius(sep_image *im, double x, double y,
     for (iy = ymin; iy < ymax; iy++)
     {
         /* set pointers to the start of this row */
-        pos = (iy % im->h) * im->w + xmin;
+        pos = (iy % im->raw_h) * im->raw_w + xmin;
         datat = reinterpret_cast<uint8_t *>(im->data)  + pos * size;
         if (im->mask)
             maskt = reinterpret_cast<uint8_t *>(im->mask) + pos * msize;
@@ -860,7 +860,7 @@ int sep_windowed(sep_image *im,
         for (iy = ymin; iy < ymax; iy++)
         {
             /* set pointers to the start of this row */
-            pos = (iy % im->h) * im->w + xmin;
+            pos = (iy % im->raw_h) * im->raw_w + xmin;
             datat = reinterpret_cast<uint8_t *>(im->data) + pos * size;
             if (errisarray)
                 errort = reinterpret_cast<uint8_t *>(im->noise) + pos * esize;

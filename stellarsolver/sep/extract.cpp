@@ -99,8 +99,12 @@ void Extract::arraybuffer_readline(arraybuffer *buf)
     buf->yoff++;
     y = buf->yoff + buf->bh - 1;
 
+    //    if (y < buf->dh)
+    //        buf->readline(buf->dptr + buf->elsize * buf->dw * y, buf->dw,
+    //                      buf->lastline);
+
     if (y < buf->dh)
-        buf->readline(buf->dptr + buf->elsize * buf->dw * y, buf->dw,
+        buf->readline(buf->dptr + buf->elsize * buf->dw * y, buf->bw - 1,
                       buf->lastline);
 
     return;
@@ -281,18 +285,18 @@ int Extract::sep_extract(sep_image *image, float thresh, int thresh_type,
      * the buffer height equals the height of the convolution kernel.
      */
     bufh = conv ? convh : 1;
-    status = arraybuffer_init(&dbuf, image->data, image->dtype, image->raw_w, image->raw_h, stacksize,
+    status = arraybuffer_init(&dbuf, image->data, image->dtype, image->raw_w, h, stacksize,
                               bufh);
     if (status != RETURN_OK) goto exit;
     if (isvarnoise)
     {
-        status = arraybuffer_init(&nbuf, image->noise, image->ndtype, image->raw_w, image->raw_h,
+        status = arraybuffer_init(&nbuf, image->noise, image->ndtype, image->raw_w, h,
                                   stacksize, bufh);
         if (status != RETURN_OK) goto exit;
     }
     if (image->mask)
     {
-        status = arraybuffer_init(&mbuf, image->mask, image->mdtype, image->raw_w, image->raw_h,
+        status = arraybuffer_init(&mbuf, image->mask, image->mdtype, image->raw_w, h,
                                   stacksize, bufh);
         if (status != RETURN_OK) goto exit;
     }
@@ -755,9 +759,8 @@ build the object structure.
 int Extract::sortit(infostruct *info, objliststruct *objlist, int minarea, objliststruct *finalobjlist, int deblend_nthresh,
                     double deblend_mincont, double gain)
 {
-    objliststruct	        objlistout, *objlist2;
-    static objstruct	obj;
-    int 			i, status;
+    objliststruct objlistout, *objlist2;
+    int i, status;
 
     status = RETURN_OK;
     objlistout.obj = NULL;

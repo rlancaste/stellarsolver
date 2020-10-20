@@ -43,7 +43,8 @@ int convolve(arraybuffer *buf, int y, float *conv, int convw, int convh, PIXTYPE
     PIXTYPE *outend;  /* end of output buffer */
     PIXTYPE *src, *dst, *dstend;
 
-    outend = out + buf->dw;
+    //outend = out + buf->dw;
+    outend = out + (buf->bw - 1);
     convw2 = convw / 2;
     y0 = y - convh / 2; /* start line in image */
 
@@ -63,7 +64,7 @@ int convolve(arraybuffer *buf, int y, float *conv, int convw, int convh, PIXTYPE
     if ((y0 < buf->yoff) || (y0 + convh > buf->yoff + buf->bh))
         return LINE_NOT_IN_BUF;
 
-    memset(out, 0, buf->dw * sizeof(PIXTYPE)); /* initialize output to zero */
+    memset(out, 0, (buf->bw - 1) * sizeof(PIXTYPE)); /* initialize output to zero */
 
     /* loop over pixels in the convolution kernel */
     convn = convw * convh;
@@ -129,7 +130,7 @@ int matched_filter(arraybuffer *imbuf, arraybuffer *nbuf, int y,
     PIXTYPE *outend;            /* end of output buffer */
     PIXTYPE *src_im, *src_n, *dst_num, *dst_denom, *dst_num_end;
 
-    outend = out + imbuf->dw;
+    outend = out + (imbuf->bw - 1);
     convw2 = convw / 2;
     y0 = y - convh / 2; /* start line in image */
 
@@ -151,7 +152,7 @@ int matched_filter(arraybuffer *imbuf, arraybuffer *nbuf, int y,
         return LINE_NOT_IN_BUF;
 
     /* check that image and noise buffer match */
-    if ((imbuf->yoff != nbuf->yoff) || (imbuf->dw != nbuf->dw))
+    if ((imbuf->yoff != nbuf->yoff) || (imbuf->bw != nbuf->bw))
         return LINE_NOT_IN_BUF;  /* TODO new error status code */
 
     /* initialize output buffers to zero */

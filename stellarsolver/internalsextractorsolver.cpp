@@ -166,34 +166,8 @@ void InternalSextractorSolver::run()
     }
 }
 
-
-//The code in this section is my attempt at running an internal sextractor program based on SEP
-//I used KStars and the SEP website as a guide for creating these functions
-int InternalSextractorSolver::runSEPSextractor()
+void InternalSextractorSolver::allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
-    if(params.convFilter.size() == 0)
-    {
-        emit logOutput("No convFilter included.");
-        return -1;
-    }
-    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting Internal StellarSolver Sextractor. . .");
-
-    //Only downsample images before SEP if the Sextraction is being used for plate solving
-    if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && params.downsample != 1)
-        downsampleImage(params.downsample);
-
-    uint32_t x = 0, y = 0, w = m_Statistics.width, h = m_Statistics.height;
-    if(useSubframe)
-    {
-        x = subframe.x();
-        w = subframe.width();
-        y = subframe.y();
-        h = subframe.height();
-    }
-
-    auto * data = new float[w * h];
-
     switch (m_Statistics.dataType)
     {
         case SEP_TBYTE:
@@ -219,10 +193,42 @@ int InternalSextractorSolver::runSEPSextractor()
             break;
         default:
             delete [] data;
-            return -1;
+    }
+}
+
+//The code in this section is my attempt at running an internal sextractor program based on SEP
+//I used KStars and the SEP website as a guide for creating these functions
+int InternalSextractorSolver::runSEPSextractor()
+{
+    if(params.convFilter.size() == 0)
+    {
+        emit logOutput("No convFilter included.");
+        return -1;
+    }
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Starting Internal StellarSolver Sextractor. . .");
+
+    //Only downsample images before SEP if the Sextraction is being used for plate solving
+    if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && params.downsample != 1)
+        downsampleImage(params.downsample);
+
+    uint32_t x = 0, y = 0;
+    uint32_t w = m_Statistics.width, h = m_Statistics.height;
+    uint32_t raw_w = m_Statistics.width, raw_h = m_Statistics.height;
+    if(useSubframe)
+    {
+        x = subframe.x();
+        w = subframe.width();
+        y = subframe.y();
+        h = subframe.height();
+
+        raw_w = w;
+        raw_h = h;
     }
 
+    QList<float *> dataBuffers;
     QList<QFuture<QList<FITSImage::Star>>> futures;
+    QList<QPair<uint32_t, uint32_t>> startupOffsets;
 
     if (w > PARTITION_SIZE && h > PARTITION_SIZE)
     {
@@ -244,14 +250,24 @@ int InternalSextractorSolver::runSEPSextractor()
             {
                 int offsetW = (j == horizontalPartitions - 1) ? horizontalOffset : 0;
                 int offsetH = (i == verticalPartitions - 1) ? verticalOffset : 0;
+                uint32_t subX = x + j * PARTITION_SIZE + PARTITION_MARGIN;
+                uint32_t subY = y + i * PARTITION_SIZE + PARTITION_MARGIN;
+                uint32_t subW = PARTITION_SIZE + offsetW - PARTITION_MARGIN;
+                uint32_t subH = PARTITION_SIZE + offsetH - PARTITION_MARGIN;
+                //uint32_t offset = subX + (subY * raw_w);
+
+                auto * data = new float[subW * subH];
+                allocateDataBuffer(data, subX, subY, subW, subH);
+                dataBuffers.append(data);
+                startupOffsets.append(qMakePair(subX, subY));
 
                 ImageParams parameters = {data,
-                                          static_cast<uint32_t>(m_Statistics.width),
-                                          static_cast<uint32_t>(m_Statistics.height),
-                                          x + j * PARTITION_SIZE,
-                                          y + i * PARTITION_SIZE,
-                                          PARTITION_SIZE + offsetW,
-                                          PARTITION_SIZE + offsetH
+                                          subW,
+                                          subH,
+                                          0,
+                                          0,
+                                          subW,
+                                          subH
                                          };
                 futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
             }
@@ -259,18 +275,35 @@ int InternalSextractorSolver::runSEPSextractor()
     }
     else
     {
-        ImageParams parameters = {data, m_Statistics.width,
-                                  m_Statistics.height,
-                                  x, y, w, h
-                                 };
+        auto * data = new float[w * h];
+        allocateDataBuffer(data, x, y, w, h);
+        dataBuffers.append(data);
+        startupOffsets.append(qMakePair(x, y));
+        ImageParams parameters = {data, raw_w, raw_h, x, y, w, h};
         futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
     }
 
     for (auto oneFuture : futures)
     {
         oneFuture.waitForFinished();
-        stars.append(oneFuture.result());
+        QList<FITSImage::Star> partitionStars = oneFuture.result();
+        if (!startupOffsets.empty())
+        {
+            QPair<uint32_t, uint32_t> oneOffset = startupOffsets.takeFirst();
+            for (auto &oneStar : partitionStars)
+            {
+                oneStar.x += oneOffset.first;
+                oneStar.y += oneOffset.second;
+            }
+        }
+        stars.append(partitionStars);
     }
+
+    applyStarFilters(stars);
+
+    for (auto buffer : dataBuffers)
+        delete [] buffer;
+    dataBuffers.clear();
 
     hasSextracted = true;
 
@@ -285,7 +318,7 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     int status = 0;
     sep_bkg *bkg = nullptr;
     sep_catalog * catalog = nullptr;
-    QList<FITSImage::Star> stars;
+    QList<FITSImage::Star> partitionStars;
     const uint32_t maxRadius = 50;
 
     auto cleanup = [ = ]()
@@ -312,9 +345,8 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     std::vector<std::pair<int, double>> ovals;
     int numToProcess = 0;
 
-    uint32_t offset = parameters.subX + (parameters.subY * parameters.width);
     // #0 Create SEP Image structure
-    sep_image im = {parameters.data + offset,
+    sep_image im = {parameters.data,
                     nullptr,
                     nullptr,
                     nullptr,
@@ -337,7 +369,7 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     if (status != 0)
     {
         cleanup();
-        return stars;
+        return partitionStars;
     }
 
     // #2 Background evaluation
@@ -346,7 +378,7 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     if (status != 0)
     {
         cleanup();
-        return stars;
+        return partitionStars;
     }
 
     //Saving some background information
@@ -360,7 +392,7 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     if (status != 0)
     {
         cleanup();
-        return stars;
+        return partitionStars;
     }
 
     std::unique_ptr<Extract> extractor;
@@ -373,7 +405,7 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     if (status != 0)
     {
         cleanup();
-        return stars;
+        return partitionStars;
     }
 
     // Record the number of stars detected.
@@ -388,7 +420,6 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     }
     std::sort(ovals.begin(), ovals.end(), [](const std::pair<int, double> &o1, const std::pair<int, double> &o2) -> bool { return o1.second > o2.second;});
 
-    stars.clear();
     numToProcess = std::min(catalog->nobj, params.initialKeep);
     for (int index = 0; index < numToProcess; index++)
     {
@@ -467,8 +498,8 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
             HFR = flux_fractions[0];
         }
 
-        FITSImage::Star oneStar = {xPos + parameters.subX,
-                                   yPos + parameters.subY,
+        FITSImage::Star oneStar = {xPos,
+                                   yPos,
                                    mag,
                                    static_cast<float>(sum),
                                    static_cast<float>(peak),
@@ -481,26 +512,24 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
                                    numPixels
                                   };
         // Make a copy and add it to QList
-        stars.append(oneStar);
+        partitionStars.append(oneStar);
     }
-
-    applyStarFilters();
 
     cleanup();
 
-    return stars;
+    return partitionStars;
 }
 
-void InternalSextractorSolver::applyStarFilters()
+void InternalSextractorSolver::applyStarFilters(QList<FITSImage::Star> &starList)
 {
-    if(stars.size() > 1)
+    if(starList.size() > 1)
     {
-        emit logOutput(QString("Stars Found before Filtering: %1").arg(stars.size()));
+        emit logOutput(QString("Stars Found before Filtering: %1").arg(starList.size()));
         if(params.resort)
         {
             //Note that a star is dimmer when the mag is greater!
             //We want to sort in decreasing order though!
-            std::sort(stars.begin(), stars.end(), [](const FITSImage::Star & s1, const FITSImage::Star & s2)
+            std::sort(starList.begin(), starList.end(), [](const FITSImage::Star & s1, const FITSImage::Star & s2)
             {
                 return s1.mag < s2.mag;
             });
@@ -509,50 +538,50 @@ void InternalSextractorSolver::applyStarFilters()
         if(params.maxSize > 0.0)
         {
             emit logOutput(QString("Removing stars wider than %1 pixels").arg(params.maxSize));
-            stars.erase(std::remove_if(stars.begin(), stars.end(), [&](FITSImage::Star & oneStar)
+            starList.erase(std::remove_if(starList.begin(), starList.end(), [&](FITSImage::Star & oneStar)
             {
                 return (oneStar.a > params.maxSize || oneStar.b > params.maxSize);
-            }), stars.end());
+            }), starList.end());
         }
 
         if(params.minSize > 0.0)
         {
             emit logOutput(QString("Removing stars smaller than %1 pixels").arg(params.minSize));
-            stars.erase(std::remove_if(stars.begin(), stars.end(), [&](FITSImage::Star & oneStar)
+            starList.erase(std::remove_if(starList.begin(), starList.end(), [&](FITSImage::Star & oneStar)
             {
                 return ((oneStar.a < params.minSize || oneStar.b < params.minSize));
-            }), stars.end());
+            }), starList.end());
         }
 
         if(params.resort && params.removeBrightest > 0.0 && params.removeBrightest < 100.0)
         {
-            int numToRemove = stars.count() * (params.removeBrightest / 100.0);
+            int numToRemove = starList.count() * (params.removeBrightest / 100.0);
             emit logOutput(QString("Removing the %1 brightest stars").arg(numToRemove));
             if(numToRemove > 1)
             {
                 for(int i = 0; i < numToRemove; i++)
-                    stars.removeFirst();
+                    starList.removeFirst();
             }
         }
 
         if(params.resort && params.removeDimmest > 0.0 && params.removeDimmest < 100.0)
         {
-            int numToRemove = stars.count() * (params.removeDimmest / 100.0);
+            int numToRemove = starList.count() * (params.removeDimmest / 100.0);
             emit logOutput(QString("Removing the %1 dimmest stars").arg(numToRemove));
             if(numToRemove > 1)
             {
                 for(int i = 0; i < numToRemove; i++)
-                    stars.removeLast();
+                    starList.removeLast();
             }
         }
 
         if(params.maxEllipse > 1)
         {
             emit logOutput(QString("Removing the stars with a/b ratios greater than %1").arg(params.maxEllipse));
-            stars.erase(std::remove_if(stars.begin(), stars.end(), [&](FITSImage::Star & oneStar)
+            starList.erase(std::remove_if(starList.begin(), starList.end(), [&](FITSImage::Star & oneStar)
             {
                 return (oneStar.b != 0 && oneStar.a / oneStar.b > params.maxEllipse);
-            }), stars.end());
+            }), starList.end());
         }
 
         if(params.saturationLimit > 0.0 && params.saturationLimit < 100.0)
@@ -573,24 +602,24 @@ void InternalSextractorSolver::applyStarFilters()
             {
                 emit logOutput(QString("Removing the saturated stars with peak values greater than %1 Percent of %2").arg(
                                    params.saturationLimit).arg(maxSizeofDataType));
-                stars.erase(std::remove_if(stars.begin(), stars.end(), [&](FITSImage::Star & oneStar)
+                starList.erase(std::remove_if(starList.begin(), starList.end(), [&](FITSImage::Star & oneStar)
                 {
                     return (oneStar.peak > (params.saturationLimit / 100.0) * maxSizeofDataType);
-                }), stars.end());
+                }), starList.end());
             }
         }
 
         if(params.resort && params.keepNum > 0.0)
         {
             emit logOutput(QString("Keeping just the %1 brightest stars").arg(params.keepNum));
-            int numToRemove = stars.size() - params.keepNum;
+            int numToRemove = starList.size() - params.keepNum;
             if(numToRemove > 1)
             {
                 for(int i = 0; i < numToRemove; i++)
-                    stars.removeLast();
+                    starList.removeLast();
             }
         }
-        emit logOutput(QString("Stars Found after Filtering: %1").arg(stars.size()));
+        emit logOutput(QString("Stars Found after Filtering: %1").arg(starList.size()));
     }
 }
 

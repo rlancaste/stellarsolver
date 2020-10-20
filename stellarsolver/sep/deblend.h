@@ -56,6 +56,7 @@ class Deblend
         objliststruct *objlist = nullptr;
         short *son = nullptr, *ok = nullptr;
 
+        objliststruct	debobjlist, debobjlist2;
         plistvalues plist_values;
         int plistsize;
 };

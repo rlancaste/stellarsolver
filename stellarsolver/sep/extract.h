@@ -90,6 +90,7 @@ class Extract
         int plistsize;
         size_t extract_pixstack = 300000;
         plistvalues plist_values;
+        objstruct obj;
 };
 
 }

@@ -45,9 +45,10 @@ class InternalSextractorSolver: public SextractorSolver
         //This is the method that actually runs the internal sextractor
         int runSEPSextractor();
         //This applies the star filter to the stars list.
-        void applyStarFilters();
+        void applyStarFilters(QList<FITSImage::Star> &starList);
         QList<FITSImage::Star> extractPartition(const ImageParams &parameters);
         void addToStarList(QList<FITSImage::Star> &stars, QList<FITSImage::Star> &partialStarList);
+        void allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
         //This boolean gets set internally if we are using a downsampled image buffer for SEP
         bool usingDownsampledImage = false;
 
@@ -87,5 +88,7 @@ class InternalSextractorSolver: public SextractorSolver
         static const uint32_t PARTITION_SIZE { 200 };
         // Partition overlap catch any stars that are on the frame EDGE
         static const uint32_t PARTITION_OVERLAP { 20 };
+        // Partision Margin in pixels
+        static const uint32_t PARTITION_MARGIN { 15 };
 };
 

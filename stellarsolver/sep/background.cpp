@@ -65,6 +65,7 @@ int sep_background(sep_image* image, int bw, int bh, int fw, int fh,
     int npix;                   /* size of image */
     int nx, ny, nb;             /* number of background boxes in x, y, total */
     int bufsize;                /* size of a "row" of boxes in pixels (w*bh) */
+    int imgbufsize;             /* size of a "row" of boxes in pixels (raw_w*bh) for the whole image width */
     int elsize;                 /* size (in bytes) of an image array element */
     int melsize;                /* size (in bytes) of a mask array element */
     PIXTYPE *buf, *buft, *mbuf, *mbuft;
@@ -77,6 +78,7 @@ int sep_background(sep_image* image, int bw, int bh, int fw, int fh,
     status = RETURN_OK;
     npix = image->w * image->h;
     bufsize = image->w * bh;
+    imgbufsize = image->raw_w * bh;
     maskthresh = image->maskthresh;
     if (image->mask == NULL) maskthresh = 0.0;
 
@@ -177,7 +179,7 @@ int sep_background(sep_image* image, int bw, int bh, int fw, int fh,
         }
 
         /* Get clipped mean, sigma for all boxes in the row */
-        backstat(backmesh, buft, mbuft, bufsize, nx, image->raw_w, bw, maskthresh);
+        backstat(backmesh, buft, mbuft, bufsize, nx, image->w, bw, maskthresh);
 
         /* Allocate histograms in each box in this row. */
         bm = backmesh;
@@ -199,9 +201,12 @@ int sep_background(sep_image* image, int bw, int bh, int fw, int fh,
         }
 
         /* increment array pointers to next row of background boxes */
-        imt += elsize * bufsize;
+        //        imt += elsize * bufsize;
+        //        if (image->mask)
+        //            maskt += melsize * bufsize;
+        imt += elsize * imgbufsize;
         if (image->mask)
-            maskt += melsize * bufsize;
+            maskt += melsize * imgbufsize;
     }
 
     /* free memory */

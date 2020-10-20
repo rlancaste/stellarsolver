@@ -536,7 +536,7 @@ int ExternalSextractorSolver::runExternalSextractor()
         }
     }
 
-    applyStarFilters();
+    applyStarFilters(stars);
 
     hasSextracted = true;
 
