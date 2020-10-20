@@ -542,51 +542,45 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
 {
     QList<Parameters> profileList;
 
+    Parameters defaultProfile;
+    defaultProfile.listName = "1-Default";
+    defaultProfile.description = "The default profile.  Note that this is not optimized for fast plate solving";
+    profileList.append(defaultProfile);
+
     Parameters fastSolving;
-    fastSolving.listName = "1-FastSolving";
-    fastSolving.downsample = 2;
-    fastSolving.minwidth = 1;
+    fastSolving.listName = "2-SingleThreadSolving";
+    fastSolving.description = "Profile intended for Plate Solving telescopic sized images in a single CPU Thread";
+    fastSolving.multiAlgorithm = NOT_MULTI;
+    fastSolving.minwidth = 0.1;
     fastSolving.maxwidth = 10;
     fastSolving.keepNum = 50;
     fastSolving.maxEllipse = 1.5;
     createConvFilterFromFWHM(&fastSolving, 4);
     profileList.append(fastSolving);
 
-    Parameters parSolving;
-    parSolving.listName = "2-ParallelSolving";
-    parSolving.multiAlgorithm = MULTI_AUTO;
-    parSolving.downsample = 2;
-    parSolving.minwidth = 1;
-    parSolving.maxwidth = 10;
-    parSolving.keepNum = 50;
-    parSolving.maxEllipse = 1.5;
-    createConvFilterFromFWHM(&parSolving, 2);
-    profileList.append(parSolving);
-
     Parameters parLargeSolving;
-    parLargeSolving.listName = "3-ParallelLargeScale";
-    parLargeSolving.multiAlgorithm = MULTI_AUTO;
-    parLargeSolving.downsample = 2;
-    parLargeSolving.minwidth = 1;
-    parLargeSolving.maxwidth = 10;
+    parLargeSolving.listName = "3-LargeScaleSolving";
+    parLargeSolving.description = "Profile intended for Plate Solving camera lens sized images";
+    parLargeSolving.minwidth = 10;
+    parLargeSolving.maxwidth = 180;
     parLargeSolving.keepNum = 50;
     parLargeSolving.maxEllipse = 1.5;
-    createConvFilterFromFWHM(&parLargeSolving, 2);
+    createConvFilterFromFWHM(&parLargeSolving, 4);
     profileList.append(parLargeSolving);
 
     Parameters fastSmallSolving;
-    fastSmallSolving.listName = "4-ParallelSmallScale";
-    fastSmallSolving.multiAlgorithm = MULTI_AUTO;
-    fastSmallSolving.downsample = 2;
-    parLargeSolving.minwidth = 1;
+    fastSmallSolving.listName = "4-SmallScaleSolving";
+    fastSmallSolving.description = "Profile intended for Plate Solving telescopic sized images";
+    fastSmallSolving.minwidth = 0.1;
     fastSmallSolving.maxwidth = 10;
     fastSmallSolving.keepNum = 50;
     fastSmallSolving.maxEllipse = 1.5;
-    createConvFilterFromFWHM(&fastSmallSolving, 2);
+    createConvFilterFromFWHM(&fastSmallSolving, 4);
     profileList.append(fastSmallSolving);
 
     Parameters stars;
     stars.listName = "5-AllStars";
+    stars.description = "Profile for the source extraction of all the stars in an image.";
     stars.maxEllipse = 1.5;
     createConvFilterFromFWHM(&stars, 1);
     stars.r_min = 2;
@@ -594,6 +588,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
 
     Parameters smallStars;
     smallStars.listName = "6-SmallSizedStars";
+    smallStars.description = "Profile optimized for source extraction of smaller stars.";
     smallStars.maxEllipse = 1.5;
     createConvFilterFromFWHM(&smallStars, 1);
     smallStars.r_min = 2;
@@ -603,6 +598,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
 
     Parameters mid;
     mid.listName = "7-MidSizedStars";
+    mid.description = "Profile optimized for source extraction of medium sized stars.";
     mid.maxEllipse = 1.5;
     mid.minarea = 20;
     createConvFilterFromFWHM(&mid, 4);
@@ -615,6 +611,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
 
     Parameters big;
     big.listName = "8-BigSizedStars";
+    big.description = "Profile optimized for source extraction of larger stars.";
     big.maxEllipse = 1.5;
     big.minarea = 40;
     createConvFilterFromFWHM(&big, 8);

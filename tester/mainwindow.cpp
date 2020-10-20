@@ -118,7 +118,7 @@ MainWindow::MainWindow() :
     connect(ui->removeOptionProfile, &QAbstractButton::clicked, this, [this]()
     {
         int item = ui->optionsProfile->currentIndex();
-        if(item < 2)
+        if(item < 1)
         {
             QMessageBox::critical(nullptr, "Message", "You can't delete this profile");
             return;
@@ -127,7 +127,7 @@ MainWindow::MainWindow() :
         ui->optionsProfile->removeItem(item);
         ui->sextractionProfile->removeItem(item);
         ui->solverProfile->removeItem(item);
-        optionsList.removeAt(item - 2);
+        optionsList.removeAt(item - 1);
 
     });
     ui->saveSettings->setToolTip("Saves a file with Options Profiles to a desired location");
@@ -426,7 +426,7 @@ MainWindow::MainWindow() :
         ui->solverProfile->addItem(param.listName);
     }
     optionsAreSaved = true;  //This way the next command won't trigger the unsaved warning.
-    ui->optionsProfile->setCurrentIndex(1); //This is default
+    ui->optionsProfile->setCurrentIndex(0);
     ui->sextractionProfile->setCurrentIndex(programSettings.value("sextractionProfile", 6).toInt());
     ui->solverProfile->setCurrentIndex(programSettings.value("solverProfile", 7).toInt());
 
@@ -466,11 +466,7 @@ void MainWindow::loadOptionsProfile()
         optionsAreSaved = true; //They just got overwritten
     }
 
-    SSolver::Parameters newOptions;
-    if(ui->optionsProfile->currentIndex() == 1)
-        newOptions = SSolver::Parameters();
-    else
-        newOptions = optionsList.at(ui->optionsProfile->currentIndex() - 2);
+    SSolver::Parameters newOptions = optionsList.at(ui->optionsProfile->currentIndex() - 1);
     QList<QWidget *> controls = ui->optionsBox->findChildren<QWidget *>();
     foreach(QWidget *control, controls)
         control->blockSignals(true);
@@ -696,10 +692,8 @@ void MainWindow::sextractImage()
     //These set the StellarSolver Parameters
     if(profileSelection == 0)
         stellarSolver->setParameters(getSettingsFromUI());
-    else if(profileSelection == 1)
-        stellarSolver->setParameters(SSolver::Parameters());
     else
-        stellarSolver->setParameters(optionsList.at(profileSelection - 2));
+        stellarSolver->setParameters(optionsList.at(profileSelection - 1));
 
 
     setupExternalSextractorSolverIfNeeded();
@@ -745,10 +739,8 @@ void MainWindow::solveImage()
     //These set the StellarSolver Parameters
     if(profileSelection == 0)
         stellarSolver->setParameters(getSettingsFromUI());
-    else if(profileSelection == 1)
-        stellarSolver->setParameters(SSolver::Parameters());
     else
-        stellarSolver->setParameters(optionsList.at(profileSelection - 2));
+        stellarSolver->setParameters(optionsList.at(profileSelection - 1));
 
     setupStellarSolverParameters();
     setupExternalSextractorSolverIfNeeded();
@@ -824,6 +816,7 @@ SSolver::Parameters MainWindow::getSettingsFromUI()
 {
     SSolver::Parameters params;
     params.listName = "Custom";
+    params.description = ui->description->toPlainText();
     //These are to pass the parameters to the internal sextractor
     params.apertureShape = (SSolver::Shape) ui->apertureShape->currentIndex();
     params.kron_fact = ui->kron_fact->text().toDouble();
@@ -871,6 +864,7 @@ SSolver::Parameters MainWindow::getSettingsFromUI()
 
 void MainWindow::sendSettingsToUI(SSolver::Parameters a)
 {
+    ui->description->setText(a.description);
     //Sextractor Settings
 
     ui->apertureShape->setCurrentIndex(a.apertureShape);
@@ -2621,7 +2615,6 @@ void MainWindow::loadOptionsProfiles()
     ui->optionsProfile->blockSignals(true);
     ui->optionsProfile->clear();
     ui->optionsProfile->addItem("Unsaved Options");
-    ui->optionsProfile->addItem("Default Options");
     optionsList = StellarSolver::loadSavedOptionsProfiles(fileURL);
     foreach(SSolver::Parameters params, optionsList)
         ui->optionsProfile->addItem(params.listName);

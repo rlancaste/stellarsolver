@@ -206,7 +206,7 @@ int InternalSextractorSolver::runSEPSextractor()
         return -1;
     }
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting Internal StellarSolver Sextractor. . .");
+    emit logOutput("Starting Internal StellarSolver Sextractor with the " + params.listName + " profile . . .");
 
     //Only downsample images before SEP if the Sextraction is being used for plate solving
     if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && params.downsample != 1)
@@ -1001,7 +1001,7 @@ int InternalSextractorSolver::runInternalSolver()
         bp->total_cpulimit  = bp->cpulimit ;
     }
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting Internal StellarSolver Astrometry.net based Engine. . .");
+    emit logOutput("Starting Internal StellarSolver Astrometry.net based Engine with the " + params.listName + " profile. . .");
 
     //This runs the job in the engine in the file engine.c
     if (engine_run_job(engine, job))

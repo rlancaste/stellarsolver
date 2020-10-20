@@ -262,6 +262,7 @@ class Parameters
         } ParametersProfile;
 
         QString listName = "Default";       // This is the name of this particular profile of options for StellarSolver
+        QString description = "";           // This is a description of the Profile, what it is intended for, anything that sets it apart
 
         //Sextractor Photometry Parameters
         Shape apertureShape = SHAPE_CIRCLE; // Whether to use the SEP_SUM_ELLIPSE method or the SEP_SUM_CIRCLE method
@@ -273,7 +274,7 @@ class Parameters
         //Sextractor Extraction Parameters
         double magzero =
             20;                // This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.
-        double minarea = 5;                 // This is the minimum area in pixels for a star detection, smaller stars are ignored.
+        double minarea = 10;                 // This is the minimum area in pixels for a star detection, smaller stars are ignored.
         int deblend_thresh = 32;            // The number of thresholds the intensity range is divided up into.
         double deblend_contrast =
             0.005;    // The percentage of flux a separate peak must # have to be considered a separate object.
@@ -302,7 +303,7 @@ class Parameters
         double saturationLimit = 0;         // Remove all stars above a certain threshhold percentage of saturation
 
         //Astrometry Config/Engine Parameters
-        MultiAlgo multiAlgorithm = NOT_MULTI;// Algorithm for running multiple threads on possibly multiple cores to solve faster
+        MultiAlgo multiAlgorithm = MULTI_AUTO;// Algorithm for running multiple threads on possibly multiple cores to solve faster
         bool inParallel =
             true;             // Check the indices in parallel? if the indices you are using take less than 2 GB of space, and you have at least as much physical memory as indices, you want this enabled,
         int solverTimeLimit = 600;          // Give up solving after the specified number of seconds of CPU time
