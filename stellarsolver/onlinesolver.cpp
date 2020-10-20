@@ -101,7 +101,7 @@ void OnlineSolver::run()
     if(!hasSolved && !aborted && !timedOut)
     {
         emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        emit logOutput("Starting Online Solver");
+        emit logOutput("Starting Online Solver with the " + params.listName + " profile . . .");
 
     }
 

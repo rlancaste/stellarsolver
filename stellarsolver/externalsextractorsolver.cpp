@@ -499,7 +499,7 @@ int ExternalSextractorSolver::runExternalSextractor()
         connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSextractor);
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting external sextractor...");
+    emit logOutput("Starting external sextractor with the " + params.listName + " profile...");
     emit logOutput(sextractorBinaryPath + " " + sextractorArgs.join(' '));
 
     sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
@@ -618,7 +618,7 @@ int ExternalSextractorSolver::runExternalSolver()
 
     solver->start(solverPath, solverArgs);
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting external Astrometry.net solver...");
+    emit logOutput("Starting external Astrometry.net solver with the " + params.listName + " profile...");
     emit logOutput("Command: " + solverPath + " " + solverArgs.join(" "));
 
     solver->waitForFinished(params.solverTimeLimit * 1000 * 1.2); //Set to timeout in a little longer than the timeout
@@ -694,7 +694,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     solver->start(astapBinaryPath, solverArgs);
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting external ASTAP Solver...");
+    emit logOutput("Starting external ASTAP Solver with the " + params.listName + " profile...");
     emit logOutput("Command: " + astapBinaryPath + " " + solverArgs.join(" "));
 
     solver->waitForFinished(params.solverTimeLimit * 1000 * 1.2); //Set to timeout in a little longer than the timeout

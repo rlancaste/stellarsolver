@@ -127,7 +127,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>333</width>
+                 <width>287</width>
                  <height>388</height>
                 </rect>
                </property>
@@ -161,7 +161,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>350</width>
+                 <width>287</width>
                  <height>388</height>
                 </rect>
                </property>
@@ -264,7 +264,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>350</width>
+                 <width>287</width>
                  <height>388</height>
                 </rect>
                </property>
@@ -446,7 +446,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>350</width>
+                 <width>287</width>
                  <height>388</height>
                 </rect>
                </property>
@@ -564,7 +564,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>350</width>
+                 <width>287</width>
                  <height>388</height>
                 </rect>
                </property>
@@ -627,6 +627,106 @@
             <string>ProfileEditor</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout">
+            <property name="leftMargin">
+             <number>3</number>
+            </property>
+            <property name="topMargin">
+             <number>3</number>
+            </property>
+            <property name="rightMargin">
+             <number>3</number>
+            </property>
+            <property name="bottomMargin">
+             <number>3</number>
+            </property>
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item row="1" column="0">
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <item>
+               <widget class="QPushButton" name="loadSettings">
+                <property name="text">
+                 <string>Load</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="saveSettings">
+                <property name="text">
+                 <string>Save</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="0" column="0">
+             <layout class="QHBoxLayout" name="horizontalLayout_4">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QComboBox" name="optionsProfile">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="currentIndex">
+                 <number>0</number>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>Unsaved Options</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="addOptionProfile">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>30</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>+</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="removeOptionProfile">
+                <property name="maximumSize">
+                 <size>
+                  <width>30</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>-</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="2" column="0">
+             <widget class="QTextEdit" name="description">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>50</height>
+               </size>
+              </property>
+             </widget>
+            </item>
             <item row="3" column="0">
              <widget class="QToolBox" name="optionsBox">
               <property name="currentIndex">
@@ -1087,8 +1187,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>350</width>
-                 <height>294</height>
+                 <width>321</width>
+                 <height>362</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1120,8 +1220,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>348</width>
-                     <height>334</height>
+                     <width>319</width>
+                     <height>360</height>
                     </rect>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_5">
@@ -1315,7 +1415,7 @@
                       </property>
                      </widget>
                     </item>
-                    <item row="21" column="2">
+                    <item row="21" column="0" colspan="3">
                      <widget class="QCheckBox" name="autoDown">
                       <property name="text">
                        <string>AutoDownsample</string>
@@ -1328,93 +1428,6 @@
                 </item>
                </layout>
               </widget>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <layout class="QHBoxLayout" name="horizontalLayout_4">
-              <item>
-               <widget class="QComboBox" name="optionsProfile">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="currentIndex">
-                 <number>0</number>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>Unsaved Options</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Default Options</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="addOptionProfile">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>30</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>+</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="removeOptionProfile">
-                <property name="maximumSize">
-                 <size>
-                  <width>30</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>-</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item row="2" column="0">
-             <layout class="QHBoxLayout" name="horizontalLayout">
-              <item>
-               <widget class="QPushButton" name="loadSettings">
-                <property name="text">
-                 <string>Load</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="saveSettings">
-                <property name="text">
-                 <string>Save</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_58">
-              <property name="text">
-               <string>Note: You can edit, add, or remove profiles using the editor below.  But In order to use this profile for sextracting or solving, you have to select it in Main Options: StellarSolver Options</string>
-              </property>
-              <property name="wordWrap">
-               <bool>true</bool>
-              </property>
              </widget>
             </item>
            </layout>
@@ -1476,7 +1489,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>465</width>
+                 <width>492</width>
                  <height>144</height>
                 </rect>
                </property>
@@ -1886,11 +1899,6 @@
              <string>Options in Editor</string>
             </property>
            </item>
-           <item>
-            <property name="text">
-             <string>Default Options</string>
-            </property>
-           </item>
           </widget>
          </item>
          <item row="0" column="3">
@@ -1966,11 +1974,6 @@
            <item>
             <property name="text">
              <string>Options in Editor</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Default Options</string>
             </property>
            </item>
           </widget>

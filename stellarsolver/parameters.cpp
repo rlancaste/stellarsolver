@@ -57,6 +57,7 @@ QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
 {
     QMap<QString, QVariant> settingsMap;
     settingsMap.insert("listName", QVariant(params.listName));
+    settingsMap.insert("description", QVariant(params.description));
 
     //These are to pass the parameters to the internal sextractor
     settingsMap.insert("apertureShape", QVariant(params.apertureShape));
@@ -119,6 +120,7 @@ SSolver::Parameters SSolver::Parameters::convertFromMap(QMap<QString, QVariant> 
 {
     Parameters params;
     params.listName = settingsMap.value("listName", params.listName).toString();
+    params.description = settingsMap.value("description", params.description).toString();
 
     //These are to pass the parameters to the internal sextractor
 
