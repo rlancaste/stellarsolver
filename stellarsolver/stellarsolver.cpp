@@ -27,7 +27,7 @@ StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &image
 {
     qRegisterMetaType<SolverType>("SolverType");
     qRegisterMetaType<ProcessType>("ProcessType");
-    qRegisterMetaType<ExtractorType>("SextractorType");
+    qRegisterMetaType<ExtractorType>("ExtractorType");
     m_ProcessType = type;
     m_ImageBuffer = imageBuffer;
     m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
@@ -38,7 +38,7 @@ StellarSolver::StellarSolver(const FITSImage::Statistic &imagestats, uint8_t con
 {
     qRegisterMetaType<SolverType>("SolverType");
     qRegisterMetaType<ProcessType>("ProcessType");
-    qRegisterMetaType<ExtractorType>("SextractorType");
+    qRegisterMetaType<ExtractorType>("ExtractorType");
     m_ImageBuffer = imageBuffer;
     m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
 }
@@ -187,6 +187,11 @@ void StellarSolver::start()
     {
         m_SextractorSolver->extract();
         parallelSolve();
+    }
+    else if(m_SolverType == SOLVER_ONLINEASTROMETRY)
+    {
+        connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
+        m_SextractorSolver->execute();
     }
     else
     {

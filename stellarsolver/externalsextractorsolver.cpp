@@ -616,7 +616,7 @@ int ExternalSextractorSolver::runExternalSolver()
 #endif
 
 #ifdef Q_OS_OSX //This is needed so that astrometry.net can find netpbm and python on Mac when started from this program.  It is not needed when using an alternate sextractor
-    if(m_ExtractorType == SEXTRACTOR_BUILTIN && solverType == SOLVER_LOCALASTROMETRY)
+    if(m_ExtractorType == EXTRACTOR_BUILTIN && m_SolverType == SOLVER_LOCALASTROMETRY)
     {
         QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
         QString path            = env.value("PATH", "");

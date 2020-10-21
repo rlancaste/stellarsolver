@@ -686,7 +686,7 @@ void MainWindow::sextractImage()
     //Since this tester uses it many times, it doesn't *need* to replace the stellarsolver every time
     //resetStellarSolver();
 
-    stellarSolver->setProperty("SextractorType", m_ExtractorType);
+    stellarSolver->setProperty("ExtractorType", m_ExtractorType);
     stellarSolver->setProperty("ProcessType", processType);
 
     //These set the StellarSolver Parameters
@@ -733,7 +733,7 @@ void MainWindow::solveImage()
     solverType = (SSolver::SolverType) ui->solverType->currentIndex();
 
     stellarSolver->setProperty("ProcessType", processType);
-    stellarSolver->setProperty("SextractorType", m_ExtractorType);
+    stellarSolver->setProperty("ExtractorType", m_ExtractorType);
     stellarSolver->setProperty("SolverType", solverType);
 
     //These set the StellarSolver Parameters
