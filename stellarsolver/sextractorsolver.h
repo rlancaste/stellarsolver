@@ -52,7 +52,7 @@ class SextractorSolver : public QThread
             return wcs_coord;
         };
         virtual void computeWCSCoord() = 0;
-        virtual bool appendStarsRAandDEC() = 0;
+        virtual bool appendStarsRAandDEC(QList<FITSImage::Star> &stars) = 0;
 
         //Logging Settings for Astrometry
         bool logToFile = false;             //This determines whether or not to save the output from Astrometry.net to a file
@@ -149,7 +149,6 @@ class SextractorSolver : public QThread
             subframe = frame;
         };
         bool computingWCS = false;          //This boolean gets set when the SextractorSolver is computing WCS Data
-        bool computeWCSForStars = false;    //This boolean determines whether to update the star list with the WCS information.
 
         virtual bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) = 0;
         virtual bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) = 0;

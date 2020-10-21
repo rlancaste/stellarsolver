@@ -356,11 +356,6 @@ void StellarSolver::processFinished(int code)
                 solverWithWCS = m_SextractorSolver;
                 if(loadWCS)
                 {
-                    if(m_ExtractorStars.count() > 0)
-                    {
-                        solverWithWCS->computeWCSForStars = true;
-                        solverWithWCS->setStarList(m_ExtractorStars);
-                    }
                     solverWithWCS->computingWCS = true;
                     disconnect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::processFinished);
                     connect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishWCS);
@@ -375,7 +370,7 @@ void StellarSolver::processFinished(int code)
             background = m_SextractorSolver->getBackground();
             calculateHFR = m_SextractorSolver->isCalculatingHFR();
             if(solverWithWCS)
-                solverWithWCS->appendStarsRAandDEC();
+                solverWithWCS->appendStarsRAandDEC(m_ExtractorStars);
             hasSextracted = true;
         }
     }
@@ -431,7 +426,6 @@ void StellarSolver::finishParallelSolve(int success)
         {
             solverWithWCS = reportingSolver;
             hasWCS = true;
-            solverWithWCS->computeWCSForStars = m_ExtractorStars.count() > 0;
             solverWithWCS->computingWCS = true;
             disconnect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             connect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishWCS);
@@ -474,8 +468,8 @@ void StellarSolver::finishWCS()
     if(solverWithWCS)
     {
         wcs_coord = solverWithWCS->getWCSCoord();
-        if(solverWithWCS->computeWCSForStars)
-            m_ExtractorStars = solverWithWCS->getStarList();
+        if(m_ExtractorStars.count() > 0)
+            solverWithWCS->appendStarsRAandDEC(m_ExtractorStars);
         if(wcs_coord)
         {
             hasWCSCoord = true;
@@ -769,10 +763,11 @@ FITSImage::wcs_point * StellarSolver::getWCSCoord()
         return nullptr;
 }
 
-bool StellarSolver::appendStarsRAandDEC()
+bool StellarSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 {
-
-    return m_SextractorSolver->appendStarsRAandDEC();
+    if(solverWithWCS)
+        return solverWithWCS->appendStarsRAandDEC(stars);
+    return false;
 }
 
 //This function should get the system RAM in bytes.  I may revise it later to get the currently available RAM

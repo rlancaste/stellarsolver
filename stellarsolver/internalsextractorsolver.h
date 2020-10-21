@@ -24,7 +24,7 @@ class InternalSextractorSolver: public SextractorSolver
         int extract() override;
         void abort() override;
         void computeWCSCoord() override;
-        bool appendStarsRAandDEC() override;
+        bool appendStarsRAandDEC(QList<FITSImage::Star> &stars) override;
         SextractorSolver* spawnChildSolver(int n) override;
 
         bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) override;

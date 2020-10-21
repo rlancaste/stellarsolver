@@ -263,7 +263,7 @@ class StellarSolver : public QObject
                           const FITSImage::Star &star, double gain = 0.5);
 
 
-        bool appendStarsRAandDEC();
+        bool appendStarsRAandDEC(QList<FITSImage::Star> &stars);
 
         bool checkParameters();
         SextractorSolver* createSextractorSolver();

@@ -103,8 +103,6 @@ void InternalSextractorSolver::run()
         if(hasSolved)
         {
             computeWCSCoord();
-            if(computeWCSForStars)
-                appendStarsRAandDEC();
             emit finished(0);
         }
         else
@@ -1180,7 +1178,7 @@ bool InternalSextractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, 
     return true;
 }
 
-bool InternalSextractorSolver::appendStarsRAandDEC()
+bool InternalSextractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 {
     if(!hasWCS)
     {

@@ -180,8 +180,6 @@ void ExternalSextractorSolver::run()
         if(hasSolved)
         {
             computeWCSCoord();
-            if(computeWCSForStars)
-                appendStarsRAandDEC();
             emit finished(0);
         }
         else
@@ -1609,7 +1607,7 @@ bool ExternalSextractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, 
     return true;
 }
 
-bool ExternalSextractorSolver::appendStarsRAandDEC()
+bool ExternalSextractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 {
     if(!hasWCS)
     {
