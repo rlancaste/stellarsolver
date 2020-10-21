@@ -30,28 +30,29 @@ class SextractorSolver : public QThread
 {
         Q_OBJECT
     public:
-        SextractorSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats,
+        SextractorSolver(ProcessType type, ExtractorType sexType, SolverType solType, const FITSImage::Statistic &statistics,
                          const uint8_t *imageBuffer, QObject *parent = nullptr);
         ~SextractorSolver();
 
-        ProcessType processType;
-        SextractorType sextractorType;
-        SolverType solverType;
+        ProcessType m_ProcessType;
+        ExtractorType m_ExtractorType;
+        SolverType m_SolverType;
 
-        virtual int sextract() = 0;
+        virtual int extract() = 0;
         //virtual void solve()=0;
         //These are the most important methods that you can use for the StellarSolver
-        virtual void executeProcess();                      //This runs the process without threading.
-        virtual void startProcess();                        //This starts the process in a separate thread
+        //This starts the process in a separate thread
+        virtual void execute();
         virtual void abort() = 0;
         virtual SextractorSolver* spawnChildSolver(int n) = 0;
         //This will abort the solver
 
-        FITSImage::wcs_point *getWCSCoord(){
-                return wcs_coord;
+        FITSImage::wcs_point *getWCSCoord()
+        {
+            return wcs_coord;
         };
         virtual void computeWCSCoord() = 0;
-        virtual QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars) = 0;
+        virtual bool appendStarsRAandDEC() = 0;
 
         //Logging Settings for Astrometry
         bool logToFile = false;             //This determines whether or not to save the output from Astrometry.net to a file
@@ -140,7 +141,7 @@ class SextractorSolver : public QThread
         };
         bool isCalculatingHFR()
         {
-            return processType == SEXTRACT_WITH_HFR;
+            return m_ProcessType == EXTRACT_WITH_HFR;
         };
         void setUseSubframe(QRect frame)
         {
@@ -161,14 +162,14 @@ class SextractorSolver : public QThread
         //StellarSolver Internal settings that are needed by ExternalSextractorSolver as well
         bool hasSextracted = false;         //This boolean is set when the sextraction is done
         bool hasSolved = false;             //This boolean is set when the solving is done
-        FITSImage::Statistic stats;                    //This is information about the image
+        FITSImage::Statistic m_Statistics;                    //This is information about the image
         const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
         bool usingDownsampledImage = false; //This boolean gets set internally if we are using a downsampled image buffer for SEP
 
         //The Results
         FITSImage::Background background;      //This is a report on the background levels found during sextraction
-        QList<FITSImage::Star>
-        stars;          //This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
+        //This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
+        QList<FITSImage::Star> stars;
         FITSImage::Solution solution;          //This is the solution that comes back from the Solver
         bool runSEPSextractor();    //This is the method that actually runs the internal sextractor
         bool hasWCS = false;        //This boolean gets set if the StellarSolver has WCS data to retrieve
@@ -193,7 +194,7 @@ class SextractorSolver : public QThread
                     return arcmin2deg(scale);
                     break;
                 case ARCSEC_PER_PIX:
-                    return arcsec2deg(scale) * (double)stats.height;
+                    return arcsec2deg(scale) * (double)m_Statistics.height;
                     break;
                 case FOCAL_MM:
                     return rad2deg(atan(36. / (2. * scale)));

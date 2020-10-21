@@ -27,7 +27,7 @@ StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &image
 {
     qRegisterMetaType<SolverType>("SolverType");
     qRegisterMetaType<ProcessType>("ProcessType");
-    qRegisterMetaType<SextractorType>("SextractorType");
+    qRegisterMetaType<ExtractorType>("SextractorType");
     m_ProcessType = type;
     m_ImageBuffer = imageBuffer;
     m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
@@ -38,7 +38,7 @@ StellarSolver::StellarSolver(const FITSImage::Statistic &imagestats, uint8_t con
 {
     qRegisterMetaType<SolverType>("SolverType");
     qRegisterMetaType<ProcessType>("ProcessType");
-    qRegisterMetaType<SextractorType>("SextractorType");
+    qRegisterMetaType<ExtractorType>("SextractorType");
     m_ImageBuffer = imageBuffer;
     m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
 }
@@ -62,7 +62,7 @@ SextractorSolver* StellarSolver::createSextractorSolver()
         solver = onlineSolver;
     }
     else if((m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER) || (m_ProcessType != SOLVE
-            && m_SextractorType != SEXTRACTOR_EXTERNAL))
+            && m_SextractorType != EXTRACTOR_EXTERNAL))
         solver = new InternalSextractorSolver(m_ProcessType, m_SextractorType, m_SolverType, m_Statistics, m_ImageBuffer, this);
     else
     {
@@ -126,14 +126,14 @@ ExternalProgramPaths StellarSolver::getWinCygwinPaths()
 
 void StellarSolver::extract(bool calculateHFR, QRect frame)
 {
-    m_ProcessType = calculateHFR ? SEXTRACT_WITH_HFR : SEXTRACT;
+    m_ProcessType = calculateHFR ? EXTRACT_WITH_HFR : EXTRACT;
     useSubframe = frame.isNull() ? false : true;
     m_Subframe = frame;
-    m_isBlocking = true;
+    //m_isBlocking = true;
     start();
-    m_SextractorSolver->executeProcess();
-    processFinished(m_SextractorSolver->sextractionDone() ? 0 : 1);
-    m_isBlocking = false;
+    //m_SextractorSolver->start();
+    //processFinished(m_SextractorSolver->sextractionDone() ? 0 : 1);
+    //m_isBlocking = false;
 }
 
 //This will allow the solver to gracefully disconnect, abort, finish, and get deleted
@@ -156,7 +156,6 @@ void StellarSolver::releaseSextractorSolver(SextractorSolver *solver)
 
 void StellarSolver::start()
 {
-
     if(checkParameters() == false)
     {
         emit logOutput("There is an issue with your parameters. Terminating the process.");
@@ -169,7 +168,7 @@ void StellarSolver::start()
 
     m_isRunning = true;
     hasFailed = false;
-    if(m_ProcessType == SEXTRACT || m_ProcessType == SEXTRACT_WITH_HFR)
+    if(m_ProcessType == EXTRACT || m_ProcessType == EXTRACT_WITH_HFR)
         hasSextracted = false;
     else
     {
@@ -179,25 +178,20 @@ void StellarSolver::start()
         wcs_coord = nullptr;
     }
 
-    if(m_isBlocking)
-        return;
+    //    if(m_isBlocking)
+    //        return;
 
     //These are the solvers that support parallelization, ASTAP and the online ones do not
     if(params.multiAlgorithm != NOT_MULTI && m_ProcessType == SOLVE && (m_SolverType == SOLVER_STELLARSOLVER
             || m_SolverType == SOLVER_LOCALASTROMETRY))
     {
-        m_SextractorSolver->sextract();
+        m_SextractorSolver->extract();
         parallelSolve();
-    }
-    else if(m_SolverType == SOLVER_ONLINEASTROMETRY)
-    {
-        connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
-        m_SextractorSolver->startProcess();
     }
     else
     {
         connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
-        m_SextractorSolver->startProcess();
+        m_SextractorSolver->start();
     }
 
 }
@@ -211,12 +205,11 @@ bool StellarSolver::checkParameters()
         params.multiAlgorithm = NOT_MULTI;
     }
 
-    if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && m_SextractorType != SEXTRACTOR_INTERNAL)
+    if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && m_SextractorType != EXTRACTOR_INTERNAL)
     {
         if(m_SSLogLevel != LOG_OFF)
             emit logOutput("StellarSolver only uses the Internal SEP Sextractor since it doesn't save files to disk. Changing to Internal Sextractor.");
-        m_SextractorType = SEXTRACTOR_INTERNAL;
-
+        m_SextractorType = EXTRACTOR_INTERNAL;
     }
 
     if(m_ProcessType == SOLVE  && params.autoDownsample)
@@ -334,7 +327,7 @@ void StellarSolver::parallelSolve()
         }
     }
     for(auto solver : parallelSolvers)
-        solver->startProcess();
+        solver->start();
 }
 
 bool StellarSolver::parallelSolversAreRunning()
@@ -358,10 +351,10 @@ void StellarSolver::processFinished(int code)
                 solverWithWCS = m_SextractorSolver;
                 if(loadWCS)
                 {
-                    if(stars.count() > 0)
+                    if(m_ExtractorStars.count() > 0)
                     {
                         solverWithWCS->computeWCSForStars = true;
-                        solverWithWCS->setStarList(stars);
+                        solverWithWCS->setStarList(m_ExtractorStars);
                     }
                     solverWithWCS->computingWCS = true;
                     disconnect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::processFinished);
@@ -371,13 +364,13 @@ void StellarSolver::processFinished(int code)
             }
             hasSolved = true;
         }
-        else if((m_ProcessType == SEXTRACT || m_ProcessType == SEXTRACT_WITH_HFR) && m_SextractorSolver->sextractionDone())
+        else if((m_ProcessType == EXTRACT || m_ProcessType == EXTRACT_WITH_HFR) && m_SextractorSolver->sextractionDone())
         {
-            stars = m_SextractorSolver->getStarList();
+            m_ExtractorStars = m_SextractorSolver->getStarList();
             background = m_SextractorSolver->getBackground();
             calculateHFR = m_SextractorSolver->isCalculatingHFR();
             if(solverWithWCS)
-                stars = solverWithWCS->appendStarsRAandDEC(stars);
+                solverWithWCS->appendStarsRAandDEC();
             hasSextracted = true;
         }
     }
@@ -433,7 +426,7 @@ void StellarSolver::finishParallelSolve(int success)
         {
             solverWithWCS = reportingSolver;
             hasWCS = true;
-            solverWithWCS->computeWCSForStars = stars.count() > 0;
+            solverWithWCS->computeWCSForStars = m_ExtractorStars.count() > 0;
             solverWithWCS->computingWCS = true;
             disconnect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             connect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishWCS);
@@ -477,8 +470,9 @@ void StellarSolver::finishWCS()
     {
         wcs_coord = solverWithWCS->getWCSCoord();
         if(solverWithWCS->computeWCSForStars)
-            stars = solverWithWCS->getStarList();
-        if(wcs_coord){
+            m_ExtractorStars = solverWithWCS->getStarList();
+        if(wcs_coord)
+        {
             hasWCSCoord = true;
             emit wcsReady();
         }
@@ -494,7 +488,7 @@ bool StellarSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pi
         solverWithWCS->wcsToPixel(skyPoint, pixelPoint);
         return true;
     }
-     return false;
+    return false;
 }
 
 bool StellarSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
@@ -504,7 +498,7 @@ bool StellarSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &
         solverWithWCS->pixelToWCS(pixelPoint, skyPoint);
         return true;
     }
-     return false;
+    return false;
 }
 
 //This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
@@ -770,10 +764,10 @@ FITSImage::wcs_point * StellarSolver::getWCSCoord()
         return nullptr;
 }
 
-QList<FITSImage::Star> StellarSolver::appendStarsRAandDEC(QList<FITSImage::Star> stars)
+bool StellarSolver::appendStarsRAandDEC()
 {
 
-    return m_SextractorSolver->appendStarsRAandDEC(stars);
+    return m_SextractorSolver->appendStarsRAandDEC();
 }
 
 //This function should get the system RAM in bytes.  I may revise it later to get the currently available RAM
@@ -845,15 +839,16 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
             emit logOutput("Unable to determine system RAM for inParallel Option");
         return false;
     }
-    double bytesInGB = 1024.0 * 1024.0 * 1024.0; // B -> KB -> MB -> GB , float to make sure it reports the answer with any decimals
+    double bytesInGB = 1024.0 * 1024.0 *
+                       1024.0; // B -> KB -> MB -> GB , float to make sure it reports the answer with any decimals
     if(m_SSLogLevel != LOG_OFF)
     {
         emit logOutput(
             QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB, Free RAM: %3 GB").arg(
                 totalSize / bytesInGB).arg(totalRAM / bytesInGB).arg(availableRAM / bytesInGB));
-        #if defined(Q_OS_OSX)
-            emit logOutput("Note: Free RAM for now is reported as Installed RAM on MacOS until I figure out how to get available RAM");
-        #endif
+#if defined(Q_OS_OSX)
+        emit logOutput("Note: Free RAM for now is reported as Installed RAM on MacOS until I figure out how to get available RAM");
+#endif
     }
     return availableRAM > totalSize;
 }

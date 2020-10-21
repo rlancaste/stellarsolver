@@ -18,12 +18,12 @@ class ExternalSextractorSolver : public InternalSextractorSolver
 {
         Q_OBJECT
     public:
-        explicit ExternalSextractorSolver(ProcessType type, SextractorType sexType, SolverType solType,
+        explicit ExternalSextractorSolver(ProcessType type, ExtractorType sexType, SolverType solType,
                                           FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
         ~ExternalSextractorSolver();
 
 
-        int sextract() override;
+        int extract() override;
         void abort() override;
         SextractorSolver * spawnChildSolver(int n) override;
         //void getWCSDataFromChildSolver(SextractorSolver *solver) override;
@@ -77,7 +77,7 @@ class ExternalSextractorSolver : public InternalSextractorSolver
 
         int loadWCS();
         void computeWCSCoord() override;
-        QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars) override;
+        bool appendStarsRAandDEC() override;
 
         bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) override;
         bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) override;

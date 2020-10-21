@@ -113,7 +113,7 @@ private:
     QRect subframe;
 
     SSolver::ProcessType processType;
-    SSolver::SextractorType sextractorType;
+    SSolver::ExtractorType m_ExtractorType;
     SSolver::SolverType solverType;
     int profileSelection;
 

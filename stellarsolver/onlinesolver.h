@@ -30,15 +30,14 @@ class OnlineSolver : public ExternalSextractorSolver
 {
         Q_OBJECT
     public:
-        explicit OnlineSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats,
+        explicit OnlineSolver(ProcessType type, ExtractorType sexType, SolverType solType, FITSImage::Statistic imagestats,
                               uint8_t const *imageBuffer, QObject *parent);
 
         QString astrometryAPIKey;
         QString astrometryAPIURL;
         QString fileToProcess;
 
-        void startProcess() override;
-        //void executeProcess() override;
+        void execute() override;
         void abort() override;
 
         typedef enum

@@ -9,14 +9,11 @@
 
 using namespace SSolver;
 
-SextractorSolver::SextractorSolver(ProcessType type, SextractorType sexType, SolverType solType,
-                                   FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : QThread(parent)
+SextractorSolver::SextractorSolver(ProcessType pType, ExtractorType eType, SolverType sType,
+                                   const FITSImage::Statistic &statistics, uint8_t const *imageBuffer, QObject *parent) :
+    QThread(parent), m_ProcessType(pType), m_ExtractorType(eType), m_SolverType(sType), m_Statistics(statistics),
+    m_ImageBuffer(imageBuffer)
 {
-    processType = type;
-    sextractorType = sexType;
-    solverType = solType;
-    stats = imagestats;
-    m_ImageBuffer = imageBuffer;
 }
 
 SextractorSolver::~SextractorSolver()
@@ -47,12 +44,7 @@ void SextractorSolver::setSearchPositionInDegrees(double ra, double dec)
     search_dec = dec;
 }
 
-void SextractorSolver::startProcess()
-{
-    start();
-}
-
-void SextractorSolver::executeProcess()
+void SextractorSolver::execute()
 {
     run();
 }

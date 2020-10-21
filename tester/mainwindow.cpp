@@ -64,7 +64,7 @@ MainWindow::MainWindow() :
     connect(ui->startSextraction, &QAbstractButton::clicked, this, &MainWindow::sextractButtonClicked );
     connect(ui->startSolving, &QAbstractButton::clicked, this, &MainWindow::solveButtonClicked );
     //ui->SextractStars->setToolTip("Sextract the stars in the image using the chosen method and load them into the star table");
-    //ui->sextractorType->setToolTip("Lets you choose the Internal StellarSolver SEP or external Sextractor program");
+    //ui->m_ExtractorType->setToolTip("Lets you choose the Internal StellarSolver SEP or external Sextractor program");
     //ui->optionsProfileSextract->setToolTip("The Options Profile to use for Sextracting.");
     //ui->editSextractorProfile->setToolTip("Loads the currently selected sextrctor profile into the profile editor");
     connect(ui->editSextractorProfile, &QAbstractButton::clicked, this, [this]()
@@ -404,7 +404,7 @@ MainWindow::MainWindow() :
 
     //This gets a temporary ExternalSextractorSolver to get the defaults
     //It tries to load from the saved settings if possible as well.
-    ExternalSextractorSolver extTemp(processType, sextractorType, solverType, stats, m_ImageBuffer, this);
+    ExternalSextractorSolver extTemp(processType, m_ExtractorType, solverType, stats, m_ImageBuffer, this);
     ui->sextractorPath->setText(programSettings.value("sextractorBinaryPath", extTemp.sextractorBinaryPath).toString());
     ui->configFilePath->setText(programSettings.value("confPath", extTemp.confPath).toString());
     ui->solverPath->setText(programSettings.value("solverPath", extTemp.solverPath).toString());
@@ -559,7 +559,8 @@ bool MainWindow::prepareForProcesses()
                 if(QMessageBox::question(this, "Abort?", "StellarSolver is solving now. Abort it?") == QMessageBox::No)
                     return false;
             }
-            else if((type == SEXTRACT || type == SEXTRACT_WITH_HFR) && !sextractorComplete()){
+            else if((type == EXTRACT || type == EXTRACT_WITH_HFR) && !sextractorComplete())
+            {
                 if(QMessageBox::question(this, "Abort?", "StellarSolver is extracting sources now. Abort it?") == QMessageBox::No)
                     return false;
             }
@@ -615,23 +616,24 @@ void MainWindow::sextractButtonClicked()
         return;
 
     int type = ui->sextractorTypeForSextraction->currentIndex();
-    switch(type){
-    case 0:
-        processType = SEXTRACT;
-        sextractorType = SEXTRACTOR_INTERNAL;
-        break;
-    case 1:
-        processType = SEXTRACT_WITH_HFR;
-        sextractorType = SEXTRACTOR_INTERNAL;
-        break;
-    case 2:
-        processType = SEXTRACT;
-        sextractorType = SEXTRACTOR_EXTERNAL;
-        break;
-    case 3:
-        processType = SEXTRACT_WITH_HFR;
-        sextractorType = SEXTRACTOR_EXTERNAL;
-        break;
+    switch(type)
+    {
+        case 0:
+            processType = EXTRACT;
+            m_ExtractorType = EXTRACTOR_INTERNAL;
+            break;
+        case 1:
+            processType = EXTRACT_WITH_HFR;
+            m_ExtractorType = EXTRACTOR_INTERNAL;
+            break;
+        case 2:
+            processType = EXTRACT;
+            m_ExtractorType = EXTRACTOR_EXTERNAL;
+            break;
+        case 3:
+            processType = EXTRACT_WITH_HFR;
+            m_ExtractorType = EXTRACTOR_EXTERNAL;
+            break;
 
     }
     profileSelection = ui->sextractionProfile->currentIndex();
@@ -684,7 +686,7 @@ void MainWindow::sextractImage()
     //Since this tester uses it many times, it doesn't *need* to replace the stellarsolver every time
     //resetStellarSolver();
 
-    stellarSolver->setProperty("SextractorType", sextractorType);
+    stellarSolver->setProperty("SextractorType", m_ExtractorType);
     stellarSolver->setProperty("ProcessType", processType);
 
     //These set the StellarSolver Parameters
@@ -727,11 +729,11 @@ void MainWindow::solveImage()
     //Since this tester uses it many times, it doesn't *need* to replace the stellarsolver every time
     //resetStellarSolver();
 
-    sextractorType = (SSolver::SextractorType) ui->sextractorTypeForSolving->currentIndex();
+    m_ExtractorType = (SSolver::ExtractorType) ui->sextractorTypeForSolving->currentIndex();
     solverType = (SSolver::SolverType) ui->solverType->currentIndex();
 
     stellarSolver->setProperty("ProcessType", processType);
-    stellarSolver->setProperty("SextractorType", sextractorType);
+    stellarSolver->setProperty("SextractorType", m_ExtractorType);
     stellarSolver->setProperty("SolverType", solverType);
 
     //These set the StellarSolver Parameters

@@ -44,7 +44,7 @@ class StellarSolver : public QObject
         Q_PROPERTY(bool LogToFile MEMBER m_LogToFile)
         Q_PROPERTY(SolverType SolverType MEMBER m_SolverType)
         Q_PROPERTY(ProcessType ProcessType MEMBER m_ProcessType)
-        Q_PROPERTY(SextractorType SextractorType MEMBER m_SextractorType)
+        Q_PROPERTY(ExtractorType ExtractorType MEMBER m_SextractorType)
 
     public:
         //The constructor and destructor foe the StellarSolver Object
@@ -170,7 +170,7 @@ class StellarSolver : public QObject
         }
         QList<FITSImage::Star> getStarList()
         {
-            return stars;
+            return m_ExtractorStars;
         }
         FITSImage::Background getBackground()
         {
@@ -178,7 +178,7 @@ class StellarSolver : public QObject
         }
         QList<FITSImage::Star> getStarListFromSolve()
         {
-            return starsFromSolve;
+            return m_SolverStars;
         }
         FITSImage::Solution getSolution()
         {
@@ -263,7 +263,7 @@ class StellarSolver : public QObject
                           const FITSImage::Star &star, double gain = 0.5);
 
 
-        virtual QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars);
+        bool appendStarsRAandDEC();
 
         bool checkParameters();
         SextractorSolver* createSextractorSolver();
@@ -274,8 +274,8 @@ class StellarSolver : public QObject
         bool enoughRAMisAvailableFor(QStringList indexFolders);
 
         //This defines the type of process to perform.
-        ProcessType m_ProcessType { SEXTRACT };
-        SextractorType m_SextractorType { SEXTRACTOR_INTERNAL };
+        ProcessType m_ProcessType { EXTRACT };
+        ExtractorType m_SextractorType { EXTRACTOR_INTERNAL };
         SolverType m_SolverType {SOLVER_STELLARSOLVER};
 
         //External Options
@@ -326,15 +326,15 @@ class StellarSolver : public QObject
         bool hasSolved {false};             //This boolean is set when the solving is done
         bool hasFailed {false};
         FITSImage::Statistic m_Statistics;                    //This is information about the image
-        
+
         const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
 
         //The Results
         FITSImage::Background background;      //This is a report on the background levels found during sextraction
         //This is the list of stars that get extracted from the image, saved to the file, and then solved by astrometry.net
-        QList<FITSImage::Star> stars;
+        QList<FITSImage::Star> m_ExtractorStars;
         //This is the list of stars that were extracted for the last successful solve
-        QList<FITSImage::Star> starsFromSolve;
+        QList<FITSImage::Star> m_SolverStars;
         //The number of stars found in the last operation
         int numStars;
         FITSImage::Solution solution;          //This is the solution that comes back from the Solver

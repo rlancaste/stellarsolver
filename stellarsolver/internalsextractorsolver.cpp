@@ -14,7 +14,11 @@
 #include <sys/stat.h>
 #endif
 
+#include <QtConcurrent>
+#include <memory>
+
 #include "internalsextractorsolver.h"
+#include "sep/extract.h"
 #include "qmath.h"
 
 extern "C" {
@@ -22,17 +26,14 @@ extern "C" {
 }
 
 using namespace SSolver;
+using namespace SEP;
 
 static int solverNum = 1;
 
-InternalSextractorSolver::InternalSextractorSolver(ProcessType type, SextractorType sexType, SolverType solType,
-        FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : SextractorSolver(type, sexType, solType,
+InternalSextractorSolver::InternalSextractorSolver(ProcessType pType, ExtractorType eType, SolverType sType,
+        FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : SextractorSolver(pType, eType, sType,
                     imagestats, imageBuffer, parent)
 {
-    processType = type;
-    stats = imagestats;
-    m_ImageBuffer = imageBuffer;
-
     //This sets the base name used for the temp files.
     baseName = "internalSextractorSolver_" + QString::number(solverNum++);
 
@@ -62,7 +63,7 @@ void InternalSextractorSolver::abort()
 //This method generates child solvers with the options of the current solver
 SextractorSolver* InternalSextractorSolver::spawnChildSolver(int n)
 {
-    InternalSextractorSolver *solver = new InternalSextractorSolver(processType, sextractorType, solverType, stats,
+    InternalSextractorSolver *solver = new InternalSextractorSolver(m_ProcessType, m_ExtractorType, m_SolverType, m_Statistics,
             m_ImageBuffer, nullptr);
     solver->stars = stars;
     solver->basePath = basePath;
@@ -89,7 +90,7 @@ SextractorSolver* InternalSextractorSolver::spawnChildSolver(int n)
     return solver;
 }
 
-int InternalSextractorSolver::sextract()
+int InternalSextractorSolver::extract()
 {
     return(runSEPSextractor());
 }
@@ -99,10 +100,11 @@ void InternalSextractorSolver::run()
 {
     if(computingWCS)
     {
-        if(hasSolved){
+        if(hasSolved)
+        {
             computeWCSCoord();
             if(computeWCSForStars)
-                stars = appendStarsRAandDEC(stars);
+                appendStarsRAandDEC();
             emit finished(0);
         }
         else
@@ -129,12 +131,12 @@ void InternalSextractorSolver::run()
     if(QFile(solvedfn).exists())
         QFile(solvedfn).remove();
 
-    switch(processType)
+    switch(m_ProcessType)
     {
-        case SEXTRACT:
-        case SEXTRACT_WITH_HFR:
+        case EXTRACT:
+        case EXTRACT_WITH_HFR:
         {
-            int result = sextract();
+            int result = extract();
             emit finished(result);
         }
         break;
@@ -142,7 +144,7 @@ void InternalSextractorSolver::run()
         case SOLVE:
         {
             if(!hasSextracted)
-                sextract();
+                extract();
             if(hasSextracted)
             {
                 int result = runInternalSolver();
@@ -156,6 +158,7 @@ void InternalSextractorSolver::run()
         default:
             break;
     }
+
     if(!isChildSolver)
     {
         QFile(solvedfn).remove();
@@ -163,35 +166,9 @@ void InternalSextractorSolver::run()
     }
 }
 
-
-//The code in this section is my attempt at running an internal sextractor program based on SEP
-//I used KStars and the SEP website as a guide for creating these functions
-int InternalSextractorSolver::runSEPSextractor()
+void InternalSextractorSolver::allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
-    if(params.convFilter.size() == 0)
-    {
-        emit logOutput("No convFilter included.");
-        return -1;
-    }
-    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting Internal StellarSolver Sextractor with the " + params.listName + " profile . . .");
-
-    //Only downsample images before SEP if the Sextraction is being used for plate solving
-    if(processType == SOLVE && solverType == SOLVER_STELLARSOLVER && params.downsample != 1)
-        downsampleImage(params.downsample);
-
-    int x = 0, y = 0, w = stats.width, h = stats.height, maxRadius = 50;
-    if(useSubframe)
-    {
-        x = subframe.x();
-        w = subframe.width();
-        y = subframe.y();
-        h = subframe.height();
-    }
-
-    auto * data = new float[w * h];
-
-    switch (stats.dataType)
+    switch (m_Statistics.dataType)
     {
         case SEP_TBYTE:
             getFloatBuffer<uint8_t>(data, x, y, w, h);
@@ -216,15 +193,150 @@ int InternalSextractorSolver::runSEPSextractor()
             break;
         default:
             delete [] data;
-            return -1;
+    }
+}
+
+//The code in this section is my attempt at running an internal sextractor program based on SEP
+//I used KStars and the SEP website as a guide for creating these functions
+int InternalSextractorSolver::runSEPSextractor()
+{
+    if(params.convFilter.size() == 0)
+    {
+        emit logOutput("No convFilter included.");
+        return -1;
+    }
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Starting Internal StellarSolver Sextractor with the " + params.listName + " profile . . .");
+
+    //Only downsample images before SEP if the Sextraction is being used for plate solving
+    if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && params.downsample != 1)
+        downsampleImage(params.downsample);
+
+    uint32_t x = 0, y = 0;
+    uint32_t w = m_Statistics.width, h = m_Statistics.height;
+    uint32_t raw_w = m_Statistics.width, raw_h = m_Statistics.height;
+    if(useSubframe)
+    {
+        x = subframe.x();
+        w = subframe.width();
+        y = subframe.y();
+        h = subframe.height();
+
+        raw_w = w;
+        raw_h = h;
     }
 
+    QList<float *> dataBuffers;
+    QList<QFuture<QList<FITSImage::Star>>> futures;
+    QList<QPair<uint32_t, uint32_t>> startupOffsets;
+
+    if (w > PARTITION_SIZE && h > PARTITION_SIZE)
+    {
+        // Partition the image to regions, each region is 200x200
+        // If there is extra at the end, we add an offset.
+        // e.g. 500x400 image would have 4 paritions
+        // #1 0, 0, 200, 200 (200 x 200)
+        // #2 200, 0, 200 + 100, 200 (300 x 200)
+        // #3 0, 200, 200, 200 (200 x 200)
+        // #4 200, 200, 200 + 100, 200 (300 x 200)
+        int horizontalPartitions = w / PARTITION_SIZE;
+        int verticalPartitions = h / PARTITION_SIZE;
+        int horizontalOffset = w - (PARTITION_SIZE * horizontalPartitions);
+        int verticalOffset = h - (PARTITION_SIZE * verticalPartitions);
+
+        for (int i = 0; i < verticalPartitions; i++)
+        {
+            for (int j = 0; j < horizontalPartitions; j++)
+            {
+                int offsetW = (j == horizontalPartitions - 1) ? horizontalOffset : 0;
+                int offsetH = (i == verticalPartitions - 1) ? verticalOffset : 0;
+                uint32_t subX = x + j * PARTITION_SIZE + PARTITION_MARGIN;
+                uint32_t subY = y + i * PARTITION_SIZE + PARTITION_MARGIN;
+                uint32_t subW = PARTITION_SIZE + offsetW - PARTITION_MARGIN;
+                uint32_t subH = PARTITION_SIZE + offsetH - PARTITION_MARGIN;
+                //uint32_t offset = subX + (subY * raw_w);
+
+                auto * data = new float[subW * subH];
+                allocateDataBuffer(data, subX, subY, subW, subH);
+                dataBuffers.append(data);
+                startupOffsets.append(qMakePair(subX, subY));
+
+                ImageParams parameters = {data,
+                                          subW,
+                                          subH,
+                                          0,
+                                          0,
+                                          subW,
+                                          subH
+                                         };
+                futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
+            }
+        }
+    }
+    else
+    {
+        auto * data = new float[w * h];
+        allocateDataBuffer(data, x, y, w, h);
+        dataBuffers.append(data);
+        startupOffsets.append(qMakePair(x, y));
+        ImageParams parameters = {data, raw_w, raw_h, x, y, w, h};
+        futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
+    }
+
+    for (auto oneFuture : futures)
+    {
+        oneFuture.waitForFinished();
+        QList<FITSImage::Star> partitionStars = oneFuture.result();
+        if (!startupOffsets.empty())
+        {
+            QPair<uint32_t, uint32_t> oneOffset = startupOffsets.takeFirst();
+            for (auto &oneStar : partitionStars)
+            {
+                oneStar.x += oneOffset.first;
+                oneStar.y += oneOffset.second;
+            }
+        }
+        stars.append(partitionStars);
+    }
+
+    applyStarFilters(stars);
+
+    for (auto buffer : dataBuffers)
+        delete [] buffer;
+    dataBuffers.clear();
+
+    hasSextracted = true;
+
+    return 0;
+}
+
+QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImageParams &parameters)
+{
     float *imback = nullptr;
     double *fluxerr = nullptr, *area = nullptr;
     short *flag = nullptr;
     int status = 0;
     sep_bkg *bkg = nullptr;
     sep_catalog * catalog = nullptr;
+    QList<FITSImage::Star> partitionStars;
+    const uint32_t maxRadius = 50;
+
+    auto cleanup = [ = ]()
+    {
+        sep_bkg_free(bkg);
+        Extract::sep_catalog_free(catalog);
+        free(imback);
+        free(fluxerr);
+        free(area);
+        free(flag);
+
+        if (status != 0)
+        {
+            char errorMessage[512];
+            sep_get_errmsg(status, errorMessage);
+            emit logOutput(errorMessage);
+        }
+    };
 
     //These are for the HFR
     double requested_frac[2] = { 0.5, 0.99 };
@@ -234,16 +346,40 @@ int InternalSextractorSolver::runSEPSextractor()
     int numToProcess = 0;
 
     // #0 Create SEP Image structure
-    sep_image im = {data, nullptr, nullptr, SEP_TFLOAT, 0, 0, w, h, 0.0, SEP_NOISE_NONE, 1.0, 0.0};
+    sep_image im = {parameters.data,
+                    nullptr,
+                    nullptr,
+                    nullptr,
+                    SEP_TFLOAT,
+                    0,
+                    0,
+                    0,
+                    static_cast<int>(parameters.width),
+                    static_cast<int>(parameters.height),
+                    static_cast<int>(parameters.subW),
+                    static_cast<int>(parameters.subH),
+                    0,
+                    SEP_NOISE_NONE,
+                    1.0,
+                    0
+                   };
 
     // #1 Background estimate
     status = sep_background(&im, 64, 64, 3, 3, 0.0, &bkg);
-    if (status != 0) goto exit;
+    if (status != 0)
+    {
+        cleanup();
+        return partitionStars;
+    }
 
     // #2 Background evaluation
-    imback = (float *)malloc((w * h) * sizeof(float));
+    imback = (float *)malloc((parameters.subW * parameters.subH) * sizeof(float));
     status = sep_bkg_array(bkg, imback, SEP_TFLOAT);
-    if (status != 0) goto exit;
+    if (status != 0)
+    {
+        cleanup();
+        return partitionStars;
+    }
 
     //Saving some background information
     background.bh = bkg->bh;
@@ -253,14 +389,24 @@ int InternalSextractorSolver::runSEPSextractor()
 
     // #3 Background subtraction
     status = sep_bkg_subarray(bkg, im.data, im.dtype);
-    if (status != 0) goto exit;
+    if (status != 0)
+    {
+        cleanup();
+        return partitionStars;
+    }
 
+    std::unique_ptr<Extract> extractor;
+    extractor.reset(new Extract());
     // #4 Source Extraction
     // Note that we set deblend_cont = 1.0 to turn off deblending.
-    status = sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, params.minarea, params.convFilter.data(),
-                         sqrt(params.convFilter.size()), sqrt(params.convFilter.size()), SEP_FILTER_CONV, params.deblend_thresh,
-                         params.deblend_contrast, params.clean, params.clean_param, &catalog);
-    if (status != 0) goto exit;
+    status = extractor->sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, params.minarea, params.convFilter.data(),
+                                    sqrt(params.convFilter.size()), sqrt(params.convFilter.size()), SEP_FILTER_CONV, params.deblend_thresh,
+                                    params.deblend_contrast, params.clean, params.clean_param, &catalog);
+    if (status != 0)
+    {
+        cleanup();
+        return partitionStars;
+    }
 
     // Record the number of stars detected.
     background.num_stars_detected = catalog->nobj;
@@ -274,16 +420,11 @@ int InternalSextractorSolver::runSEPSextractor()
     }
     std::sort(ovals.begin(), ovals.end(), [](const std::pair<int, double> &o1, const std::pair<int, double> &o2) -> bool { return o1.second > o2.second;});
 
-    stars.clear();
     numToProcess = std::min(catalog->nobj, params.initialKeep);
     for (int index = 0; index < numToProcess; index++)
     {
         // Processing detections in the order of the sort above.
         int i = ovals[index].first;
-
-        //Constant values
-        double r =
-            6;  //The instructions say to use a fixed value of 6: https://sep.readthedocs.io/en/v1.0.x/api/sep.kron_radius.html
 
         //Variables that are obtained from the catalog
         //FOR SOME REASON, I FOUND THAT THE POSITIONS WERE OFF BY 1 PIXEL??
@@ -294,22 +435,28 @@ int InternalSextractorSolver::runSEPSextractor()
         float a = catalog->a[i];
         float b = catalog->b[i];
         float theta = catalog->theta[i];
+        float cxx = catalog->cxx[i];
+        float cyy = catalog->cxx[i];
+        float cxy = catalog->cxy[i];
         double flux = catalog->flux[i];
         double peak = catalog->peak[i];
         int numPixels = catalog->npix[i];
 
         //Variables that will be obtained through methods
         double kronrad;
-        short flag;
+        short kron_flag;
         double sum;
         double sumerr;
-        double area;
+        double kron_area;
 
         //This will need to be done for both auto and ellipse
         if(params.apertureShape != SHAPE_CIRCLE)
         {
+            //Constant values
+            //The instructions say to use a fixed value of 6: https://sep.readthedocs.io/en/v1.0.x/api/sep.kron_radius.html
             //Finding the kron radius for the sextraction
-            sep_kron_radius(&im, xPos, yPos, a, b, theta, r, &kronrad, &flag);
+
+            sep_kron_radius(&im, xPos, yPos, cxx, cyy, cxy, 6, 0, &kronrad, &kron_flag);
         }
 
         bool use_circle;
@@ -332,73 +479,57 @@ int InternalSextractorSolver::runSEPSextractor()
 
         if(use_circle)
         {
-            sep_sum_circle(&im, xPos, yPos, params.r_min, params.subpix, params.inflags, &sum, &sumerr, &area, &flag);
+            sep_sum_circle(&im, xPos, yPos, params.r_min, 0, params.subpix, params.inflags, &sum, &sumerr, &kron_area, &kron_flag);
         }
         else
         {
-            sep_sum_ellipse(&im, xPos, yPos, a, b, theta, params.kron_fact * kronrad, params.subpix, params.inflags, &sum, &sumerr,
-                            &area, &flag);
+            sep_sum_ellipse(&im, xPos, yPos, a, b, theta, params.kron_fact * kronrad, 0, params.subpix, params.inflags, &sum, &sumerr,
+                            &kron_area, &kron_flag);
         }
 
         float mag = params.magzero - 2.5 * log10(sum);
-
         float HFR = 0;
-        if(processType == SEXTRACT_WITH_HFR)
+
+        if(m_ProcessType == EXTRACT_WITH_HFR)
         {
             //Get HFR
-            sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, params.subpix, 0, &flux, requested_frac, 2, flux_fractions,
+            sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, 0, params.subpix, 0, &flux, requested_frac, 2, flux_fractions,
                             &flux_flag);
             HFR = flux_fractions[0];
         }
 
-        FITSImage::Star star = {xPos + x, yPos + y, mag, (float)sum, (float)peak, HFR, a, b, qRadiansToDegrees(theta), 0, 0, numPixels};
-
-        stars.append(star);
+        FITSImage::Star oneStar = {xPos,
+                                   yPos,
+                                   mag,
+                                   static_cast<float>(sum),
+                                   static_cast<float>(peak),
+                                   HFR,
+                                   a,
+                                   b,
+                                   qRadiansToDegrees(theta),
+                                   0,
+                                   0,
+                                   numPixels
+                                  };
+        // Make a copy and add it to QList
+        partitionStars.append(oneStar);
     }
 
-    applyStarFilters();
+    cleanup();
 
-    hasSextracted = true;
-
-    delete [] data;
-    sep_bkg_free(bkg);
-    sep_catalog_free(catalog);
-    free(imback);
-    free(fluxerr);
-    free(area);
-    free(flag);
-    return 0;
-
-exit:
-    delete [] data;
-    sep_bkg_free(bkg);
-    sep_catalog_free(catalog);
-    free(imback);
-    free(fluxerr);
-    free(area);
-    free(flag);
-
-    if (status != 0)
-    {
-        char errorMessage[512];
-        sep_get_errmsg(status, errorMessage);
-        emit logOutput(errorMessage);
-        return status;
-    }
-
-    return -1;
+    return partitionStars;
 }
 
-void InternalSextractorSolver::applyStarFilters()
+void InternalSextractorSolver::applyStarFilters(QList<FITSImage::Star> &starList)
 {
-    if(stars.size() > 1)
+    if(starList.size() > 1)
     {
-        emit logOutput(QString("Stars Found before Filtering: %1").arg(stars.size()));
+        emit logOutput(QString("Stars Found before Filtering: %1").arg(starList.size()));
         if(params.resort)
         {
             //Note that a star is dimmer when the mag is greater!
             //We want to sort in decreasing order though!
-            std::sort(stars.begin(), stars.end(), [](const FITSImage::Star & s1, const FITSImage::Star & s2)
+            std::sort(starList.begin(), starList.end(), [](const FITSImage::Star & s1, const FITSImage::Star & s2)
             {
                 return s1.mag < s2.mag;
             });
@@ -407,75 +538,59 @@ void InternalSextractorSolver::applyStarFilters()
         if(params.maxSize > 0.0)
         {
             emit logOutput(QString("Removing stars wider than %1 pixels").arg(params.maxSize));
-            for(int i = 0; i < stars.size(); i++)
+            starList.erase(std::remove_if(starList.begin(), starList.end(), [&](FITSImage::Star & oneStar)
             {
-                FITSImage::Star star = stars.at(i);
-                if(star.a > params.maxSize || star.b > params.maxSize)
-                {
-                    stars.removeAt(i);
-                    i--;
-                }
-            }
+                return (oneStar.a > params.maxSize || oneStar.b > params.maxSize);
+            }), starList.end());
         }
 
         if(params.minSize > 0.0)
         {
             emit logOutput(QString("Removing stars smaller than %1 pixels").arg(params.minSize));
-            for(int i = 0; i < stars.size(); i++)
+            starList.erase(std::remove_if(starList.begin(), starList.end(), [&](FITSImage::Star & oneStar)
             {
-                FITSImage::Star star = stars.at(i);
-                if(star.a < params.minSize || star.b < params.minSize)
-                {
-                    stars.removeAt(i);
-                    i--;
-                }
-            }
+                return ((oneStar.a < params.minSize || oneStar.b < params.minSize));
+            }), starList.end());
         }
 
         if(params.resort && params.removeBrightest > 0.0 && params.removeBrightest < 100.0)
         {
-            int numToRemove = stars.count() * (params.removeBrightest / 100.0);
+            int numToRemove = starList.count() * (params.removeBrightest / 100.0);
             emit logOutput(QString("Removing the %1 brightest stars").arg(numToRemove));
             if(numToRemove > 1)
             {
                 for(int i = 0; i < numToRemove; i++)
-                    stars.removeFirst();
+                    starList.removeFirst();
             }
         }
 
         if(params.resort && params.removeDimmest > 0.0 && params.removeDimmest < 100.0)
         {
-            int numToRemove = stars.count() * (params.removeDimmest / 100.0);
+            int numToRemove = starList.count() * (params.removeDimmest / 100.0);
             emit logOutput(QString("Removing the %1 dimmest stars").arg(numToRemove));
             if(numToRemove > 1)
             {
                 for(int i = 0; i < numToRemove; i++)
-                    stars.removeLast();
+                    starList.removeLast();
             }
         }
 
         if(params.maxEllipse > 1)
         {
             emit logOutput(QString("Removing the stars with a/b ratios greater than %1").arg(params.maxEllipse));
-            for(int i = 0; i < stars.size(); i++)
+            starList.erase(std::remove_if(starList.begin(), starList.end(), [&](FITSImage::Star & oneStar)
             {
-                FITSImage::Star star = stars.at(i);
-                double ratio = star.a / star.b;
-                if(ratio > params.maxEllipse)
-                {
-                    stars.removeAt(i);
-                    i--;
-                }
-            }
+                return (oneStar.b != 0 && oneStar.a / oneStar.b > params.maxEllipse);
+            }), starList.end());
         }
 
         if(params.saturationLimit > 0.0 && params.saturationLimit < 100.0)
         {
             double maxSizeofDataType;
-            if(stats.dataType == TSHORT || stats.dataType == TLONG || stats.dataType == TLONGLONG)
-                maxSizeofDataType = pow(2, stats.bytesPerPixel * 8) / 2 - 1;
-            else if(stats.dataType == TUSHORT || stats.dataType == TULONG)
-                maxSizeofDataType = pow(2, stats.bytesPerPixel * 8) - 1;
+            if(m_Statistics.dataType == TSHORT || m_Statistics.dataType == TLONG || m_Statistics.dataType == TLONGLONG)
+                maxSizeofDataType = pow(2, m_Statistics.bytesPerPixel * 8) / 2 - 1;
+            else if(m_Statistics.dataType == TUSHORT || m_Statistics.dataType == TULONG)
+                maxSizeofDataType = pow(2, m_Statistics.bytesPerPixel * 8) - 1;
             else // Float and Double Images saturation level is not so easy to determine, especially since they were probably processed by another program and the saturation level is now changed.
                 maxSizeofDataType = -1;
 
@@ -487,29 +602,24 @@ void InternalSextractorSolver::applyStarFilters()
             {
                 emit logOutput(QString("Removing the saturated stars with peak values greater than %1 Percent of %2").arg(
                                    params.saturationLimit).arg(maxSizeofDataType));
-                for(int i = 0; i < stars.size(); i++)
+                starList.erase(std::remove_if(starList.begin(), starList.end(), [&](FITSImage::Star & oneStar)
                 {
-                    FITSImage::Star star = stars.at(i);
-                    if(star.peak > (params.saturationLimit / 100.0) * maxSizeofDataType)
-                    {
-                        stars.removeAt(i);
-                        i--;
-                    }
-                }
+                    return (oneStar.peak > (params.saturationLimit / 100.0) * maxSizeofDataType);
+                }), starList.end());
             }
         }
 
         if(params.resort && params.keepNum > 0.0)
         {
             emit logOutput(QString("Keeping just the %1 brightest stars").arg(params.keepNum));
-            int numToRemove = stars.size() - params.keepNum;
+            int numToRemove = starList.size() - params.keepNum;
             if(numToRemove > 1)
             {
                 for(int i = 0; i < numToRemove; i++)
-                    stars.removeLast();
+                    starList.removeLast();
             }
         }
-        emit logOutput(QString("Stars Found after Filtering: %1").arg(stars.size()));
+        emit logOutput(QString("Stars Found after Filtering: %1").arg(starList.size()));
     }
 }
 
@@ -524,7 +634,7 @@ void InternalSextractorSolver::getFloatBuffer(float * buffer, int x, int y, int 
 
     for (int y1 = y; y1 < y2; y1++)
     {
-        int offset = y1 * stats.width;
+        int offset = y1 * m_Statistics.width;
         for (int x1 = x; x1 < x2; x1++)
         {
             *floatPtr++ = rawBuffer[offset + x1];
@@ -534,7 +644,7 @@ void InternalSextractorSolver::getFloatBuffer(float * buffer, int x, int y, int 
 
 void InternalSextractorSolver::downsampleImage(int d)
 {
-    switch (stats.dataType)
+    switch (m_Statistics.dataType)
     {
         case SEP_TBYTE:
             downSampleImageType<uint8_t>(d);
@@ -566,15 +676,15 @@ void InternalSextractorSolver::downsampleImage(int d)
 template <typename T>
 void InternalSextractorSolver::downSampleImageType(int d)
 {
-    int w = stats.width;
-    int h = stats.height;
+    int w = m_Statistics.width;
+    int h = m_Statistics.height;
 
     int numChannels;
-    if (stats.ndim < 3)
+    if (m_Statistics.ndim < 3)
         numChannels = 1;
     else
         numChannels = 3;
-    int oldBufferSize = stats.samples_per_channel * numChannels * stats.bytesPerPixel;
+    int oldBufferSize = m_Statistics.samples_per_channel * numChannels * m_Statistics.bytesPerPixel;
     int newBufferSize = oldBufferSize / (d * d); //It is d times smaller in width and height
     downSampledBuffer = new uint8_t[newBufferSize];
     auto * sourceBuffer = reinterpret_cast<T const *>(m_ImageBuffer);
@@ -624,8 +734,8 @@ void InternalSextractorSolver::downSampleImageType(int d)
     }
 
     m_ImageBuffer = downSampledBuffer;
-    stats.width /= d;
-    stats.height /= d;
+    m_Statistics.width /= d;
+    m_Statistics.height /= d;
     if(scaleunit == ARCSEC_PER_PIX)
     {
         scalelo *= d;
@@ -657,8 +767,8 @@ bool InternalSextractorSolver::prepare_job()
     solver_set_default_values(sp);
 
     //These set the width and the height of the image in the solver
-    sp->field_maxx = stats.width;
-    sp->field_maxy = stats.height;
+    sp->field_maxx = m_Statistics.width;
+    sp->field_maxy = m_Statistics.height;
 
     //We would like the Coordinates found to be the center of the image
     sp->set_crpix = TRUE;
@@ -693,13 +803,13 @@ bool InternalSextractorSolver::prepare_job()
         {
             case DEG_WIDTH:
                 emit logOutput(QString("Scale range: %1 to %2 degrees wide").arg(scalelo).arg(scalehi));
-                appl = deg2arcsec(scalelo) / (double)stats.width;
-                appu = deg2arcsec(scalehi) / (double)stats.width;
+                appl = deg2arcsec(scalelo) / (double)m_Statistics.width;
+                appu = deg2arcsec(scalehi) / (double)m_Statistics.width;
                 break;
             case ARCMIN_WIDTH:
                 emit logOutput(QString("Scale range: %1 to %2 arcmin wide").arg (scalelo).arg(scalehi));
-                appl = arcmin2arcsec(scalelo) / (double)stats.width;
-                appu = arcmin2arcsec(scalehi) / (double)stats.width;
+                appl = arcmin2arcsec(scalelo) / (double)m_Statistics.width;
+                appu = arcmin2arcsec(scalehi) / (double)m_Statistics.width;
                 break;
             case ARCSEC_PER_PIX:
                 emit logOutput(QString("Scale range: %1 to %2 arcsec/pixel").arg (scalelo).arg (scalehi));
@@ -709,8 +819,8 @@ bool InternalSextractorSolver::prepare_job()
             case FOCAL_MM:
                 emit logOutput(QString("Scale range: %1 to %2 mm focal length").arg (scalelo).arg (scalehi));
                 // "35 mm" film is 36 mm wide.
-                appu = rad2arcsec(atan(36. / (2. * scalelo))) / (double)stats.width;
-                appl = rad2arcsec(atan(36. / (2. * scalehi))) / (double)stats.width;
+                appu = rad2arcsec(atan(36. / (2. * scalelo))) / (double)m_Statistics.width;
+                appl = rad2arcsec(atan(36. / (2. * scalehi))) / (double)m_Statistics.width;
                 break;
             default:
                 emit logOutput(QString("Unknown scale unit code %1").arg (scaleunit));
@@ -723,10 +833,12 @@ bool InternalSextractorSolver::prepare_job()
 
         if(scaleunit == ARCMIN_WIDTH || scaleunit == DEG_WIDTH || scaleunit == FOCAL_MM)
         {
-             if(params.downsample == 1)
-                 emit logOutput(QString("Image width %1 pixels; arcsec per pixel range: %2 to %3").arg (stats.width).arg (appl).arg (appu));
-             else
-                 emit logOutput(QString("Image width: %1 pixels, Downsampled Image width: %2 pixels; arcsec per pixel range: %3 to %4").arg(stats.width * params.downsample).arg (stats.width).arg (appl).arg (appu));
+            if(params.downsample == 1)
+                emit logOutput(QString("Image width %1 pixels; arcsec per pixel range: %2 to %3").arg (m_Statistics.width).arg (appl).arg (
+                                   appu));
+            else
+                emit logOutput(QString("Image width: %1 pixels, Downsampled Image width: %2 pixels; arcsec per pixel range: %3 to %4").arg(
+                                   m_Statistics.width * params.downsample).arg (m_Statistics.width).arg (appl).arg (appu));
         }
         if(params.downsample != 1 && scaleunit == ARCSEC_PER_PIX)
             emit logOutput(QString("Downsampling is multiplying the pixel scale by: %1").arg(params.downsample));
@@ -870,9 +982,9 @@ int InternalSextractorSolver::runInternalSolver()
     if (!dl_size(job->scales))
     {
         double arcsecperpix;
-        arcsecperpix = deg2arcsec(engine->minwidth) / stats.width;
+        arcsecperpix = deg2arcsec(engine->minwidth) / m_Statistics.width;
         dl_append(job->scales, arcsecperpix);
-        arcsecperpix = deg2arcsec(engine->maxwidth) / stats.height;
+        arcsecperpix = deg2arcsec(engine->maxwidth) / m_Statistics.height;
         dl_append(job->scales, arcsecperpix);
     }
 
@@ -1014,8 +1126,8 @@ void InternalSextractorSolver::computeWCSCoord()
     }
     //We have to upscale back to the full size image
     int d = params.downsample;
-    int w = stats.width * d;
-    int h = stats.height * d;
+    int w = m_Statistics.width * d;
+    int h = m_Statistics.height * d;
 
 
     wcs_coord = new FITSImage::wcs_point[w * h];
@@ -1068,30 +1180,27 @@ bool InternalSextractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, 
     return true;
 }
 
-QList<FITSImage::Star> InternalSextractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> stars)
+bool InternalSextractorSolver::appendStarsRAandDEC()
 {
     if(!hasWCS)
     {
         emit logOutput("There is no WCS Data");
-        return stars;
+        return false;
     }
 
-    QList<FITSImage::Star> refinedStars;
     int d = params.downsample;
-    foreach(FITSImage::Star star, stars)
+    for(auto &oneStar : stars)
     {
         double ra = HUGE_VAL;
         double dec = HUGE_VAL;
-        sip_pixelxy2radec(&wcs, star.x / d, star.y / d, &ra, &dec);
+        sip_pixelxy2radec(&wcs, oneStar.x / d, oneStar.y / d, &ra, &dec);
         char rastr[32], decstr[32];
         ra2hmsstring(ra, rastr);
         dec2dmsstring(dec, decstr);
-
-        //We do need to correct for all the downsampling as well as add RA/DEC info
-        FITSImage::Star refinedStar = {star.x, star.y, star.mag, star.flux, star.peak, star.HFR, star.a, star.b, star.theta, (float)ra, (float)dec};
-        refinedStars.append(refinedStar);
+        oneStar.ra = ra;
+        oneStar.dec = dec;
     }
-    return refinedStars;
+    return true;
 }
 
 //This starts a monitor for the FIFO file if on a Mac or Linux Machine

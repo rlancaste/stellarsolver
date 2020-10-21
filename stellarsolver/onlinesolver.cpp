@@ -9,7 +9,9 @@
 #include <QTimer>
 #include <QEventLoop>
 
-OnlineSolver::OnlineSolver(ProcessType type, SextractorType sexType, SolverType solType, FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : ExternalSextractorSolver(type, sexType, solType, imagestats, imageBuffer, parent)
+OnlineSolver::OnlineSolver(ProcessType type, ExtractorType sexType, SolverType solType, FITSImage::Statistic imagestats,
+                           uint8_t const *imageBuffer, QObject *parent) : ExternalSextractorSolver(type, sexType, solType, imagestats, imageBuffer,
+                                       parent)
 {
     connect(this, &OnlineSolver::timeToCheckJobs, this, &OnlineSolver::checkJobs);
     connect(this, &OnlineSolver::startupOnlineSolver, this, &OnlineSolver::authenticate);
@@ -18,23 +20,23 @@ OnlineSolver::OnlineSolver(ProcessType type, SextractorType sexType, SolverType 
     connect(networkManager, &QNetworkAccessManager::finished, this, &OnlineSolver::onResult);
 }
 
-void OnlineSolver::startProcess()
+void OnlineSolver::execute()
 {
     if(params.multiAlgorithm != NOT_MULTI)
         emit logOutput("The Online solver option does not support multithreading, since the server already does this internally, ignoring this option");
 
-    if(sextractorType == SEXTRACTOR_BUILTIN)
+    if(m_ExtractorType == EXTRACTOR_BUILTIN)
         runOnlineSolver();
     else
     {
         delete xcol;
         delete ycol;
-        xcol=strdup("X"); //This is the column for the x-coordinates, it doesn't accept X_IMAGE like the other one
-        ycol=strdup("Y"); //This is the column for the y-coordinates, it doesn't accept Y_IMAGE like the other one
+        xcol = strdup("X"); //This is the column for the x-coordinates, it doesn't accept X_IMAGE like the other one
+        ycol = strdup("Y"); //This is the column for the y-coordinates, it doesn't accept Y_IMAGE like the other one
         int fail = 0;
-        if(sextractorType == SEXTRACTOR_INTERNAL)
+        if(m_ExtractorType == EXTRACTOR_INTERNAL)
             fail = runSEPSextractor();
-        else if(sextractorType == SEXTRACTOR_EXTERNAL)
+        else if(m_ExtractorType == EXTRACTOR_EXTERNAL)
             fail = runExternalSextractor();
         if(fail != 0)
         {
@@ -195,7 +197,7 @@ void OnlineSolver::uploadFile()
     QNetworkRequest request;
 
     QFile *fitsFile;
-    if(sextractorType == SEXTRACTOR_BUILTIN)
+    if(m_ExtractorType == EXTRACTOR_BUILTIN)
         fitsFile = new QFile(fileToProcess);
     else
         fitsFile = new QFile(sextractorFilePath);
@@ -220,10 +222,10 @@ void OnlineSolver::uploadFile()
     uploadReq.insert("session", sessionKey);
     uploadReq.insert("allow_commercial_use", "n");
 
-    if(sextractorType != SEXTRACTOR_BUILTIN)
+    if(m_ExtractorType != EXTRACTOR_BUILTIN)
     {
-        uploadReq.insert("image_width", stats.width);
-        uploadReq.insert("image_height", stats.height);
+        uploadReq.insert("image_width", m_Statistics.width);
+        uploadReq.insert("image_height", m_Statistics.height);
     }
 
     if (use_scale)
@@ -287,7 +289,7 @@ void OnlineSolver::waitForProcessing()
 
 //This will start up the fourth stage, getting the Job ID, essentially waiting in the Job Queue
 void OnlineSolver::getJobID()
-{ 
+{
     workflowStage = JOB_QUEUE_STAGE;
     emit logOutput(("Waiting for the Job to Start..."));
 }
@@ -443,12 +445,12 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             QString finished;
             finished = result["processing_finished"].toString();
 
-            if (finished == "None" || finished =="")
+            if (finished == "None" || finished == "")
                 return;
 
             getJobID(); //Go to the NEXT STAGE
         }
-            break;
+        break;
 
         case JOB_QUEUE_STAGE:
             jsonArray = result["jobs"].toList();
@@ -550,7 +552,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             else
                 getJobWCSFile(); //Go to Last Stage
         }
-            break;
+        break;
 
         case LOG_LOADING_STAGE:
         {
@@ -590,7 +592,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             emit finished(0); //Success! We are completely done, whether or not the WCS loading was successful
             workflowStage = NO_STAGE;
         }
-            break;
+        break;
 
         default:
             break;

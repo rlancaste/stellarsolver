@@ -17,24 +17,40 @@ using namespace SSolver;
 class InternalSextractorSolver: public SextractorSolver
 {
     public:
-        explicit InternalSextractorSolver(ProcessType type, SextractorType sexType, SolverType solType,
+        explicit InternalSextractorSolver(ProcessType pType, ExtractorType eType, SolverType sType,
                                           FITSImage::Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
         ~InternalSextractorSolver();
 
-        int sextract() override;
-        //void solve() override;
+        int extract() override;
         void abort() override;
         void computeWCSCoord() override;
-        QList<FITSImage::Star> appendStarsRAandDEC(QList<FITSImage::Star> stars) override;
+        bool appendStarsRAandDEC() override;
         SextractorSolver* spawnChildSolver(int n) override;
 
         bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) override;
         bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) override;
-    protected:
-        int runSEPSextractor();    //This is the method that actually runs the internal sextractor
-        void applyStarFilters();    //This applies the star filter to the stars list.
-        bool usingDownsampledImage = false; //This boolean gets set internally if we are using a downsampled image buffer for SEP
 
+        typedef struct
+        {
+            float *data;
+            uint32_t width;
+            uint32_t height;
+            uint32_t subX;
+            uint32_t subY;
+            uint32_t subW;
+            uint32_t subH;
+        } ImageParams;
+
+    protected:
+        //This is the method that actually runs the internal sextractor
+        int runSEPSextractor();
+        //This applies the star filter to the stars list.
+        void applyStarFilters(QList<FITSImage::Star> &starList);
+        QList<FITSImage::Star> extractPartition(const ImageParams &parameters);
+        void addToStarList(QList<FITSImage::Star> &stars, QList<FITSImage::Star> &partialStarList);
+        void allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+        //This boolean gets set internally if we are using a downsampled image buffer for SEP
+        bool usingDownsampledImage = false;
 
     private:
 
@@ -67,5 +83,12 @@ class InternalSextractorSolver: public SextractorSolver
         QThread* logMonitor = nullptr;
         bool logMonitorRunning = false;
         FILE *logFile = nullptr;
+
+        // Anything below 200 pixels will NOT be partitioned.
+        static const uint32_t PARTITION_SIZE { 200 };
+        // Partition overlap catch any stars that are on the frame EDGE
+        static const uint32_t PARTITION_OVERLAP { 20 };
+        // Partision Margin in pixels
+        static const uint32_t PARTITION_MARGIN { 15 };
 };
 
