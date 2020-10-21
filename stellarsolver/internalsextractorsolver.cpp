@@ -37,6 +37,8 @@ InternalSextractorSolver::InternalSextractorSolver(ProcessType pType, ExtractorT
     //This sets the base name used for the temp files.
     baseName = "internalSextractorSolver_" + QString::number(solverNum++);
 
+    m_PartitionThreads = QThread::idealThreadCount();
+
 }
 
 InternalSextractorSolver::~InternalSextractorSolver()
@@ -237,10 +239,21 @@ int InternalSextractorSolver::runSEPSextractor()
         // #2 200, 0, 200 + 100, 200 (300 x 200)
         // #3 0, 200, 200, 200 (200 x 200)
         // #4 200, 200, 200 + 100, 200 (300 x 200)
-        int horizontalPartitions = w / PARTITION_SIZE;
-        int verticalPartitions = h / PARTITION_SIZE;
-        int horizontalOffset = w - (PARTITION_SIZE * horizontalPartitions);
-        int verticalOffset = h - (PARTITION_SIZE * verticalPartitions);
+
+        int W_PARTITION_SIZE = PARTITION_SIZE;
+        int H_PARTITION_SIZE = PARTITION_SIZE;
+
+        // Limit it to PARTITION_THREADS
+        if ( (w * h) / (W_PARTITION_SIZE * H_PARTITION_SIZE) > m_PartitionThreads)
+        {
+            W_PARTITION_SIZE = w / (m_PartitionThreads / 2);
+            H_PARTITION_SIZE = h / (m_PartitionThreads / 4);
+        }
+
+        int horizontalPartitions = w / W_PARTITION_SIZE;
+        int verticalPartitions = h / H_PARTITION_SIZE;
+        int horizontalOffset = w - (W_PARTITION_SIZE * horizontalPartitions);
+        int verticalOffset = h - (H_PARTITION_SIZE * verticalPartitions);
 
         for (int i = 0; i < verticalPartitions; i++)
         {
@@ -248,10 +261,10 @@ int InternalSextractorSolver::runSEPSextractor()
             {
                 int offsetW = (j == horizontalPartitions - 1) ? horizontalOffset : 0;
                 int offsetH = (i == verticalPartitions - 1) ? verticalOffset : 0;
-                uint32_t subX = x + j * PARTITION_SIZE + PARTITION_MARGIN;
-                uint32_t subY = y + i * PARTITION_SIZE + PARTITION_MARGIN;
-                uint32_t subW = PARTITION_SIZE + offsetW - PARTITION_MARGIN;
-                uint32_t subH = PARTITION_SIZE + offsetH - PARTITION_MARGIN;
+                uint32_t subX = x + j * W_PARTITION_SIZE + PARTITION_MARGIN;
+                uint32_t subY = y + i * H_PARTITION_SIZE + PARTITION_MARGIN;
+                uint32_t subW = W_PARTITION_SIZE + offsetW - PARTITION_MARGIN;
+                uint32_t subH = H_PARTITION_SIZE + offsetH - PARTITION_MARGIN;
                 //uint32_t offset = subX + (subY * raw_w);
 
                 auto * data = new float[subW * subH];
