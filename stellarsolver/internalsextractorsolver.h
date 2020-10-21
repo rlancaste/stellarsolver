@@ -83,12 +83,13 @@ class InternalSextractorSolver: public SextractorSolver
         QThread* logMonitor = nullptr;
         bool logMonitorRunning = false;
         FILE *logFile = nullptr;
+        uint32_t m_PartitionThreads = {16};
 
         // Anything below 200 pixels will NOT be partitioned.
         static const uint32_t PARTITION_SIZE { 200 };
         // Partition overlap catch any stars that are on the frame EDGE
         static const uint32_t PARTITION_OVERLAP { 20 };
-        // Partision Margin in pixels
+        // Partition Margin in pixels
         static const uint32_t PARTITION_MARGIN { 15 };
 };
 
