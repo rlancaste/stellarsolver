@@ -335,7 +335,7 @@ void StellarSolver::parallelSolve()
         solver->start();
 }
 
-bool StellarSolver::parallelSolversAreRunning()
+bool StellarSolver::parallelSolversAreRunning() const
 {
     for(auto solver : parallelSolvers)
         if(solver->isRunning())
@@ -511,7 +511,7 @@ void StellarSolver::abort()
 }
 
 //This method checks all the solvers and the internal running boolean to determine if anything is running.
-bool StellarSolver::isRunning()
+bool StellarSolver::isRunning() const
 {
     if(parallelSolversAreRunning())
         return true;
@@ -543,7 +543,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
 
     Parameters defaultProfile;
     defaultProfile.listName = "1-Default";
-    defaultProfile.description = "The default profile.  Note that this is not optimized for fast plate solving";
+    defaultProfile.description = "Default profile. Generic and not optimized for any specific purpose.";
     profileList.append(defaultProfile);
 
     Parameters fastSolving;
@@ -553,6 +553,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     fastSolving.minwidth = 0.1;
     fastSolving.maxwidth = 10;
     fastSolving.keepNum = 50;
+    fastSolving.initialKeep = 500;
     fastSolving.maxEllipse = 1.5;
     createConvFilterFromFWHM(&fastSolving, 4);
     profileList.append(fastSolving);
@@ -563,6 +564,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     parLargeSolving.minwidth = 10;
     parLargeSolving.maxwidth = 180;
     parLargeSolving.keepNum = 50;
+    parLargeSolving.initialKeep = 500;
     parLargeSolving.maxEllipse = 1.5;
     createConvFilterFromFWHM(&parLargeSolving, 4);
     profileList.append(parLargeSolving);
@@ -573,6 +575,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     fastSmallSolving.minwidth = 0.1;
     fastSmallSolving.maxwidth = 10;
     fastSmallSolving.keepNum = 50;
+    fastSmallSolving.initialKeep = 500;
     fastSmallSolving.maxEllipse = 1.5;
     createConvFilterFromFWHM(&fastSmallSolving, 4);
     profileList.append(fastSmallSolving);
@@ -592,6 +595,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     createConvFilterFromFWHM(&smallStars, 1);
     smallStars.r_min = 2;
     smallStars.maxSize = 5;
+    smallStars.initialKeep = 500;
     smallStars.saturationLimit = 80;
     profileList.append(smallStars);
 
@@ -605,6 +609,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     mid.removeDimmest = 20;
     mid.minSize = 2;
     mid.maxSize = 10;
+    mid.initialKeep = 500;
     mid.saturationLimit = 80;
     profileList.append(mid);
 
@@ -616,6 +621,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     createConvFilterFromFWHM(&big, 8);
     big.r_min = 20;
     big.minSize = 5;
+    big.initialKeep = 500;
     big.removeDimmest = 50;
     profileList.append(big);
 

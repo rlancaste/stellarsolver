@@ -262,7 +262,8 @@ class Parameters
         } ParametersProfile;
 
         QString listName = "Default";       // This is the name of this particular profile of options for StellarSolver
-        QString description = "";           // This is a description of the Profile, what it is intended for, anything that sets it apart
+        QString description =
+            "";           // This is a description of the Profile, what it is intended for, anything that sets it apart
 
         //Sextractor Photometry Parameters
         Shape apertureShape = SHAPE_CIRCLE; // Whether to use the SEP_SUM_ELLIPSE method or the SEP_SUM_CIRCLE method
@@ -316,7 +317,7 @@ class Parameters
         bool resort =
             true;                 // Whether to resort the stars based on magnitude NOTE: This is REQUIRED to be true for the filters above
         bool autoDownsample =       // Whether or not to automatically determine the downsample size based on the image size.
-                true;
+            true;
         int downsample =
             1;                 // Factor to use for downsampling the image before SEP for plate solving.  Can speed it up.  This is not used for Source Extraction
         int search_parity = 2;              // Only check for matches with positive/negative parity (default: try both)
