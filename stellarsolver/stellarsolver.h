@@ -164,37 +164,37 @@ class StellarSolver : public QObject
 
 
         //Accessor Method for external classes
-        int getNumStarsFound()
+        int getNumStarsFound() const
         {
             return numStars;
         }
-        QList<FITSImage::Star> getStarList()
+        const QList<FITSImage::Star> &getStarList() const
         {
             return m_ExtractorStars;
         }
-        FITSImage::Background getBackground()
+        const FITSImage::Background &getBackground() const
         {
             return background;
         }
-        QList<FITSImage::Star> getStarListFromSolve()
+        const QList<FITSImage::Star> &getStarListFromSolve() const
         {
             return m_SolverStars;
         }
-        FITSImage::Solution getSolution()
+        const FITSImage::Solution &getSolution() const
         {
             return solution;
         }
 
-        bool sextractionDone()
+        bool sextractionDone() const
         {
             return hasSextracted;
         }
-        bool solvingDone()
+        bool solvingDone() const
         {
             return hasSolved;
         }
 
-        bool failed()
+        bool failed() const
         {
             return hasFailed;
         }
@@ -202,17 +202,17 @@ class StellarSolver : public QObject
         {
             loadWCS = set;
         }
-        bool hasWCSData()
+        bool hasWCSData() const
         {
             return hasWCS;
         };
-        int getNumThreads()
+        int getNumThreads() const
         {
             if(parallelSolvers.size() == 0) return 1;
             else return parallelSolvers.size();
         }
 
-        Parameters getCurrentParameters()
+        const Parameters &getCurrentParameters()
         {
             return params;
         }
@@ -228,7 +228,7 @@ class StellarSolver : public QObject
             m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
         };
 
-        bool isRunning();
+        bool isRunning() const;
 
         inline static QString raString(double ra)
         {
@@ -302,7 +302,7 @@ class StellarSolver : public QObject
         QPointer<SextractorSolver> m_SextractorSolver;
         QPointer<SextractorSolver> solverWithWCS;
         int m_ParallelSolversFinishedCount {0};
-        bool parallelSolversAreRunning();
+        bool parallelSolversAreRunning() const;
 
         //The currently set parameters for StellarSolver
         Parameters params;
