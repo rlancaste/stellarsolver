@@ -312,7 +312,7 @@ int InternalSextractorSolver::runSEPSextractor()
 
     applyStarFilters(stars);
 
-    for (auto buffer : dataBuffers)
+    for (auto * buffer : dataBuffers)
         delete [] buffer;
     dataBuffers.clear();
 
@@ -332,7 +332,7 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     QList<FITSImage::Star> partitionStars;
     const uint32_t maxRadius = 50;
 
-    auto cleanup = [ = ]()
+    auto cleanup = [ & ]()
     {
         sep_bkg_free(bkg);
         Extract::sep_catalog_free(catalog);
