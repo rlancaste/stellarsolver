@@ -22,7 +22,7 @@ OnlineSolver::OnlineSolver(ProcessType type, ExtractorType sexType, SolverType s
 
 void OnlineSolver::execute()
 {
-    if(params.multiAlgorithm != NOT_MULTI)
+    if(m_ActiveParameters.multiAlgorithm != NOT_MULTI)
         emit logOutput("The Online solver option does not support multithreading, since the server already does this internally, ignoring this option");
 
     if(m_ExtractorType == EXTRACTOR_BUILTIN)
@@ -57,12 +57,12 @@ void OnlineSolver::runOnlineSolver()
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Configuring Online Solver");
 
-    if(logToFile && astrometryLogLevel != LOG_NONE)
+    if(m_LogToFile && m_AstrometryLogLevel != LOG_NONE)
     {
-        if(logFileName == "")
-            logFileName = basePath + "/" + baseName + ".log.txt";
-        if(QFile(logFileName).exists())
-            QFile(logFileName).remove();
+        if(m_LogFileName == "")
+            m_LogFileName = m_BasePath + "/" + m_BaseName + ".log.txt";
+        if(QFile(m_LogFileName).exists())
+            QFile(m_LogFileName).remove();
     }
 
     solverTimer.start();
@@ -79,13 +79,13 @@ void OnlineSolver::run()
 {
     bool timedOut = false;
 
-    while(!hasSolved && !aborted && !timedOut && workflowStage != JOB_PROCESSING_STAGE)
+    while(!m_HasSolved && !aborted && !timedOut && workflowStage != JOB_PROCESSING_STAGE)
     {
         msleep(200);
-        timedOut = solverTimer.elapsed() / 1000.0 > params.solverTimeLimit;
+        timedOut = solverTimer.elapsed() / 1000.0 > m_ActiveParameters.solverTimeLimit;
     }
 
-    while(!hasSolved && !aborted && !timedOut && (workflowStage == JOB_PROCESSING_STAGE || workflowStage == JOB_QUEUE_STAGE))
+    while(!m_HasSolved && !aborted && !timedOut && (workflowStage == JOB_PROCESSING_STAGE || workflowStage == JOB_QUEUE_STAGE))
     {
         msleep(JOB_RETRY_DURATION);
         if (job_retries++ > JOB_RETRY_ATTEMPTS)
@@ -96,22 +96,22 @@ void OnlineSolver::run()
         else
         {
             emit timeToCheckJobs();
-            timedOut = solverTimer.elapsed() / 1000.0 > params.solverTimeLimit;
+            timedOut = solverTimer.elapsed() / 1000.0 > m_ActiveParameters.solverTimeLimit;
         }
     }
 
-    if(!hasSolved && !aborted && !timedOut)
+    if(!m_HasSolved && !aborted && !timedOut)
     {
         emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        emit logOutput("Starting Online Solver with the " + params.listName + " profile . . .");
+        emit logOutput("Starting Online Solver with the " + m_ActiveParameters.listName + " profile . . .");
 
     }
 
-    while(!hasSolved && !aborted && !timedOut && workflowStage == JOB_MONITORING_STAGE)
+    while(!m_HasSolved && !aborted && !timedOut && workflowStage == JOB_MONITORING_STAGE)
     {
         msleep(STATUS_CHECK_INTERVAL);
         emit timeToCheckJobs();
-        timedOut = solverTimer.elapsed() / 1000.0 > params.solverTimeLimit;
+        timedOut = solverTimer.elapsed() / 1000.0 > m_ActiveParameters.solverTimeLimit;
     }
 
     if(aborted)
@@ -131,7 +131,7 @@ void OnlineSolver::run()
     bool starsAndWCSTimedOut = false;
     double starsAndWCSTimeLimit = 10.0;
 
-    if(!aborted && !hasWCS)
+    if(!aborted && !m_HasWCS)
     {
         emit logOutput("Waiting for Stars and WCS. . .");
         solverTimer.start();  //Restart the timer for the Stars and WCS download
@@ -228,7 +228,7 @@ void OnlineSolver::uploadFile()
         uploadReq.insert("image_height", m_Statistics.height);
     }
 
-    if (use_scale)
+    if (m_UseScale)
     {
         uploadReq.insert("scale_type", "ul");
         uploadReq.insert("scale_units", getScaleUnitString());
@@ -236,20 +236,20 @@ void OnlineSolver::uploadFile()
         uploadReq.insert("scale_upper", scalehi);
     }
 
-    if (use_position)
+    if (m_UsePosition)
     {
         uploadReq.insert("center_ra", search_ra);
         uploadReq.insert("center_dec", search_dec);
-        uploadReq.insert("radius", params.search_radius);
+        uploadReq.insert("radius", m_ActiveParameters.search_radius);
     }
 
     //We would like the Coordinates found to be the center of the image
     uploadReq.insert("crpix_center", true);
 
-    if (params.downsample != 1)
-        uploadReq.insert("downsample_factor", params.downsample);
+    if (m_ActiveParameters.downsample != 1)
+        uploadReq.insert("downsample_factor", m_ActiveParameters.downsample);
 
-    uploadReq.insert("parity", params.search_parity);
+    uploadReq.insert("parity", m_ActiveParameters.search_parity);
 
     QJsonObject json = QJsonObject::fromVariantMap(uploadReq);
     QJsonDocument json_doc(json);
@@ -538,16 +538,16 @@ void OnlineSolver::onResult(QNetworkReply *reply)
 
             float raErr = 0;
             float decErr = 0;
-            if(use_position)
+            if(m_UsePosition)
             {
                 raErr = (search_ra - ra) * 3600;
                 decErr = (search_dec - dec) * 3600;
             }
             QString par = (parity > 0) ? "neg" : "pos";
-            solution = {fieldw, fieldh, ra, dec, orientation, pixscale, par, raErr, decErr};
-            hasSolved = true;
+            m_Solution = {fieldw, fieldh, ra, dec, orientation, pixscale, par, raErr, decErr};
+            m_HasSolved = true;
 
-            if(astrometryLogLevel != LOG_NONE || logToFile)
+            if(m_AstrometryLogLevel != LOG_NONE || m_LogToFile)
                 getJobLogFile(); //Go to next stage
             else
                 getJobWCSFile(); //Go to Last Stage
@@ -558,12 +558,12 @@ void OnlineSolver::onResult(QNetworkReply *reply)
         {
             QByteArray responseData = reply->readAll();
 
-            if(astrometryLogLevel != LOG_NONE && !logToFile)
+            if(m_AstrometryLogLevel != LOG_NONE && !m_LogToFile)
                 emit logOutput(responseData);
 
-            if(logToFile)
+            if(m_LogToFile)
             {
-                QFile file(logFileName);
+                QFile file(m_LogFileName);
                 if (!file.open(QIODevice::WriteOnly))
                 {
                     emit logOutput(("Log File Write Error"));
@@ -578,7 +578,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
         case WCS_LOADING_STAGE:
         {
             QByteArray responseData = reply->readAll();
-            QString solutionFile = basePath + "/" + baseName + ".wcs";
+            QString solutionFile = m_BasePath + "/" + m_BaseName + ".wcs";
             QFile file(solutionFile);
             if (!file.open(QIODevice::WriteOnly))
             {

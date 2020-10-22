@@ -24,7 +24,7 @@ SextractorSolver::~SextractorSolver()
 //This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.
 void SextractorSolver::setSearchScale(double fov_low, double fov_high, ScaleUnits units)
 {
-    use_scale = true;
+    m_UseScale = true;
     //L
     scalelo = fov_low;
     //H
@@ -37,7 +37,7 @@ void SextractorSolver::setSearchScale(double fov_low, double fov_high, ScaleUnit
 //Warning!!  This method accepts the RA in degrees just like the DEC
 void SextractorSolver::setSearchPositionInDegrees(double ra, double dec)
 {
-    use_position = true;
+    m_UsePosition = true;
     //3
     search_ra = ra;
     //4
