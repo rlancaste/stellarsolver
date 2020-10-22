@@ -164,17 +164,21 @@ void StellarSolver::start()
         return;
     }
 
-    m_ExtractorStars.clear();
-    m_SolverStars.clear();
+
+
 
     m_SextractorSolver = createSextractorSolver();
 
     m_isRunning = true;
     m_HasFailed = false;
     if(m_ProcessType == EXTRACT || m_ProcessType == EXTRACT_WITH_HFR)
+    {
+        m_ExtractorStars.clear();
         m_HasExtracted = false;
+    }
     else
     {
+        m_SolverStars.clear();
         m_HasSolved = false;
         hasWCS = false;
         hasWCSCoord = false;
@@ -353,6 +357,7 @@ void StellarSolver::processFinished(int code)
         if(m_ProcessType == SOLVE && m_SextractorSolver->solvingDone())
         {
             solution = m_SextractorSolver->getSolution();
+            m_SolverStars = m_SextractorSolver->getStarList();
             if(m_SextractorSolver->hasWCSData())
             {
                 hasWCS = true;
@@ -424,6 +429,7 @@ void StellarSolver::finishParallelSolve(int success)
 
         numStars = reportingSolver->getNumStarsFound();
         solution = reportingSolver->getSolution();
+        m_SolverStars = reportingSolver->getStarList();
 
         if(reportingSolver->hasWCSData() && loadWCS)
         {
