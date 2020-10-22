@@ -20,7 +20,7 @@ ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, ExtractorTy
 {
 
     //This sets the base name used for the temp files.
-    baseName = "externalSextractorSolver_" + QString::number(solverNum++);
+    m_BaseName = "externalSextractorSolver_" + QString::number(solverNum++);
 
     //The code below sets default paths for these key external file settings.
 
@@ -152,7 +152,7 @@ int ExternalSextractorSolver::extract()
     if(sextractorFilePath == "")
     {
         sextractorFilePathIsTempFile = true;
-        sextractorFilePath = basePath + "/" + baseName + ".xyls";
+        sextractorFilePath = m_BasePath + "/" + m_BaseName + ".xyls";
     }
 
     if(m_ProcessType == EXTRACT_WITH_HFR || m_ProcessType == EXTRACT)
@@ -177,7 +177,7 @@ void ExternalSextractorSolver::run()
 {
     if(computingWCS)
     {
-        if(hasSolved)
+        if(m_HasSolved)
         {
             computeWCSCoord();
             emit finished(0);
@@ -188,18 +188,18 @@ void ExternalSextractorSolver::run()
         return;
     }
 
-    if(astrometryLogLevel != LOG_NONE && logToFile)
+    if(m_AstrometryLogLevel != LOG_NONE && m_LogToFile)
     {
-        if(logFileName == "")
-            logFileName = basePath + "/" + baseName + ".log.txt";
-        if(QFile(logFileName).exists())
-            QFile(logFileName).remove();
+        if(m_LogFileName == "")
+            m_LogFileName = m_BasePath + "/" + m_BaseName + ".log.txt";
+        if(QFile(m_LogFileName).exists())
+            QFile(m_LogFileName).remove();
     }
 
     if(cancelfn == "")
-        cancelfn = basePath + "/" + baseName + ".cancel";
+        cancelfn = m_BasePath + "/" + m_BaseName + ".cancel";
     if(solutionFile == "")
-        solutionFile = basePath + "/" + baseName + ".wcs";
+        solutionFile = m_BasePath + "/" + m_BaseName + ".wcs";
 
     if(QFile(cancelfn).exists())
         QFile(cancelfn).remove();
@@ -236,7 +236,7 @@ void ExternalSextractorSolver::run()
     if(sextractorFilePath == "")
     {
         sextractorFilePathIsTempFile = true;
-        sextractorFilePath = basePath + "/" + baseName + ".xyls";
+        sextractorFilePath = m_BasePath + "/" + m_BaseName + ".xyls";
     }
 
     switch(m_ProcessType)
@@ -254,7 +254,7 @@ void ExternalSextractorSolver::run()
                 emit finished(runExternalASTAPSolver());
             else
             {
-                if(!hasSextracted)
+                if(!m_HasExtracted)
                 {
                     int fail = extract();
                     if(fail != 0)
@@ -264,7 +264,7 @@ void ExternalSextractorSolver::run()
                     }
                 }
 
-                if(hasSextracted)
+                if(m_HasExtracted)
                 {
                     if(m_SolverType == SOLVER_ASTAP)
                         emit finished(runExternalASTAPSolver());
@@ -290,10 +290,10 @@ SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
 {
     ExternalSextractorSolver *solver = new ExternalSextractorSolver(m_ProcessType, m_ExtractorType, m_SolverType, m_Statistics,
             m_ImageBuffer, nullptr);
-    solver->stars = stars;
-    solver->basePath = basePath;
-    solver->baseName = baseName + "_" + QString::number(n);
-    solver->hasSextracted = true;
+    solver->m_ExtractedStars = m_ExtractedStars;
+    solver->m_BasePath = m_BasePath;
+    solver->m_BaseName = m_BaseName + "_" + QString::number(n);
+    solver->m_HasExtracted = true;
     solver->sextractorFilePath = sextractorFilePath;
     solver->fileToProcess = fileToProcess;
     solver->sextractorBinaryPath = sextractorBinaryPath;
@@ -305,18 +305,18 @@ SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
     solver->autoGenerateAstroConfig = autoGenerateAstroConfig;
 
     solver->isChildSolver = true;
-    solver->params = params;
+    solver->m_ActiveParameters = m_ActiveParameters;
     solver->indexFolderPaths = indexFolderPaths;
     //Set the log level one less than the main solver
     if(m_SSLogLevel == LOG_VERBOSE )
         solver->m_SSLogLevel = LOG_NORMAL;
     if(m_SSLogLevel == LOG_NORMAL || m_SSLogLevel == LOG_OFF)
         solver->m_SSLogLevel = LOG_OFF;
-    if(use_scale)
+    if(m_UseScale)
         solver->setSearchScale(scalelo, scalehi, scaleunit);
-    if(use_position)
+    if(m_UsePosition)
         solver->setSearchPositionInDegrees(search_ra, search_dec);
-    if(astrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
+    if(m_AstrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
         connect(solver, &SextractorSolver::logOutput, this, &SextractorSolver::logOutput);
     //This way they all share a solved and cancel fn
     solver->solutionFile = solutionFile;
@@ -343,31 +343,31 @@ void ExternalSextractorSolver::abort()
     }
     if(!isChildSolver)
         emit logOutput("Aborting ...");
-    wasAborted = true;
+    m_WasAborted = true;
 }
 
 void ExternalSextractorSolver::cleanupTempFiles()
 {
     if(cleanupTemporaryFiles)
     {
-        QDir temp(basePath);
+        QDir temp(m_BasePath);
         //Sextractor Files
-        temp.remove(baseName + ".param");
-        temp.remove(baseName + ".conv");
-        temp.remove(baseName + ".cfg");
+        temp.remove(m_BaseName + ".param");
+        temp.remove(m_BaseName + ".conv");
+        temp.remove(m_BaseName + ".cfg");
 
         //ASTAP files
-        temp.remove(baseName + ".ini");
+        temp.remove(m_BaseName + ".ini");
 
         //Astrometry Files
-        temp.remove(baseName + ".corr");
-        temp.remove(baseName + ".rdls");
-        temp.remove(baseName + ".axy");
-        temp.remove(baseName + ".corr");
-        temp.remove(baseName + ".new");
-        temp.remove(baseName + ".match");
-        temp.remove(baseName + "-indx.xyls");
-        temp.remove(baseName + ".solved");
+        temp.remove(m_BaseName + ".corr");
+        temp.remove(m_BaseName + ".rdls");
+        temp.remove(m_BaseName + ".axy");
+        temp.remove(m_BaseName + ".corr");
+        temp.remove(m_BaseName + ".new");
+        temp.remove(m_BaseName + ".match");
+        temp.remove(m_BaseName + "-indx.xyls");
+        temp.remove(m_BaseName + ".solved");
 
         //Other Files
         if(!isChildSolver)
@@ -398,7 +398,7 @@ int ExternalSextractorSolver::runExternalSextractor()
     }
     else
     {
-        QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
+        QString newFileURL = m_BasePath + "/" + m_BaseName + "." + file.suffix();
         QFile::copy(fileToProcess, newFileURL);
         fileToProcess = newFileURL;
         fileToProcessIsTempFile = true;
@@ -416,7 +416,7 @@ int ExternalSextractorSolver::runExternalSextractor()
     //sextractor needs a default.param file in the working directory
     //This creates that file with the options we need for astrometry.net and sextractor
 
-    QString paramPath =  basePath + "/" + baseName + ".param";
+    QString paramPath =  m_BasePath + "/" + m_BaseName + ".param";
     QFile paramFile(paramPath);
     if (paramFile.open(QIODevice::WriteOnly) == false)
     {
@@ -444,7 +444,7 @@ int ExternalSextractorSolver::runExternalSextractor()
     //sextractor needs a default.conv file in the working directory
     //This creates the default one
 
-    QString convPath =  basePath + "/" + baseName + ".conv";
+    QString convPath =  m_BasePath + "/" + m_BaseName + ".conv";
     QFile convFile(convPath);
     if (convFile.open(QIODevice::WriteOnly) == false)
     {
@@ -456,12 +456,12 @@ int ExternalSextractorSolver::runExternalSextractor()
         QTextStream out(&convFile);
         out << "CONV Filter Generated by StellarSolver Internal Library\n";
         int c = 0;
-        for(int i = 0; i < params.convFilter.size(); i++)
+        for(int i = 0; i < m_ActiveParameters.convFilter.size(); i++)
         {
-            out << params.convFilter.at(i);
+            out << m_ActiveParameters.convFilter.at(i);
 
             //We want the last one before the sqrt of the size to spark a new line
-            if(c < sqrt(params.convFilter.size()) - 1)
+            if(c < sqrt(m_ActiveParameters.convFilter.size()) - 1)
             {
                 out << " ";
                 c++;
@@ -478,7 +478,7 @@ int ExternalSextractorSolver::runExternalSextractor()
     //Arguments from the default.sex file
     //------------------------------- Extraction ----------------------------------
     sextractorArgs << "-DETECT_TYPE" << "CCD";
-    sextractorArgs << "-DETECT_MINAREA" << QString::number(params.minarea);
+    sextractorArgs << "-DETECT_MINAREA" << QString::number(m_ActiveParameters.minarea);
 
     //sextractorArgs << "-DETECT_THRESH" << QString::number();
     //sextractorArgs << "-ANALYSIS_THRESH" << QString::number(minarea);
@@ -486,28 +486,29 @@ int ExternalSextractorSolver::runExternalSextractor()
     sextractorArgs << "-FILTER" << "Y";
     sextractorArgs << "-FILTER_NAME" << convPath;
 
-    sextractorArgs << "-DEBLEND_NTHRESH" << QString::number(params.deblend_thresh);
-    sextractorArgs << "-DEBLEND_MINCONT" << QString::number(params.deblend_contrast);
+    sextractorArgs << "-DEBLEND_NTHRESH" << QString::number(m_ActiveParameters.deblend_thresh);
+    sextractorArgs << "-DEBLEND_MINCONT" << QString::number(m_ActiveParameters.deblend_contrast);
 
-    sextractorArgs << "-CLEAN" << ((params.clean == 1) ? "Y" : "N");
-    sextractorArgs << "-CLEAN_PARAM" << QString::number(params.clean_param);
+    sextractorArgs << "-CLEAN" << ((m_ActiveParameters.clean == 1) ? "Y" : "N");
+    sextractorArgs << "-CLEAN_PARAM" << QString::number(m_ActiveParameters.clean_param);
 
     //------------------------------ Photometry -----------------------------------
-    sextractorArgs << "-PHOT_AUTOPARAMS" << QString::number(params.kron_fact) + "," + QString::number(params.r_min);
-    sextractorArgs << "-MAG_ZEROPOINT" << QString::number(params.magzero);
+    sextractorArgs << "-PHOT_AUTOPARAMS" << QString::number(m_ActiveParameters.kron_fact) + "," + QString::number(
+                       m_ActiveParameters.r_min);
+    sextractorArgs << "-MAG_ZEROPOINT" << QString::number(m_ActiveParameters.magzero);
 
     sextractorArgs <<  fileToProcess;
 
     sextractorProcess.clear();
     sextractorProcess = new QProcess();
 
-    sextractorProcess->setWorkingDirectory(basePath);
+    sextractorProcess->setWorkingDirectory(m_BasePath);
     sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
     if(m_SSLogLevel != LOG_OFF)
         connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSextractor);
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting external sextractor with the " + params.listName + " profile...");
+    emit logOutput("Starting external sextractor with the " + m_ActiveParameters.listName + " profile...");
     emit logOutput(sextractorBinaryPath + " " + sextractorArgs.join(' '));
 
     sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
@@ -521,22 +522,22 @@ int ExternalSextractorSolver::runExternalSextractor()
     if(exitCode != 0)
         return exitCode;
 
-    if(useSubframe)
+    if(m_UseSubframe)
     {
-        for(int i = 0; i < stars.size(); i++)
+        for(int i = 0; i < m_ExtractedStars.size(); i++)
         {
-            FITSImage::Star star = stars.at(i);
-            if(!subframe.contains(star.x, star.y))
+            FITSImage::Star star = m_ExtractedStars.at(i);
+            if(!m_SubFrameRect.contains(star.x, star.y))
             {
-                stars.removeAt(i);
+                m_ExtractedStars.removeAt(i);
                 i--;
             }
         }
     }
 
-    applyStarFilters(stars);
+    applyStarFilters(m_ExtractedStars);
 
-    hasSextracted = true;
+    m_HasExtracted = true;
 
     return 0;
 
@@ -564,7 +565,7 @@ int ExternalSextractorSolver::runExternalSolver()
         //Making a copy of the file and putting it in the temp directory
         //So that we can find all the temporary files and delete them later
         //That way we don't pollute the directory the original image is located in
-        QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
+        QString newFileURL = m_BasePath + "/" + m_BaseName + "." + file.suffix();
         QFile::copy(fileToProcess, newFileURL);
         fileToProcess = newFileURL;
         fileToProcessIsTempFile = true;
@@ -578,7 +579,7 @@ int ExternalSextractorSolver::runExternalSolver()
         }
         if(isChildSolver)
         {
-            QString newFileURL = basePath + "/" + baseName + "." + sextractorFile.suffix();
+            QString newFileURL = m_BasePath + "/" + m_BaseName + "." + sextractorFile.suffix();
             QFile::copy(sextractorFilePath, newFileURL);
             sextractorFilePath = newFileURL;
             sextractorFilePathIsTempFile = true;
@@ -599,7 +600,7 @@ int ExternalSextractorSolver::runExternalSolver()
     solver = new QProcess();
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
-    if(astrometryLogLevel != LOG_NONE)
+    if(m_AstrometryLogLevel != LOG_NONE)
         connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
 
 #ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work when started from this program.  This is needed for all types of astrometry solvers using ANSVR
@@ -626,10 +627,11 @@ int ExternalSextractorSolver::runExternalSolver()
 
     solver->start(solverPath, solverArgs);
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting external Astrometry.net solver with the " + params.listName + " profile...");
+    emit logOutput("Starting external Astrometry.net solver with the " + m_ActiveParameters.listName + " profile...");
     emit logOutput("Command: " + solverPath + " " + solverArgs.join(" "));
 
-    solver->waitForFinished(params.solverTimeLimit * 1000 * 1.2); //Set to timeout in a little longer than the timeout
+    solver->waitForFinished(m_ActiveParameters.solverTimeLimit * 1000 *
+                            1.2); //Set to timeout in a little longer than the timeout
     if(solver->error() == QProcess::Timedout)
     {
         emit logOutput("Solver timed out, aborting");
@@ -640,12 +642,12 @@ int ExternalSextractorSolver::runExternalSolver()
         return solver->exitCode();
     if(solver->exitStatus() == QProcess::CrashExit)
         return -1;
-    if(wasAborted)
+    if(m_WasAborted)
         return -1;
     if(!getSolutionInformation())
         return -1;
     loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
-    hasSolved = true;
+    m_HasSolved = true;
     return 0;
 }
 
@@ -662,7 +664,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
         if(!file.exists())
             return -1;
 
-        QString newFileURL = basePath + "/" + baseName + "." + file.suffix();
+        QString newFileURL = m_BasePath + "/" + m_BaseName + "." + file.suffix();
         QFile::copy(fileToProcess, newFileURL);
         fileToProcess = newFileURL;
         fileToProcessIsTempFile = true;
@@ -670,42 +672,43 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
 
     QStringList solverArgs;
 
-    QString astapSolutionFile = basePath + "/" + baseName + ".ini";
+    QString astapSolutionFile = m_BasePath + "/" + m_BaseName + ".ini";
     solverArgs << "-o" << astapSolutionFile;
     solverArgs << "-speed" << "auto";
     solverArgs << "-f" << fileToProcess;
     solverArgs << "-wcs";
-    if(params.downsample > 1)
-        solverArgs << "-z" << QString::number(params.downsample);
-    if(use_scale)
+    if(m_ActiveParameters.downsample > 1)
+        solverArgs << "-z" << QString::number(m_ActiveParameters.downsample);
+    if(m_UseScale)
     {
         double scalemid = (scalehi + scalelo) / 2;
         double degreesFOV = convertToDegreeHeight(scalemid);
         solverArgs << "-fov" << QString::number(degreesFOV);
     }
-    if(use_position)
+    if(m_UsePosition)
     {
         solverArgs << "-ra" << QString::number(search_ra / 15.0); //Convert ra to hours
         solverArgs << "-spd" << QString::number(search_dec + 90); //Convert dec to spd
-        solverArgs << "-r" << QString::number(params.search_radius);
+        solverArgs << "-r" << QString::number(m_ActiveParameters.search_radius);
     }
-    if(astrometryLogLevel == LOG_ALL || astrometryLogLevel == LOG_VERB)
+    if(m_AstrometryLogLevel == LOG_ALL || m_AstrometryLogLevel == LOG_VERB)
         solverArgs << "-log";
 
     solver.clear();
     solver = new QProcess();
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
-    if(astrometryLogLevel != LOG_NONE)
+    if(m_AstrometryLogLevel != LOG_NONE)
         connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
 
     solver->start(astapBinaryPath, solverArgs);
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting external ASTAP Solver with the " + params.listName + " profile...");
+    emit logOutput("Starting external ASTAP Solver with the " + m_ActiveParameters.listName + " profile...");
     emit logOutput("Command: " + astapBinaryPath + " " + solverArgs.join(" "));
 
-    solver->waitForFinished(params.solverTimeLimit * 1000 * 1.2); //Set to timeout in a little longer than the timeout
+    solver->waitForFinished(m_ActiveParameters.solverTimeLimit * 1000 *
+                            1.2); //Set to timeout in a little longer than the timeout
     if(solver->error() == QProcess::Timedout)
     {
         emit logOutput("Solver timed out, aborting");
@@ -719,7 +722,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     if(!getASTAPSolutionInformation())
         return -1;
     loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
-    hasSolved = true;
+    m_HasSolved = true;
     return 0;
 }
 
@@ -744,32 +747,32 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     solverArgs << "--rdls" << "none";
 
     //This parameter controls whether to resort the stars or not.
-    if(params.resort)
+    if(m_ActiveParameters.resort)
         solverArgs << "--resort";
 
     if(depthhi != -1 && depthlo != -1)
         solverArgs << "--depth" << QString("%1-%2").arg(depthlo).arg(depthhi);
 
-    if(params.keepNum != 0)
-        solverArgs << "--objs" << QString("%1").arg(params.keepNum);
+    if(m_ActiveParameters.keepNum != 0)
+        solverArgs << "--objs" << QString("%1").arg(m_ActiveParameters.keepNum);
 
     //This will shrink the image so that it is easier to solve.  It is only useful if you are sending an image.
     //It is not used if you are solving an xylist as in the classic astrometry.net solver
-    if(params.downsample > 1 && m_ExtractorType == EXTRACTOR_BUILTIN)
-        solverArgs << "--downsample" << QString::number(params.downsample);
+    if(m_ActiveParameters.downsample > 1 && m_ExtractorType == EXTRACTOR_BUILTIN)
+        solverArgs << "--downsample" << QString::number(m_ActiveParameters.downsample);
 
     //I am not sure if we want to provide these options or not.  They do make a huge difference in solving time
     //But changing them can be dangerous because it can cause false positive solves.
-    solverArgs << "--odds-to-solve" << QString::number(exp(params.logratio_tosolve));
-    solverArgs << "--odds-to-tune-up" << QString::number(exp(params.logratio_totune));
+    solverArgs << "--odds-to-solve" << QString::number(exp(m_ActiveParameters.logratio_tosolve));
+    solverArgs << "--odds-to-tune-up" << QString::number(exp(m_ActiveParameters.logratio_totune));
     //solverArgs << "--odds-to-keep" << QString::number(logratio_tokeep);  I'm not sure if this is one we need.
 
-    if (use_scale)
+    if (m_UseScale)
         solverArgs << "-L" << QString::number(scalelo) << "-H" << QString::number(scalehi) << "-u" << getScaleUnitString();
 
-    if (use_position)
+    if (m_UsePosition)
         solverArgs << "-3" << QString::number(search_ra) << "-4" << QString::number(search_dec) << "-5" << QString::number(
-                       params.search_radius);
+                       m_ActiveParameters.search_radius);
 
     //The following options are unnecessary if you are sending an image to Astrometry.net
     //And not an xylist
@@ -784,7 +787,7 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
 
         //These sort options are required to sort when you have an xylist input
         //We only want to send them if the resort option is selected though.
-        if(params.resort)
+        if(m_ActiveParameters.resort)
         {
             solverArgs << "--sort-column" << "MAG_AUTO";
             solverArgs << "--sort-ascending";
@@ -797,9 +800,9 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     }
 
     //Don't need any argument for default level
-    if(astrometryLogLevel == LOG_MSG || astrometryLogLevel == LOG_ERROR)
+    if(m_AstrometryLogLevel == LOG_MSG || m_AstrometryLogLevel == LOG_ERROR)
         solverArgs << "-v";
-    else if(astrometryLogLevel == LOG_VERB || astrometryLogLevel == LOG_ALL)
+    else if(m_AstrometryLogLevel == LOG_VERB || m_AstrometryLogLevel == LOG_ALL)
         solverArgs << "-vv";
 
     if(autoGenerateAstroConfig || !QFile(confPath).exists())
@@ -823,7 +826,7 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
 //for the external solvers from inside the program.
 bool ExternalSextractorSolver::generateAstrometryConfigFile()
 {
-    confPath =  basePath + "/" + baseName + ".cfg";
+    confPath =  m_BasePath + "/" + m_BaseName + ".cfg";
     QFile configFile(confPath);
     if (configFile.open(QIODevice::WriteOnly) == false)
     {
@@ -833,11 +836,11 @@ bool ExternalSextractorSolver::generateAstrometryConfigFile()
     else
     {
         QTextStream out(&configFile);
-        if(params.inParallel)
+        if(m_ActiveParameters.inParallel)
             out << "inparallel\n";
-        out << "minwidth " << params.minwidth << "\n";
-        out << "maxwidth " << params.maxwidth << "\n";
-        out << "cpulimit " << params.solverTimeLimit << "\n";
+        out << "minwidth " << m_ActiveParameters.minwidth << "\n";
+        out << "maxwidth " << m_ActiveParameters.maxwidth << "\n";
+        out << "cpulimit " << m_ActiveParameters.solverTimeLimit << "\n";
         out << "autoindex\n";
         foreach(QString folder, indexFolderPaths)
         {
@@ -860,9 +863,9 @@ void ExternalSextractorSolver::logSextractor()
         if(!cleanedString.isEmpty())
         {
             emit logOutput(cleanedString);
-            if(logToFile)
+            if(m_LogToFile)
             {
-                QFile file(logFileName);
+                QFile file(m_LogFileName);
                 if (file.open(QIODevice::Append | QIODevice::Text))
                 {
                     QTextStream outstream(&file);
@@ -884,9 +887,9 @@ void ExternalSextractorSolver::logSolver()
         if(!solverLine.isEmpty())
         {
             emit logOutput(solverLine);
-            if(logToFile)
+            if(m_LogToFile)
             {
-                QFile file(logFileName);
+                QFile file(m_LogFileName);
                 if (file.open(QIODevice::Append | QIODevice::Text))
                 {
                     QTextStream outstream(&file);
@@ -948,7 +951,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
     for (jj = 1; jj <= ncols; jj++)
         fits_get_coltype(new_fptr, jj, nullptr, &nelements[jj], nullptr, &status);
 
-    stars.clear();
+    m_ExtractedStars.clear();
 
     /* read each column, row by row */
     val = value;
@@ -1032,7 +1035,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
 
         FITSImage::Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta, 0, 0};
 
-        stars.append(star);
+        m_ExtractedStars.append(star);
     }
     fits_close_file(new_fptr, &status);
 
@@ -1046,7 +1049,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
 bool ExternalSextractorSolver::getSolutionInformation()
 {
     if(solutionFile == "")
-        solutionFile = basePath + "/" + baseName + ".wcs";
+        solutionFile = m_BasePath + "/" + m_BaseName + ".wcs";
     QFileInfo solutionInfo(solutionFile);
     if(!solutionInfo.exists())
     {
@@ -1110,17 +1113,17 @@ bool ExternalSextractorSolver::getSolutionInformation()
     }
 
     if(usingDownsampledImage)
-        pixscale /= params.downsample;
+        pixscale /= m_ActiveParameters.downsample;
 
     double raErr = 0;
     double decErr = 0;
-    if(use_position)
+    if(m_UsePosition)
     {
         raErr = (search_ra - ra) * 3600;
         decErr = (search_dec - dec) * 3600;
     }
 
-    solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
+    m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
     return true;
 }
 
@@ -1128,11 +1131,11 @@ bool ExternalSextractorSolver::getSolutionInformation()
 //It reads the information from the Solution file from Astrometry.net and puts it into the solution
 bool ExternalSextractorSolver::getASTAPSolutionInformation()
 {
-    QFile results(basePath + "/" + baseName + ".ini");
+    QFile results(m_BasePath + "/" + m_BaseName + ".ini");
 
     if (!results.open(QIODevice::ReadOnly))
     {
-        emit logOutput("Failed to open solution file" + basePath + "/" + baseName + ".ini");
+        emit logOutput("Failed to open solution file" + m_BasePath + "/" + m_BaseName + ".ini");
         return false;
     }
 
@@ -1182,18 +1185,18 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
 
         double raErr = 0;
         double decErr = 0;
-        if(use_position)
+        if(m_UsePosition)
         {
             raErr = (search_ra - ra) * 3600;
             decErr = (search_dec - dec) * 3600;
         }
 
-        solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
+        m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
 
         emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
         emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
-        if(use_position)
+        if(m_UsePosition)
             emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
         emit logOutput(QString("Field size: %1 x %2").arg( fieldw).arg( fieldh));
         emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
@@ -1233,7 +1236,7 @@ int ExternalSextractorSolver::writeSextractorTable()
         }
         else
         {
-            QString newFileURL = basePath + "/" + baseName + ".fits";
+            QString newFileURL = m_BasePath + "/" + m_BaseName + ".fits";
             QFile::copy(fileToProcess, newFileURL);
             fileToProcess = newFileURL;
             fileToProcessIsTempFile = true;
@@ -1250,7 +1253,7 @@ int ExternalSextractorSolver::writeSextractorTable()
         if(sextractorFilePath == "")
         {
             sextractorFilePathIsTempFile = true;
-            sextractorFilePath = basePath + "/" + baseName + ".xyls";
+            sextractorFilePath = m_BasePath + "/" + m_BaseName + ".xyls";
         }
 
         QFile sextractorFile(sextractorFilePath);
@@ -1265,7 +1268,7 @@ int ExternalSextractorSolver::writeSextractorTable()
     }
 
     int tfields = 3;
-    int nrows = stars.size();
+    int nrows = m_ExtractedStars.size();
     QString extname = "Sextractor_File";
 
     //Columns: X_IMAGE, double, pixels, Y_IMAGE, double, pixels, MAG_AUTO, double, mag
@@ -1274,15 +1277,15 @@ int ExternalSextractorSolver::writeSextractorTable()
     char* tunit[] = { colUnits, colUnits, magUnits };
     const char* extfile = "Sextractor_File";
 
-    float *xArray = new float[stars.size()];
-    float *yArray = new float[stars.size()];
-    float *magArray = new float[stars.size()];
+    float *xArray = new float[m_ExtractedStars.size()];
+    float *yArray = new float[m_ExtractedStars.size()];
+    float *magArray = new float[m_ExtractedStars.size()];
 
-    for (int i = 0; i < stars.size(); i++)
+    for (int i = 0; i < m_ExtractedStars.size(); i++)
     {
-        xArray[i] = stars.at(i).x;
-        yArray[i] = stars.at(i).y;
-        magArray[i] = stars.at(i).mag;
+        xArray[i] = m_ExtractedStars.at(i).x;
+        yArray[i] = m_ExtractedStars.at(i).y;
+        magArray[i] = m_ExtractedStars.at(i).mag;
     }
 
     if(fits_create_tbl(new_fptr, BINARY_TBL, nrows, tfields,
@@ -1334,7 +1337,7 @@ int ExternalSextractorSolver::writeSextractorTable()
 int ExternalSextractorSolver::saveAsFITS()
 {
     QFileInfo fileInfo(fileToProcess.toLatin1());
-    QString newFilename = basePath + "/" + baseName + ".fits";
+    QString newFilename = m_BasePath + "/" + m_BaseName + ".fits";
 
     int status = 0;
     fitsfile * new_fptr;
@@ -1439,7 +1442,7 @@ int ExternalSextractorSolver::saveAsFITS()
 int ExternalSextractorSolver::loadWCS()
 {
     if(solutionFile == "")
-        solutionFile = basePath + "/" + baseName + ".wcs";
+        solutionFile = m_BasePath + "/" + m_BaseName + ".wcs";
 
     emit logOutput("Loading WCS from file...");
 
@@ -1477,7 +1480,7 @@ int ExternalSextractorSolver::loadWCS()
         free(header);
         wcsvfree(&m_nwcs, &m_wcs);
         m_wcs = nullptr;
-        hasWCS = false;
+        m_HasWCS = false;
         emit logOutput(QString("wcspih ERROR %1: %2.").arg(status).arg(wcshdr_errmsg[status]));
         return status;
     }
@@ -1490,18 +1493,18 @@ int ExternalSextractorSolver::loadWCS()
     if (m_wcs == nullptr)
     {
         emit logOutput("No world coordinate systems found.");
-        hasWCS = false;
+        m_HasWCS = false;
         return status;
     }
     else
-        hasWCS = true;
+        m_HasWCS = true;
 
     // FIXME: Call above goes through EVEN if no WCS is present, so we're adding this to return for now.
     if (m_wcs->crpix[0] == 0)
     {
         wcsvfree(&m_nwcs, &m_wcs);
         m_wcs = nullptr;
-        hasWCS = false;
+        m_HasWCS = false;
         emit logOutput("No world coordinate systems found.");
         return status;
     }
@@ -1510,7 +1513,7 @@ int ExternalSextractorSolver::loadWCS()
     {
         wcsvfree(&m_nwcs, &m_wcs);
         m_wcs = nullptr;
-        hasWCS = false;
+        m_HasWCS = false;
         emit logOutput(QString("wcsset error %1: %2.").arg(status).arg(wcs_errmsg[status]));
         return status;
     }
@@ -1523,7 +1526,7 @@ int ExternalSextractorSolver::loadWCS()
 //This was essentially copied from KStars' loadWCS method and split in half with some modifications
 void ExternalSextractorSolver::computeWCSCoord()
 {
-    if(!hasWCS)
+    if(!m_HasWCS)
     {
         emit logOutput("There is no WCS Data.  Did you solve the image first?");
         return;
@@ -1609,7 +1612,7 @@ bool ExternalSextractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, 
 
 bool ExternalSextractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 {
-    if(!hasWCS)
+    if(!m_HasWCS)
     {
         emit logOutput("There is no WCS Data.  Did you solve the image first?");
         return false;

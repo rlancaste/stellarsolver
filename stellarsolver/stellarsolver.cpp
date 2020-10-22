@@ -81,12 +81,12 @@ SextractorSolver* StellarSolver::createSextractorSolver()
 
     if(useSubframe)
         solver->setUseSubframe(m_Subframe);
-    solver->logToFile = m_LogToFile;
-    solver->logFileName = m_LogFileName;
-    solver->astrometryLogLevel = m_AstrometryLogLevel;
+    solver->m_LogToFile = m_LogToFile;
+    solver->m_LogFileName = m_LogFileName;
+    solver->m_AstrometryLogLevel = m_AstrometryLogLevel;
     solver->m_SSLogLevel = m_SSLogLevel;
-    solver->basePath = m_BasePath;
-    solver->params = params;
+    solver->m_BasePath = m_BasePath;
+    solver->m_ActiveParameters = params;
     solver->indexFolderPaths = indexFolderPaths;
     if(m_UseScale)
         solver->setSearchScale(m_ScaleLow, m_ScaleHigh, m_ScaleUnit);
@@ -164,15 +164,18 @@ void StellarSolver::start()
         return;
     }
 
+    m_ExtractorStars.clear();
+    m_SolverStars.clear();
+
     m_SextractorSolver = createSextractorSolver();
 
     m_isRunning = true;
-    hasFailed = false;
+    m_HasFailed = false;
     if(m_ProcessType == EXTRACT || m_ProcessType == EXTRACT_WITH_HFR)
-        hasSextracted = false;
+        m_HasExtracted = false;
     else
     {
-        hasSolved = false;
+        m_HasSolved = false;
         hasWCS = false;
         hasWCSCoord = false;
         wcs_coord = nullptr;
@@ -362,20 +365,20 @@ void StellarSolver::processFinished(int code)
                     solverWithWCS->start();
                 }
             }
-            hasSolved = true;
+            m_HasSolved = true;
         }
         else if((m_ProcessType == EXTRACT || m_ProcessType == EXTRACT_WITH_HFR) && m_SextractorSolver->sextractionDone())
         {
             m_ExtractorStars = m_SextractorSolver->getStarList();
             background = m_SextractorSolver->getBackground();
-            calculateHFR = m_SextractorSolver->isCalculatingHFR();
+            m_CalculateHFR = m_SextractorSolver->isCalculatingHFR();
             if(solverWithWCS)
                 solverWithWCS->appendStarsRAandDEC(m_ExtractorStars);
-            hasSextracted = true;
+            m_HasExtracted = true;
         }
     }
     else
-        hasFailed = true;
+        m_HasFailed = true;
 
     if(m_ProcessType != SOLVE || !m_SextractorSolver->hasWCSData() || !loadWCS)
         m_isRunning = false;
@@ -405,7 +408,7 @@ void StellarSolver::finishParallelSolve(int success)
     if(!reportingSolver)
         return;
 
-    if(success == 0 && !hasSolved)
+    if(success == 0 && !m_HasSolved)
     {
         for(auto solver : parallelSolvers)
         {
@@ -432,19 +435,19 @@ void StellarSolver::finishParallelSolve(int success)
             connect(solverWithWCS, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
             solverWithWCS->start();
         }
-        hasSolved = true;
+        m_HasSolved = true;
         emit ready();
     }
     else
     {
-        if(m_SSLogLevel != LOG_OFF && !hasSolved)
+        if(m_SSLogLevel != LOG_OFF && !m_HasSolved)
             emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver(reportingSolver)));
     }
 
     if(m_ParallelSolversFinishedCount == parallelSolvers.count())
     {
 
-        if(hasSolved)
+        if(m_HasSolved)
         {
             //Don't emit finished until WCS is done if we are doing WCS extraction.
             if(!(loadWCS && hasWCS))
@@ -456,7 +459,7 @@ void StellarSolver::finishParallelSolve(int success)
         else
         {
             m_isRunning = false;
-            hasFailed = true;
+            m_HasFailed = true;
             emit ready();
             emit finished();
         }

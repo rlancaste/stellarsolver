@@ -187,16 +187,16 @@ class StellarSolver : public QObject
 
         bool sextractionDone() const
         {
-            return hasSextracted;
+            return m_HasExtracted;
         }
         bool solvingDone() const
         {
-            return hasSolved;
+            return m_HasSolved;
         }
 
         bool failed() const
         {
-            return hasFailed;
+            return m_HasFailed;
         }
         void setLoadWCS(bool set)
         {
@@ -218,7 +218,7 @@ class StellarSolver : public QObject
         }
         bool isCalculatingHFR()
         {
-            return calculateHFR;
+            return m_CalculateHFR;
         }
 
         void setUseSubframe(QRect frame);
@@ -321,10 +321,10 @@ class StellarSolver : public QObject
         double m_SearchDE = HUGE_VAL;       //DEC of field center for search, format: decimal degrees
 
         //StellarSolver Internal settings that are needed by ExternalSextractorSolver as well
-        bool calculateHFR {false};          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
-        bool hasSextracted {false};         //This boolean is set when the sextraction is done
-        bool hasSolved {false};             //This boolean is set when the solving is done
-        bool hasFailed {false};
+        bool m_CalculateHFR {false};          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
+        bool m_HasExtracted {false};         //This boolean is set when the sextraction is done
+        bool m_HasSolved {false};             //This boolean is set when the solving is done
+        bool m_HasFailed {false};
         FITSImage::Statistic m_Statistics;                    //This is information about the image
 
         const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
