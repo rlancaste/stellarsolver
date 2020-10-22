@@ -16,6 +16,7 @@
 
 #include <QtConcurrent>
 #include <memory>
+#include <algorithm>
 
 #include "internalsextractorsolver.h"
 #include "sep/extract.h"
@@ -248,8 +249,8 @@ int InternalSextractorSolver::runSEPSextractor()
         // Limit it to PARTITION_THREADS
         if ( (w * h) / (W_PARTITION_SIZE * H_PARTITION_SIZE) > m_PartitionThreads)
         {
-            W_PARTITION_SIZE = w / (m_PartitionThreads / 2);
-            H_PARTITION_SIZE = h / (m_PartitionThreads / 4);
+            W_PARTITION_SIZE = w / std::min(m_PartitionThreads / 2, 1);
+            H_PARTITION_SIZE = h / std::min(m_PartitionThreads / 4, 1);
         }
 
         int horizontalPartitions = w / W_PARTITION_SIZE;
