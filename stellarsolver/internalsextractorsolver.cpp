@@ -233,9 +233,9 @@ int InternalSextractorSolver::runSEPSextractor()
     QList<QPair<uint32_t, uint32_t>> startupOffsets;
 
     // Only partition if:
-    // We have 4 or more threads.
+    // We have 2 or more threads.
     // The image width and height is larger than partition size.
-    if (w > PARTITION_SIZE && h > PARTITION_SIZE && (m_PartitionThreads % 4) == 0)
+    if (w > PARTITION_SIZE && h > PARTITION_SIZE && (m_PartitionThreads % 2) == 0)
     {
         // Partition the image to regions, each region is 200x200
         // If there is extra at the end, we add an offset.
@@ -252,7 +252,7 @@ int InternalSextractorSolver::runSEPSextractor()
         if ( (w * h) / (W_PARTITION_SIZE * H_PARTITION_SIZE) > m_PartitionThreads)
         {
             W_PARTITION_SIZE = w / (m_PartitionThreads / 2);
-            H_PARTITION_SIZE = h / (m_PartitionThreads / 4);
+            H_PARTITION_SIZE = h / 2;
         }
 
         int horizontalPartitions = w / W_PARTITION_SIZE;
