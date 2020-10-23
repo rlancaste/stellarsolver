@@ -302,8 +302,8 @@ endif(WIN32)
 if(NOT WIN32)
 set_target_properties(stellarsolverstatic PROPERTIES OUTPUT_NAME stellarsolver)
 #This is intended to disable the many warnings that appear due to the way astrometry.net's logging functions are setup
-target_compile_options(stellarsolver PRIVATE -Wno-implicit-function-declaration)
-target_compile_options(stellarsolverstatic PRIVATE -Wno-implicit-function-declaration)
+target_compile_options(stellarsolver PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-implicit-function-declaration>)
+target_compile_options(stellarsolverstatic PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-implicit-function-declaration>)
 endif(NOT WIN32)
 
 # What is this for??
