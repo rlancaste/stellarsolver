@@ -232,7 +232,10 @@ int InternalSextractorSolver::runSEPSextractor()
     QList<QFuture<QList<FITSImage::Star>>> futures;
     QList<QPair<uint32_t, uint32_t>> startupOffsets;
 
-    if (w > PARTITION_SIZE && h > PARTITION_SIZE)
+    // Only partition if:
+    // We have 4 or more threads.
+    // The image width and height is larger than partition size.
+    if (w > PARTITION_SIZE && h > PARTITION_SIZE && (m_PartitionThreads % 4) == 0)
     {
         // Partition the image to regions, each region is 200x200
         // If there is extra at the end, we add an offset.
