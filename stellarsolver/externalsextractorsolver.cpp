@@ -216,10 +216,10 @@ void ExternalSextractorSolver::run()
             return;
         }
 #ifdef _WIN32
-        if(params.inParallel)
+        if(m_ActiveParameters.inParallel)
         {
             emit logOutput("The external ANSVR solver on windows does not handle the inparallel option well, disabling it for this run.");
-            params.inParallel = false;
+            m_ActiveParameters.inParallel = false;
         }
 #endif
     }

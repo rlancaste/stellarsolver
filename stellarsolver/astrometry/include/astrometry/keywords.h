@@ -113,9 +113,7 @@
 # define Must_check
 # define Deprecated
 # define Used
-/* JM 2020-10-22 Below is disabled to make it compile on Windows
 # define Unused
-*/
 # define VarUnused
 # define Packed
 # define likely(x)	(x)
