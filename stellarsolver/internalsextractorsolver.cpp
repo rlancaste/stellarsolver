@@ -699,14 +699,10 @@ void InternalSextractorSolver::downSampleImageType(int d)
 {
     int w = m_Statistics.width;
     int h = m_Statistics.height;
-
-    int numChannels;
-    if (m_Statistics.ndim < 3)
-        numChannels = 1;
-    else
-        numChannels = 3;
-    int oldBufferSize = m_Statistics.samples_per_channel * numChannels * m_Statistics.bytesPerPixel;
-    int newBufferSize = oldBufferSize / (d * d); //It is d times smaller in width and height
+    const uint8_t channels = m_Statistics.channels;
+    int oldBufferSize = m_Statistics.samples_per_channel * channels * m_Statistics.bytesPerPixel;
+    //It is d times smaller in width and height
+    int newBufferSize = oldBufferSize / (d * d);
     downSampledBuffer = new uint8_t[newBufferSize];
     auto * sourceBuffer = reinterpret_cast<T const *>(m_ImageBuffer);
     auto * destinationBuffer = reinterpret_cast<T *>(downSampledBuffer);
@@ -737,7 +733,7 @@ void InternalSextractorSolver::downSampleImageType(int d)
                     //This iterates the sample x2 spots to the right,
                     total += *rSample++;
                     //This only samples frome the G and B spots if it is an RGB image
-                    if(numChannels == 3)
+                    if(channels == 3)
                     {
                         total += *gSample++;
                         total += *bSample++;
@@ -746,7 +742,7 @@ void InternalSextractorSolver::downSampleImageType(int d)
             }
             //This calculates the average pixel value and puts it in the new downsampled image.
             int pixel = (x / d) + (y / d) * (w / d);
-            destinationBuffer[pixel] = total / (d * d) / numChannels;
+            destinationBuffer[pixel] = total / (d * d) / channels;
         }
         //Shifts each pointer by a whole line, d times
         rSource += w * d;
