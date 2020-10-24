@@ -67,7 +67,7 @@ void OnlineSolver::runOnlineSolver()
 
     solverTimer.start();
 
-    startupOnlineSolver(); //Go to FIRST STAGE
+    emit startupOnlineSolver(); //Go to FIRST STAGE
     start(); //Start the other thread, which will monitor everything.
 }
 
@@ -201,7 +201,7 @@ void OnlineSolver::uploadFile()
         fitsFile = new QFile(fileToProcess);
     else
         fitsFile = new QFile(sextractorFilePath);
-    bool rc         = fitsFile->open(QIODevice::ReadOnly);
+    bool rc = fitsFile->open(QIODevice::ReadOnly);
     if (rc == false)
     {
         emit logOutput(QString("Failed to open the file %1: %2").arg( fileToProcess).arg( fitsFile->errorString()));

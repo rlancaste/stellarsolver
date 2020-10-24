@@ -164,9 +164,6 @@ void StellarSolver::start()
         return;
     }
 
-
-
-
     m_SextractorSolver = createSextractorSolver();
 
     m_isRunning = true;
