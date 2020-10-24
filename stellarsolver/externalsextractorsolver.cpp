@@ -1345,27 +1345,27 @@ int ExternalSextractorSolver::saveAsFITS()
     //I am hoping that this is correct.
     //I"m trying to set these two variables based on the ndim variable since this class doesn't have access to these variables.
     long naxis;
-    int m_Channels;
+    int channels;
     if (m_Statistics.ndim < 3)
     {
-        m_Channels = 1;
+        channels = 1;
         naxis = 2;
     }
     else
     {
-        m_Channels = 3;
+        channels = 3;
         naxis = 3;
     }
 
     long nelements, exposure;
-    long naxes[3] = { m_Statistics.width, m_Statistics.height, m_Channels };
+    long naxes[3] = { m_Statistics.width, m_Statistics.height, channels };
     char error_status[512] = {0};
 
     QFileInfo newFileInfo(newFilename);
     if(newFileInfo.exists())
         QFile(newFilename).remove();
 
-    nelements = m_Statistics.samples_per_channel * m_Channels;
+    nelements = m_Statistics.samples_per_channel * channels;
 
     /* Create a new File, overwriting existing*/
     if (fits_create_file(&new_fptr, newFilename.toLatin1(), &status))
@@ -1386,8 +1386,8 @@ int ExternalSextractorSolver::saveAsFITS()
     }
 
     /* Write Data */
-    uint8_t *imageBuffer = new uint8_t[m_Statistics.samples_per_channel * m_Channels * m_Statistics.bytesPerPixel];
-    memcpy(imageBuffer, m_ImageBuffer, m_Statistics.samples_per_channel * m_Channels * m_Statistics.bytesPerPixel);
+    uint8_t *imageBuffer = new uint8_t[m_Statistics.samples_per_channel * channels * m_Statistics.bytesPerPixel];
+    memcpy(imageBuffer, m_ImageBuffer, m_Statistics.samples_per_channel * channels * m_Statistics.bytesPerPixel);
     if (fits_write_img(fptr, m_Statistics.dataType, 1, nelements, imageBuffer, &status))
     {
         delete[] imageBuffer;

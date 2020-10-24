@@ -132,8 +132,6 @@ private:
     int currentHeight;
     double currentZoom;
     int sampling = 2;
-    /// Number of channels
-    uint8_t m_Channels { 1 };
     /// Generic data image buffer
     uint8_t *m_ImageBuffer { nullptr };
     /// Above buffer size in bytes

@@ -1204,13 +1204,14 @@ bool MainWindow::loadFits()
 
     stats.width               = static_cast<uint16_t>(naxes[0]);
     stats.height              = static_cast<uint16_t>(naxes[1]);
+    stats.channels            = static_cast<uint8_t>(naxes[2]);
     stats.samples_per_channel = stats.width * stats.height;
 
     clearImageBuffers();
 
-    m_Channels = static_cast<uint8_t>(naxes[2]);
 
-    m_ImageBufferSize = stats.samples_per_channel * m_Channels * static_cast<uint16_t>(stats.bytesPerPixel);
+
+    m_ImageBufferSize = stats.samples_per_channel * stats.channels * static_cast<uint16_t>(stats.bytesPerPixel);
     m_ImageBuffer = new uint8_t[m_ImageBufferSize];
     if (m_ImageBuffer == nullptr)
     {
@@ -1220,7 +1221,7 @@ bool MainWindow::loadFits()
         return false;
     }
 
-    long nelements = stats.samples_per_channel * m_Channels;
+    long nelements = stats.samples_per_channel * stats.channels;
 
     if (fits_read_img(fptr, static_cast<uint16_t>(stats.dataType), 1, nelements, nullptr, m_ImageBuffer, &anynullptr, &status))
     {
@@ -1312,10 +1313,10 @@ bool MainWindow::loadOtherFormat()
 
     stats.width = static_cast<uint16_t>(imageFromFile.width());
     stats.height = static_cast<uint16_t>(imageFromFile.height());
-    m_Channels = 3;
+    stats.channels = 3;
     stats.samples_per_channel = stats.width * stats.height;
     clearImageBuffers();
-    m_ImageBufferSize = stats.samples_per_channel * m_Channels * static_cast<uint16_t>(stats.bytesPerPixel);
+    m_ImageBufferSize = stats.samples_per_channel * stats.channels * static_cast<uint16_t>(stats.bytesPerPixel);
     m_ImageBuffer = new uint8_t[m_ImageBufferSize];
     if (m_ImageBuffer == nullptr)
     {
@@ -1442,7 +1443,7 @@ bool MainWindow::debayer_8bit()
     if (error_code != DC1394_SUCCESS)
     {
         logOutput(QString("Debayer failed (%1)").arg(error_code));
-        m_Channels = 1;
+        stats.channels = 1;
         delete[] destinationBuffer;
         return false;
     }
@@ -1521,7 +1522,7 @@ bool MainWindow::debayer_16bit()
     if (error_code != DC1394_SUCCESS)
     {
         logOutput(QString("Debayer failed (%1)").arg(error_code));
-        m_Channels = 1;
+        stats.channels = 1;
         delete[] destinationBuffer;
         return false;
     }
@@ -1571,7 +1572,7 @@ void MainWindow::initDisplayImage()
     int w = (stats.width + sampling - 1) / sampling;
     int h = (stats.height + sampling - 1) / sampling;
 
-    if (m_Channels == 1)
+    if (stats.channels == 1)
     {
         rawImage = QImage(w, h, QImage::Format_Indexed8);
 
@@ -1769,7 +1770,7 @@ void MainWindow::doStretch(QImage *outputImage)
         return;
     Stretch stretch(static_cast<int>(stats.width),
                     static_cast<int>(stats.height),
-                    m_Channels, static_cast<uint16_t>(stats.dataType));
+                    stats.channels, static_cast<uint16_t>(stats.dataType));
 
     // Compute new auto-stretch params.
     stretchParams = stretch.computeParams(m_ImageBuffer);
