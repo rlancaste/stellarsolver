@@ -107,7 +107,7 @@
         <item>
          <widget class="QTabWidget" name="optionsTab">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tab_3">
            <attribute name="title">
@@ -161,8 +161,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>224</width>
-                 <height>119</height>
+                 <width>287</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -264,8 +264,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>285</width>
-                 <height>356</height>
+                 <width>287</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -446,8 +446,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>177</width>
-                 <height>294</height>
+                 <width>287</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -564,8 +564,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>200</width>
-                 <height>338</height>
+                 <width>287</width>
+                 <height>388</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1002,8 +1002,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>150</width>
-                 <height>344</height>
+                 <width>321</width>
+                 <height>362</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1194,7 +1194,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>100</width>
+                 <width>98</width>
                  <height>74</height>
                 </rect>
                </property>
