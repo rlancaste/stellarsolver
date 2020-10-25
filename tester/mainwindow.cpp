@@ -254,6 +254,7 @@ MainWindow::MainWindow() :
         if(!convInspector)
         {
             convInspector = new QDialog(this);
+            convInspector->setWindowTitle("Convolution Filter Inspector");
             convInspector->setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
             convTable = new QTableWidget(this);
             QGridLayout *layout = new QGridLayout(this);
