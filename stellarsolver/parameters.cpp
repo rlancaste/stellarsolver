@@ -79,7 +79,7 @@ QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
     QStringList conv;
     foreach(float num, params.convFilter)
     {
-        conv << QVariant(num).toString();
+        conv << QString::number(QVariant(num).toDouble(), 'g', 4);
     }
     settingsMap.insert("convFilter", QVariant(conv.join(",")));
 
