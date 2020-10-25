@@ -36,6 +36,7 @@
 #include <QLineEdit>
 #include <QElapsedTimer>
 #include <QTimer>
+#include <QTableWidget>
 
 //CFitsio Includes
 #include "longnam.h"
@@ -151,6 +152,9 @@ private:
 
     FITSImage::wcs_point *wcs_coord { nullptr };
 
+    QDialog *convInspector = nullptr;
+    QTableWidget *convTable = nullptr;
+
 public slots:
 
     bool prepareForProcesses();
@@ -205,6 +209,7 @@ public slots:
     void mousePressedInImage(QPoint location);
     QRect getStarSizeInImage(FITSImage::Star star, bool &accurate);
 
+    void reloadConvTable();
     //This function is for loading and parsing the options
     bool getSolverOptionsFromFITS();
 

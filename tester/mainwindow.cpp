@@ -248,6 +248,24 @@ MainWindow::MainWindow() :
     //This generates an array that can be used as a convFilter based on the desired FWHM
     ui->fwhm->setToolTip("A function that I made that creates a convolution filter based upon the desired FWHM for better star detection of that star size and shape");
 
+    ui->showConv->setToolTip("Loads the convolution filter into a window for viewing");
+
+    connect(ui->showConv,&QPushButton::clicked,this,[this](){
+        if(!convInspector)
+        {
+            convInspector = new QDialog(this);
+            convInspector->setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
+            convTable = new QTableWidget(this);
+            QGridLayout *layout = new QGridLayout(this);
+            convInspector->setLayout(layout);
+            layout->addWidget(convTable);
+        }
+        convInspector->show();
+        reloadConvTable();
+    });
+
+    connect(ui->fwhm,QOverload<int>::of(&QSpinBox::valueChanged),this, &MainWindow::reloadConvTable);
+
     //Star Filter Settings
     connect(ui->resortQT, &QCheckBox::stateChanged, this, [this]()
     {
@@ -448,6 +466,39 @@ void MainWindow::settingJustChanged()
     optionsAreSaved = false;
 }
 
+void MainWindow::reloadConvTable()
+{
+    if(convInspector && convInspector->isVisible())
+    {
+        convTable->clear();
+        Parameters params;
+        StellarSolver::createConvFilterFromFWHM(&params, ui->fwhm->value());
+        int size = sqrt(params.convFilter.size());
+        convTable->setRowCount(size);
+        convTable->setColumnCount(size);
+        int i = 0;
+        for(int r = 0; r < size; r++)
+        {
+            convTable->setRowHeight(r, 50);
+            for(int c = 0; c < size; c++)
+            {
+                convTable->setColumnWidth(c, 50);
+                QTableWidgetItem *newItem = new QTableWidgetItem(QString::number(params.convFilter.at(i), 'g', 4));
+                double col = params.convFilter.at(i) * 255;
+                QFont font = newItem->font();
+                font.setPixelSize(10);
+                newItem->setFont(font);
+                newItem->setFlags(newItem->flags() ^ Qt::ItemIsEditable);
+                newItem->setBackground(QBrush(QColor(col,col,col)));
+                newItem->setForeground(QBrush(Qt::yellow));
+                convTable->setItem(r,c,newItem);
+                i++;
+            }
+        }
+        convInspector->resize(size* 50 + 60, size * 50 + 60);
+    }
+}
+
 void MainWindow::loadOptionsProfile()
 {
     if(ui->optionsProfile->currentIndex() == 0)
@@ -473,6 +524,7 @@ void MainWindow::loadOptionsProfile()
     sendSettingsToUI(newOptions);
     foreach(QWidget *control, controls)
         control->blockSignals(false);
+    reloadConvTable();
 }
 
 MainWindow::~MainWindow()
@@ -829,7 +881,7 @@ SSolver::Parameters MainWindow::getSettingsFromUI()
     params.deblend_contrast = ui->deblend_contrast->text().toFloat();
     params.clean = (ui->cleanCheckBox->isChecked()) ? 1 : 0;
     params.clean_param = ui->clean_param->text().toDouble();
-    StellarSolver::createConvFilterFromFWHM(&params, ui->fwhm->text().toDouble());
+    StellarSolver::createConvFilterFromFWHM(&params, ui->fwhm->value());
 
     //Star Filter Settings
     params.resort = ui->resort->isChecked();
@@ -879,7 +931,7 @@ void MainWindow::sendSettingsToUI(SSolver::Parameters a)
     ui->deblend_contrast->setText(QString::number(a.deblend_contrast));
     ui->cleanCheckBox->setChecked(a.clean == 1);
     ui->clean_param->setText(QString::number(a.clean_param));
-    ui->fwhm->setText(QString::number(a.fwhm));
+    ui->fwhm->setValue(a.fwhm);
 
     //Star Filter Settings
 
