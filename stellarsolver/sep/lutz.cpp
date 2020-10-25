@@ -26,6 +26,7 @@
 #include "sep.h"
 #include "analyse.h"
 #include "sepcore.h"
+#include <cstdlib>
 
 #include <memory>
 #include <cstring>

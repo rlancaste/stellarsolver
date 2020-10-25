@@ -24,6 +24,7 @@
 #include "lutz.h"
 #include "deblend.h"
 #include "analyse.h"
+#include <cstdio>
 
 #include <cmath>
 
