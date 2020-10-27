@@ -1,18 +1,22 @@
-PROJECT(stellarsolver C CXX)
+PROJECT(StellarSolver C CXX)
 cmake_minimum_required(VERSION 3.0)
 
-cmake_policy(SET CMP0003 NEW)
+#cmake_policy(SET CMP0003 NEW)
 
 # Timestamp build
 string(TIMESTAMP StellarSolver_BUILD_TS UTC)
 
-# StellarSolver Version 1.4
+# StellarSolver Version 1.5
 set (StellarSolver_VERSION_MAJOR 1)
-set (StellarSolver_VERSION_MINOR 4)
+set (StellarSolver_VERSION_MINOR 5)
 
 set (StellarSolver_SOVERSION "${StellarSolver_VERSION_MAJOR}")
 set (StellarSolver_VERSION ${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR})
 set (StellarSolver_VERSION_STRING "${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR}")
+
+# Exports
+set(TARGET_EXPORT_NAME ${PROJECT_NAME}Targets)
+set(TARGET_EXPORT_CONFIG ${PROJECT_NAME}Config)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/version.h.cmake
@@ -306,12 +310,11 @@ target_compile_options(stellarsolver PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-implic
 target_compile_options(stellarsolverstatic PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-implicit-function-declaration>)
 endif(NOT WIN32)
 
-# What is this for??
-#install(TARGETS stellarsolverstatic DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
-#install(TARGETS stellarsolver DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/")
-
-install(TARGETS stellarsolverstatic DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(TARGETS stellarsolver DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS stellarsolver stellarsolverstatic
+    EXPORT ${TARGET_EXPORT_NAME}
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION include/libstellarsolver
+    )
 
 set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/libstellarsolver")
 set(PKG_CONFIG_LIBDIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
@@ -387,3 +390,37 @@ else(APPLE)
 endif(APPLE)
 
 endif(BUILD_TESTER)
+
+#########################################################################################
+# Generate Package Config Files
+#########################################################################################
+# Set destination directory
+set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+
+# 1. Generate the StellarSolverConfigVersion.cmake
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${TARGET_EXPORT_CONFIG}Version.cmake"
+    VERSION ${${PROJECT_NAME}_VERSION}
+    COMPATIBILITY SameMajorVersion
+    )
+
+# 2. Configure the Exports and namespace
+export(TARGETS stellarsolver stellarsolverstatic
+    NAMESPACE ${PROJECT_NAME}::
+    FILE ${TARGET_EXPORT_NAME}.cmake)
+# 3. Configure the Include Directories
+target_include_directories(stellarsolver PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include/libstellarsolver>)
+
+# 4. Install StellarSolver Config
+install(EXPORT ${TARGET_EXPORT_NAME}
+        FILE ${TARGET_EXPORT_CONFIG}.cmake
+        NAMESPACE ${PROJECT_NAME}::
+        DESTINATION ${ConfigPackageLocation})
+
+# 5. Install StellarSolver Config Version
+install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/${TARGET_EXPORT_CONFIG}Version.cmake"
+        DESTINATION ${ConfigPackageLocation})
