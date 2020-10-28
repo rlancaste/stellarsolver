@@ -250,7 +250,7 @@ set(StellarSolver_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/stellarsolver.cpp
    )
 
-add_library(stellarsolverstatic STATIC
+set(ALL_SRCS
     ${StellarSolver_SRCS}
     ${sep_SRCS}
     ${engine_SRCS}
@@ -259,27 +259,14 @@ add_library(stellarsolverstatic STATIC
     ${anbase_SRCS}
     ${kd_SRCS}
     ${qfits_SRCS}
-    )
-target_link_libraries(stellarsolverstatic
-    ${CFITSIO_LIBRARIES}
-    ${GSL_LIBRARIES}
-    ${WCSLIB_LIBRARIES}
-    Qt5::Core
-    Qt5::Network
-    Qt5::Widgets
-    Qt5::Concurrent
     )
 
-add_library(stellarsolver SHARED
-    ${StellarSolver_SRCS}
-    ${sep_SRCS}
-    ${engine_SRCS}
-    ${anfiles_SRCS}
-    ${anutils_SRCS}
-    ${anbase_SRCS}
-    ${kd_SRCS}
-    ${qfits_SRCS}
-    )
+if (WIN32)
+    add_library(stellarsolver STATIC ${ALL_SRCS})
+else(WIN32)
+    add_library(stellarsolver SHARED ${ALL_SRCS})
+endif(WIN32)
+
 target_link_libraries(stellarsolver
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
@@ -290,27 +277,16 @@ target_link_libraries(stellarsolver
     Qt5::Concurrent
     )
 
-set_target_properties(stellarsolver PROPERTIES VERSION ${StellarSolver_VERSION_STRING} SOVERSION ${StellarSolver_SOVERSION} OUTPUT_NAME stellarsolver)
-
-if(NOT MSVC)
-target_link_libraries(stellarsolverstatic -lpthread)
-target_link_libraries(stellarsolver -lpthread)
-endif(NOT MSVC)
-
 if(WIN32)
-target_link_libraries(stellarsolverstatic wsock32 ${Boost_LIBRARIES})
-target_link_libraries(stellarsolver wsock32 ${Boost_LIBRARIES})
+    target_link_libraries(stellarsolver wsock32 ${Boost_LIBRARIES})
+else(WIN32)
+    set_target_properties(stellarsolver PROPERTIES VERSION ${StellarSolver_VERSION_STRING} SOVERSION ${StellarSolver_SOVERSION} OUTPUT_NAME stellarsolver)
+    target_link_libraries(stellarsolver -lpthread)
+    #This is intended to disable the many warnings that appear due to the way astrometry.net's logging functions are setup
+    target_compile_options(stellarsolver PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-implicit-function-declaration>)
 endif(WIN32)
 
-# If we are using windows, it can cause problems for the static and dynamic libraries to have the same name.
-if(NOT WIN32)
-set_target_properties(stellarsolverstatic PROPERTIES OUTPUT_NAME stellarsolver)
-#This is intended to disable the many warnings that appear due to the way astrometry.net's logging functions are setup
-target_compile_options(stellarsolver PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-implicit-function-declaration>)
-target_compile_options(stellarsolverstatic PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-implicit-function-declaration>)
-endif(NOT WIN32)
-
-install(TARGETS stellarsolver stellarsolverstatic
+install(TARGETS stellarsolver
     EXPORT ${TARGET_EXPORT_NAME}
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION include/libstellarsolver
@@ -320,12 +296,16 @@ set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/libstellarsolver")
 set(PKG_CONFIG_LIBDIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 set(PKGCONFIG_INSTALL_PREFIX "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/stellarsolver.h DESTINATION "${INCLUDE_INSTALL_DIR}")
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/structuredefinitions.h DESTINATION "${INCLUDE_INSTALL_DIR}")
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sextractorsolver.h DESTINATION "${INCLUDE_INSTALL_DIR}")
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/parameters.h DESTINATION "${INCLUDE_INSTALL_DIR}")
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h DESTINATION "${INCLUDE_INSTALL_DIR}")
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/include/astrometry DESTINATION "${INCLUDE_INSTALL_DIR}")
+install(FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/stellarsolver.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/structuredefinitions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/sextractorsolver.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/parameters.h
+    ${CMAKE_CURRENT_BINARY_DIR}/version.h
+    DESTINATION "${INCLUDE_INSTALL_DIR}")
+install(DIRECTORY
+    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/include/astrometry
+    DESTINATION "${INCLUDE_INSTALL_DIR}")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc DESTINATION ${PKGCONFIG_INSTALL_PREFIX})
@@ -359,25 +339,27 @@ if(WIN32)
 set(StellarSolverTesterApp_ICON ${CMAKE_CURRENT_SOURCE_DIR}/tester/windowsicon.rc)
 endif(WIN32)
 
-add_executable(StellarSolverTester ${StellarSolverTester_SRCS} ${StellarSolverui_SRCS} ${StellarSolverTesterApp_ICON})
+add_executable(StellarSolverTester ${StellarSolverTester_SRCS} ${StellarSolverui_SRCS} ${StellarSolverTesterApp_ICON} ${ALL_SRCS})
 
 if(APPLE)
     SET_TARGET_PROPERTIES(StellarSolverTester PROPERTIES MACOSX_BUNDLE TRUE)
 endif(APPLE)
 
-target_link_libraries(StellarSolverTester stellarsolverstatic)
 
 target_link_libraries(StellarSolverTester
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
     ${WCSLIB_LIBRARIES}
-
     Qt5::Gui
     Qt5::Widgets
     Qt5::Core
     Qt5::Network
     Qt5::Concurrent
     )
+
+if (NOT WIN32)
+target_link_libraries(StellarSolverTester -lpthread)
+endif(NOT WIN32)
 
 if(APPLE)
 install(TARGETS StellarSolverTester
@@ -406,7 +388,7 @@ write_basic_package_version_file(
     )
 
 # 2. Configure the Exports and namespace
-export(TARGETS stellarsolver stellarsolverstatic
+export(TARGETS stellarsolver
     NAMESPACE ${PROJECT_NAME}::
     FILE ${TARGET_EXPORT_NAME}.cmake)
 # 3. Configure the Include Directories
