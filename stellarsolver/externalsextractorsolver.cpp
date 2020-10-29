@@ -1302,34 +1302,36 @@ int ExternalSextractorSolver::writeSextractorTable()
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, xArray, &status))
     {
         emit logOutput(QString("Could not write x pixels in binary table."));
-        return status;
+        goto exit;
     }
 
     column = 2;
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, yArray, &status))
     {
         emit logOutput(QString("Could not write y pixels in binary table."));
-        return status;
+        goto exit;
     }
 
     column = 3;
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, magArray, &status))
     {
         emit logOutput(QString("Could not write magnitudes in binary table."));
-        return status;
+        goto exit;
     }
 
     if(fits_close_file(new_fptr, &status))
     {
         emit logOutput(QString("Error closing file."));
-        return status;
+        goto exit;
     }
+    status = 0;
 
-    free(xArray);
-    free(yArray);
-    free(magArray);
+    exit:
+        delete[] xArray;
+        delete[] yArray;
+        delete[] magArray;
 
-    return 0;
+        return status;
 }
 
 //This is very necessary for solving non-fits images with external Sextractor

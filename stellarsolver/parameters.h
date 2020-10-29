@@ -270,7 +270,7 @@ class Parameters
         double kron_fact = 2.5;             // This sets the Kron Factor for use with the kron radius for flux calculations.
         int subpix = 5;                     // The subpix setting.  The instructions say to make it 5
         double r_min = 3.5;                 // The minimum radius for stars for flux calculations.
-        short inflags;                      // Note sure if we need them?
+        short inflags = 0;                      // Note sure if we need them?
 
         //Sextractor Extraction Parameters
         double magzero =

@@ -1090,6 +1090,7 @@ int InternalSextractorSolver::runInternalSolver()
                                "See http://astrometry.net/use.html about how to get some index files.\n"
                                "---------------------------------------------------------------------\n"
                                "\n"));
+        engine_free(engine);
         return -1;
     }
 
