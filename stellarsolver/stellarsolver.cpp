@@ -225,7 +225,7 @@ bool StellarSolver::checkParameters()
     {
         //Take whichever one is bigger
         int imageSize = m_Statistics.width > m_Statistics.height ? m_Statistics.width : m_Statistics.height;
-        params.downsample = imageSize / 1024 + 1;
+        params.downsample = imageSize / 2048 + 1;
         if(m_SSLogLevel != LOG_OFF)
             emit logOutput(QString("Automatically downsampling the image by %1").arg(params.downsample));
     }

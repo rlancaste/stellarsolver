@@ -61,6 +61,7 @@ class InternalSextractorSolver: public SextractorSolver
         bool prepare_job();         //This prepares the job object for the solver
         job_t thejob;               //This is the job file that will be created for astrometry.net to solve
         job_t* job = &thejob;       //This is a pointer to that job file
+        int saveAsFITS();
 
         //These are the key internal methods for the internal StellarSolver solver
         void run()

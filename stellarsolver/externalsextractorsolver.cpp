@@ -1374,9 +1374,36 @@ int ExternalSextractorSolver::saveAsFITS()
         return status;
     }
 
-    fitsfile *fptr = new_fptr;
+    int bitpix;
+    switch(m_Statistics.dataType)
+    {
+    case SEP_TBYTE:
+        bitpix = BYTE_IMG;
+        break;
+    case TSHORT:
+        bitpix = SHORT_IMG;
+        break;
+    case TUSHORT:
+        bitpix = USHORT_IMG;
+        break;
+    case TLONG:
+        bitpix = LONG_IMG;
+        break;
+    case TULONG:
+        bitpix = ULONG_IMG;
+        break;
+    case TFLOAT:
+        bitpix = FLOAT_IMG;
+        break;
+    case TDOUBLE:
+        bitpix = DOUBLE_IMG;
+        break;
+    default:
+        bitpix = BYTE_IMG;
+    }
 
-    if (fits_create_img(fptr, BYTE_IMG, naxis, naxes, &status))
+    fitsfile *fptr = new_fptr;
+    if (fits_create_img(fptr, bitpix, naxis, naxes, &status))
     {
         emit logOutput(QString("fits_create_img failed: %1").arg(error_status));
         status = 0;
@@ -1386,15 +1413,11 @@ int ExternalSextractorSolver::saveAsFITS()
     }
 
     /* Write Data */
-    uint8_t *imageBuffer = new uint8_t[m_Statistics.samples_per_channel * channels * m_Statistics.bytesPerPixel];
-    memcpy(imageBuffer, m_ImageBuffer, m_Statistics.samples_per_channel * channels * m_Statistics.bytesPerPixel);
-    if (fits_write_img(fptr, m_Statistics.dataType, 1, nelements, imageBuffer, &status))
+    if (fits_write_img(fptr, m_Statistics.dataType, 1, nelements, const_cast<void *>(reinterpret_cast<const void *>(m_ImageBuffer)), &status))
     {
-        delete[] imageBuffer;
         fits_report_error(stderr, status);
         return status;
     }
-    delete[] imageBuffer;
 
     /* Write keywords */
 
