@@ -470,7 +470,10 @@ anbool bt_insert2(bt* tree, void* data, anbool unique, compare_func_2 compare, v
     // create "np", a new branch node to take p's place.
     np = bt_new_branch(tree);
     if (!np)
+    {
+        free(n); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         return FALSE;
+    }
     np->branch.children[dir] = n;
     np->branch.children[1-dir] = p;
     np->branch.N = p->leaf.N + 1;
@@ -491,7 +494,10 @@ anbool bt_insert2(bt* tree, void* data, anbool unique, compare_func_2 compare, v
         ancestors[i]->branch.N++;
 
     if (!y || isleaf(y))
+    {
+        free(np); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         return TRUE;
+    }
 
     for (p = y, k = 0;
          p != np;

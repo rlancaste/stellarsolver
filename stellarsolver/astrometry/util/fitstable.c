@@ -951,11 +951,15 @@ static void* read_array_into(const fitstable_t* tab,
         if (!tab->rows) {
             ERROR("No data has been written to this fitstable");
             free(tempdata); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
+            if(cdata)
+                free(cdata); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             return NULL;
         }
         if (offset + Nread > bl_size(tab->rows)) {
             ERROR("Number of data items requested exceeds number of rows: offset %i, n %i, nrows %zu", offset, Nread, bl_size(tab->rows));
             free(tempdata); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
+            if(cdata)
+                free(cdata); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             return NULL;
         }
         off = fits_offset_of_column(tab->table, colnum);
@@ -983,6 +987,8 @@ static void* read_array_into(const fitstable_t* tab,
         if (res) {
             ERROR("Failed to read column from FITS file");
             free(tempdata); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
+            if(cdata)
+                free(cdata); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             return NULL;
         }
     }

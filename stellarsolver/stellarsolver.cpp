@@ -842,7 +842,7 @@ bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
         }
 
     }
-    double availableRAM;
+    double availableRAM = 0;
     double totalRAM;
     getAvailableRAM(availableRAM, totalRAM);
     if(availableRAM == 0)
