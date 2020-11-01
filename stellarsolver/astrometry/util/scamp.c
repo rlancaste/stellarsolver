@@ -26,10 +26,13 @@ int scamp_write_field(const qfits_header* imageheader,
 
     scamp = scamp_catalog_open_for_writing(filename, FALSE);
     if (!scamp) {
+        qfits_header_destroy(hdr); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         return -1;
     }
 
     if (scamp_catalog_write_field_header(scamp, hdr)) {
+        scamp_catalog_close(scamp); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leaks
+        qfits_header_destroy(hdr);
         return -1;
     }
     qfits_header_destroy(hdr);

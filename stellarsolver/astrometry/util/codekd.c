@@ -68,6 +68,7 @@ static codetree_t* my_open(const char* fn, anqfits_t* fits) {
     s->tree = kdtree_fits_read_tree(io, treename, &s->header);
     if (!s->tree) {
         ERROR("Failed to read code kdtree from file %s\n", fn);
+        free(io); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         goto bailout;
     }
 

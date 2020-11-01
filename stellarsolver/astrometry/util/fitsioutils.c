@@ -1131,12 +1131,12 @@ qfits_table* fits_get_table_column(const char* fn, const char* colname, int* pco
         start = anqfits_data_start(fits, i);
         if (start == -1) {
             ERROR("Failed to get data start for ext %i", i);
-            return NULL;
+            goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leaks
         }
         size = anqfits_data_size(fits, i);
         if (size == -1) {
             ERROR("Failed to get data size for ext %i", i);
-            return NULL;
+            goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leaks
         }
         table = anqfits_get_table(fits, i);
         if (!table)
@@ -1147,6 +1147,7 @@ qfits_table* fits_get_table_column(const char* fn, const char* colname, int* pco
             return table;
         }
     }
+    exit: //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leaks
     anqfits_close(fits);
     return NULL;
 }
@@ -1176,13 +1177,16 @@ int fits_find_table_column(const char* fn, const char* colname, off_t* pstart, o
         }
         if (anqfits_get_data_start_and_size(fits, i, pstart, psize)) {
             ERROR("error getting start/size for ext %i in file %s.\n", i, fn);
+            anqfits_close(fits); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leaks
             return -1;
         }
         if (pext) *pext = i;
+        anqfits_close(fits); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leaks
         return 0;
     }
     debug("searched %i extensions in file %s but didn't find a table with a column \"%s\".\n",
           nextens, fn, colname);
+    anqfits_close(fits); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leaks
     return -1;
 }
 

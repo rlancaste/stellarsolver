@@ -85,6 +85,7 @@ verify_field_t* verify_field_preprocess(const starxy_t* fieldxy) {
     vf->xy = starxy_copy_xy(fieldxy);
     if (!vf->fieldcopy || !vf->xy) {
         fprintf(stderr, "Failed to copy the field.\n");
+        free(vf); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         return NULL;
     }
     // Build a tree out of the field objects (in pixel space)

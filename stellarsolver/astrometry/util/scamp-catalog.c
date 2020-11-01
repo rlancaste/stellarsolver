@@ -61,9 +61,11 @@ int scamp_catalog_write_field_header(scamp_cat_t* scamp, const qfits_header* hdr
     fits_header_addf(h, "TDIM1", "shape of header: FITS cards", "(%i, %i)", FITS_LINESZ, N);
     qfits_header_add(h, "EXTNAME", "LDAC_IMHEAD", "", NULL);
 
+    int status = 0;//# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     if (fitstable_write_header(scamp->table)) {
         ERROR("Failed to write scamp catalog header.\n");
-        return -1;
+        status = -1;
+        goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     }
 
     // +1 because qfits_header_write_line adds a trailing '\0'.
@@ -71,20 +73,23 @@ int scamp_catalog_write_field_header(scamp_cat_t* scamp, const qfits_header* hdr
     for (i=0; i<N; i++)
         if (qfits_header_write_line(hdr, i, hdrstring + i * FITS_LINESZ)) {
             ERROR("Failed to get scamp catalog field header line %i", i);
-            return -1;
+            status = -1;
+            goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         }
     if (freehdr)
         qfits_header_destroy(freehdr);
     if (fitstable_write_row(scamp->table, hdrstring)) {
         ERROR("Failed to write scamp catalog field header");
-        return -1;
+        status = -1;
+        goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     }
-    free(hdrstring);
+    //free(hdrstring);  //# Modified by Robert Lancaster for the StellarSolver Internal Library, this is below
 
     if (fitstable_pad_with(scamp->table, ' ') ||
         fitstable_fix_header(scamp->table)) {
         ERROR("Failed to fix scamp catalog header.\n");
-        return -1;
+        status = -1;
+        goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     }
     fitstable_next_extension(scamp->table);
     fitstable_clear_table(scamp->table);
@@ -129,9 +134,16 @@ int scamp_catalog_write_field_header(scamp_cat_t* scamp, const qfits_header* hdr
 
     if (fitstable_write_header(scamp->table)) {
         ERROR("Failed to write scamp catalog object header.\n");
-        return -1;
+        status = -1;
+        goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     }
-    return 0;
+
+    exit:
+    if(hdrstring)
+        free(hdrstring);
+    if(freehdr)
+        free(freehdr);
+    return status; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
 }
 
 int scamp_catalog_write_object(scamp_cat_t* scamp, const scamp_obj_t* obj) {

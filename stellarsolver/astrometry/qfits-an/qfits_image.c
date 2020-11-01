@@ -528,7 +528,8 @@ static byte * qfits_pixdump_double(const double * buf, int npix, int ptype)
 
         default:
 			qfits_error("pixel type %i not supported yet", ptype);
-        buf_out = NULL;
+            free(buf_out); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
+            buf_out = NULL;
         break;
     }
     return buf_out;

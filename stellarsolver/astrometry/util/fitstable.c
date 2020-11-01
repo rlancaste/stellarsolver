@@ -297,6 +297,7 @@ int fitstable_copy_rows_data(fitstable_t* intable, int* rows, int N, fitstable_t
     for (i=0; i<N; i++) {
         if (fitstable_read_row_data(intable, rows ? rows[i] : i, buf)) {
             ERROR("Failed to read data from input table");
+            free(buf); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             return -1;
         }
         // The in-memory side (input/output) does the flip.
@@ -309,6 +310,7 @@ int fitstable_copy_rows_data(fitstable_t* intable, int* rows, int N, fitstable_t
 
         if (write_row_data(outtable, buf, R)) {
             ERROR("Failed to write data to output table");
+            free(buf); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             return -1;
         }
     }
@@ -639,10 +641,12 @@ int fitstable_read_structs(fitstable_t* tab, void* struc,
             int sz;
             if (!tab->rows) {
                 ERROR("No data has been written to this fitstable");
+                free(tempdata); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
                 return -1;
             }
             if (offset + N > bl_size(tab->rows)) {
                 ERROR("Number of data items requested exceeds number of rows: offset %i, n %i, nrows %zu", offset, N, bl_size(tab->rows));
+                free(tempdata); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
                 return -1;
             }
 
@@ -839,6 +843,8 @@ int fitstable_write_one_column(fitstable_t* table, int colnum,
             if (fseeko(table->fid, start + i * table->table->tab_w, SEEK_SET) ||
                 fits_write_data_array(table->fid, src, col->fitstype, col->arraysize, flip)) {
                 SYSERROR("Failed to write row %i of column %i", rowoffset+i, colnum);
+                if(buf)
+                    free(buf); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
                 return -1;
             }
             src = ((const char*)src) + src_stride;
@@ -944,10 +950,12 @@ static void* read_array_into(const fitstable_t* tab,
         int sz;
         if (!tab->rows) {
             ERROR("No data has been written to this fitstable");
+            free(tempdata); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             return NULL;
         }
         if (offset + Nread > bl_size(tab->rows)) {
             ERROR("Number of data items requested exceeds number of rows: offset %i, n %i, nrows %zu", offset, Nread, bl_size(tab->rows));
+            free(tempdata); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             return NULL;
         }
         off = fits_offset_of_column(tab->table, colnum);
@@ -974,7 +982,7 @@ static void* read_array_into(const fitstable_t* tab,
         }
         if (res) {
             ERROR("Failed to read column from FITS file");
-            // MEMLEAK!
+            free(tempdata); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             return NULL;
         }
     }
@@ -1271,21 +1279,28 @@ int fitstable_append_to(fitstable_t* intable, FILE* fid) {
     // swap in the input header.
     tmphdr = outtable->header;
     outtable->header = intable->header;
+
+    int status = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     if (fitstable_write_header(outtable)) {
         ERROR("Failed to write output table header");
-        return -1;
+        status = -1;
+        goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     }
     if (fitstable_copy_rows_data(intable, NULL, fitstable_nrows(intable), outtable)) {
         ERROR("Failed to copy rows from input table to output");
-        return -1;
+        status = -1;
+        goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     }
     if (fitstable_fix_header(outtable)) {
         ERROR("Failed to fix output table header");
-        return -1;
+        status = -1;
+        goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     }
     outtable->header = tmphdr;
     // clear this so that fitstable_close() doesn't fclose() it.
     outtable->fid = NULL;
+
+    exit: //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     fitstable_close(outtable);
     return 0;
 }

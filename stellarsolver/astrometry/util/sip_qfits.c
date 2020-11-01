@@ -87,6 +87,7 @@ int sip_write_to_file(const sip_t* sip, const char* fn) {
     res = sip_write_to(sip, fid);
     if (res) {
         ERROR("Failed to write FITS header to file \"%s\"", fn);
+        fclose(fid); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         return -1;
     }
     if (fclose(fid)) {
@@ -120,6 +121,7 @@ int tan_write_to_file(const tan_t* tan, const char* fn) {
     res = tan_write_to(tan, fid);
     if (res) {
         ERROR("Failed to write FITS header to file \"%s\"", fn);
+        fclose(fid); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         return -1;
     }
     if (fclose(fid)) {
