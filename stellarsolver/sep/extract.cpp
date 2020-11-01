@@ -1038,8 +1038,6 @@ int Extract::convert_to_catalog(objliststruct *objlist, int *survives, sep_catal
     QMALLOC(cat->ycpeak, int, nobj, status);
     QMALLOC(cat->xpeak, int, nobj, status);
     QMALLOC(cat->ypeak, int, nobj, status);
-    QMALLOC(cat->cflux, float, nobj, status);
-    QMALLOC(cat->flux, float, nobj, status);
     QMALLOC(cat->flag, short, nobj, status);
 
     /* fill output arrays */
