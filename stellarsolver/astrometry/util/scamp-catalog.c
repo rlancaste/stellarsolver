@@ -29,7 +29,7 @@ scamp_cat_t* scamp_catalog_open_for_writing(const char* filename, anbool ref) {
 int scamp_catalog_write_field_header(scamp_cat_t* scamp, const qfits_header* hdr) {
     int i, N;
     qfits_header* h;
-    char* hdrstring;
+    char* hdrstring = NULL; //# Modified by Robert Lancaster for the StellarSolver Internal Library, getting rid of an initialization warning
     qfits_header* freehdr = NULL;
     tfits_type dubl = fitscolumn_double_type();
     tfits_type i16  = fitscolumn_i16_type();

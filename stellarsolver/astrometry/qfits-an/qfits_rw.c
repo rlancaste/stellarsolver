@@ -145,7 +145,7 @@ qfits_header * qfits_header_read_hdr_string(
     }
 
     /* The last key should be 'END' */
-    if (strlen(key)!=3) {
+    if (key == NULL || strlen(key)!=3) { //# Modified by Robert Lancaster for the StellarSolver Internal Library, getting rid of an initialization warning
         qfits_header_destroy(hdr);
         printf("Last key not END\n");
         return NULL;

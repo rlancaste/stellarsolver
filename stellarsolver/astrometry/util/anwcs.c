@@ -675,8 +675,8 @@ static void overlap_callback(const anwcs_t* wcs, double x, double y, double ra, 
 
 anbool anwcs_overlaps(const anwcs_t* wcs1, const anwcs_t* wcs2, int stepsize) {
     // check for definitely do or don't overlap via bounds:
-    double ralo1, rahi1, ralo2, rahi2;
-    double declo1, dechi1, declo2, dechi2;
+    double ralo1 = 0, rahi1 = 0, ralo2 = 0, rahi2 = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library, getting rid of an initialization warning
+    double declo1 = 0, dechi1 = 0, declo2 = 0, dechi2 = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library, getting rid of an initialization warning
     struct overlap_token token;
 
     anwcs_get_radec_bounds(wcs1, 1000, &ralo1, &rahi1, &declo1, &dechi1);
@@ -742,7 +742,7 @@ void anwcs_walk_image_boundary(const anwcs_t* wcs, double stepsize,
 
         for (side=0; side<4; side++) {
             for (i=0; i<Nsteps[side]; i++) {
-                double ra, dec;
+                double ra = 0, dec = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library, getting rid of an initialization warning
                 double x, y;
                 x = MIN(Xmax, MAX(Xmin, offsetx[side] + i * stepx[side]));
                 y = MIN(Ymax, MAX(Ymin, offsety[side] + i * stepy[side]));
@@ -756,7 +756,7 @@ void anwcs_walk_image_boundary(const anwcs_t* wcs, double stepsize,
 // FIXME -- this is probably the bass-ackwards way -- xyz is more natural; this probably requires converting back and forth between ra,dec and xyz.
 int anwcs_pixelxy2xyz(const anwcs_t* wcs, double px, double py, double* xyz) {
     int rtn;
-    double ra,dec;
+    double ra = 0, dec = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library, getting rid of an initialization warning
     rtn = anwcs_pixelxy2radec(wcs, px, py, &ra, &dec);
     radecdeg2xyzarr(ra, dec, xyz);
     return rtn;

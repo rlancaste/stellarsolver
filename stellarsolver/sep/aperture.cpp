@@ -617,7 +617,7 @@ int sep_kron_radius(sep_image *im, double x, double y,
 {
     float pix;
     double r1, v1, r2, area, rpix2, dx, dy;
-    int ix, iy, xmin, xmax, ymin, ymax, status, size, msize, ssize;
+    int ix, iy, xmin, xmax, ymin, ymax, status, size, msize, ssize = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library, getting rid of an initialization warning
     long pos;
     int ismasked;
 
