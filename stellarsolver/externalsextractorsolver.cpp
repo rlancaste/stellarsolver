@@ -1287,18 +1287,18 @@ int ExternalSextractorSolver::writeSextractorTable()
         yArray[i] = m_ExtractedStars.at(i).y;
         magArray[i] = m_ExtractedStars.at(i).mag;
     }
+    
+    int firstrow  = 1;  /* first row in table to write   */
+    int firstelem = 1;
+    int column = 1;
 
     if(fits_create_tbl(new_fptr, BINARY_TBL, nrows, tfields,
                        ttype, tform, tunit, extfile, &status))
     {
         emit logOutput(QString("Could not create binary table."));
-        return status;
+        goto exit;
     }
 
-    int firstrow  = 1;  /* first row in table to write   */
-    int firstelem = 1;
-
-    int column = 1;
     if(fits_write_col(new_fptr, TFLOAT, column, firstrow, firstelem, nrows, xArray, &status))
     {
         emit logOutput(QString("Could not write x pixels in binary table."));

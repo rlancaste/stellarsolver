@@ -55,6 +55,7 @@ static qidxfile* new_qidxfile(const char* fn, anbool writing) {
         qf->fb = fitsbin_open(fn);
     if (!qf->fb) {
         ERROR("Failed to create fitsbin");
+        free(qf); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         return NULL;
     }
 

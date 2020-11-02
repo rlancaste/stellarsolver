@@ -712,9 +712,14 @@ int Extract::sep_extract(sep_image *image, float thresh, int thresh_type,
     if (status != RETURN_OK) goto exit;
 
 exit:
-    free(finalobjlist->obj);
-    free(finalobjlist->plist);
-    free(finalobjlist);
+    if(finalobjlist)
+    {
+        if(finalobjlist->obj)
+            free(finalobjlist->obj);
+        if(finalobjlist->plist)
+            free(finalobjlist->plist);
+        free(finalobjlist);
+    }
     free(pixel);
     free(info);
     free(store);
@@ -1038,8 +1043,6 @@ int Extract::convert_to_catalog(objliststruct *objlist, int *survives, sep_catal
     QMALLOC(cat->ycpeak, int, nobj, status);
     QMALLOC(cat->xpeak, int, nobj, status);
     QMALLOC(cat->ypeak, int, nobj, status);
-    QMALLOC(cat->cflux, float, nobj, status);
-    QMALLOC(cat->flux, float, nobj, status);
     QMALLOC(cat->flag, short, nobj, status);
 
     /* fill output arrays */

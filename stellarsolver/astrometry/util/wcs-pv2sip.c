@@ -184,11 +184,15 @@ sip_t* wcs_pv2sip_header(qfits_header* hdr,
         logmsg("Replacing CTYPE1 = %s header with RA---TAN\n", ct);
         fits_update_value(hdr, "CTYPE1", "RA---TAN");
     }
+    if(ct)
+        free(ct); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     ct = fits_get_dupstring(hdr, "CTYPE2");
     if ((ct && streq(ct, "DEC--TPV")) || forcetan) {
         logmsg("Replacing CTYPE2 = %s header with DEC--TAN\n", ct);
         fits_update_value(hdr, "CTYPE2", "DEC--TAN");
     }
+    if(ct)
+        free(ct); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
 
     tan_read_header(hdr, &tanwcs);
 

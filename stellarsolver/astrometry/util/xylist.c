@@ -66,12 +66,14 @@ anbool xylist_is_file_xylist(const char* fn, int ext,
 
     if (fitstable_n_extensions(xyls->table) < 2) {
         ERROR("FITS file does not have any extensions");
+        xylist_close(xyls); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         goto bail;
     }
 
     if (ext) {
         if (xylist_open_extension(xyls, ext)) {
             ERROR("Failed to open xylist extension %i", ext);
+            xylist_close(xyls); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             goto bail;
         }
     } else {

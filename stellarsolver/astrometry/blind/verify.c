@@ -85,6 +85,7 @@ verify_field_t* verify_field_preprocess(const starxy_t* fieldxy) {
     vf->xy = starxy_copy_xy(fieldxy);
     if (!vf->fieldcopy || !vf->xy) {
         fprintf(stderr, "Failed to copy the field.\n");
+        free(vf); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         return NULL;
     }
     // Build a tree out of the field objects (in pixel space)
@@ -1632,7 +1633,7 @@ double verify_star_lists_ror(double* refxys, int NR,
     verify_t v;
     double* eodds = NULL;
     int* etheta = NULL;
-    int ibailed, istopped;
+    int ibailed = 0, istopped = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library, getting rid of an initialization warning
     int besti = -1;
     int* theta = NULL;
     double* allodds = NULL;

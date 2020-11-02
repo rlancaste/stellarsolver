@@ -449,6 +449,11 @@ static int read_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
             ERROR("Couldn't find table \"%s\"", chunk->tablename);
             return -1;
         }
+        if(!inmemext) //# Modified by Robert Lancaster for the StellarSolver Internal Library, to disable warning that inmemnext might not exist.
+        {
+            ERROR("Couldn't find table \"%s\"", chunk->tablename);
+            return -1;
+        }
         table_nrows = bl_size(inmemext->items);
         table_rowsize = bl_datasize(inmemext->items);
         chunk->header = qfits_header_copy(inmemext->header);

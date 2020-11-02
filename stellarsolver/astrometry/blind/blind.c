@@ -1391,6 +1391,8 @@ static int write_wcs_file(blind_t* bp) {
 			
         if (qfits_header_dump(hdr, fout)) {
             logerr("Failed to write FITS WCS header.\n");
+            qfits_header_destroy(hdr); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leaks
+            fclose(fout);
             return -1;
         }
         fits_pad_file(fout);

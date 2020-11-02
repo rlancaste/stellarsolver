@@ -414,6 +414,7 @@ int startree_check_inverse_perm(startree_t* s) {
     for (i=0; i<N; i++) {
         assert(counts[i] == 1);
     }
+    free(counts); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     return 0;
 }
 
@@ -542,28 +543,34 @@ static int write_to_file(startree_t* s, const char* fn, anbool flipped,
     // just haven't bothered...
     assert(!(flipped && fid));
 
+    int status = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
+
     if (fn) {
         io = kdtree_fits_open_for_writing(fn);
         if (!io) {
             ERROR("Failed to open file \"%s\" for writing kdtree", fn);
-            return -1;
+            status = -1;
+            goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         }
     }
     if (flipped) {
         if (kdtree_fits_write_tree_flipped(io, s->tree, s->header)) {
             ERROR("Failed to write (flipped) kdtree to file \"%s\"", fn);
-            return -1;
+            status = -1;
+            goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         }
     } else {
         if (fid) {
             if (kdtree_fits_append_tree_to(s->tree, s->header, fid)) {
                 ERROR("Failed to write star kdtree");
-                return -1;
+                status = -1;
+                goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             }
         } else {
             if (kdtree_fits_write_tree(io, s->tree, s->header)) {
                 ERROR("Failed to write kdtree to file \"%s\"", fn);
-                return -1;
+                status = -1;
+                goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             }
         }
     }
@@ -592,6 +599,7 @@ static int write_to_file(startree_t* s, const char* fn, anbool flipped,
     if (flipped)
         il_free(wordsizes);
     
+    exit: //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     if (io)
         kdtree_fits_io_close(io);
     return 0;

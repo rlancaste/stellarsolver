@@ -106,15 +106,15 @@ int multiindex_add_index(multiindex_t* mi, const char* fn, int flags) {
     quads = quadfile_open_fits(fits);
     if (!quads) {
         ERROR("Failed to read quads from file \"%s\"", fn);
-        anqfits_close(fits);
+        //anqfits_close(fits); //# Modified by Robert Lancaster for the StellarSolver Internal Library, these are in bailout
         goto bailout;
     }
     logverb("Reading codes from file \"%s\"...\n", fn);
     codes = codetree_open_fits(fits);
     if (!codes) {
         ERROR("Failed to read quads from file \"%s\"", fn);
-        quadfile_close(quads);
-        anqfits_close(fits);
+        //quadfile_close(quads);
+        //anqfits_close(fits); //# Modified by Robert Lancaster for the StellarSolver Internal Library, these are in bailout
         goto bailout;
     }
 	
@@ -140,9 +140,9 @@ int multiindex_add_index(multiindex_t* mi, const char* fn, int flags) {
     if (quads) {
         quadfile_close(quads);
     }
-    if (codes) {
-        codetree_close(codes);
-    }
+    //if (codes) {  //# Modified by Robert Lancaster for the StellarSolver Internal Library, codes should not exist for any bailout calls above
+    //    codetree_close(codes);
+    //}
     if (fits) {
         anqfits_close(fits);
     }
