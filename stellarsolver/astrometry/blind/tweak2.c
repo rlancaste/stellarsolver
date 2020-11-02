@@ -279,6 +279,7 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
             free(theta);
             free(odds);
             free(refperm);
+            refperm = NULL; //# Modified by Robert Lancaster for the StellarSolver Internal Library, Fix Memory Leak
 
             // Anneal
             gamma = pow(0.9, step);
@@ -434,8 +435,10 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
                 free(fieldsigma2s);
                 free(indexpix);
                 free(indexin);
-                free(testperm); //# Modified by Robert Lancaster for the StellarSolver Internal Library, fix memory leak?
-                free(refperm); //# Modified by Robert Lancaster for the StellarSolver Internal Library, fix memory leak?
+                free(testperm); //# Modified by Robert Lancaster for the StellarSolver Internal Library, fix memory leak
+                free(refperm); //# Modified by Robert Lancaster for the StellarSolver Internal Library, fix memory leak
+                testperm = NULL; //# Modified by Robert Lancaster for the StellarSolver Internal Library, Fix Memory Leak
+                refperm = NULL; //# Modified by Robert Lancaster for the StellarSolver Internal Library, Fix Memory Leak
                 return NULL;
             }
 
@@ -475,7 +478,10 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
                 sip_print_to(sipout, stdout);
             sipout->wcstan.imagew = W;
             sipout->wcstan.imageh = H;
-            free(testperm); //# Modified by Robert Lancaster for the StellarSolver Internal Library, Fix Memory Leak?
+            if(testperm){
+                free(testperm); //# Modified by Robert Lancaster for the StellarSolver Internal Library, Fix Memory Leak
+                testperm = NULL; //# Modified by Robert Lancaster for the StellarSolver Internal Library, Fix Memory Leak
+            }
         }
     }
 
@@ -495,6 +501,7 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
         free(theta);
         free(odds);
         free(refperm);
+        refperm = NULL; //# Modified by Robert Lancaster for the StellarSolver Internal Library, Fix Memory Leak
         gamma = 1.0;
         // Project reference sources into pixel space; keep the ones inside image bounds.
         Nin = 0;
@@ -562,6 +569,11 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
     }
     free(theta);
     free(refperm);
+
+    if(testperm){
+        free(testperm); //# Modified by Robert Lancaster for the StellarSolver Internal Library, Fix Memory Leak
+        testperm = NULL;
+    }
 
     if (newodds)
         *newodds = odds;
