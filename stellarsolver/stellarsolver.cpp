@@ -129,11 +129,8 @@ void StellarSolver::extract(bool calculateHFR, QRect frame)
     m_ProcessType = calculateHFR ? EXTRACT_WITH_HFR : EXTRACT;
     useSubframe = frame.isNull() ? false : true;
     m_Subframe = frame;
-    //m_isBlocking = true;
     start();
-    //m_SextractorSolver->start();
-    //processFinished(m_SextractorSolver->sextractionDone() ? 0 : 1);
-    //m_isBlocking = false;
+    m_SextractorSolver->wait();
 }
 
 //This will allow the solver to gracefully disconnect, abort, finish, and get deleted
