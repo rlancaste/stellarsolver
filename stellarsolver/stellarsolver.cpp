@@ -156,6 +156,8 @@ void StellarSolver::start()
     if(checkParameters() == false)
     {
         emit logOutput("There is an issue with your parameters. Terminating the process.");
+        m_isRunning = false;
+        m_HasFailed = true;
         emit ready();
         emit finished();
         return;
@@ -187,6 +189,15 @@ void StellarSolver::start()
             || m_SolverType == SOLVER_LOCALASTROMETRY))
     {
         m_SextractorSolver->extract();
+        if(m_SextractorSolver->getNumStarsFound() == 0)
+        {
+            emit logOutput("No stars were found, so the image cannot be solved");
+            m_isRunning = false;
+            m_HasFailed = true;
+            emit ready();
+            emit finished();
+            return;
+        }
         parallelSolve();
     }
     else if(m_SolverType == SOLVER_ONLINEASTROMETRY)

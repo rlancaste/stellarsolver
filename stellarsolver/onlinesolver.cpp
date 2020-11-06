@@ -43,6 +43,12 @@ void OnlineSolver::execute()
             emit finished(fail);
             return;
         }
+        if(m_ExtractedStars.size() == 0)
+        {
+            emit logOutput("No stars were found, so the image cannot be solved");
+            emit finished(-1);
+            return;
+        }
         if((fail = writeSextractorTable()) != 0)
         {
             emit finished(fail);

@@ -262,6 +262,12 @@ void ExternalSextractorSolver::run()
                         emit finished(fail);
                         return;
                     }
+                    if(m_ExtractedStars.size() == 0)
+                    {
+                        emit logOutput("No stars were found, so the image cannot be solved");
+                        emit finished(-1);
+                        return;
+                    }
                 }
 
                 if(m_HasExtracted)

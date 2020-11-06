@@ -146,7 +146,15 @@ void InternalSextractorSolver::run()
         case SOLVE:
         {
             if(!m_HasExtracted)
+            {
                 extract();
+                if(m_ExtractedStars.size() == 0)
+                {
+                    emit logOutput("No stars were found, so the image cannot be solved");
+                    emit finished(-1);
+                    return;
+                }
+            }
             if(m_HasExtracted)
             {
                 int result = runInternalSolver();
