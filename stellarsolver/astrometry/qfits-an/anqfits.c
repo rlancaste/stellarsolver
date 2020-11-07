@@ -552,6 +552,7 @@ char* anqfits_header_get_data(const anqfits_t* qf, int ext, int* Nbytes) {
         if (fseeko(fid, start, SEEK_SET)) {
             SYSERROR("Failed to seek to start of FITS header: byte %li in %s",
                      (long int)start, qf->filename);
+            fclose(fid);//# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             free(data); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
             return NULL;
         }
