@@ -247,6 +247,7 @@ int solvedfile_set_file(char* fn, anbool* vals, int N) {
         SYSERROR("Failed to write solved file \"%s\"", fn);
         return -1;
     }
+    fclose(f); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     return 0;
 }
 #endif //# Modified by Robert Lancaster for the StellarSolver Internal Library
