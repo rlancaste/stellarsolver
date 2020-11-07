@@ -77,7 +77,10 @@ int scamp_catalog_write_field_header(scamp_cat_t* scamp, const qfits_header* hdr
             goto exit; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         }
     if (freehdr)
+    {
         qfits_header_destroy(freehdr);
+        freehdr = NULL; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to fix double free
+    }
     if (fitstable_write_row(scamp->table, hdrstring)) {
         ERROR("Failed to write scamp catalog field header");
         status = -1;
