@@ -331,14 +331,16 @@ int InternalSextractorSolver::runSEPSextractor()
     }
 
     double sumGlobal = 0, sumRmsSq = 0;
-    for (int i = 0; i < backgrounds.size(); ++i)
+    for (const auto& bg : backgrounds)      
     {
-      const auto &bg = backgrounds[i];
-      sumGlobal += bg.global;
-      sumRmsSq += bg.globalrms * bg.globalrms;
+        sumGlobal += bg.global;
+        sumRmsSq += bg.globalrms * bg.globalrms;
     }
-    m_Background.bw = backgrounds[0].bw;
-    m_Background.bh = backgrounds[0].bh;
+    if (!backgrounds.empty())
+    {
+        m_Background.bw = backgrounds[0].bw;
+        m_Background.bh = backgrounds[0].bh;
+    }
     m_Background.num_stars_detected = m_ExtractedStars.size();
     m_Background.global = sumGlobal / backgrounds.size();
     m_Background.globalrms = sqrt( sumRmsSq / backgrounds.size() );
