@@ -239,15 +239,17 @@ int InternalSextractorSolver::runSEPSextractor()
     QList<float *> dataBuffers;
     QList<QFuture<QList<FITSImage::Star>>> futures;
     QList<QPair<uint32_t, uint32_t>> startupOffsets;
-
+    QList<FITSImage::Background> backgrounds;
+    
     // Only partition if:
     // We have 2 or more threads.
     // The image width and height is larger than partition size.
+    constexpr int PARTITION_SIZE = 200;
     if (w > PARTITION_SIZE && h > PARTITION_SIZE && (m_PartitionThreads % 2) == 0)
     {
-        // Partition the image to regions, each region is 200x200
+        // Partition the image to regions.
         // If there is extra at the end, we add an offset.
-        // e.g. 500x400 image would have 4 paritions
+        // e.g. 500x400 image with patitions sized 200x200 would have 4 paritions
         // #1 0, 0, 200, 200 (200 x 200)
         // #2 200, 0, 200 + 100, 200 (300 x 200)
         // #3 0, 200, 200, 200 (200 x 200)
@@ -274,16 +276,18 @@ int InternalSextractorSolver::runSEPSextractor()
             {
                 int offsetW = (j == horizontalPartitions - 1) ? horizontalOffset : 0;
                 int offsetH = (i == verticalPartitions - 1) ? verticalOffset : 0;
-                uint32_t subX = x + j * W_PARTITION_SIZE + PARTITION_MARGIN;
-                uint32_t subY = y + i * H_PARTITION_SIZE + PARTITION_MARGIN;
-                uint32_t subW = W_PARTITION_SIZE + offsetW - PARTITION_MARGIN;
-                uint32_t subH = H_PARTITION_SIZE + offsetH - PARTITION_MARGIN;
+                uint32_t subX = x + j * W_PARTITION_SIZE;
+                uint32_t subY = y + i * H_PARTITION_SIZE;
+                uint32_t subW = W_PARTITION_SIZE + offsetW;
+                uint32_t subH = H_PARTITION_SIZE + offsetH;
                 //uint32_t offset = subX + (subY * raw_w);
 
                 auto * data = new float[subW * subH];
                 allocateDataBuffer(data, subX, subY, subW, subH);
                 dataBuffers.append(data);
                 startupOffsets.append(qMakePair(subX, subY));
+                FITSImage::Background tempBackground;
+                backgrounds.append(tempBackground);
 
                 ImageParams parameters = {data,
                                           subW,
@@ -291,7 +295,8 @@ int InternalSextractorSolver::runSEPSextractor()
                                           0,
                                           0,
                                           subW,
-                                          subH
+                                          subH,
+                                          &backgrounds[backgrounds.size() - 1]
                                          };
                 futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
             }
@@ -303,7 +308,9 @@ int InternalSextractorSolver::runSEPSextractor()
         allocateDataBuffer(data, x, y, w, h);
         dataBuffers.append(data);
         startupOffsets.append(qMakePair(x, y));
-        ImageParams parameters = {data, raw_w, raw_h, x, y, w, h};
+        FITSImage::Background tempBackground;
+        backgrounds.append(tempBackground);
+        ImageParams parameters = {data, raw_w, raw_h, x, y, w, h, &backgrounds[backgrounds.size() - 1]};
         futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
     }
 
@@ -322,6 +329,19 @@ int InternalSextractorSolver::runSEPSextractor()
         }
         m_ExtractedStars.append(partitionStars);
     }
+
+    double sumGlobal = 0, sumRmsSq = 0;
+    for (int i = 0; i < backgrounds.size(); ++i)
+    {
+      const auto &bg = backgrounds[i];
+      sumGlobal += bg.global;
+      sumRmsSq += bg.globalrms * bg.globalrms;
+    }
+    m_Background.bw = backgrounds[0].bw;
+    m_Background.bh = backgrounds[0].bh;
+    m_Background.num_stars_detected = m_ExtractedStars.size();
+    m_Background.global = sumGlobal / backgrounds.size();
+    m_Background.globalrms = sqrt( sumRmsSq / backgrounds.size() );
 
     applyStarFilters(m_ExtractedStars);
 
@@ -406,10 +426,10 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     }
 
     //Saving some background information
-    m_Background.bh = bkg->bh;
-    m_Background.bw = bkg->bw;
-    m_Background.global = bkg->global;
-    m_Background.globalrms = bkg->globalrms;
+    parameters.background->bh = bkg->bh;
+    parameters.background->bw = bkg->bw;
+    parameters.background->global = bkg->global;
+    parameters.background->globalrms = bkg->globalrms;
 
     // #3 Background subtraction
     status = sep_bkg_subarray(bkg, im.data, im.dtype);
@@ -435,7 +455,7 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     }
 
     // Record the number of stars detected.
-    m_Background.num_stars_detected = catalog->nobj;
+    parameters.background->num_stars_detected = catalog->nobj;
 
     // Find the oval sizes for each detection in the detected star catalog, and sort by that. Oval size
     // correlates very well with HFR and likely magnitude.
@@ -451,6 +471,11 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     {
         // Processing detections in the order of the sort above.
         int i = ovals[index].first;
+
+        if (catalog->flag[i] & SEP_OBJ_TRUNC) {
+          // Don't accept detections that go over the boundary.
+          continue;
+        }
 
         //Variables that are obtained from the catalog
         //FOR SOME REASON, I FOUND THAT THE POSITIONS WERE OFF BY 1 PIXEL??

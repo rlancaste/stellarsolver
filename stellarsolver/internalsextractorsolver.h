@@ -39,6 +39,7 @@ class InternalSextractorSolver: public SextractorSolver
             uint32_t subY;
             uint32_t subW;
             uint32_t subH;
+            FITSImage::Background *background;
         } ImageParams;
 
     protected:
@@ -85,12 +86,5 @@ class InternalSextractorSolver: public SextractorSolver
         bool logMonitorRunning = false;
         FILE *logFile = nullptr;
         uint32_t m_PartitionThreads = {16};
-
-        // Anything below 200 pixels will NOT be partitioned.
-        static const uint32_t PARTITION_SIZE { 200 };
-        // Partition overlap catch any stars that are on the frame EDGE
-        static const uint32_t PARTITION_OVERLAP { 20 };
-        // Partition Margin in pixels
-        static const uint32_t PARTITION_MARGIN { 15 };
 };
 
