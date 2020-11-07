@@ -124,12 +124,14 @@ int wcs_xy2rd(const char* wcsfn, int ext,
     if (rdlist_fix_primary_header(rdls) ||
         rdlist_close(rdls)) {
         ERROR("Failed to fix header of RDLS file %s", rdlsfn);
+        rdls = NULL; //# Modified by Robert Lancaster for the StellarSolver Internal Library, since it would try to close it again in bailout
         goto bailout;
     }
     rdls = NULL;
 
     if (xylist_close(xyls)) {
         ERROR("Failed to close XYLS file %s", xylsfn);
+        xyls = NULL; //# Modified by Robert Lancaster for the StellarSolver Internal Library, since it would try to close it again in bailout
         goto bailout;
     }
     xyls = NULL;
