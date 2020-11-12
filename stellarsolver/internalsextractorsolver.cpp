@@ -245,7 +245,7 @@ int InternalSextractorSolver::runSEPSextractor()
     // We have 2 or more threads.
     // The image width and height is larger than partition size.
     constexpr int PARTITION_SIZE = 200;
-    if (w > PARTITION_SIZE && h > PARTITION_SIZE && (m_PartitionThreads % 2) == 0)
+    if (m_ActiveParameters.partition &&  w > PARTITION_SIZE && h > PARTITION_SIZE && (m_PartitionThreads % 2) == 0)
     {
         // Partition the image to regions.
         // If there is extra at the end, we add an offset.

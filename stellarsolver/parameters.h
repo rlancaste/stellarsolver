@@ -261,9 +261,10 @@ class Parameters
             BIG_STARS
         } ParametersProfile;
 
-        QString listName = "Default";       // This is the name of this particular profile of options for StellarSolver
-        QString description =
-            "";           // This is a description of the Profile, what it is intended for, anything that sets it apart
+        // This is the name of this particular profile of options for StellarSolver
+        QString listName = "Default";
+        // This is a description of the Profile, what it is intended for, anything that sets it apart
+        QString description;
 
         //Sextractor Photometry Parameters
         Shape apertureShape = SHAPE_CIRCLE; // Whether to use the SEP_SUM_ELLIPSE method or the SEP_SUM_CIRCLE method
@@ -273,16 +274,19 @@ class Parameters
         short inflags = 0;                      // Note sure if we need them?
 
         //Sextractor Extraction Parameters
-        double magzero =
-            20;                // This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.
-        double minarea = 10;                 // This is the minimum area in pixels for a star detection, smaller stars are ignored.
+        // This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.
+        double magzero =  20;
+        // This is the minimum area in pixels for a star detection, smaller stars are ignored.
+        double minarea = 10;
         int deblend_thresh = 32;            // The number of thresholds the intensity range is divided up into.
         double deblend_contrast =
             0.005;    // The percentage of flux a separate peak must # have to be considered a separate object.
         int clean = 1;                      // Attempts to 'clean' the image to remove artifacts caused by bright objects
         double clean_param = 1;             // The cleaning parameter, not sure what it does.
-        double fwhm =
-            2;                    // A variable to store the fwhm used to generate the conv filter, changing this WILL NOT change the conv filter, you can use the method below to create the conv filter based on the fwhm
+        // A variable to store the fwhm used to generate the conv filter, changing this WILL NOT change the conv filter, you can use the method below to create the conv filter based on the fwhm
+        double fwhm = 2;
+        // Automatically partition the image to several threads to speed it up.
+        bool partition = true;
 
         //This is the filter used for convolution. You can create this directly or use the convenience method below.
         QVector<float> convFilter = {0.260856, 0.483068, 0.260856,
