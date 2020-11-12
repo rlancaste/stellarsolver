@@ -665,7 +665,7 @@ void InternalSextractorSolver::applyStarFilters(QList<FITSImage::Star> &starList
             }
         }
 
-        if(m_ActiveParameters.resort && m_ActiveParameters.keepNum > 0.0)
+        if(m_ActiveParameters.resort && m_ActiveParameters.keepNum > 0)
         {
             emit logOutput(QString("Keeping just the %1 brightest stars").arg(m_ActiveParameters.keepNum));
             int numToRemove = starList.size() - m_ActiveParameters.keepNum;

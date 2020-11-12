@@ -298,7 +298,7 @@ class Parameters
         double maxEllipse =
             0;              // The maximum ratio between the semi-major and semi-minor axes for stars to include (a/b)
         int initialKeep = 1000000;          // Number of stars to process before filtering.
-        double keepNum = 0;                 // The number of brightest stars to keep in the list
+        int keepNum = 0;                 // The number of brightest stars to keep in the list
         double removeBrightest = 0;         // The percentage of brightest stars to remove from the list
         double removeDimmest = 0;           // The percentage of dimmest stars to remove from the list
         double saturationLimit = 0;         // Remove all stars above a certain threshhold percentage of saturation

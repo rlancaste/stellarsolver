@@ -25,6 +25,7 @@ bool SSolver::Parameters::operator==(const Parameters& o)
             maxSize == o.maxSize &&
             minSize == o.minSize &&
             maxEllipse == o.maxEllipse &&
+            initialKeep == o.initialKeep &&
             keepNum == o.keepNum &&
             removeBrightest == o.removeBrightest &&
             removeDimmest == o.removeDimmest &&
@@ -87,6 +88,7 @@ QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
     settingsMap.insert("maxSize", QVariant(params.maxSize));
     settingsMap.insert("minSize", QVariant(params.minSize));
     settingsMap.insert("maxEllipse", QVariant(params.maxEllipse));
+    settingsMap.insert("initialKeep", QVariant(params.initialKeep));
     settingsMap.insert("keepNum", QVariant(params.keepNum));
     settingsMap.insert("removeBrightest", QVariant(params.removeBrightest));
     settingsMap.insert("removeDimmest", QVariant(params.removeDimmest ));
@@ -153,7 +155,8 @@ SSolver::Parameters SSolver::Parameters::convertFromMap(QMap<QString, QVariant> 
     params.maxSize = settingsMap.value("maxSize", params.maxSize).toDouble();
     params.minSize = settingsMap.value("minSize", params.minSize).toDouble();
     params.maxEllipse = settingsMap.value("maxEllipse", params.maxEllipse).toDouble();
-    params.keepNum = settingsMap.value("keepNum", params.keepNum).toDouble();
+    params.initialKeep = settingsMap.value("initialKeep", params.initialKeep).toInt();
+    params.keepNum = settingsMap.value("keepNum", params.keepNum).toInt();
     params.removeBrightest = settingsMap.value("removeBrightest", params.removeBrightest).toDouble();
     params.removeDimmest = settingsMap.value("removeDimmest", params.removeDimmest ).toDouble();
     params.saturationLimit = settingsMap.value("saturationLimit", params.saturationLimit).toDouble();

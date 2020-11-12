@@ -276,7 +276,8 @@ MainWindow::MainWindow() :
     ui->maxSize->setToolTip("This is the maximum diameter of stars to include in pixels");
     ui->minSize->setToolTip("This is the minimum diameter of stars to include in pixels");
     ui->maxEllipse->setToolTip("Stars are typically round, this filter divides stars' semi major and minor axes and rejects stars with distorted shapes greater than this number (1 is perfectly round)");
-    ui->keepNum->setToolTip("Keep just this number of stars to send to the solver.  They will be the brightest in the list.  If there are more than that, they will all be kept");
+    ui->initialKeep->setToolTip("Keep just this number of stars in the list based upon star size.  They will be the biggest in the list.  If there are less than this number, they will all be kept.  This filter is primarily for HFR operations, so they take less time.");
+    ui->keepNum->setToolTip("Keep just this number of star in the list based on magnitude.  They will be the brightest in the list.  If there are less than this number, they will all be kept.  This filter is mainly for the solver, so that it takes less time.");
     ui->brightestPercent->setToolTip("Removes the brightest % of stars from the image");
     ui->dimmestPercent->setToolTip("Removes the dimmest % of stars from the image");
     ui->saturationLimit->setToolTip("Removes stars above a certain % of the saturation limit of an image of this data type");
@@ -889,7 +890,8 @@ SSolver::Parameters MainWindow::getSettingsFromUI()
     params.maxSize = ui->maxSize->text().toDouble();
     params.minSize = ui->minSize->text().toDouble();
     params.maxEllipse = ui->maxEllipse->text().toDouble();
-    params.keepNum = ui->keepNum->text().toDouble();
+    params.initialKeep = ui->initialKeep->text().toInt();
+    params.keepNum = ui->keepNum->text().toInt();
     params.removeBrightest = ui->brightestPercent->text().toDouble();
     params.removeDimmest = ui->dimmestPercent->text().toDouble();
     params.saturationLimit = ui->saturationLimit->text().toDouble();
@@ -939,6 +941,7 @@ void MainWindow::sendSettingsToUI(SSolver::Parameters a)
     ui->maxSize->setText(QString::number(a.maxSize));
     ui->minSize->setText(QString::number(a.minSize));
     ui->maxEllipse->setText(QString::number(a.maxEllipse));
+    ui->initialKeep->setText(QString::number(a.initialKeep));
     ui->keepNum->setText(QString::number(a.keepNum));
     ui->brightestPercent->setText(QString::number(a.removeBrightest));
     ui->dimmestPercent->setText(QString::number(a.removeDimmest));
@@ -2347,6 +2350,7 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table, "Max Size");
     addColumnToTable(table, "Min Size");
     addColumnToTable(table, "Max Ell");
+    addColumnToTable(table, "Ini Keep");
     addColumnToTable(table, "Keep #");
     addColumnToTable(table, "Cut Bri");
     addColumnToTable(table, "Cut Dim");
@@ -2408,6 +2412,7 @@ void MainWindow::addSextractionToTable()
     setItemInColumn(table, "Max Size", QString::number(params.maxSize));
     setItemInColumn(table, "Min Size", QString::number(params.minSize));
     setItemInColumn(table, "Max Ell", QString::number(params.maxEllipse));
+    setItemInColumn(table, "Ini Keep", QString::number(params.initialKeep));
     setItemInColumn(table, "Keep #", QString::number(params.keepNum));
     setItemInColumn(table, "Cut Bri", QString::number(params.removeBrightest));
     setItemInColumn(table, "Cut Dim", QString::number(params.removeDimmest));
@@ -2476,6 +2481,7 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table, "Max Size", !showSextractorParams);
     setColumnHidden(table, "Min Size", !showSextractorParams);
     setColumnHidden(table, "Max Ell", !showSextractorParams);
+    setColumnHidden(table, "Ini Keep", !showSextractorParams);
     setColumnHidden(table, "Keep #", !showSextractorParams);
     setColumnHidden(table, "Cut Bri", !showSextractorParams);
     setColumnHidden(table, "Cut Dim", !showSextractorParams);
