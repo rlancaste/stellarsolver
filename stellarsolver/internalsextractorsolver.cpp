@@ -240,7 +240,7 @@ int InternalSextractorSolver::runSEPSextractor()
     QList<QFuture<QList<FITSImage::Star>>> futures;
     QList<QPair<uint32_t, uint32_t>> startupOffsets;
     QList<FITSImage::Background> backgrounds;
-    
+
     // Only partition if:
     // We have 2 or more threads.
     // The image width and height is larger than partition size.
@@ -296,6 +296,7 @@ int InternalSextractorSolver::runSEPSextractor()
                                           0,
                                           subW,
                                           subH,
+                                          m_ActiveParameters.initialKeep / m_PartitionThreads,
                                           &backgrounds[backgrounds.size() - 1]
                                          };
                 futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
@@ -310,7 +311,7 @@ int InternalSextractorSolver::runSEPSextractor()
         startupOffsets.append(qMakePair(x, y));
         FITSImage::Background tempBackground;
         backgrounds.append(tempBackground);
-        ImageParams parameters = {data, raw_w, raw_h, x, y, w, h, &backgrounds[backgrounds.size() - 1]};
+        ImageParams parameters = {data, raw_w, raw_h, x, y, w, h, static_cast<uint32_t>(m_ActiveParameters.initialKeep), &backgrounds[backgrounds.size() - 1]};
         futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
     }
 
@@ -331,7 +332,7 @@ int InternalSextractorSolver::runSEPSextractor()
     }
 
     double sumGlobal = 0, sumRmsSq = 0;
-    for (const auto& bg : backgrounds)      
+    for (const auto &bg : backgrounds)
     {
         sumGlobal += bg.global;
         sumRmsSq += bg.globalrms * bg.globalrms;
@@ -468,15 +469,16 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     }
     std::sort(ovals.begin(), ovals.end(), [](const std::pair<int, double> &o1, const std::pair<int, double> &o2) -> bool { return o1.second > o2.second;});
 
-    numToProcess = std::min(catalog->nobj, m_ActiveParameters.initialKeep);
+    numToProcess = std::min(static_cast<uint32_t>(catalog->nobj), parameters.keep);
     for (int index = 0; index < numToProcess; index++)
     {
         // Processing detections in the order of the sort above.
         int i = ovals[index].first;
 
-        if (catalog->flag[i] & SEP_OBJ_TRUNC) {
-          // Don't accept detections that go over the boundary.
-          continue;
+        if (catalog->flag[i] & SEP_OBJ_TRUNC)
+        {
+            // Don't accept detections that go over the boundary.
+            continue;
         }
 
         //Variables that are obtained from the catalog
@@ -948,29 +950,29 @@ int InternalSextractorSolver::saveAsFITS()
     int bitpix;
     switch(m_Statistics.dataType)
     {
-    case SEP_TBYTE:
-        bitpix = BYTE_IMG;
-        break;
-    case TSHORT:
-        bitpix = SHORT_IMG;
-        break;
-    case TUSHORT:
-        bitpix = USHORT_IMG;
-        break;
-    case TLONG:
-        bitpix = LONG_IMG;
-        break;
-    case TULONG:
-        bitpix = ULONG_IMG;
-        break;
-    case TFLOAT:
-        bitpix = FLOAT_IMG;
-        break;
-    case TDOUBLE:
-        bitpix = DOUBLE_IMG;
-        break;
-    default:
-        bitpix = BYTE_IMG;
+        case SEP_TBYTE:
+            bitpix = BYTE_IMG;
+            break;
+        case TSHORT:
+            bitpix = SHORT_IMG;
+            break;
+        case TUSHORT:
+            bitpix = USHORT_IMG;
+            break;
+        case TLONG:
+            bitpix = LONG_IMG;
+            break;
+        case TULONG:
+            bitpix = ULONG_IMG;
+            break;
+        case TFLOAT:
+            bitpix = FLOAT_IMG;
+            break;
+        case TDOUBLE:
+            bitpix = DOUBLE_IMG;
+            break;
+        default:
+            bitpix = BYTE_IMG;
     }
 
     if (fits_create_img(fptr, bitpix, naxis, naxes, &status))
@@ -983,7 +985,8 @@ int InternalSextractorSolver::saveAsFITS()
     }
 
     /* Write Data */
-    if (fits_write_img(fptr, m_Statistics.dataType, 1, nelements, const_cast<void *>(reinterpret_cast<const void *>(m_ImageBuffer)), &status))
+    if (fits_write_img(fptr, m_Statistics.dataType, 1, nelements,
+                       const_cast<void *>(reinterpret_cast<const void *>(m_ImageBuffer)), &status))
     {
         fits_report_error(stderr, status);
         return status;

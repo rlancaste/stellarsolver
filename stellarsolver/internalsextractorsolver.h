@@ -39,6 +39,7 @@ class InternalSextractorSolver: public SextractorSolver
             uint32_t subY;
             uint32_t subW;
             uint32_t subH;
+            uint32_t keep;
             FITSImage::Background *background;
         } ImageParams;
 
