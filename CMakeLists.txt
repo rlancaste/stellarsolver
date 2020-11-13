@@ -284,6 +284,9 @@ else(WIN32)
     target_link_libraries(stellarsolver -lpthread)
     #This is intended to disable the many warnings that appear due to the way astrometry.net's logging functions are setup
     target_compile_options(stellarsolver PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-implicit-function-declaration>)
+    if(APPLE)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-implicit-function-declaration")
+    endif(APPLE)
 endif(WIN32)
 
 install(TARGETS stellarsolver
