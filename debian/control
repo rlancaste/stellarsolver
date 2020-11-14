@@ -14,7 +14,7 @@ Description: StellarSolver Library
 
 Package: libstellarsolver-dev
 Architecture: any
-Depends: libstellarsolver, ${shlibs:Depends}, ${misc:Depends}
+Depends: libstellarsolver (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: StellarSolver Library development headers
  .
  This package includes development headers for an Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net and SEP.
