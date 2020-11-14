@@ -94,7 +94,8 @@ err_t* errors_get_state() {
         err_t* e = error_new();
         e->print = stderr;
         pl_append(estack, e);
-        free(e); //# Modified by Robert Lancaster for the StellarSolver Internal Library, preventing leaks, the append copies the object
+        //free(e); //# Modified by Robert Lancaster for the StellarSolver Internal Library, preventing leaks, the append copies the object
+        //This was in fact flagged as a leak, but deleting it may have caused crashes.
     }
     return pl_get(estack, pl_size(estack)-1);
 }
@@ -120,7 +121,8 @@ void errors_push_state() {
     snapshot = error_copy(now);
     pl_push(estack, snapshot);
     pl_push(estack, now);
-    free(snapshot); //# Modified by Robert Lancaster for the StellarSolver Internal Library, preventing leaks, the push copies the object
+    //free(snapshot); //# Modified by Robert Lancaster for the StellarSolver Internal Library, preventing leaks, the push copies the object
+    //This was in fact flagged as a leak, but deleting it may have caused crashes.
 }
 
 void errors_pop_state() {

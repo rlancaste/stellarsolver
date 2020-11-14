@@ -179,7 +179,8 @@ pl* matchfile_get_matches_for_field(matchfile* mf, int field) {
         copy = malloc(sizeof(MatchObj));
         memcpy(copy, mo, sizeof(MatchObj));
         pl_append(list, copy);
-        free(copy); //# Modified by Robert Lancaster for the StellarSolver Internal Library, preventing leaks, the append copies the object
+        //free(copy); //# Modified by Robert Lancaster for the StellarSolver Internal Library, preventing leaks, the append copies the object
+        //This was in fact flagged as a leak, but deleting it may have caused crashes.
     }
     return list;
 }

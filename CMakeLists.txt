@@ -360,9 +360,11 @@ target_link_libraries(StellarSolverTester
     Qt5::Concurrent
     )
 
-if (NOT WIN32)
-target_link_libraries(StellarSolverTester -lpthread)
-endif(NOT WIN32)
+if(WIN32)
+    target_link_libraries(StellarSolverTester wsock32 ${Boost_LIBRARIES})
+else(WIN32)
+    target_link_libraries(StellarSolverTester -lpthread)
+endif(WIN32)
 
 if(APPLE)
 install(TARGETS StellarSolverTester
