@@ -301,8 +301,8 @@ class Parameters
             0;                 // The minimum size of stars to include in the final list in pixels based on semi-major and semi-minor axes
         double maxEllipse =
             0;              // The maximum ratio between the semi-major and semi-minor axes for stars to include (a/b)
-        int initialKeep = 1000000;          // Number of stars to process before filtering.
-        int keepNum = 0;                 // The number of brightest stars to keep in the list
+        int initialKeep = 1000000;          // Number of stars to keep in the list before HFR.  This is based on star size.  This is most useful for SEP operations involving HFR like Focusing images, Guiding, and monitoring image HFR over time.  It is important to reduce the number of stars prior to doing HFR calculations
+        int keepNum = 0;                    // The number of brightest stars to keep in the list.  This is based on magnitude.  This is most useful for Solving because limiting the number of stars to the brightest ones greatly speeds up the solver.
         double removeBrightest = 0;         // The percentage of brightest stars to remove from the list
         double removeDimmest = 0;           // The percentage of dimmest stars to remove from the list
         double saturationLimit = 0;         // Remove all stars above a certain threshhold percentage of saturation

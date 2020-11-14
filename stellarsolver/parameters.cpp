@@ -20,6 +20,7 @@ bool SSolver::Parameters::operator==(const Parameters& o)
             //This is a StellarSolver parameter used for the creation of the convolution filter
             fwhm == o.fwhm &&
             //skip conv filter?? This might be hard to compare
+            partition == o.partition &&
 
             //StellarSolver Star Filter Settings
             maxSize == o.maxSize &&
@@ -83,6 +84,7 @@ QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
         conv << QString::number(QVariant(num).toDouble(), 'g', 4);
     }
     settingsMap.insert("convFilter", QVariant(conv.join(",")));
+    settingsMap.insert("partition", QVariant(params.partition));
 
     //StellarSolver Star Filter Settings
     settingsMap.insert("maxSize", QVariant(params.maxSize));
@@ -150,6 +152,7 @@ SSolver::Parameters SSolver::Parameters::convertFromMap(QMap<QString, QVariant> 
             filter.append(QVariant(item).toFloat());
         params.convFilter = filter;
     }
+    params.partition = settingsMap.value("partition", params.partition).toBool();
 
     //StellarSolver Star Filter Settings
     params.maxSize = settingsMap.value("maxSize", params.maxSize).toDouble();

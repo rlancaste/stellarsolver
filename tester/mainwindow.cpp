@@ -250,6 +250,8 @@ MainWindow::MainWindow() :
 
     ui->showConv->setToolTip("Loads the convolution filter into a window for viewing");
 
+    ui->partition->setToolTip("Whether or not to partition the image during SEP operations for Internal SEP.  This can greatly speed up star extraction, but at the cost of possibly missing some objects.  For solving, Focusing, and guiding operations, this doesn't matter, but for doing science, you might want to turn it off.");
+
     connect(ui->showConv,&QPushButton::clicked,this,[this](){
         if(!convInspector)
         {
@@ -884,6 +886,7 @@ SSolver::Parameters MainWindow::getSettingsFromUI()
     params.clean = (ui->cleanCheckBox->isChecked()) ? 1 : 0;
     params.clean_param = ui->clean_param->text().toDouble();
     StellarSolver::createConvFilterFromFWHM(&params, ui->fwhm->value());
+    params.partition = ui->partition->isChecked();
 
     //Star Filter Settings
     params.resort = ui->resort->isChecked();
@@ -935,6 +938,7 @@ void MainWindow::sendSettingsToUI(SSolver::Parameters a)
     ui->cleanCheckBox->setChecked(a.clean == 1);
     ui->clean_param->setText(QString::number(a.clean_param));
     ui->fwhm->setValue(a.fwhm);
+    ui->partition->setChecked(a.partition);
 
     //Star Filter Settings
 
@@ -2346,6 +2350,7 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table, "clean");
     addColumnToTable(table, "clean param");
     addColumnToTable(table, "fwhm");
+    addColumnToTable(table, "part");
     //Star Filtering Parameters
     addColumnToTable(table, "Max Size");
     addColumnToTable(table, "Min Size");
@@ -2406,6 +2411,7 @@ void MainWindow::addSextractionToTable()
     setItemInColumn(table, "clean", QString::number(params.clean));
     setItemInColumn(table, "clean param", QString::number(params.clean_param));
     setItemInColumn(table, "fwhm", QString::number(params.fwhm));
+    setItemInColumn(table, "part", QString::number(params.partition));
     setItemInColumn(table, "Field", ui->fileNameDisplay->text());
 
     //StarFilter Parameters
@@ -2477,6 +2483,7 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table, "clean", !showSextractorParams);
     setColumnHidden(table, "clean param", !showSextractorParams);
     setColumnHidden(table, "fwhm", !showSextractorParams);
+    setColumnHidden(table, "part", !showSextractorParams);
     //Star Filtering Parameters
     setColumnHidden(table, "Max Size", !showSextractorParams);
     setColumnHidden(table, "Min Size", !showSextractorParams);
