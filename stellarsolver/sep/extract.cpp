@@ -742,12 +742,12 @@ exit:
         free(workscan);
     }
 
+    /* free cdscan if we didn't do it on the last `yl` line */
+    if (conv && (cdscan != dummyscan))
+        free(cdscan);
+
     if (status != RETURN_OK)
     {
-        /* free cdscan if we didn't do it on the last `yl` line */
-        if (conv && (cdscan != dummyscan))
-            free(cdscan);
-
         /* clean up catalog if it was allocated */
         sep_catalog_free(cat);
         cat = NULL;

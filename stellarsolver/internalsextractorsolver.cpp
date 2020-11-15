@@ -43,8 +43,8 @@ InternalSextractorSolver::InternalSextractorSolver(ProcessType pType, ExtractorT
 
 InternalSextractorSolver::~InternalSextractorSolver()
 {
-    if(usingDownsampledImage)
-        delete downSampledBuffer;
+    if(downSampledBuffer)
+        delete [] downSampledBuffer;
 }
 
 //This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
@@ -748,6 +748,8 @@ void InternalSextractorSolver::downSampleImageType(int d)
     int oldBufferSize = m_Statistics.samples_per_channel * channels * m_Statistics.bytesPerPixel;
     //It is d times smaller in width and height
     int newBufferSize = oldBufferSize / (d * d);
+    if(downSampledBuffer)
+        delete [] downSampledBuffer;
     downSampledBuffer = new uint8_t[newBufferSize];
     auto * sourceBuffer = reinterpret_cast<T const *>(m_ImageBuffer);
     auto * destinationBuffer = reinterpret_cast<T *>(downSampledBuffer);
