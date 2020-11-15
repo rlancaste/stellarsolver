@@ -188,15 +188,18 @@ void StellarSolver::start()
     if(params.multiAlgorithm != NOT_MULTI && m_ProcessType == SOLVE && (m_SolverType == SOLVER_STELLARSOLVER
             || m_SolverType == SOLVER_LOCALASTROMETRY))
     {
-        m_SextractorSolver->extract();
-        if(m_SextractorSolver->getNumStarsFound() == 0)
+        if(m_SextractorType != EXTRACTOR_BUILTIN)
         {
-            emit logOutput("No stars were found, so the image cannot be solved");
-            m_isRunning = false;
-            m_HasFailed = true;
-            emit ready();
-            emit finished();
-            return;
+            m_SextractorSolver->extract();
+            if(m_SextractorSolver->getNumStarsFound() == 0)
+            {
+                emit logOutput("No stars were found, so the image cannot be solved");
+                m_isRunning = false;
+                m_HasFailed = true;
+                emit ready();
+                emit finished();
+                return;
+            }
         }
         parallelSolve();
     }
@@ -446,7 +449,8 @@ void StellarSolver::finishParallelSolve(int success)
             connect(solverWithWCS, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
             solverWithWCS->start();
         }
-        m_SextractorSolver->cleanupTempFiles();
+        if(m_SextractorType != EXTRACTOR_BUILTIN) //Note this is just cleaning up the files from the star extraction done prior to the parallel solve.  So for built in, it doesn't even do it, so no files to clean up
+            m_SextractorSolver->cleanupTempFiles();
         m_HasSolved = true;
         emit ready();
     }
