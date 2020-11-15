@@ -88,7 +88,7 @@ SextractorSolver* InternalSextractorSolver::spawnChildSolver(int n)
     if(m_AstrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
         connect(solver, &SextractorSolver::logOutput, this,  &SextractorSolver::logOutput);
     //This way they all share a solved and cancel fn
-    solver->cancelfn = cancelfn;
+    //solver->cancelfn = cancelfn;
     solver->solvedfn = solvedfn;
     solver->usingDownsampledImage = usingDownsampledImage;
     return solver;
@@ -128,10 +128,11 @@ void InternalSextractorSolver::run()
     if(solvedfn == "")
         solvedfn = m_BasePath + "/" + m_BaseName + ".solved";
 
-    if(QFile(cancelfn).exists())
-        QFile(cancelfn).remove();
-    if(QFile(solvedfn).exists())
-        QFile(solvedfn).remove();
+    QFile solvedFile(solvedfn);
+    solvedFile.setPermissions(solvedFile.permissions() | QFileDevice::WriteOther);
+    solvedFile.remove();
+
+    QFile(cancelfn).remove();
 
     switch(m_ProcessType)
     {
@@ -151,6 +152,7 @@ void InternalSextractorSolver::run()
                 if(m_ExtractedStars.size() == 0)
                 {
                     emit logOutput("No stars were found, so the image cannot be solved");
+                    cleanupTempFiles();
                     emit finished(-1);
                     return;
                 }
@@ -158,22 +160,28 @@ void InternalSextractorSolver::run()
             if(m_HasExtracted)
             {
                 int result = runInternalSolver();
+                cleanupTempFiles();
                 emit finished(result);
             }
             else
+            {
+                cleanupTempFiles();
                 emit finished(-1);
+            }
         }
         break;
 
         default:
             break;
     }
+}
 
-    if(!isChildSolver)
-    {
-        QFile(solvedfn).remove();
-        QFile(cancelfn).remove();
-    }
+void InternalSextractorSolver::cleanupTempFiles()
+{
+    QFile solvedFile(solvedfn);
+    solvedFile.setPermissions(solvedFile.permissions() | QFileDevice::WriteOther);
+    solvedFile.remove();
+    QFile(cancelfn).remove();
 }
 
 void InternalSextractorSolver::allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h)

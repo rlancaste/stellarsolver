@@ -446,6 +446,7 @@ void StellarSolver::finishParallelSolve(int success)
             connect(solverWithWCS, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
             solverWithWCS->start();
         }
+        m_SextractorSolver->cleanupTempFiles();
         m_HasSolved = true;
         emit ready();
     }

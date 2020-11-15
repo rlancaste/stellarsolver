@@ -73,7 +73,7 @@ class ExternalSextractorSolver : public InternalSextractorSolver
         bool getSolutionInformation();
         bool getASTAPSolutionInformation();
         int saveAsFITS();
-        void cleanupTempFiles();
+        void cleanupTempFiles() override;
 
         int loadWCS();
         void computeWCSCoord() override;

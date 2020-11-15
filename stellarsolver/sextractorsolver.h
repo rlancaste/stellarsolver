@@ -45,6 +45,7 @@ class SextractorSolver : public QThread
         virtual void execute();
         virtual void abort() = 0;
         virtual SextractorSolver* spawnChildSolver(int n) = 0;
+        virtual void cleanupTempFiles() = 0;
         //This will abort the solver
 
         FITSImage::wcs_point *getWCSCoord()

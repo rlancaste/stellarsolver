@@ -198,13 +198,16 @@ void ExternalSextractorSolver::run()
 
     if(cancelfn == "")
         cancelfn = m_BasePath + "/" + m_BaseName + ".cancel";
+    if(solvedfn == "")
+        solvedfn = m_BasePath + "/" + m_BaseName + ".solved";
     if(solutionFile == "")
         solutionFile = m_BasePath + "/" + m_BaseName + ".wcs";
 
-    if(QFile(cancelfn).exists())
-        QFile(cancelfn).remove();
-    if(QFile(solutionFile).exists())
-        QFile(solutionFile).remove();
+    QFile solvedFile(solvedfn);
+    solvedFile.setPermissions(solvedFile.permissions() | QFileDevice::WriteOther);
+    solvedFile.remove();
+
+    QFile(cancelfn).remove();
 
     //These are the solvers that use External Astrometry.
     if(m_SolverType == SOLVER_LOCALASTROMETRY)
@@ -243,15 +246,27 @@ void ExternalSextractorSolver::run()
     {
         case EXTRACT:
         case EXTRACT_WITH_HFR:
-            emit finished(extract());
-            break;
+        {
+            int result = extract();
+            cleanupTempFiles();
+            emit finished(result);
+        }
+        break;
 
         case SOLVE:
         {
             if(m_ExtractorType == EXTRACTOR_BUILTIN && m_SolverType == SOLVER_LOCALASTROMETRY)
-                emit finished(runExternalSolver());
+            {
+                int result = runExternalSolver();
+                cleanupTempFiles();
+                emit finished(result);
+            }
             else if(m_ExtractorType == EXTRACTOR_BUILTIN && m_SolverType == SOLVER_ASTAP)
-                emit finished(runExternalASTAPSolver());
+            {
+                int result = runExternalASTAPSolver();
+                cleanupTempFiles();
+                emit finished(result);
+            }
             else
             {
                 if(!m_HasExtracted)
@@ -259,11 +274,13 @@ void ExternalSextractorSolver::run()
                     int fail = extract();
                     if(fail != 0)
                     {
+                        cleanupTempFiles();
                         emit finished(fail);
                         return;
                     }
                     if(m_ExtractedStars.size() == 0)
                     {
+                        cleanupTempFiles();
                         emit logOutput("No stars were found, so the image cannot be solved");
                         emit finished(-1);
                         return;
@@ -273,12 +290,23 @@ void ExternalSextractorSolver::run()
                 if(m_HasExtracted)
                 {
                     if(m_SolverType == SOLVER_ASTAP)
-                        emit finished(runExternalASTAPSolver());
+                    {
+                        int result = runExternalASTAPSolver();
+                        cleanupTempFiles();
+                        emit finished(result);
+                    }
                     else
-                        emit finished(runExternalSolver());
+                    {
+                        int result = runExternalSolver();
+                        cleanupTempFiles();
+                        emit finished(result);
+                    }
                 }
                 else
+                {
+                    cleanupTempFiles();
                     emit finished(-1);
+                }
             }
 
         }
@@ -287,8 +315,6 @@ void ExternalSextractorSolver::run()
         default:
             break;
     }
-
-    cleanupTempFiles();
 }
 
 //This method generates child solvers with the options of the current solver
@@ -301,6 +327,7 @@ SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
     solver->m_BaseName = m_BaseName + "_" + QString::number(n);
     solver->m_HasExtracted = true;
     solver->sextractorFilePath = sextractorFilePath;
+    solver->sextractorFilePathIsTempFile = sextractorFilePathIsTempFile;
     solver->fileToProcess = fileToProcess;
     solver->sextractorBinaryPath = sextractorBinaryPath;
     solver->confPath = confPath;
@@ -326,7 +353,7 @@ SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
         connect(solver, &SextractorSolver::logOutput, this, &SextractorSolver::logOutput);
     //This way they all share a solved and cancel fn
     solver->solutionFile = solutionFile;
-    solver->cancelfn = cancelfn;
+    //solver->cancelfn = cancelfn;
     //solver->solvedfn = basePath + "/" + baseName + ".solved";
     return solver;
 }
@@ -334,12 +361,6 @@ SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
 //This is the abort method.  For the external sextractor and solver, it uses the kill method to abort the processes
 void ExternalSextractorSolver::abort()
 {
-    if(!solver.isNull())
-        solver->kill();
-    if(!sextractorProcess.isNull())
-        sextractorProcess->kill();
-
-    //Just in case they don't stop, we will make the cancel file too
     QFile file(cancelfn);
     if(QFileInfo(file).dir().exists())
     {
@@ -376,10 +397,11 @@ void ExternalSextractorSolver::cleanupTempFiles()
         temp.remove(m_BaseName + ".solved");
 
         //Other Files
-        if(!isChildSolver)
-            QFile(solutionFile).remove();
-        //if(!isChildSolver)
-        //    QFile(cancelfn).remove();
+        QFile solvedFile(solvedfn);
+        solvedFile.setPermissions(solvedFile.permissions() | QFileDevice::WriteOther);
+        solvedFile.remove();
+        QFile(solutionFile).remove();
+        QFile(cancelfn).remove();
         if(sextractorFilePathIsTempFile)
             QFile(sextractorFilePath).remove();
         if(fileToProcessIsTempFile)
