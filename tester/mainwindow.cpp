@@ -33,6 +33,7 @@
 
 #include <assert.h>
 
+#include <QShortcut>
 #include <QThread>
 #include <QInputDialog>
 #include <QtConcurrent>
@@ -58,6 +59,26 @@ MainWindow::MainWindow() :
     ui->zoomOut->setToolTip("Zooms Out on the Image");
     connect(ui->AutoScale, &QAbstractButton::clicked, this, &MainWindow::autoScale );
     ui->AutoScale->setToolTip("Rescales the image based on the available space");
+
+    // Keyboard shortcuts
+    QShortcut *s = new QShortcut(QKeySequence(QKeySequence::ZoomIn), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::zoomIn);
+    s = new QShortcut(QKeySequence(QKeySequence::ZoomOut), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::zoomOut);
+    s = new QShortcut(QKeySequence(tr("Ctrl+0")), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::autoScale);
+    s = new QShortcut(QKeySequence(QKeySequence::Open), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::imageLoad );
+    s = new QShortcut(QKeySequence(QKeySequence::MoveToNextChar), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::panRight);
+    s = new QShortcut(QKeySequence(QKeySequence::MoveToPreviousChar), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::panLeft);
+    s = new QShortcut(QKeySequence(QKeySequence::MoveToNextLine), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::panDown);
+    s = new QShortcut(QKeySequence(QKeySequence::MoveToPreviousLine), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::panUp);
+    s = new QShortcut(QKeySequence(QKeySequence::Quit), ui->Image);
+    connect(s, &QShortcut::activated, this, &QCoreApplication::quit);
 
     //The Options at the bottom of the Window
     ui->trials->setToolTip("The number of times to Sextract or Solve to get an average time that it takes.");
@@ -461,6 +482,15 @@ MainWindow::MainWindow() :
     foreach(QString pathName, indexFilePaths)
         ui->indexFolderPaths->addItem(pathName);
     loadIndexFilesList();
+
+    ui->imageScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    ui->imageScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    ui->imageScrollArea->verticalScrollBar()->setMinimum(0);
+    ui->imageScrollArea->verticalScrollBar()->setMaximum(5000);
+    ui->imageScrollArea->horizontalScrollBar()->setMinimum(0);
+    ui->imageScrollArea->horizontalScrollBar()->setMaximum(5000);
+    ui->imageScrollArea->verticalScrollBar()->setValue(2500);
+    ui->imageScrollArea->horizontalScrollBar()->setValue(2500);
 }
 
 void MainWindow::settingJustChanged()
@@ -1649,13 +1679,57 @@ void MainWindow::initDisplayImage()
 
 }
 
+void adjustScrollBar(QScrollBar *scrollBar, double factor)
+{
+    scrollBar->setValue(int(factor * scrollBar->value()
+                            + ((factor - 1) * scrollBar->pageStep()/2)));
+}
+
+void slideScrollBar(QScrollBar *scrollBar, double factor)
+{
+  constexpr double panFactor = 10.0;
+  const int newValue = std::min(scrollBar->maximum(),
+                                std::max(0, (int) (scrollBar->value() + factor * scrollBar->pageStep()/panFactor)));
+  scrollBar->setValue(newValue);
+}
+
+void MainWindow::panLeft()
+{
+  if(!imageLoaded)
+    return;
+  slideScrollBar(ui->imageScrollArea->horizontalScrollBar(), -1);
+}
+
+void MainWindow::panRight()
+{
+  if(!imageLoaded)
+    return;
+  slideScrollBar(ui->imageScrollArea->horizontalScrollBar(), 1);
+}
+
+void MainWindow::panUp()
+{
+  if(!imageLoaded)
+    return;
+  slideScrollBar(ui->imageScrollArea->verticalScrollBar(), 1);
+}
+
+void MainWindow::panDown()
+{
+  if(!imageLoaded)
+    return;
+  slideScrollBar(ui->imageScrollArea->verticalScrollBar(), -1);
+}
+
 //This method reacts when the user clicks the zoom in button
 void MainWindow::zoomIn()
 {
     if(!imageLoaded)
         return;
-
-    currentZoom *= 1.5;
+    constexpr double zoomFactor = 1.5;
+    currentZoom *= zoomFactor;
+    adjustScrollBar(ui->imageScrollArea->verticalScrollBar(), zoomFactor);
+    adjustScrollBar(ui->imageScrollArea->horizontalScrollBar(), zoomFactor);
     updateImage();
 }
 
@@ -1665,7 +1739,10 @@ void MainWindow::zoomOut()
     if(!imageLoaded)
         return;
 
-    currentZoom /= 1.5;
+    constexpr double zoomFactor = 1.5;
+    currentZoom /= zoomFactor;
+    adjustScrollBar(ui->imageScrollArea->verticalScrollBar(), 1.0/zoomFactor);
+    adjustScrollBar(ui->imageScrollArea->horizontalScrollBar(), 1.0/zoomFactor);
     updateImage();
 }
 
