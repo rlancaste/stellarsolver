@@ -192,6 +192,10 @@ public slots:
 
     void zoomIn();
     void zoomOut();
+    void panLeft();
+    void panRight();
+    void panUp();
+    void panDown();
     void autoScale();
     void updateImage();
 
