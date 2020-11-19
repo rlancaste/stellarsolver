@@ -159,6 +159,9 @@ public slots:
 
     bool prepareForProcesses();
     void logOutput(QString text);
+    void toggleLogDisplay();
+    void toggleFullScreen();
+    void helpPopup();
     void startProcessMonitor();
     void stopProcessMonitor();
     void clearStars();
