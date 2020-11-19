@@ -60,7 +60,7 @@ MainWindow::MainWindow() :
     connect(ui->AutoScale, &QAbstractButton::clicked, this, &MainWindow::autoScale );
     ui->AutoScale->setToolTip("Rescales the image based on the available space");
 
-    // Keyboard shortcuts
+    // Keyboard shortcuts -- if you add more, remember to add to the helpPopup() method below.
     QShortcut *s = new QShortcut(QKeySequence(QKeySequence::ZoomIn), ui->Image);
     connect(s, &QShortcut::activated, this, &MainWindow::zoomIn);
     s = new QShortcut(QKeySequence(QKeySequence::ZoomOut), ui->Image);
@@ -79,6 +79,16 @@ MainWindow::MainWindow() :
     connect(s, &QShortcut::activated, this, &MainWindow::panUp);
     s = new QShortcut(QKeySequence(QKeySequence::Quit), ui->Image);
     connect(s, &QShortcut::activated, this, &QCoreApplication::quit);
+    s = new QShortcut(QKeySequence(tr("Ctrl+l")), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::toggleLogDisplay);
+    s = new QShortcut(QKeySequence(QKeySequence::FullScreen), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::toggleFullScreen);
+    s = new QShortcut(QKeySequence(QKeySequence::HelpContents), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::helpPopup);
+    s = new QShortcut(QKeySequence("?"), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::helpPopup);
+    s = new QShortcut(QKeySequence("h"), ui->Image);
+    connect(s, &QShortcut::activated, this, &MainWindow::helpPopup);
 
     //The Options at the bottom of the Window
     ui->trials->setToolTip("The number of times to Sextract or Solve to get an average time that it takes.");
@@ -590,6 +600,61 @@ void MainWindow::logOutput(QString text)
 {
     ui->logDisplay->append(text);
     ui->logDisplay->show();
+}
+
+void MainWindow::toggleFullScreen()
+{
+  if (isFullScreen())
+    showNormal();
+  else
+    showFullScreen();
+}
+
+void MainWindow::toggleLogDisplay()
+{
+  if (ui->tabWidget->isVisible())
+    ui->tabWidget->hide();
+  else
+    ui->tabWidget->show();
+}
+
+void MainWindow::helpPopup()
+{
+  QString helpMessage = 
+    QString("<table>"
+            "<tr><td>Zoom In: </td><td>%1</td></tr>"
+            "<tr><td>Zoom Out: </td><td>%2</td></tr>\n"
+            "<tr><td>Pan Up: </td><td>%3</td></tr>\n"
+            "<tr><td>Pan Down: </td><td>%4</td></tr>\n"
+            "<tr><td>Pan Left: </td><td>%5</td></tr>\n"
+            "<tr><td>Pan Right: </td><td>%6</td></tr>\n"
+            "<tr><td>AutoScale: </td><td>%7</td></tr>\n"
+            "<tr><td>LoadImage: </td><td>%8</td></tr>\n"
+            "<tr><td>Quit: </td><td>%9</td></tr>\n"
+            "<tr><td>Toggle Log Display: </td><td>%10</td></tr>\n"
+            "<tr><td>Toggle Full Screen: </td><td>%11</td></tr>\n"
+            "<tr>Help: </td><td>%12</td></tr>\n"
+            "</table>"
+            )
+    .arg(QKeySequence(QKeySequence::ZoomIn).toString(QKeySequence::NativeText))
+    .arg(QKeySequence(QKeySequence::ZoomOut).toString(QKeySequence::NativeText))
+    .arg(QKeySequence(QKeySequence::MoveToPreviousLine).toString(QKeySequence::NativeText))
+    .arg(QKeySequence(QKeySequence::MoveToNextLine).toString(QKeySequence::NativeText))
+    .arg(QKeySequence(QKeySequence::MoveToPreviousChar).toString(QKeySequence::NativeText))
+    .arg(QKeySequence(QKeySequence::MoveToNextChar).toString(QKeySequence::NativeText))
+    .arg("Ctrl+0")
+    .arg(QKeySequence(QKeySequence::Open).toString(QKeySequence::NativeText))
+    .arg(QKeySequence(QKeySequence::Quit).toString(QKeySequence::NativeText))
+    .arg("Ctrl+l")
+    .arg(QKeySequence(QKeySequence::FullScreen).toString(QKeySequence::NativeText))
+    .arg(QKeySequence(QKeySequence::HelpContents).toString(QKeySequence::NativeText));
+
+  QMessageBox *msgBox = new QMessageBox(this);
+  msgBox->setIcon( QMessageBox::Information );
+  msgBox->setText(helpMessage);
+  msgBox->setAttribute(Qt::WA_DeleteOnClose);
+  msgBox->setModal(false);
+  msgBox->show();
 }
 
 void MainWindow::setSubframe()
