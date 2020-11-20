@@ -31,6 +31,6 @@ from Package.CMakePackageBase import *
 class Package(CMakePackageBase):
     def __init__(self):
         CMakePackageBase.__init__(self)
-        root = CraftCore.standardDirs.craftRoot()
+        root = str(CraftCore.standardDirs.craftRoot())
         craftLibDir = os.path.join(root,  'lib')
         self.subinfo.options.configure.args = "-DCMAKE_INSTALL_PREFIX=" + root + " -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_MACOSX_RPATH=1 -DCMAKE_INSTALL_RPATH=" + craftLibDir
