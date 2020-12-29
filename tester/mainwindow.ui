@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1195</width>
+    <width>1198</width>
     <height>808</height>
    </rect>
   </property>
@@ -127,7 +127,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>287</width>
+                 <width>285</width>
                  <height>388</height>
                 </rect>
                </property>
@@ -144,7 +144,7 @@
                    </size>
                   </property>
                   <property name="text">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;img src=&quot;:/StellarSolverIcon.png&quot; width=&quot;125&quot;/&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;StellarSolver Library&lt;br/&gt;© 2020 by &lt;br/&gt;Rob Lancaster&lt;br/&gt;GPL v.3&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;built on:&lt;br/&gt;&lt;a href=&quot;http://astrometry.net/doc/readme.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;astrometry.net&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;a href=&quot;https://sep.readthedocs.io/en/v1.0.x/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;sextractor (SEP)&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;img src=&quot;:/StellarSolverIcon.png&quot; width=&quot;125&quot;/&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;StellarSolver Library&lt;br/&gt;© 2020 by &lt;br/&gt;Rob Lancaster&lt;br/&gt;GPL v.3&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;built on:&lt;br/&gt;&lt;a href=&quot;http://astrometry.net/doc/readme.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;astrometry.net&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;a href=&quot;https://sep.readthedocs.io/en/v1.0.x/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;sextractor (SEP)&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt; </string>
                   </property>
                   <property name="wordWrap">
                    <bool>true</bool>
@@ -161,7 +161,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>287</width>
+                 <width>285</width>
                  <height>388</height>
                 </rect>
                </property>
@@ -169,14 +169,14 @@
                 <string>Logging</string>
                </attribute>
                <layout class="QGridLayout" name="gridLayout_12">
-                <item row="3" column="0">
-                 <widget class="QLabel" name="label_59">
+                <item row="5" column="0">
+                 <widget class="QLabel" name="label_34">
                   <property name="text">
-                   <string>StellarSolver:</string>
+                   <string>Astrometry:</string>
                   </property>
                  </widget>
                 </item>
-                <item row="19" column="0">
+                <item row="20" column="0">
                  <spacer name="verticalSpacer_2">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
@@ -189,14 +189,43 @@
                   </property>
                  </spacer>
                 </item>
-                <item row="4" column="0">
-                 <widget class="QLabel" name="label_34">
+                <item row="0" column="0" colspan="2">
+                 <widget class="QCheckBox" name="logToFile">
                   <property name="text">
-                   <string>Astrometry:</string>
+                   <string>Astrometry Log to File</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="0">
+                 <widget class="QLabel" name="label_59">
+                  <property name="text">
+                   <string>StellarSolver:</string>
                   </property>
                  </widget>
                 </item>
                 <item row="4" column="1">
+                 <widget class="QComboBox" name="stellarSolverLogLevel">
+                  <property name="currentIndex">
+                   <number>1</number>
+                  </property>
+                  <item>
+                   <property name="text">
+                    <string>None</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Normal</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Verbose</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+                <item row="5" column="1">
                  <widget class="QComboBox" name="logLevel">
                   <property name="currentIndex">
                    <number>0</number>
@@ -228,32 +257,13 @@
                   </item>
                  </widget>
                 </item>
-                <item row="3" column="1">
-                 <widget class="QComboBox" name="stellarSolverLogLevel">
-                  <property name="currentIndex">
-                   <number>1</number>
-                  </property>
-                  <item>
-                   <property name="text">
-                    <string>None</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>Normal</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>Verbose</string>
-                   </property>
-                  </item>
-                 </widget>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="logFileName"/>
                 </item>
-                <item row="0" column="0" colspan="2">
-                 <widget class="QCheckBox" name="logToFile">
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_61">
                   <property name="text">
-                   <string>Astrometry Log to File</string>
+                   <string>Log File:</string>
                   </property>
                  </widget>
                 </item>
@@ -264,7 +274,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>287</width>
+                 <width>289</width>
                  <height>388</height>
                 </rect>
                </property>
@@ -446,7 +456,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>287</width>
+                 <width>285</width>
                  <height>388</height>
                 </rect>
                </property>
@@ -564,7 +574,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>287</width>
+                 <width>285</width>
                  <height>388</height>
                 </rect>
                </property>
@@ -740,7 +750,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>321</width>
+                 <width>319</width>
                  <height>535</height>
                 </rect>
                </property>
@@ -1012,7 +1022,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>151</width>
+                 <width>154</width>
                  <height>375</height>
                 </rect>
                </property>
@@ -1225,7 +1235,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>98</width>
+                 <width>100</width>
                  <height>74</height>
                 </rect>
                </property>
@@ -1258,7 +1268,7 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>211</width>
+                     <width>213</width>
                      <height>334</height>
                     </rect>
                    </property>
@@ -1527,7 +1537,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>492</width>
+                 <width>499</width>
                  <height>144</height>
                 </rect>
                </property>

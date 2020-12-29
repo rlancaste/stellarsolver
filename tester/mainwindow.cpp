@@ -344,6 +344,7 @@ MainWindow::MainWindow() :
     ui->oddsToTune->setToolTip("The Astrometry oddsToTune Parameter.  This may need to be changed or removed");
 
     ui->logToFile->setToolTip("Whether the stellarsolver should just output to the log window or whether it should log to a file.");
+    ui->logFileName->setToolTip("The name and path of the file to log to, if this is blank, it will automatically log to a file in the temp Directory with an automatically generated name.");
     ui->logLevel->setToolTip("The verbosity level of the log to be displayed in the log window or saved to a file.");
 
     connect(ui->indexFolderPaths, &QComboBox::currentTextChanged, this, [this]()
@@ -955,7 +956,9 @@ void MainWindow::setupStellarSolverParameters()
 
     //These setup Logging if desired
     stellarSolver->setProperty("LogToFile", ui->logToFile->isChecked());
-
+    QString filename = ui->logFileName->text();
+    if(filename != "" && QFileInfo(filename).dir().exists() && !QFileInfo(filename).isDir())
+        stellarSolver->m_LogFileName=filename;
     stellarSolver->setLogLevel((SSolver::logging_level)ui->logLevel->currentIndex());
     stellarSolver->setSSLogLevel((SSolver::SSolverLogLevel)ui->stellarSolverLogLevel->currentIndex());
 }

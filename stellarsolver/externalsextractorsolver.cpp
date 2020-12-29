@@ -719,7 +719,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
         solverArgs << "-spd" << QString::number(search_dec + 90); //Convert dec to spd
         solverArgs << "-r" << QString::number(m_ActiveParameters.search_radius);
     }
-    if(m_AstrometryLogLevel == LOG_ALL || m_AstrometryLogLevel == LOG_VERB)
+    if(m_AstrometryLogLevel != LOG_NONE)
         solverArgs << "-log";
 
     solver.clear();
@@ -737,6 +737,32 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
 
     solver->waitForFinished(m_ActiveParameters.solverTimeLimit * 1000 *
                             1.2); //Set to timeout in a little longer than the timeout
+
+    if(m_AstrometryLogLevel != LOG_NONE)
+    {
+        QFile logFile(m_BasePath + "/" + m_BaseName + ".log");
+        if(logFile.exists())
+        {
+            if(m_LogToFile)
+            {
+                if(m_LogFileName != "")
+                    logFile.copy(m_LogFileName);
+            }
+            else
+            {
+                if (logFile.open(QIODevice::ReadOnly))
+                {
+                    QTextStream in(&logFile);
+                    emit logOutput(in.readAll());
+                }
+                else
+                    emit logOutput("Failed to open ASTAP log file" + logFile.fileName());
+            }
+        }
+        else
+            emit logOutput("ASTAP log file " + logFile.fileName() + " does not exist.");
+    }
+
     if(solver->error() == QProcess::Timedout)
     {
         emit logOutput("Solver timed out, aborting");
@@ -1178,6 +1204,18 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
     }
     if (ini[1] == "F")
     {
+        line = in.readLine();
+        //If the plate solve failed, we still need to search for any error or warning messages and print them out.
+        while (!line.isNull())
+        {
+            QStringList ini = line.split("=");
+            if (ini[0] == "WARNING")
+                emit logOutput(line.mid(8).trimmed());
+            else if (ini[0] == "ERROR")
+                emit logOutput(line.mid(6).trimmed());
+
+            line = in.readLine();
+        }
         emit logOutput("Solver failed. Try again.");
         return false;
     }
@@ -1200,6 +1238,10 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
             pixscale = ini[1].trimmed().toDouble(&ok[2]) * 3600.0;
         else if (ini[0] == "CROTA2")
             orient = ini[1].trimmed().toDouble(&ok[3]);
+        else if (ini[0] == "WARNING")
+            emit logOutput(line.mid(8).trimmed());
+        else if (ini[0] == "ERROR")
+            emit logOutput(line.mid(6).trimmed());
 
         line = in.readLine();
     }

@@ -218,6 +218,13 @@ void StellarSolver::start()
 
 bool StellarSolver::checkParameters()
 {
+    if(m_SolverType == SOLVER_ASTAP && m_SextractorType != EXTRACTOR_BUILTIN)
+    {
+        if(m_SSLogLevel != LOG_OFF)
+            emit logOutput("ASTAP no longer supports alternative star extraction methods.  Changing to built-in star extraction.");
+        m_SextractorType = EXTRACTOR_BUILTIN;
+    }
+    
     if(params.multiAlgorithm != NOT_MULTI && m_SolverType == SOLVER_ASTAP && m_ProcessType == SOLVE)
     {
         if(m_SSLogLevel != LOG_OFF)

@@ -6,9 +6,9 @@ cmake_minimum_required(VERSION 3.0)
 # Timestamp build
 string(TIMESTAMP StellarSolver_BUILD_TS UTC)
 
-# StellarSolver Version 1.5
+# StellarSolver Version 1.6
 set (StellarSolver_VERSION_MAJOR 1)
-set (StellarSolver_VERSION_MINOR 5)
+set (StellarSolver_VERSION_MINOR 6)
 
 set (StellarSolver_SOVERSION "${StellarSolver_VERSION_MAJOR}")
 set (StellarSolver_VERSION ${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR})

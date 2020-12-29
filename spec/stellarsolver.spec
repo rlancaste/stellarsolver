@@ -1,7 +1,7 @@
 %define __cmake_in_source_build %{_vpath_builddir}
 
 Name: stellarsolver
-Version: 1.4.git
+Version: 1.6.git
 Release: %(date -u +%%Y%%m%%d%%H%%M%%S)%{?dist}
 Summary: The Cross Platform Sextractor and Astrometry.net-Based Internal Astrometric Solver
 
@@ -53,5 +53,7 @@ An Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net
 %license LICENSE
 
 %changelog
+* Thu Dec 29 2020 Rob Lancaster <rlancaste@gmail.com> 1.6.git
+- Updating Spec file to latest version and Supporting additional ASTAP features
 * Thu Oct 08 2020 Jim Howard <jh.xsnrg+fedora@gmail.com> 1.4.git
 - introduction of spec file to build RPM packages from git
