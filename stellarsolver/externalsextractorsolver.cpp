@@ -707,6 +707,8 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     solverArgs << "-wcs";
     if(m_ActiveParameters.downsample > 1)
         solverArgs << "-z" << QString::number(m_ActiveParameters.downsample);
+    else
+        solverArgs << "-z" << "0";
     if(m_UseScale)
     {
         double scalemid = (scalehi + scalelo) / 2;
