@@ -228,15 +228,8 @@ bool StellarSolver::checkParameters()
     if(params.multiAlgorithm != NOT_MULTI && m_SolverType == SOLVER_ASTAP && m_ProcessType == SOLVE)
     {
         if(m_SSLogLevel != LOG_OFF)
-            emit logOutput("ASTAP does not support Parallel solves.  Disabling that option");
+            emit logOutput("ASTAP does not support multi-threaded solves.  Disabling that option");
         params.multiAlgorithm = NOT_MULTI;
-    }
-
-    if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && m_SextractorType != EXTRACTOR_INTERNAL)
-    {
-        if(m_SSLogLevel != LOG_OFF)
-            emit logOutput("StellarSolver only uses the Internal SEP Sextractor since it doesn't save files to disk. Changing to Internal Sextractor.");
-        m_SextractorType = EXTRACTOR_INTERNAL;
     }
 
     if(m_ProcessType == SOLVE  && params.autoDownsample)
@@ -248,33 +241,43 @@ bool StellarSolver::checkParameters()
             emit logOutput(QString("Automatically downsampling the image by %1").arg(params.downsample));
     }
 
-    if(m_ProcessType == SOLVE && params.multiAlgorithm == MULTI_AUTO)
+    if(m_ProcessType == SOLVE && m_SolverType != SOLVER_ASTAP)
     {
-        if(m_UseScale && m_UsePosition)
-            params.multiAlgorithm = NOT_MULTI;
-        else if(m_UsePosition)
-            params.multiAlgorithm = MULTI_SCALES;
-        else if(m_UseScale)
-            params.multiAlgorithm = MULTI_DEPTHS;
-        else
-            params.multiAlgorithm = MULTI_SCALES;
-    }
-
-    if(m_ProcessType == SOLVE && params.inParallel)
-    {
-        if(enoughRAMisAvailableFor(indexFolderPaths))
+        if(m_SolverType == SOLVER_STELLARSOLVER && m_SextractorType != EXTRACTOR_INTERNAL)
         {
             if(m_SSLogLevel != LOG_OFF)
-                emit logOutput("There should be enough RAM to load the indexes in parallel.");
+                emit logOutput("StellarSolver only uses the Internal SEP Sextractor since it doesn't save files to disk. Changing to Internal Star Extractor.");
+            m_SextractorType = EXTRACTOR_INTERNAL;
         }
-        else
+
+        if(params.multiAlgorithm == MULTI_AUTO)
         {
-            if(m_SSLogLevel != LOG_OFF)
+            if(m_UseScale && m_UsePosition)
+                params.multiAlgorithm = NOT_MULTI;
+            else if(m_UsePosition)
+                params.multiAlgorithm = MULTI_SCALES;
+            else if(m_UseScale)
+                params.multiAlgorithm = MULTI_DEPTHS;
+            else
+                params.multiAlgorithm = MULTI_SCALES;
+        }
+
+        if(params.inParallel)
+        {
+            if(enoughRAMisAvailableFor(indexFolderPaths))
             {
-                emit logOutput("Not enough RAM is available on this system for loading the index files you have in parallel");
-                emit logOutput("Disabling the inParallel option.");
+                if(m_SSLogLevel != LOG_OFF)
+                    emit logOutput("There should be enough RAM to load the indexes in parallel.");
             }
-            params.inParallel = false;
+            else
+            {
+                if(m_SSLogLevel != LOG_OFF)
+                {
+                    emit logOutput("Not enough RAM is available on this system for loading the index files you have in parallel");
+                    emit logOutput("Disabling the inParallel option.");
+                }
+                params.inParallel = false;
+            }
         }
     }
 
