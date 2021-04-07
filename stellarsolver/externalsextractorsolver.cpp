@@ -1164,7 +1164,7 @@ bool ExternalSextractorSolver::getSolutionInformation()
             else if (key_value[0] == "pixscale")
                 pixscale = key_value[1].toDouble();
             else if (key_value[0] == "parity")
-                parity = (key_value[1].toInt() == 0) ? "pos" : "neg";
+                parity = (key_value[1].toInt() == -1) ? "pos" : "neg";
         }
     }
 
@@ -1180,6 +1180,17 @@ bool ExternalSextractorSolver::getSolutionInformation()
     }
 
     m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
+
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
+    emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
+    if(m_UsePosition)
+        emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
+    emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw).arg( fieldh));
+    emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale ));
+    emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
+    emit logOutput(QString("Field parity: %1\n").arg( parity));
+
     return true;
 }
 
@@ -1225,8 +1236,11 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
     double fieldw = 0, fieldh = 0, pixscale = 0;
     char rastr[32], decstr[32];
     QString parity = "";
-
-    bool ok[4] = {false};
+    double cd11 = 0;
+    double cd22 = 0;
+    double cd12 = 0;
+    double cd21 = 0;
+    bool ok[8] = {false};
 
     line = in.readLine();
     while (!line.isNull())
@@ -1240,6 +1254,14 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
             pixscale = ini[1].trimmed().toDouble(&ok[2]) * 3600.0;
         else if (ini[0] == "CROTA2")
             orient = ini[1].trimmed().toDouble(&ok[3]);
+        else if (ini[0] == "CD1_1")
+            cd11 = ini[1].trimmed().toDouble(&ok[4]);
+        else if (ini[0] == "CD1_2")
+            cd12 = ini[1].trimmed().toDouble(&ok[5]);
+        else if (ini[0] == "CD2_1")
+            cd21 = ini[1].trimmed().toDouble(&ok[6]);
+        else if (ini[0] == "CD2_2")
+            cd22 = ini[1].trimmed().toDouble(&ok[7]);
         else if (ini[0] == "WARNING")
             emit logOutput(line.mid(8).trimmed());
         else if (ini[0] == "ERROR")
@@ -1248,12 +1270,22 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
         line = in.readLine();
     }
 
-    if (ok[0] && ok[1] && ok[2] && ok[3])
+    if ( ok[0] && ok[1] && ok[2] && ok[3] )
     {
         ra2hmsstring(ra, rastr);
         dec2dmsstring(dec, decstr);
         fieldw = m_Statistics.width * pixscale / 60;
         fieldh = m_Statistics.height * pixscale / 60;
+
+        if ( ok[4] && ok[5] && ok[6] && ok[7] )
+        {
+            // Note, negative determinant = positive parity.
+            double det = cd11 * cd22 - cd12 * cd21;
+            if(det > 0)
+                parity = "neg";
+            else
+                parity = "pos";
+        }
 
         double raErr = 0;
         double decErr = 0;
@@ -1264,15 +1296,15 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
         }
 
         m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
-
         emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
         emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
         if(m_UsePosition)
             emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
-        emit logOutput(QString("Field size: %1 x %2").arg( fieldw).arg( fieldh));
-        emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
+        emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw).arg( fieldh));
         emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale ));
+        emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
+        emit logOutput(QString("Field parity: %1\n").arg( parity));
 
         return true;
     }
