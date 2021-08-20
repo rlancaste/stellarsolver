@@ -322,7 +322,7 @@ void OnlineSolver::checkJobCalibration()
 //This will start the seventh stage, getting the Job LOG file and loading it (optional).
 void OnlineSolver::getJobLogFile()
 {
-    QString URL = QString("http://nova.astrometry.net/joblog/%1").arg(jobID);
+    QString URL = QString("%1/joblog/%2").arg(astrometryAPIURL).arg(jobID);
     networkManager->get(QNetworkRequest(QUrl(URL)));
 
     workflowStage = LOG_LOADING_STAGE;
@@ -332,7 +332,7 @@ void OnlineSolver::getJobLogFile()
 //This will start the eighth stage, getting the WCS File and loading it (optional).
 void OnlineSolver::getJobWCSFile()
 {
-    QString URL = QString("http://nova.astrometry.net/wcs_file/%1").arg(jobID);
+    QString URL = QString("%1/wcs_file/%2").arg(astrometryAPIURL).arg(jobID);
     networkManager->get(QNetworkRequest(QUrl(URL)));
 
     workflowStage = WCS_LOADING_STAGE;
@@ -411,7 +411,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             status = result["status"].toString();
             if (status != "success")
             {
-                emit logOutput("Astrometry.net authentication failed. Check the validity of the Astrometry.net API Key.");
+                emit logOutput(QString("%1 authentication failed. Check the validity of the API Key.").arg(astrometryAPIURL));
                 abort();
                 return;
             }
@@ -419,7 +419,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             sessionKey = result["session"].toString();
 
             if(m_SSLogLevel != LOG_OFF)
-                emit logOutput(QString("Authentication to astrometry.net is successful. Session: %1").arg(sessionKey));
+                emit logOutput(QString("Authentication to %1 is successful. Session: %2").arg(astrometryAPIURL).arg(sessionKey));
 
             uploadFile(); //Go to NEXT STAGE
             break;
@@ -442,7 +442,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
                 return;
             }
 
-            emit logOutput(("Upload complete. Waiting for astrometry.net solver to complete..."));
+            emit logOutput(QString("Upload complete. Waiting for %1 solver to complete...").arg(astrometryAPIURL));
             waitForProcessing();  //Go to the NEXT STAGE
             break;
 

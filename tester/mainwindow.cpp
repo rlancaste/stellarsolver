@@ -467,6 +467,8 @@ MainWindow::MainWindow() :
     ui->cleanupTemp->setChecked(programSettings.value("cleanupTemporaryFiles", extTemp.cleanupTemporaryFiles).toBool());
     ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig",
             extTemp.autoGenerateAstroConfig).toBool());
+    ui->onlineServer->setText(programSettings.value("onlineServer", "http://nova.astrometry.net").toString());
+    ui->apiKey->setText(programSettings.value("apiKey", "iczikaqstszeptgs").toString());
 
     //These load the default settings from the StellarSolver usting a temporary object
     StellarSolver temp(processType, stats, m_ImageBuffer, this);
@@ -940,8 +942,8 @@ void MainWindow::setupExternalSextractorSolverIfNeeded()
 
     //Online Options
     stellarSolver->setProperty("BasePath",  ui->basePath->text());
-    stellarSolver->setProperty("AstrometryAPIKey", "iczikaqstszeptgs");
-    stellarSolver->setProperty("AstrometryAPIURL", "http://nova.astrometry.net");
+    stellarSolver->setProperty("AstrometryAPIKey", ui->apiKey->text());
+    stellarSolver->setProperty("AstrometryAPIURL", ui->onlineServer->text());
 }
 
 void MainWindow::setupStellarSolverParameters()
@@ -2848,6 +2850,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
     programSettings.setValue("wcsPath", ui->wcsPath->text());
     programSettings.setValue("cleanupTemporaryFiles",  ui->cleanupTemp->isChecked());
     programSettings.setValue("autoGenerateAstroConfig", ui->generateAstrometryConfig->isChecked());
+    programSettings.setValue("onlineServer", ui->onlineServer->text());
+    programSettings.setValue("apiKey", ui->apiKey->text());
 
     QStringList items;
     for(int i = 0; i < ui->indexFolderPaths->count(); i++)
