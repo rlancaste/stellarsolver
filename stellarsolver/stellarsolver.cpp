@@ -127,8 +127,9 @@ ExternalProgramPaths StellarSolver::getWinCygwinPaths()
 void StellarSolver::extract(bool calculateHFR, QRect frame)
 {
     m_ProcessType = calculateHFR ? EXTRACT_WITH_HFR : EXTRACT;
-    useSubframe = frame.isNull() ? false : true;
-    m_Subframe = frame;
+    useSubframe = !frame.isNull() && frame.isValid();
+    if (useSubframe)
+        m_Subframe = frame;
     start();
     m_SextractorSolver->wait();
 }
@@ -224,7 +225,7 @@ bool StellarSolver::checkParameters()
             emit logOutput("ASTAP no longer supports alternative star extraction methods.  Changing to built-in star extraction.");
         m_SextractorType = EXTRACTOR_BUILTIN;
     }
-    
+
     if(params.multiAlgorithm != NOT_MULTI && m_SolverType == SOLVER_ASTAP && m_ProcessType == SOLVE)
     {
         if(m_SSLogLevel != LOG_OFF)
@@ -459,7 +460,8 @@ void StellarSolver::finishParallelSolve(int success)
             connect(solverWithWCS, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
             solverWithWCS->start();
         }
-        if(m_SextractorType != EXTRACTOR_BUILTIN) //Note this is just cleaning up the files from the star extraction done prior to the parallel solve.  So for built in, it doesn't even do it, so no files to clean up
+        if(m_SextractorType !=
+                EXTRACTOR_BUILTIN) //Note this is just cleaning up the files from the star extraction done prior to the parallel solve.  So for built in, it doesn't even do it, so no files to clean up
             m_SextractorSolver->cleanupTempFiles();
         m_HasSolved = true;
         emit ready();

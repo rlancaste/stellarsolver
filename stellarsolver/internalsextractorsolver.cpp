@@ -233,19 +233,20 @@ int InternalSextractorSolver::runSEPSextractor()
     uint32_t x = 0, y = 0;
     uint32_t w = m_Statistics.width, h = m_Statistics.height;
     uint32_t raw_w = m_Statistics.width, raw_h = m_Statistics.height;
-    if(m_UseSubframe)
+    if(m_UseSubframe && m_SubFrameRect.isValid())
     {
-        x = m_SubFrameRect.x();
-        w = m_SubFrameRect.width();
-        y = m_SubFrameRect.y();
-        h = m_SubFrameRect.height();
+        // JM 2021-08-21 Max sure frame is within acceptable parameters.
+        x = std::max(0, m_SubFrameRect.x());
+        w = std::min(static_cast<int>(raw_w), m_SubFrameRect.width());
+        y = std::max(0, m_SubFrameRect.y());
+        h = std::min(static_cast<int>(raw_h), m_SubFrameRect.height());
 
         raw_w = w;
         raw_h = h;
     }
 
     QList<float *> dataBuffers;
-    QList<QFuture<QList<FITSImage::Star>>> futures;
+    QVector<QFuture<QList<FITSImage::Star>>> futures;
     QList<QPair<uint32_t, uint32_t>> startupOffsets;
     QList<FITSImage::Background> backgrounds;
 
@@ -340,7 +341,7 @@ int InternalSextractorSolver::runSEPSextractor()
     }
 
     double sumGlobal = 0, sumRmsSq = 0;
-    for (const auto &bg : backgrounds)
+    for (const auto &bg : qAsConst(backgrounds))
     {
         sumGlobal += bg.global;
         sumRmsSq += bg.globalrms * bg.globalrms;
