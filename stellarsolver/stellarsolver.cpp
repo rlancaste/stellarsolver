@@ -76,6 +76,7 @@ SextractorSolver* StellarSolver::createSextractorSolver()
         extSolver->wcsPath = m_WCSPath;
         extSolver->cleanupTemporaryFiles = m_CleanupTemporaryFiles;
         extSolver->autoGenerateAstroConfig = m_AutoGenerateAstroConfig;
+        extSolver->onlySendFITSFiles = m_OnlySendFITSFiles;
         solver = extSolver;
     }
 
@@ -189,6 +190,7 @@ void StellarSolver::start()
     if(params.multiAlgorithm != NOT_MULTI && m_ProcessType == SOLVE && (m_SolverType == SOLVER_STELLARSOLVER
             || m_SolverType == SOLVER_LOCALASTROMETRY))
     {
+        //Note that it is good to do the Star Extraction before parallelization because it doesn't make sense to repeat this step in all the threads, especially since SEP is now also parallelized in StellarSolver.
         if(m_SextractorType != EXTRACTOR_BUILTIN)
         {
             m_SextractorSolver->extract();
@@ -200,6 +202,21 @@ void StellarSolver::start()
                 emit ready();
                 emit finished();
                 return;
+            }
+        }
+        //Note that converting the image to a FITS file if desired, doesn't need to be repeated in all the threads, but also CFITSIO fails when accessed by multiple parallel threads.
+        if(m_SolverType == SOLVER_LOCALASTROMETRY && m_SextractorType == EXTRACTOR_BUILTIN && m_OnlySendFITSFiles)
+        {
+            QPointer<ExternalSextractorSolver> extSolver = (ExternalSextractorSolver*) (SextractorSolver*) m_SextractorSolver;
+            QFileInfo file(extSolver->fileToProcess);
+            if(file.suffix() != "fits" && file.suffix() != "fit")
+            {
+                int ret = extSolver->saveAsFITS();
+                if(ret != 0)
+                {
+                    emit logOutput("Failed to save FITS File.");
+                    return;
+                }
             }
         }
         parallelSolve();

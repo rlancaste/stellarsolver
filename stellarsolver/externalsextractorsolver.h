@@ -38,6 +38,7 @@ class ExternalSextractorSolver : public InternalSextractorSolver
         //External Options
         bool cleanupTemporaryFiles = true;
         bool autoGenerateAstroConfig = true;
+        bool onlySendFITSFiles = false;
 
         //System File Paths
         QStringList indexFilePaths;

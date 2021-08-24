@@ -213,7 +213,9 @@ MainWindow::MainWindow() :
     ui->wcsPath->setToolTip("The path to wcsinfo for the external Astrometry.net");
     ui->cleanupTemp->setToolTip("This option allows the program to clean up temporary files created when running various processes");
     ui->generateAstrometryConfig->setToolTip("Determines whether to generate an astrometry.cfg file based on the options in the options panel or to use the external config file above.");
-
+    ui->onlySendFITSFiles->setToolTip("This option only applies to the local external solvers using their own builtin star extractor. If it is off, the file will be sent in its native form.  If it is on, it will be converted to FITS.  This is good for avoiding Python usage.");
+    ui->onlineServer->setToolTip("This is the server that StellarSolver will use for the Online solves.  This will typically be nova.astrometry.net, but it could also be an ANSVR server or a custom one.");
+    ui->apiKey->setToolTip("This is the api key used for astrometry.net online.  You can enter your own and then have access to your solves later.");
     connect(ui->openTemp, &QAbstractButton::clicked, this, [this]()
     {
         QDesktopServices::openUrl(QUrl::fromLocalFile(ui->basePath->text()));
@@ -467,6 +469,7 @@ MainWindow::MainWindow() :
     ui->cleanupTemp->setChecked(programSettings.value("cleanupTemporaryFiles", extTemp.cleanupTemporaryFiles).toBool());
     ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig",
             extTemp.autoGenerateAstroConfig).toBool());
+    ui->onlySendFITSFiles->setChecked(programSettings.value("onlySendFITSFiles", false).toBool());
     ui->onlineServer->setText(programSettings.value("onlineServer", "http://nova.astrometry.net").toString());
     ui->apiKey->setText(programSettings.value("apiKey", "iczikaqstszeptgs").toString());
 
@@ -939,6 +942,7 @@ void MainWindow::setupExternalSextractorSolverIfNeeded()
     stellarSolver->setProperty("WCSPath", ui->wcsPath->text());
     stellarSolver->setProperty("CleanupTemporaryFiles", ui->cleanupTemp->isChecked());
     stellarSolver->setProperty("AutoGenerateAstroConfig", ui->generateAstrometryConfig->isChecked());
+    stellarSolver->setProperty("OnlySendFITSFiles", ui->onlySendFITSFiles->isChecked());
 
     //Online Options
     stellarSolver->setProperty("BasePath",  ui->basePath->text());
@@ -2850,6 +2854,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     programSettings.setValue("wcsPath", ui->wcsPath->text());
     programSettings.setValue("cleanupTemporaryFiles",  ui->cleanupTemp->isChecked());
     programSettings.setValue("autoGenerateAstroConfig", ui->generateAstrometryConfig->isChecked());
+    programSettings.setValue("onlySendFITSFiles", ui->onlySendFITSFiles->isChecked());
     programSettings.setValue("onlineServer", ui->onlineServer->text());
     programSettings.setValue("apiKey", ui->apiKey->text());
 

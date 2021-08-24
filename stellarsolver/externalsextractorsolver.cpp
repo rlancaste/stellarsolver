@@ -336,6 +336,7 @@ SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
     solver->wcsPath = wcsPath;
     solver->cleanupTemporaryFiles = cleanupTemporaryFiles;
     solver->autoGenerateAstroConfig = autoGenerateAstroConfig;
+    solver->onlySendFITSFiles = onlySendFITSFiles;
 
     solver->isChildSolver = true;
     solver->m_ActiveParameters = m_ActiveParameters;
@@ -590,13 +591,25 @@ int ExternalSextractorSolver::runExternalSolver()
             return -1;
         }
 
-        //Making a copy of the file and putting it in the temp directory
-        //So that we can find all the temporary files and delete them later
-        //That way we don't pollute the directory the original image is located in
-        QString newFileURL = m_BasePath + "/" + m_BaseName + "." + file.suffix();
-        QFile::copy(fileToProcess, newFileURL);
-        fileToProcess = newFileURL;
-        fileToProcessIsTempFile = true;
+        if( !isChildSolver && onlySendFITSFiles && file.suffix() != "fits" && file.suffix() != "fit")
+        {
+            int ret = saveAsFITS();
+            if(ret != 0)
+            {
+                emit logOutput("Failed to Save the image as a FITS File.");
+                return ret;
+            }
+        }
+        else
+        {
+            //Making a copy of the file and putting it in the temp directory
+            //So that we can find all the temporary files and delete them later
+            //That way we don't pollute the directory the original image is located in
+            QString newFileURL = m_BasePath + "/" + m_BaseName + "." + file.suffix();
+            QFile::copy(fileToProcess, newFileURL);
+            fileToProcess = newFileURL;
+            fileToProcessIsTempFile = true;
+        }
     }
     else
     {
@@ -848,12 +861,13 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
             solverArgs << "--sort-column" << "MAG_AUTO";
             solverArgs << "--sort-ascending";
         }
-
-        //Note This set of items is NOT NEEDED for Sextractor, it is needed to avoid python usage
-        //This may need to be changed later, but since the goal for using sextractor is to avoid python, this is placed here.
-        solverArgs << "--no-remove-lines";
-        solverArgs << "--uniformize" << "0";
     }
+
+    //Note This set of items is NOT NEEDED for Sextractor or for astrometry.net to solve, it is needed to avoid python usage.
+    //On many user's systems especially on Mac and sometimes on Windows, there is an issue in the Python setup that causes astrometry to fail.
+    //This should avoid those problems as long as you send a FITS file or a xy list to astrometry.
+    solverArgs << "--no-remove-lines";
+    solverArgs << "--uniformize" << "0";
 
     //Don't need any argument for default level
     if(m_AstrometryLogLevel == LOG_MSG || m_AstrometryLogLevel == LOG_ERROR)

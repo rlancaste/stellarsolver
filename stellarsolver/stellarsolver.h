@@ -41,6 +41,7 @@ class StellarSolver : public QObject
         Q_PROPERTY(bool UseScale MEMBER m_UseScale)
         Q_PROPERTY(bool AutoGenerateAstroConfig MEMBER m_AutoGenerateAstroConfig)
         Q_PROPERTY(bool CleanupTemporaryFiles MEMBER m_CleanupTemporaryFiles)
+        Q_PROPERTY(bool OnlySendFITSFiles MEMBER m_OnlySendFITSFiles)
         Q_PROPERTY(bool LogToFile MEMBER m_LogToFile)
         Q_PROPERTY(SolverType SolverType MEMBER m_SolverType)
         Q_PROPERTY(ProcessType ProcessType MEMBER m_ProcessType)
@@ -282,6 +283,7 @@ class StellarSolver : public QObject
         QString m_FileToProcess;
         bool m_CleanupTemporaryFiles {true};
         bool m_AutoGenerateAstroConfig {true};
+        bool m_OnlySendFITSFiles {false};
 
         //System File Paths
         QStringList m_IndexFilePaths;
