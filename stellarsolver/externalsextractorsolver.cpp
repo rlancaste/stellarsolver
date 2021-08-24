@@ -868,6 +868,8 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
     //This should avoid those problems as long as you send a FITS file or a xy list to astrometry.
     solverArgs << "--no-remove-lines";
     solverArgs << "--uniformize" << "0";
+    if(onlySendFITSFiles && m_ExtractorType == EXTRACTOR_BUILTIN)
+        solverArgs << "--fits-image";
 
     //Don't need any argument for default level
     if(m_AstrometryLogLevel == LOG_MSG || m_AstrometryLogLevel == LOG_ERROR)
