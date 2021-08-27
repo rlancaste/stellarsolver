@@ -283,7 +283,7 @@ class StellarSolver : public QObject
         QString m_FileToProcess;
         bool m_CleanupTemporaryFiles {true};
         bool m_AutoGenerateAstroConfig {true};
-        bool m_OnlySendFITSFiles {false};
+        bool m_OnlySendFITSFiles {true};
 
         //System File Paths
         QStringList m_IndexFilePaths;
