@@ -1280,7 +1280,7 @@ bool MainWindow::loadFits()
 
     // Use open diskfile as it does not use extended file names which has problems opening
     // files with [ ] or ( ) in their names.
-    if (fits_open_diskfile(&fptr, fileToProcess.toLatin1(), READONLY, &status))
+    if (fits_open_diskfile(&fptr, fileToProcess.toLocal8Bit(), READONLY, &status))
     {
         logOutput(QString("Error opening fits file %1").arg(fileToProcess));
         return false;
@@ -1411,7 +1411,7 @@ bool MainWindow::loadFits()
 //The goal of this method is to load the data from a file that is not FITS format
 bool MainWindow::loadOtherFormat()
 {
-    QImageReader fileReader(fileToProcess.toLatin1());
+    QImageReader fileReader(fileToProcess.toLocal8Bit());
 
     if (QImageReader::supportedImageFormats().contains(fileReader.format()) == false)
     {
@@ -1422,7 +1422,7 @@ bool MainWindow::loadOtherFormat()
 
     QString errMessage;
     QImage imageFromFile;
-    if(!imageFromFile.load(fileToProcess.toLatin1()))
+    if(!imageFromFile.load(fileToProcess.toLocal8Bit()))
     {
         logOutput("Failed to open image.");
         return false;
@@ -2300,7 +2300,7 @@ bool MainWindow::getSolverOptionsFromFITS()
 
     // Use open diskfile as it does not use extended file names which has problems opening
     // files with [ ] or ( ) in their names.
-    if (fits_open_diskfile(&fptr, fileToProcess.toLatin1(), READONLY, &status))
+    if (fits_open_diskfile(&fptr, fileToProcess.toLocal8Bit(), READONLY, &status))
     {
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);

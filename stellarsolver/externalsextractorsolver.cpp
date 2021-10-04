@@ -996,7 +996,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
     long nelements[1000];
     long jj, nrows, kk;
 
-    if (fits_open_diskfile(&new_fptr, sextractorFilePath.toLatin1(), READONLY, &status))
+    if (fits_open_diskfile(&new_fptr, sextractorFilePath.toLocal8Bit(), READONLY, &status))
     {
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
@@ -1362,7 +1362,7 @@ int ExternalSextractorSolver::writeSextractorTable()
             fileToProcessIsTempFile = true;
         }
 
-        if (fits_open_diskfile(&new_fptr, fileToProcess.toLatin1(), READWRITE, &status))
+        if (fits_open_diskfile(&new_fptr, fileToProcess.toLocal8Bit(), READWRITE, &status))
         {
             fits_report_error(stderr, status);
             return status;
@@ -1380,7 +1380,7 @@ int ExternalSextractorSolver::writeSextractorTable()
         if(sextractorFile.exists())
             sextractorFile.remove();
 
-        if (fits_create_file(&new_fptr, sextractorFilePath.toLatin1(), &status))
+        if (fits_create_file(&new_fptr, sextractorFilePath.toLocal8Bit(), &status))
         {
             fits_report_error(stderr, status);
             return status;
@@ -1458,7 +1458,7 @@ int ExternalSextractorSolver::writeSextractorTable()
 //This was copied and pasted and modified from ImageToFITS in fitsdata in KStars
 int ExternalSextractorSolver::saveAsFITS()
 {
-    QFileInfo fileInfo(fileToProcess.toLatin1());
+    QFileInfo fileInfo(fileToProcess);
     QString newFilename = m_BasePath + "/" + m_BaseName + ".fits";
 
     int status = 0;
@@ -1490,7 +1490,7 @@ int ExternalSextractorSolver::saveAsFITS()
     nelements = m_Statistics.samples_per_channel * channels;
 
     /* Create a new File, overwriting existing*/
-    if (fits_create_file(&new_fptr, newFilename.toLatin1(), &status))
+    if (fits_create_file(&new_fptr, newFilename.toLocal8Bit(), &status))
     {
         fits_report_error(stderr, status);
         return status;
@@ -1604,7 +1604,7 @@ int ExternalSextractorSolver::loadWCS()
 
     fitsfile *fptr { nullptr };
 
-    if (fits_open_diskfile(&fptr, solutionFile.toLatin1(), READONLY, &status))
+    if (fits_open_diskfile(&fptr, solutionFile.toLocal8Bit(), READONLY, &status))
     {
         char errmsg[512];
         fits_get_errstatus(status, errmsg);
