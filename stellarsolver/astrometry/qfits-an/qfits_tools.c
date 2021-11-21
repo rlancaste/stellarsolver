@@ -38,12 +38,12 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 
 #ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <boost/regex.h>
 #else
 #include <regex.h>
+#include <unistd.h>
 #endif
 
 #include "qfits_config.h"

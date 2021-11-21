@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "os-features.h"
 
@@ -13,6 +12,10 @@
 #define NEED_FDATASYNC 0
 #else
 #define NEED_FDATASYNC 1
+#endif
+
+#ifndef _WIN32
+#include <unistd.h>
 #endif
 
 //# Modified by Robert Lancaster for the StellarSolver Internal Library

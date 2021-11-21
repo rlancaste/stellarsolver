@@ -24,15 +24,14 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <assert.h>
-#include <unistd.h>
 #include <stdarg.h>
-
 
 #include <time.h>
 
 #ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <winsock.h>
 #else
+#include <unistd.h>
 #include <sys/wait.h>
 #include <sys/resource.h>
 #include <sys/select.h>

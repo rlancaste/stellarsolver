@@ -5,7 +5,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
@@ -15,6 +14,10 @@
 
 #include "solvedfile.h"
 #include "errors.h"
+
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #if defined(__APPLE__) || defined (_WIN32)

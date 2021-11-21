@@ -8,12 +8,12 @@
 #ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <sys/resource.h>
 #include <sys/time.h>
+#include <unistd.h>
 #else
 #include <Windows.h>
 #endif
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 #include <stdint.h>
 
 #include "tic.h"

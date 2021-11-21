@@ -13,7 +13,11 @@
 #include <math.h>
 #include <assert.h>
 #include <sys/types.h>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif
+
 #include <stdarg.h>
 
 #include "os-features.h"
