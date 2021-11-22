@@ -11,7 +11,11 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif
+
 #include <assert.h>
 #include <errno.h>
 #include <sys/mman.h>

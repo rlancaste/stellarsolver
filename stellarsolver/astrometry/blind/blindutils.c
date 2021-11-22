@@ -8,7 +8,11 @@
 #include <libgen.h>
 #endif
 #include <ctype.h>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif
+
 #include <assert.h>
 #include <sys/stat.h>
 #include <sys/types.h>

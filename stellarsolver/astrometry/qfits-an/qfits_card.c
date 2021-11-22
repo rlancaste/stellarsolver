@@ -36,7 +36,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #include "qfits_std.h"
 #include "qfits_card.h"

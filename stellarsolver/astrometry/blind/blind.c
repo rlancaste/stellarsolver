@@ -14,6 +14,7 @@
 
 #ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <sys/resource.h>
+#include <unistd.h>
 #endif
 #ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <sys/time.h>
@@ -27,7 +28,6 @@ struct timeval {
 #endif
 
 
-#include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>

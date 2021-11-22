@@ -36,10 +36,10 @@
 #ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <pwd.h>
 #include <sys/time.h>
+#include <unistd.h>
 #else
 #include "tic.h"
 #endif
-#include <unistd.h>
 
 #include "qfits_time.h"
 

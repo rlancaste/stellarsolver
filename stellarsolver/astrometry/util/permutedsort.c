@@ -5,7 +5,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <stdint.h> //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <stdio.h>
 #include <math.h>
@@ -13,6 +12,8 @@
 
 #ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <sys/types.h>
+#else
+#include <unistd.h>
 #endif
 
 #include "permutedsort.h"

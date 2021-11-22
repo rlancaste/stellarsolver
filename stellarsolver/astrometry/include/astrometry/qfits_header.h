@@ -38,7 +38,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 /*-----------------------------------------------------------------------------
                                    New types
@@ -65,18 +68,18 @@ typedef struct qfits_header qfits_header;
 void qfits_header_debug_dump(const qfits_header*);
 
 int qfits_header_list(const qfits_header* hdr, FILE* out);
-                      
+
 
 
 qfits_header * qfits_header_new(void);
 qfits_header * qfits_header_default(void);
 int qfits_header_n(const qfits_header*);
 void qfits_header_add(qfits_header *, const char *, const char *, const char *,
-        const char *);
-void qfits_header_add_after(qfits_header *, const char *, const char *, 
-        const char *, const char *, const char *);
+                      const char *);
+void qfits_header_add_after(qfits_header *, const char *, const char *,
+                            const char *, const char *, const char *);
 void qfits_header_append(qfits_header *, const char *, const char *,
-        const char *, const char *);
+                         const char *, const char *);
 void qfits_header_del(qfits_header *, const char *);
 int qfits_header_sort(qfits_header **);
 qfits_header * qfits_header_copy(const qfits_header *);
@@ -87,8 +90,8 @@ char* qfits_header_getstr(const qfits_header *, const char *);
 
 int qfits_header_getstr_pretty(const qfits_header* hdr, const char* key, char* pretty, const char* default_val);
 
-int qfits_header_getitem(const qfits_header *, int, char *, char *, char *, 
-        char *); 
+int qfits_header_getitem(const qfits_header *, int, char *, char *, char *,
+                         char *);
 
 /*
   Note, the "key", "val", "comment", args are copied with "strdup", while "line" is

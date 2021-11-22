@@ -38,7 +38,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 /*-----------------------------------------------------------------------------
                                    Defines
@@ -70,7 +73,7 @@
                                 ((x) == BPP_16_SIGNED)  ?     2 : \
                                 ((x) == BPP_32_SIGNED)  ?     4 : \
                                 ((x) == BPP_IEEE_FLOAT) ?     4 : \
-                                ((x) == BPP_IEEE_DOUBLE) ?    8 : 0 ) 
+                                ((x) == BPP_IEEE_DOUBLE) ?    8 : 0 )
 
 /*-----------------------------------------------------------------------------
                                    New types
@@ -125,13 +128,14 @@ typedef unsigned char byte;
 
     free(ibuf);
   @endcode
-  
+
   If the provided output file name is "STDOUT" (all capitals), the
   function will dump the pixels to the stdout steam (usually the console,
   could have been re-directed).
  */
 /*----------------------------------------------------------------------------*/
-typedef struct qfitsdumper {
+typedef struct qfitsdumper
+{
 
     /** Name of the file to dump to, "STDOUT" to dump to stdout */
     const char     *    filename;
@@ -147,8 +151,8 @@ typedef struct qfitsdumper {
     /** Pointer to input double pixel buffer */
     const double    *    dbuf;
 
-	/** Pointer to generic pixel buffer. */
-	const void* vbuf;
+    /** Pointer to generic pixel buffer. */
+    const void* vbuf;
 
     /** Requested BITPIX in output FITS file */
     int            out_ptype;
