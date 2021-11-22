@@ -14,7 +14,7 @@
 #define NEED_FDATASYNC 1
 #endif
 
-#ifndef _WIN32
+#ifndef _WIN32 //# Modified by Jasem Mutlaq for the StellarSolver Internal Library
 #include <unistd.h>
 #endif
 

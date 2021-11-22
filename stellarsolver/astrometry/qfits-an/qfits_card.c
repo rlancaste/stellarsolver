@@ -37,7 +37,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifndef _WIN32
+#ifndef _WIN32 //# Modified by Jasem Mutlaq for the StellarSolver Internal Library
 #include <unistd.h>
 #endif
 

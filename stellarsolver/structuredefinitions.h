@@ -18,7 +18,7 @@ namespace FITSImage
 
 /// Stats struct to hold statisical data about the FITS data
 /// This is defined in both KStars and StellarSolver
-typedef struct
+typedef struct Statistic
 {
     double min[3] = {0}, max[3] = {0};
     double mean[3] = {0};
@@ -39,7 +39,7 @@ typedef struct
 
 // This structure holds data about sources that are found within
 // an image.  It is returned by Source Extraction
-typedef struct
+typedef struct Star
 {
     float x;        // The x position of the star in Pixels
     float y;        // The y position of the star in Pixels
@@ -57,7 +57,7 @@ typedef struct
 
 // This struct holds data about the background in an image
 // It is returned by source extraction
-typedef struct
+typedef struct Background
 {
     int bw, bh;        // single tile width, height
     float global;      // global mean
@@ -67,7 +67,7 @@ typedef struct
 
 // This struct contains information about the astrometric solution
 // for an image.
-typedef struct
+typedef struct Solution
 {
     double fieldWidth;  // The calculated width of the field in arcminutes
     double fieldHeight; // The calculated height of the field in arcminutes
@@ -82,7 +82,7 @@ typedef struct
 
 // This is point in the World Coordinate System with both RA and DEC.
 // It is used to create an array of positions for the image pixels
-typedef struct
+typedef struct wcs_point
 {
     float ra;           // The Right Ascension in degrees
     float dec;          // The Declination in degrees

@@ -941,7 +941,7 @@ void ExternalSextractorSolver::logSextractor()
                 if (file.open(QIODevice::Append | QIODevice::Text))
                 {
                     QTextStream outstream(&file);
-                    outstream << cleanedString << endl;
+                    outstream << cleanedString << Qt::endl;
                     file.close();
                 }
                 else
@@ -965,7 +965,7 @@ void ExternalSextractorSolver::logSolver()
                 if (file.open(QIODevice::Append | QIODevice::Text))
                 {
                     QTextStream outstream(&file);
-                    outstream << solverLine << endl;
+                    outstream << solverLine << Qt::endl;
                     file.close();
                 }
                 else
@@ -1105,7 +1105,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
             theta = qRadiansToDegrees(atan(xy / (lambda1 - yy)));
         }
 
-        FITSImage::Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta, 0, 0};
+        FITSImage::Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta, 0, 0, (int)(a*b*3.14)};
 
         m_ExtractedStars.append(star);
     }

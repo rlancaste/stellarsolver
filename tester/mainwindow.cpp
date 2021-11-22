@@ -2724,7 +2724,7 @@ void MainWindow::saveResultsTable()
             else
                 outstream << " " << ',';
         }
-        outstream << endl;
+        outstream << Qt::endl;
     }
     QMessageBox::information(this, "Message", QString("Results Table Saved as: %1").arg(path));
     file.close();
@@ -2789,7 +2789,7 @@ void MainWindow::saveStarTable()
             else
                 outstream << " " << ',';
         }
-        outstream << endl;
+        outstream << Qt::endl;
     }
     QMessageBox::information(this, "Message", QString("Star Table Saved as: %1").arg(path));
     file.close();

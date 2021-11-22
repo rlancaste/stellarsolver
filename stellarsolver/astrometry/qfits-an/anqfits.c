@@ -12,7 +12,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifndef _WIN32
+#ifndef _WIN32 //# Modified by Jasem Mutlaq for the StellarSolver Internal Library
 #include <unistd.h>
 #endif
 

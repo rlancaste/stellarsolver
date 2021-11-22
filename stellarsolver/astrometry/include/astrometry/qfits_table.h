@@ -39,7 +39,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifndef _WIN32
+#ifndef _WIN32 //# Modified by Jasem Mutlaq for the StellarSolver Internal Library
 #include <unistd.h>
 #endif
 
