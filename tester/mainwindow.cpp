@@ -2724,7 +2724,12 @@ void MainWindow::saveResultsTable()
             else
                 outstream << " " << ',';
         }
-        outstream << Qt::endl;
+        #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+            outstream << Qt::endl;
+        #else
+            outstream << endl;
+        #endif
+
     }
     QMessageBox::information(this, "Message", QString("Results Table Saved as: %1").arg(path));
     file.close();
@@ -2789,7 +2794,11 @@ void MainWindow::saveStarTable()
             else
                 outstream << " " << ',';
         }
-        outstream << Qt::endl;
+        #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+            outstream << Qt::endl;
+        #else
+            outstream << endl;
+        #endif
     }
     QMessageBox::information(this, "Message", QString("Star Table Saved as: %1").arg(path));
     file.close();

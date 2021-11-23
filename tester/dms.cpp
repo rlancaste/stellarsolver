@@ -98,10 +98,18 @@ bool dms::setFromString(const QString &str, bool isDeg)
     QStringList fields;
 
     //check for colon-delimiters or space-delimiters
-    if (entry.contains(':'))
-        fields = entry.split(':', Qt::SkipEmptyParts);
-    else
-        fields = entry.split(' ', Qt::SkipEmptyParts);
+    #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+        if (entry.contains(':'))
+            fields = entry.split(':', Qt::SkipEmptyParts);
+        else
+            fields = entry.split(' ', Qt::SkipEmptyParts);
+    #else
+        if (entry.contains(':'))
+            fields = entry.split(':', QString::SkipEmptyParts);
+        else
+            fields = entry.split(' ', QString::SkipEmptyParts);
+    #endif
+
 
     //anything with one field is invalid!
     if (fields.count() == 1)

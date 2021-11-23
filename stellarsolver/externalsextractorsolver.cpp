@@ -941,7 +941,11 @@ void ExternalSextractorSolver::logSextractor()
                 if (file.open(QIODevice::Append | QIODevice::Text))
                 {
                     QTextStream outstream(&file);
-                    outstream << cleanedString << Qt::endl;
+                    #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+                        outstream << cleanedString << Qt::endl;
+                    #else
+                        outstream << cleanedString << endl;
+                    #endif
                     file.close();
                 }
                 else
@@ -965,7 +969,11 @@ void ExternalSextractorSolver::logSolver()
                 if (file.open(QIODevice::Append | QIODevice::Text))
                 {
                     QTextStream outstream(&file);
-                    outstream << solverLine << Qt::endl;
+                    #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+                        outstream << solverLine << Qt::endl;
+                    #else
+                        outstream << solverLine << endl;
+                    #endif
                     file.close();
                 }
                 else
