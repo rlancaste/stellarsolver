@@ -241,12 +241,9 @@ MainWindow::MainWindow() :
                 paths = ExternalSextractorSolver::getMacHomebrewPaths();
                 break;
             case 3:
-                paths = ExternalSextractorSolver::getMacInternalPaths();
-                break;
-            case 4:
                 paths = ExternalSextractorSolver::getWinANSVRPaths();
                 break;
-            case 5:
+            case 4:
                 paths = ExternalSextractorSolver::getWinCygwinPaths();
                 break;
             default:

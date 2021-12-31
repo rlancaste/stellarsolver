@@ -89,6 +89,8 @@ ExternalProgramPaths ExternalSextractorSolver::getMacHomebrewPaths()
     };
 }
 
+//This one is now obsolete due to StellarSolver's acceptance since KStars will no longer needs an internal
+//build of astrometry.net on Macs.  I will delete this later.
 ExternalProgramPaths ExternalSextractorSolver::getMacInternalPaths()
 {
     return ExternalProgramPaths
