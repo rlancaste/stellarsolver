@@ -33,7 +33,7 @@ An Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net
 
 
 %prep -v
-%autosetup -v
+%autosetup -v -n %{name}-master
 
 %build
 %cmake .
