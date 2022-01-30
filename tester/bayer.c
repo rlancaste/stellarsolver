@@ -1579,15 +1579,15 @@ dc1394error_t dc1394_bayer_Simple_uint16(const uint16_t *bayer, uint16_t *rgb, i
     {
         case DC1394_COLOR_FILTER_GRBG:
         case DC1394_COLOR_FILTER_BGGR:
-            outR = &rgb[0];
-            outG = &rgb[1];
-            outB = &rgb[2];
+            //outR = &rgb[0];   //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, these were not used.
+            //outG = &rgb[1];   //They get replaced below.
+            //outB = &rgb[2];
             break;
         case DC1394_COLOR_FILTER_GBRG:
         case DC1394_COLOR_FILTER_RGGB:
-            outR = &rgb[2];
-            outG = &rgb[1];
-            outB = &rgb[0];
+            //outR = &rgb[2];   //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, these were not used.
+            //outG = &rgb[1];   //They get replaced below.
+            //outB = &rgb[0];
             break;
         default:
             return DC1394_INVALID_COLOR_FILTER;

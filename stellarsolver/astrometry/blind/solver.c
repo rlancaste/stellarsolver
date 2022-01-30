@@ -1250,6 +1250,8 @@ static void resolve_matches(kdtree_qres_t* krez, const double *field,
     int jj, thisquadno;
     MatchObj mo;
 
+    if(dimquads <= 0) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+        return;
 #ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         unsigned int star[dimquads];
 #else

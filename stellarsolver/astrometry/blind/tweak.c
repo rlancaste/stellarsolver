@@ -71,6 +71,7 @@ sip_t* tweak_just_do_it(const tan_t* wcs, const starxy_t* imagexy,
         tweak_push_ref_ad_array(twee, star_radec, nstars);
     else {
         logerr("Need starxyz, (star_ra and star_dec), or star_radec");
+        tweak_free(twee);  //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve potential leak
         return NULL;
     }
     tweak_push_wcs_tan(twee, wcs);

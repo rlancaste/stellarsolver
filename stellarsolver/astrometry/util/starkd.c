@@ -602,7 +602,7 @@ static int write_to_file(startree_t* s, const char* fn, anbool flipped,
     exit: //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     if (io)
         kdtree_fits_io_close(io);
-    return 0;
+    return status; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
 }
 
 int startree_write_to_file(startree_t* s, const char* fn) {

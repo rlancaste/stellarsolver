@@ -50,7 +50,7 @@ int Extract::arraybuffer_init(arraybuffer *buf, void *arr, int dtype, int w, int
                               int bufw, int bufh)
 {
     int status, yl;
-    status = RETURN_OK;
+    //status = RETURN_OK; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
 
     /* data info */
     buf->dptr = reinterpret_cast<unsigned char *>(arr);
@@ -113,8 +113,10 @@ void Extract::arraybuffer_readline(arraybuffer *buf)
 
 void Extract::arraybuffer_free(arraybuffer *buf)
 {
-    free(buf->bptr);
-    buf->bptr = NULL;
+    if(buf){    //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+        free(buf->bptr);
+        buf->bptr = NULL;
+    }
 }
 
 /* apply_mask_line: Apply the mask to the image and noise buffers.
@@ -185,7 +187,7 @@ int Extract::sep_extract(sep_image *image, float thresh, int thresh_type,
     char              errtext[512];
     sep_catalog       *cat;
 
-    status = RETURN_OK;
+    //status = RETURN_OK; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
     pixel = NULL;
     convnorm = NULL;
     scan = wscan = cdscan = dummyscan = NULL;
@@ -198,7 +200,7 @@ int Extract::sep_extract(sep_image *image, float thresh, int thresh_type,
     finalobjlist = NULL;
     survives = NULL;
     cat = NULL;
-    convn = 0;
+    //convn = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
     sum = 0.0;
     w = image->w;
     h = image->h;
@@ -768,7 +770,7 @@ int Extract::sortit(infostruct *info, objliststruct *objlist, int minarea, objli
     objliststruct objlistout, *objlist2;
     int i, status;
 
-    status = RETURN_OK;
+    //status = RETURN_OK;  //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
     objlistout.obj = NULL;
     objlistout.plist = NULL;
     objlistout.nobj = objlistout.npix = 0;

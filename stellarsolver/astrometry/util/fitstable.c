@@ -653,9 +653,10 @@ int fitstable_read_structs(fitstable_t* tab, void* struc,
             //logverb("column %i: dest offset %i, stride %i, row offset %i, input offset %i, size %i (%ix%i)\n", i, (int)(dest - struc), stride, offset, off, fitscolumn_get_size(col), col->fitssize, col->arraysize);
             sz = fitscolumn_get_size(col);
             for (j=0; j<N; j++)
-                memcpy(((char*)dest) + j * stride,
-                       ((char*)bl_access(tab->rows, offset+j)) + off,
-                       sz);
+                if(dest) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+                    memcpy(((char*)dest) + j * stride,
+                           ((char*)bl_access(tab->rows, offset+j)) + off,
+                           sz);
         } else {
             // Read from FITS file...
             qfits_query_column_seq_to_array(tab->table, col->col, offset, N, dest, stride);
@@ -734,16 +735,17 @@ static int write_one(fitstable_t* table, const void* struc, anbool flip,
                               col->arraysize, 1);
             columndata = buf;
         }
-		
-        if (in_memory(table)) {
-            int nb = fitscolumn_get_size(col);
-            memcpy(thisrow + rowoff, columndata, nb);
-            rowoff += nb;
-        } else {
-            ret = fits_write_data_array(table->fid, columndata,
-                                        col->fitstype, col->arraysize, flip);
-            if (ret)
-                break;
+        if(columndata){ //# Modified by Robert Lancaster for the StellarSolver Internal Library to correct warning
+            if (in_memory(table)) {
+                int nb = fitscolumn_get_size(col);
+                memcpy(thisrow + rowoff, columndata, nb);
+                rowoff += nb;
+            } else {
+                ret = fits_write_data_array(table->fid, columndata,
+                                            col->fitstype, col->arraysize, flip);
+                if (ret)
+                    break;
+            }
         }
     }
     free(buf);

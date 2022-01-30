@@ -70,7 +70,7 @@ int Deblend::deblend(objliststruct *objlistin, int l, objliststruct *objlistout,
     int                   *submap;
 
     submap = NULL;
-    status = RETURN_OK;
+    //status = RETURN_OK; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
     xn = deblend_nthresh;
 
     /* reset global static objlist for deblending */

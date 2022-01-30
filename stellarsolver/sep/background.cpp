@@ -75,7 +75,7 @@ int sep_background(sep_image* image, int bw, int bh, int fw, int fh,
     sep_bkg *bkgout;          /* output */
     int j, k, m, status;
 
-    status = RETURN_OK;
+    //status = RETURN_OK; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
     npix = image->w * image->h;
     bufsize = image->w * bh;
     imgbufsize = image->raw_w * bh;
@@ -257,10 +257,10 @@ void backstat(backstruct *backmesh,
               int n, int w, int bw, PIXTYPE maskthresh)
 {
     backstruct	*bm;
-    double	pix, wpix, sig, mean, sigma, step;
+    double	pix, sig, mean, sigma, step; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, removed wpix
     PIXTYPE	*buft, *wbuft;
     PIXTYPE       lcut, hcut;
-    int		m, h, x, y, npix, wnpix, offset, lastbite;
+    int		m, h, x, y, npix, offset, lastbite; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, removed wnpix
 
     h = bufsize / w; /* height of background boxes in this row */
     bm = backmesh;
@@ -287,7 +287,7 @@ void backstat(backstruct *backmesh,
                 for (x = bw; x--;)
                 {
                     pix = *(buft++);
-                    if ((wpix = *(wbuft++)) <= maskthresh && pix > -BIG)
+                    if (*(wbuft++) <= maskthresh && pix > -BIG) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, removed wpix
                     {
                         mean += pix;
                         sigma += pix * pix;
@@ -319,7 +319,7 @@ void backstat(backstruct *backmesh,
         lcut = bm->lcut = (PIXTYPE)(mean - 2.0 * sigma);
         hcut = bm->hcut = (PIXTYPE)(mean + 2.0 * sigma);
         mean = sigma = 0.0;
-        npix = wnpix = 0;
+        npix = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, removed wnpix
         buft = buf;
 
         /* do statistics for this mesh again, with cuts */
@@ -330,7 +330,7 @@ void backstat(backstruct *backmesh,
                 for (x = bw; x--;)
                 {
                     pix = *(buft++);
-                    if ((wpix = *(wbuft++)) <= maskthresh && pix <= hcut && pix >= lcut)
+                    if (*(wbuft++) <= maskthresh && pix <= hcut && pix >= lcut) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, removed wpix
                     {
                         mean += pix;
                         sigma += pix * pix;
@@ -380,7 +380,7 @@ void backhisto(backstruct *backmesh,
 {
     backstruct	*bm;
     PIXTYPE	*buft, *wbuft;
-    float	        qscale, cste, wpix;
+    float	        qscale, cste; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, removed wpix
     LONG		*histo;
     int		h, m, x, y, nlevels, lastbite, offset, bin;
 
@@ -416,7 +416,7 @@ void backhisto(backstruct *backmesh,
                 for (x = bw; x--;)
                 {
                     bin = (int)(*(buft++) / qscale + cste);
-                    if ((wpix = *(wbuft++)) <= maskthresh && bin < nlevels && bin >= 0)
+                    if (*(wbuft++) <= maskthresh && bin < nlevels && bin >= 0) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, removed wpix
                         (*(histo + bin))++;
                 }
             wbuf += bw;
@@ -1058,7 +1058,7 @@ int sep_bkg_subline(sep_bkg *bkg, int y, void *line, int dtype)
     PIXTYPE *tmpline;
 
     tmpline = NULL;
-    status = RETURN_OK;
+    //status = RETURN_OK; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
 
     QMALLOC(tmpline, PIXTYPE, bkg->w, status);
 
@@ -1085,7 +1085,7 @@ int sep_bkg_subarray(sep_bkg *bkg, void *arr, int dtype)
     BYTE *arrt;
 
     tmpline = NULL;
-    status = RETURN_OK;
+    //status = RETURN_OK; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
     width = bkg->w;
     arrt = (BYTE *)arr;
 

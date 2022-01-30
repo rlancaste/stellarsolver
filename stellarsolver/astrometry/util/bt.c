@@ -232,19 +232,21 @@ static anbool bt_leaf_insert(bt* tree, bt_leaf* leaf, void* data, anbool unique,
 
     // shift...
     nshift = leaf->N - index;
-    if (leaf->N == tree->blocksize) {
-        // this node is full.  insert the element and put the overflowing
-        // element in "overflow".
-        if (nshift) {
-            memcpy(overflow, get_element(tree, leaf, leaf->N-1), tree->datasize);
-            nshift--;
+    if(overflow){ //# Modified by Robert Lancaster for the StellarSolver Internal Library to correct warning
+        if (leaf->N == tree->blocksize) {
+            // this node is full.  insert the element and put the overflowing
+            // element in "overflow".
+            if (nshift) {
+                memcpy(overflow, get_element(tree, leaf, leaf->N-1), tree->datasize);
+                nshift--;
+            } else {
+                memcpy(overflow, data, tree->datasize);
+                return TRUE;
+            }
         } else {
-            memcpy(overflow, data, tree->datasize);
-            return TRUE;
+            leaf->N++;
+            tree->N++;
         }
-    } else {
-        leaf->N++;
-        tree->N++;
     }
     memmove(get_element(tree, leaf, index+1),
             get_element(tree, leaf, index),

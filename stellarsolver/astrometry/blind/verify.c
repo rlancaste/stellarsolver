@@ -411,12 +411,14 @@ static void verify_apply_ror(verify_t* v,
             for (i=0; i<v->NR; i++) {
                 int ri = v->refperm[i];
                 int binid = get_xy_bin(v->refxy + 2*ri, fieldW, fieldH, uni_nw, uni_nh);
-                if (goodbins[binid]) {
-                    v->refperm[igood] = ri;
-                    igood++;
-                } else {
-                    v->badguys[ibad] = ri;
-                    ibad++;
+                if(binid > 0){ //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+                    if (goodbins[binid]) {
+                        v->refperm[igood] = ri;
+                        igood++;
+                    } else {
+                        v->badguys[ibad] = ri;
+                        ibad++;
+                    }
                 }
             }
         } else {
@@ -519,7 +521,7 @@ static double real_verify_star_lists(verify_t* v,
     if (p_istopped)
         *p_istopped = -1;
 
-    theta = malloc(v->NT * sizeof(int));
+    theta = calloc(v->NT, sizeof(int)); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning since items in theta got checked before initialization
 
     logbg = log(1.0 / effective_area);
 
@@ -580,7 +582,7 @@ static double real_verify_star_lists(verify_t* v,
             theta[i] = THETA_DISTRACTOR;
         } else {
             // duplicate match?
-            if (rmatches[refi] != -1) {
+            if (refi != -1 && rmatches[refi] != -1) { //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
                 double oldfg = rprobs[refi];
                 //debug2("Conflict: odds was %g, now %g.\n", oldfg, logfg);
                 // Conflict.  Compute probabilities of old vs new theta.
@@ -621,7 +623,8 @@ static double real_verify_star_lists(verify_t* v,
                     theta[oldj] = THETA_CONFLICT;
                     // Note that here we want the entries in "theta" to be
                     // indices into "v->refxy" et al, so apply the "rperm" permutation.
-                    theta[i] = rperm[refi];
+                    if(refi > 0) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+                        theta[i] = rperm[refi];
                     // record this new match.
                     rmatches[refi] = i;
                     rprobs[refi] = logfg;
@@ -667,7 +670,8 @@ static double real_verify_star_lists(verify_t* v,
                 // new match.
                 rmatches[refi] = i;
                 rprobs[refi] = logfg;
-                theta[i] = rperm[refi];
+                if(refi > 0) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+                    theta[i] = rperm[refi];
                 mu++;
             }
         }
@@ -706,8 +710,10 @@ static double real_verify_star_lists(verify_t* v,
         int iend = i;
         data_log_start_item(DATALOG_MASK_VERIFY, DLOG_ODDS, "logodds");
         dlog(DLOG_ODDS, "[");
-        for (i=0; i<iend; i++)
-            dlog(DLOG_ODDS, "%s%g", (i ? ", ":""), all_logodds[i]);
+        for (i=0; i<iend; i++){
+            if(all_logodds) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+                dlog(DLOG_ODDS, "%s%g", (i ? ", ":""), all_logodds[i]);
+        }
         dlog(DLOG_ODDS, "]");
         data_log_end_item(DATALOG_MASK_VERIFY, DLOG_ODDS);
 
@@ -940,6 +946,9 @@ void verify_uniformize_field(const double* xy,
         binids = malloc(N * sizeof(int));
         *p_binids = binids;
     }
+    
+    if(N <=0 || nw <=0 || nh <=0) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+        return;
 
     lists = malloc(nw * nh * sizeof(il*));
     for (i=0; i<(nw*nh); i++)

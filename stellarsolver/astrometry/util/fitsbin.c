@@ -508,7 +508,8 @@ static int read_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
         int i;
         chunk->data = malloc(expected);
         for (i=0; i<chunk->nrows; i++) {
-            memcpy(((char*)chunk->data) + (size_t)i * (size_t)chunk->itemsize,
+            if(inmemext) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+                memcpy(((char*)chunk->data) + (size_t)i * (size_t)chunk->itemsize,
                    bl_access(inmemext->items, i), chunk->itemsize);
         }
         // delete inmemext->items ?

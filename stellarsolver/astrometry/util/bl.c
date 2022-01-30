@@ -278,7 +278,7 @@ void bl_remove_index_range(bl* list, size_t start, size_t length) {
     }
 
     // begin by removing any indices that are at the end of a block.
-    if (start > nskipped) {
+    if (node && start > nskipped) { //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
         // we're not removing everything at this node.
         size_t istart;
         size_t n;
@@ -311,7 +311,7 @@ void bl_remove_index_range(bl* list, size_t start, size_t length) {
     for (;;) {
         size_t n;
         bl_node* todelete;
-        if (length == 0 || length < node->N)
+        if (length == 0 || !node || length < node->N) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
             break;
         // we're skipping this whole block.
         n = node->N;
@@ -409,7 +409,8 @@ static void bl_append_node(bl* list, bl_node* node) {
         list->head = node;
         list->tail = node;
     } else {
-        list->tail->next = node;
+        if(list->tail) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+            list->tail->next = node;
         list->tail = node;
     }
     list->N += node->N;
@@ -423,6 +424,8 @@ static void bl_append_node(bl* list, bl_node* node) {
  */
 void* bl_node_append(bl* list, bl_node* node, const void* data) {
     void* dest;
+    if(!node) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+        return 0;
     if (node->N == list->blocksize) {
         // create a new node and insert it after the current node.
         bl_node* newnode;
@@ -1012,7 +1015,8 @@ void sl_append_array(sl* list, const char**strings, size_t n) {
 }
 
 void sl_append_nocopy(sl* list, const char* data) {
-    pl_append(list, data);
+    if(data && list) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+        pl_append(list, data);
 }
 
 char* sl_push(sl* list, const char* data) {
