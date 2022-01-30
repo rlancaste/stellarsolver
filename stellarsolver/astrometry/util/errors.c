@@ -32,7 +32,7 @@ static err_t* error_copy(err_t* e) {
 static FILE* print_errs_fid;
 static void print_errs(void) {
     FILE* fid = print_errs_fid;
-    //fprintf(fid, "Error traceback:\n");
+    //debug(fid, "Error traceback:\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     errors_print_stack(fid);
 }
 
@@ -181,11 +181,11 @@ void error_reportv(err_t* e, const char* module, int line,
                    const char* func, const char* fmt, va_list va) {
     if (e->print) {
         if (line == -1)
-            fprintf(e->print, "%s: ", module);
+            debug("%s: ", module); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         else
-            fprintf(e->print, "%s:%i:%s: ", module, line, func);
-        vfprintf(e->print, fmt, va);
-        fprintf(e->print, "\n");
+            debug("%s:%i:%s: ", module, line, func); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
+        debug(fmt, va); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
+        debug("\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     }
     if (e->save) {
         error_stack_add_entryv(e, module, line, func, fmt, va);
@@ -201,11 +201,11 @@ void error_print_stack(err_t* e, FILE* f) {
     for (i=error_stack_N_entries(e)-1; i>=0; i--) {
         errentry_t* ee = error_stack_get_entry(e, i);
         if (!first)
-            fprintf(f, " ");
+            debug(" "); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         if (ee->line >= 0) {
-            fprintf(f, "%s:%i:%s %s\n", ee->file, ee->line, ee->func, ee->str);
+            debug("%s:%i:%s %s\n", ee->file, ee->line, ee->func, ee->str); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         } else {
-            fprintf(f, "%s:%s %s\n", ee->file, ee->func, ee->str);
+            debug("%s:%s %s\n", ee->file, ee->func, ee->str); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         }
         first = FALSE;
     }
