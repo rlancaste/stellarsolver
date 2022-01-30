@@ -10,11 +10,12 @@
 #include "kdtree_fits_io.h"
 #include "starutil.h"
 #include "errors.h"
+#include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 static codetree_t* codetree_alloc() {
     codetree_t* s = calloc(1, sizeof(codetree_t));
     if (!s) {
-        fprintf(stderr, "Failed to allocate a code kdtree struct.\n");
+        debug("Failed to allocate a code kdtree struct.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     return s;
@@ -109,7 +110,7 @@ void codetree_compute_inverse_perm(codetree_t* s) {
     // compute inverse permutation vector.
     s->inverse_perm = malloc(Ndata(s) * sizeof(int));
     if (!s->inverse_perm) {
-        fprintf(stderr, "Failed to allocate code kdtree inverse permutation vector.\n");
+        debug("Failed to allocate code kdtree inverse permutation vector.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return;
     }
     kdtree_inverse_permutation(s->tree, s->inverse_perm);
@@ -122,7 +123,7 @@ int codetree_get(codetree_t* s, unsigned int codeid, double* code) {
             return -1;
     }
     if (codeid >= Ndata(s)) {
-        fprintf(stderr, "Invalid code ID: %u >= %u.\n", codeid, Ndata(s));
+        debug("Invalid code ID: %u >= %u.\n", codeid, Ndata(s)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     if (s->inverse_perm)
@@ -136,7 +137,7 @@ codetree_t* codetree_new() {
     codetree_t* s = codetree_alloc();
     s->header = qfits_header_default();
     if (!s->header) {
-        fprintf(stderr, "Failed to create a qfits header for code kdtree.\n");
+        debug("Failed to create a qfits header for code kdtree.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         free(s);
         return NULL;
     }

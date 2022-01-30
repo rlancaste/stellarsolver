@@ -8,10 +8,12 @@
 #pragma once
 
 #include "sextractorsolver.h"
+#include "astrometrylogger.h"
 
 //Sextractor Includes
 #include "sep/sep.h"
 
+static AstrometryLogger *astroLogger;
 using namespace SSolver;
 
 class InternalSextractorSolver: public SextractorSolver
@@ -83,9 +85,6 @@ class InternalSextractorSolver: public SextractorSolver
         template <typename T>
         void downSampleImageType(int d);
 
-        void startLogMonitor();
-        QThread* logMonitor = nullptr;
-        bool logMonitorRunning = false;
         FILE *logFile = nullptr;
         uint32_t m_PartitionThreads = {16};
 };

@@ -601,7 +601,7 @@ void MainWindow::clearResults()
 //These methods are for the logging of information to the textfield at the bottom of the window.
 void MainWindow::logOutput(QString text)
 {
-    ui->logDisplay->append(text);
+    ui->logDisplay->appendPlainText(text);
     ui->logDisplay->show();
 }
 

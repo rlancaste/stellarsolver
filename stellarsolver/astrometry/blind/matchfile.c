@@ -14,6 +14,7 @@
 #include "ioutils.h"
 #include "sip.h"
 #include "mathutil.h"
+#include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 // This is a naughty preprocessor function because it uses variables
 // declared in the calling scope.
@@ -131,10 +132,10 @@ matchfile* matchfile_open(const char* fn) {
     fitstable_use_buffered_reading(mf, sizeof(MatchObj), 1000);
     mf->postprocess_read_structs = postprocess_read_structs;
     if (fitstable_read_extension(mf, 1)) {
-        fprintf(stderr, "matchfile: table in extension 1 didn't contain the required columns.\n");
-        fprintf(stderr, "  missing: ");
+        debug("matchfile: table in extension 1 didn't contain the required columns.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
+        debug("  missing: "); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         fitstable_print_missing(mf, stderr);
-        fprintf(stderr, "\n");
+        debug("\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         matchfile_close(mf);
         return NULL;
     }

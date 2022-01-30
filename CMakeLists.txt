@@ -248,6 +248,7 @@ set(StellarSolver_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/externalsextractorsolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/onlinesolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/stellarsolver.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometrylogger.cpp
    )
 
 set(ALL_SRCS
@@ -282,11 +283,6 @@ if(WIN32)
 else(WIN32)
     set_target_properties(stellarsolver PROPERTIES VERSION ${StellarSolver_VERSION_STRING} SOVERSION ${StellarSolver_SOVERSION} OUTPUT_NAME stellarsolver)
     target_link_libraries(stellarsolver -lpthread)
-    #This is intended to disable the many warnings that appear due to the way astrometry.net's logging functions are setup
-    target_compile_options(stellarsolver PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-implicit-function-declaration>)
-    if(APPLE)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-implicit-function-declaration")
-    endif(APPLE)
 endif(WIN32)
 
 install(TARGETS stellarsolver

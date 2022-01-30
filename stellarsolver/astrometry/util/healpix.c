@@ -70,7 +70,7 @@ Const int healpix_xy_to_nested(int hp, int Nside) {
 
     healpix_decompose_xy(hp, &bighp, &x, &y, Nside);
     if (!is_power_of_two(Nside)) {
-        fprintf(stderr, "healpix_xy_to_nested: Nside must be a power of two.\n");
+        debug("healpix_xy_to_nested: Nside must be a power of two.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
 
@@ -95,7 +95,7 @@ Const int healpix_nested_to_xy(int hp, int Nside) {
     int index;
     int i;
     if (!is_power_of_two(Nside)) {
-        fprintf(stderr, "healpix_xy_to_nested: Nside must be a power of two.\n");
+        debug("healpix_xy_to_nested: Nside must be a power of two.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     bighp = hp / (Nside*Nside);
@@ -151,7 +151,7 @@ void healpix_decompose_ring(int hp, int Nside, int* p_ring, int* p_longind) {
         }
         offset += (Nside*4 - ring)*4;
     }
-    fprintf(stderr, "healpix_decompose_ring: shouldn't get here!\n");
+    debug("healpix_decompose_ring: shouldn't get here!\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     if (p_ring) *p_ring = -1;
     if (p_longind) *p_longind = -1;
     return;
@@ -228,20 +228,20 @@ Const int healpix_ring_to_xy(int ring, int Nside) {
             h--;
         x = (v + h) / 2;
         y = (v - h) / 2;
-        //fprintf(stderr, "bighp=%i, frow=%i, F1=%i, F2=%i, s=%i, v=%i, h=%i, x=%i, y=%i.\n", bighp, frow, F1, F2, s, v, h, x, y);
+        //debug("bighp=%i, frow=%i, F1=%i, F2=%i, s=%i, v=%i, h=%i, x=%i, y=%i.\n", bighp, frow, F1, F2, s, v, h, x, y); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
         if ((v != (x+y)) || (h != (x-y))) {
             h++;
             x = (v + h) / 2;
             y = (v - h) / 2;
-            //fprintf(stderr, "tweak h=%i, x=%i, y=%i\n", h, x, y);
+            //debug("tweak h=%i, x=%i, y=%i\n", h, x, y); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
             if ((v != (x+y)) || (h != (x-y))) {
-                //fprintf(stderr, "still not right.\n");
+                //debug("still not right.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             }
         }
         hp = healpix_compose_xy(bighp, x, y, Nside);
-        //fprintf(stderr, "hp %i\n", hp);
+        //debug("hp %i\n", hp); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return hp;
     } else {
         int ind;
@@ -285,7 +285,7 @@ Const int healpix_xy_to_ring(int hp, int Nside) {
      */
     // this probably can't happen...
     if ((ring < 1) || (ring >= 4*Nside)) {
-        fprintf(stderr, "Invalid ring index: %i\n", ring);
+        debug("Invalid ring index: %i\n", ring); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     if (ring <= Nside) {
@@ -325,7 +325,7 @@ Const int healpix_xy_to_ring(int hp, int Nside) {
         // handle healpix #4 wrap-around
         if ((bighp == 4) && (y > x))
             index += (4 * Nside - 1);
-        //fprintf(stderr, "frow=%i, F1=%i, v=%i, ringind=%i, s=%i, F2=%i, h=%i, longind=%i.\n", frow, F1, v, ring, s, F2, h, (F2*(int)Nside+h+s)/2);
+        //debug("frow=%i, F1=%i, v=%i, ringind=%i, s=%i, F2=%i, h=%i, longind=%i.\n", frow, F1, v, ring, s, F2, h, (F2*(int)Nside+h+s)/2); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     }
     return index;
 }

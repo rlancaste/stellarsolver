@@ -13,6 +13,7 @@
 #include "sip.h"
 #include "starutil.h"
 #include "mathutil.h"
+#include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 static anbool has_distortions(const sip_t* sip) {
     return (sip->a_order >= 0);
@@ -261,8 +262,8 @@ anbool sip_radec2pixelxy_check(const sip_t* sip, double ra, double dec, double *
     // Subtract crpix, invert SIP distortion, add crpix.
     // Sanity check:
     if (sip->a_order != 0 && sip->ap_order == 0) {
-        fprintf(stderr, "suspicious inversion; no inversion SIP coeffs "
-                "yet there are forward SIP coeffs\n");
+        debug("suspicious inversion; no inversion SIP coeffs "
+                "yet there are forward SIP coeffs\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     }
     U = *px - sip->wcstan.crpix[0];
     V = *py - sip->wcstan.crpix[1];
@@ -380,8 +381,8 @@ void sip_pixel_undistortion(const sip_t* sip, double x, double y, double* X, dou
     }
     // Sanity check:
     if (sip->a_order != 0 && sip->ap_order == 0) {
-        fprintf(stderr, "suspicious inversion; no inverse SIP coeffs "
-                "yet there are forward SIP coeffs\n");
+        debug("suspicious inversion; no inverse SIP coeffs "
+                "yet there are forward SIP coeffs\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     }
 
     // Get pixel coordinates relative to reference pixel
@@ -441,13 +442,14 @@ double sip_pixel_scale(const sip_t* sip) {
     return tan_pixel_scale(&(sip->wcstan));
 }
 
+//# Modified by Robert Lancaster for the StellarSolver Internal Library for logging, all these were changed to debug
 static void print_to(const tan_t* tan, FILE* f, char* type) {
-    fprintf(f,"%s Structure:\n", type);
-    fprintf(f,"  crval=(%g, %g)\n", tan->crval[0], tan->crval[1]);
-    fprintf(f,"  crpix=(%g, %g)\n", tan->crpix[0], tan->crpix[1]);
-    fprintf(f,"  CD = ( %12.5g   %12.5g )\n", tan->cd[0][0], tan->cd[0][1]);
-    fprintf(f,"       ( %12.5g   %12.5g )\n", tan->cd[1][0], tan->cd[1][1]);
-    fprintf(f,"  image size = (%g x %g)\n", tan->imagew, tan->imageh);
+    debug("%s Structure:\n", type);
+    debug("  crval=(%g, %g)\n", tan->crval[0], tan->crval[1]);
+    debug("  crpix=(%g, %g)\n", tan->crpix[0], tan->crpix[1]);
+    debug("  CD = ( %12.5g   %12.5g )\n", tan->cd[0][0], tan->cd[0][1]);
+    debug("       ( %12.5g   %12.5g )\n", tan->cd[1][0], tan->cd[1][1]);
+    debug("  image size = (%g x %g)\n", tan->imagew, tan->imageh);
 }
 
 void tan_print_to(const tan_t* tan, FILE* f) {
@@ -471,60 +473,60 @@ void sip_print_to(const sip_t* sip, FILE* f) {
         print_to(&(sip->wcstan), f, "TAN-SIP");
     }
 
-    fprintf(f, "  SIP order: A=%i, B=%i, AP=%i, BP=%i\n",
-            sip->a_order, sip->b_order, sip->ap_order, sip->bp_order);
+    debug("  SIP order: A=%i, B=%i, AP=%i, BP=%i\n",
+            sip->a_order, sip->b_order, sip->ap_order, sip->bp_order); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
     if (sip->a_order > 0) {
         int p, q;
         for (p=0; p<=sip->a_order; p++) {
-            fprintf(f, (p ? "      " : "  A = "));
+            debug((p ? "      " : "  A = ")); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             for (q=0; q<=sip->a_order; q++)
                 if (p+q <= sip->a_order)
-                    //fprintf(f,"a%d%d=%le\n", p,q,sip->a[p][q]);
-                    fprintf(f,"%12.5g", sip->a[p][q]);
-            fprintf(f,"\n");
+                    //debug("a%d%d=%le\n", p,q,sip->a[p][q]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
+                    debug("%12.5g", sip->a[p][q]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
+            debug("\n");
         }
     }
     if (sip->b_order > 0) {
         int p, q;
         for (p=0; p<=sip->b_order; p++) {
-            fprintf(f, (p ? "      " : "  B = "));
+            debug((p ? "      " : "  B = ")); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             for (q=0; q<=sip->b_order; q++)
                 if (p+q <= sip->a_order)
-                    fprintf(f,"%12.5g", sip->b[p][q]);
+                    debug("%12.5g", sip->b[p][q]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             //if (p+q <= sip->b_order && p+q > 0)
-            //fprintf(f,"b%d%d=%le\n", p,q,sip->b[p][q]);
-            fprintf(f,"\n");
+            //debug("b%d%d=%le\n", p,q,sip->b[p][q]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
+            debug("\n");
         }
     }
 
     if (sip->ap_order > 0) {
         int p, q;
         for (p=0; p<=sip->ap_order; p++) {
-            fprintf(f, (p ? "      " : "  AP = "));
+            debug((p ? "      " : "  AP = ")); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             for (q=0; q<=sip->ap_order; q++)
                 if (p+q <= sip->ap_order)
-                    fprintf(f,"%12.5g", sip->ap[p][q]);
-            fprintf(f,"\n");
+                    debug("%12.5g", sip->ap[p][q]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
+            debug("\n");
         }
     }
     if (sip->bp_order > 0) {
         int p, q;
         for (p=0; p<=sip->bp_order; p++) {
-            fprintf(f, (p ? "      " : "  BP = "));
+            debug((p ? "      " : "  BP = ")); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             for (q=0; q<=sip->bp_order; q++)
                 if (p+q <= sip->bp_order)
-                    fprintf(f,"%12.5g", sip->bp[p][q]);
-            fprintf(f,"\n");
+                    debug("%12.5g", sip->bp[p][q]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
+            debug("\n");
         }
     }
 
 
     det = sip_det_cd(sip);
     pixsc = 3600*sqrt(fabs(det));
-    //fprintf(f,"  det(CD)=%g\n", det);
-    fprintf(f,"  sqrt(det(CD))=%g [arcsec]\n", pixsc);
-    //fprintf(f,"\n");
+    //debug("  det(CD)=%g\n", det); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
+    debug("  sqrt(det(CD))=%g [arcsec]\n", pixsc); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
+    //debug("\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 }
 
 void sip_print(const sip_t* sip) {

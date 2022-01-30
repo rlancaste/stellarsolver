@@ -20,6 +20,7 @@
 
 static int g_thread_specific = 0;
 static log_t g_logger;
+int astrometryLogToFile = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 void log_set_thread_specific() {
     g_thread_specific = 1;
@@ -65,6 +66,7 @@ void log_set_timestamp(anbool b) {
 
 void log_to(FILE* fid) {
     get_logger()->f = fid;
+    astrometryLogToFile = 1; //# Modified by Robert Lancaster for the StellarSolver Internal Library
 }
 
 void log_to_fd(int fd) {
@@ -78,56 +80,83 @@ void log_use_function(logfunc_t func, void* baton) {
     l->logfunc = func;
     l->baton = baton;
 }
-
+/* //# Modified by Robert Lancaster for the StellarSolver Internal Library, this method was not used.
 log_t* log_create(enum log_level level) {
     log_t* logger = calloc(1, sizeof(log_t));
     return logger;
 }
-
+*/
 void log_free(log_t* log) {
     assert(log);
     free(log);
 }
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
-AN_THREAD_DECLARE_STATIC_MUTEX(loglock);
-#endif
 
-static void loglvl(const log_t* logger, enum log_level level,
-                   const char* file, int line, const char* func,
-                   const char* format, va_list va) {
-    if (level > logger->level)
-        return;
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
-    AN_THREAD_LOCK(loglock);
-#endif
-    if (logger->f) {
-        if (logger->timestamp)
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
-            fprintf(logger->f, "[%6i: %.3f] ", (int)getpid(), timenow() - logger->t0);
-#else
-            fprintf(logger->f, "[ %.3f] ", timenow() - logger->t0);
-#endif
-        //fprintf(logger->f, "%s:%i ", file, line);
-        vfprintf(logger->f, format, va);
-        fflush(logger->f);
-    }
-    if (logger->logfunc) {
-        logger->logfunc(logger->baton, level, file, line, func, format, va);
-    }
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
-    AN_THREAD_UNLOCK(loglock);
-#endif
-}
+/* Modified by Robert Lancaster for the StellarSolver Internal Library
+* These methods replace the former logging functions.
+* There were several reasons to do this:
+* 1. To get the log text back to stellarsolver as a character string
+* 2. To get rid of the errors caused by implicitly declared functions due to the templates
+* 3. Because on an armhf system, the former logging functions were not putting the correct variable values in the logs
+*/
 
-void log_loglevel(enum log_level level,
-                  const char* file, int line, const char* func,
-                  const char* format, ...) {
+void logerr(const char* text, ...){
     va_list va;
-    va_start(va, format);
-    loglvl(get_logger(), level, file, line, func, format, va);
+    va_start(va, text);
+    log_this(text, LOG_ERROR, va);
     va_end(va);
 }
+void logmsg(const char* text, ...){
+    va_list va;
+    va_start(va, text);
+    log_this(text, LOG_MSG, va);
+    va_end(va);
+}
+void logverb(const char* text, ...){
+    va_list va;
+    va_start(va, text);
+    log_this(text, LOG_VERB, va);
+    va_end(va);
+}
+void debug(const char* text, ...){
+    va_list va;
+    va_start(va, text);
+    log_this(text, LOG_ALL, va);
+    va_end(va);
+}
+void logdebug(const char* text, ...){
+    va_list va;
+    va_start(va, text);
+    log_this(text, LOG_ALL, va);
+    va_end(va);
+}
+void loglevel(enum log_level level, const char* text, ...){
+    va_list va;
+    va_start(va, text);
+    log_this(text, level, va);
+    va_end(va);
+}
+
+void log_this(const char* text, enum log_level level, va_list va){
+    const log_t* logger = get_logger();
+    if (level > logger->level)
+        return;
+
+    if (logger->f && astrometryLogToFile == 1) {
+        if (logger->timestamp)
+            fprintf(logger->f, "[ %.3f] ", timenow() - logger->t0);
+        vfprintf(logger->f, text, va);
+        fflush(logger->f);
+    }
+    else{
+        char *formatted = NULL;
+        vasprintf(&formatted, text, va);
+        logToStellarSolver(formatted);
+        free(formatted);
+    }
+}
+
+// This is the end of the added functions.
 
 int log_get_level() {
     return get_logger()->level;
@@ -137,26 +166,6 @@ FILE* log_get_fid() {
     return get_logger()->f;
 }
 
-#define LOGGER_TEMPLATE(name, level)                                    \
-    void                                                                \
-    name##_(const log_t* logger, const char* file, int line, const char* func, const char* format, ...) { \
-        va_list va;                                                     \
-        va_start(va, format);                                           \
-        loglvl(logger, level, file, line, func, format, va);            \
-        va_end(va);                                                     \
-    }                                                                   \
-    void                                                                \
-    name(const char* file, int line, const char* func, const char* format, ...) { \
-        va_list va;                                                     \
-        va_start(va, format);                                           \
-        loglvl(get_logger(), level, file, line, func, format, va);      \
-        va_end(va);                                                     \
-    }                                                                   \
-	
-LOGGER_TEMPLATE(log_logerr,  LOG_ERROR);
-LOGGER_TEMPLATE(log_logmsg,  LOG_MSG);
-LOGGER_TEMPLATE(log_logverb, LOG_VERB);
-LOGGER_TEMPLATE(log_logdebug,LOG_ALL);
 
 
 

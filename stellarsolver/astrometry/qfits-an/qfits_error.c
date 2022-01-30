@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 #ifndef _WIN32 //# Modified by Jasem Mutlaq for the StellarSolver Internal Library
 #include <unistd.h>
@@ -62,7 +63,7 @@ typedef void (*qfits_err_dispfunc)(char *);
 
 /* Default display function prints out msg to stderr */
 static void qfits_err_display_stderr(char * s)
-{ fprintf(stderr, "qfits: %s\n", s); }
+{ debug("qfits: %s\n", s); } //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 /* Static control structure, completely private */
 static struct {

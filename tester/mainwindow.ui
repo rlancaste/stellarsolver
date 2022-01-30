@@ -120,15 +120,15 @@
                <number>0</number>
               </property>
               <property name="tabSpacing">
-               <number>-1</number>
+               <number>6</number>
               </property>
               <widget class="QWidget" name="page">
                <property name="geometry">
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>285</width>
-                 <height>388</height>
+                 <width>305</width>
+                 <height>416</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -161,8 +161,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>285</width>
-                 <height>388</height>
+                 <width>305</width>
+                 <height>416</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -274,8 +274,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>289</width>
-                 <height>441</height>
+                 <width>291</width>
+                 <height>424</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -489,8 +489,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>285</width>
-                 <height>388</height>
+                 <width>305</width>
+                 <height>416</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -607,8 +607,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>285</width>
-                 <height>388</height>
+                 <width>305</width>
+                 <height>416</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -776,15 +776,15 @@
                <number>0</number>
               </property>
               <property name="tabSpacing">
-               <number>-1</number>
+               <number>6</number>
               </property>
               <widget class="QWidget" name="Sextractor">
                <property name="geometry">
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>319</width>
-                 <height>535</height>
+                 <width>303</width>
+                 <height>495</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1055,8 +1055,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>158</width>
-                 <height>375</height>
+                 <width>141</width>
+                 <height>380</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1268,8 +1268,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>100</width>
-                 <height>74</height>
+                 <width>98</width>
+                 <height>70</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1301,8 +1301,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>214</width>
-                     <height>334</height>
+                     <width>201</width>
+                     <height>331</height>
                     </rect>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_5">
@@ -1319,7 +1319,7 @@
                      <number>0</number>
                     </property>
                     <property name="spacing">
-                     <number>-1</number>
+                     <number>6</number>
                     </property>
                     <item row="23" column="2">
                      <widget class="QLineEdit" name="solverTimeLimit">
@@ -1570,8 +1570,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>499</width>
-                 <height>144</height>
+                 <width>504</width>
+                 <height>141</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="gridLayout_2">
@@ -1726,7 +1726,7 @@
               <number>0</number>
              </property>
              <item row="3" column="0">
-              <widget class="QTextBrowser" name="logDisplay"/>
+              <widget class="QPlainTextEdit" name="logDisplay"/>
              </item>
             </layout>
            </widget>
@@ -1839,7 +1839,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <property name="spacing">
-             <number>-1</number>
+             <number>6</number>
             </property>
             <property name="sizeConstraint">
              <enum>QLayout::SetDefaultConstraint</enum>
@@ -1901,7 +1901,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_9">
             <property name="spacing">
-             <number>-1</number>
+             <number>6</number>
             </property>
             <property name="topMargin">
              <number>0</number>

@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
+#include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 #ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <winsock2.h>
@@ -38,7 +39,7 @@ int solvedclient_set_server(char* addr) {
     if (fserver) {
         if (fflush(fserver) ||
             fclose(fserver)) {
-            fprintf(stderr, "Failed to close previous connection to server.\n");
+            debug("Failed to close previous connection to server.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         }
         fserver = NULL;
     }
@@ -50,7 +51,7 @@ int solvedclient_set_server(char* addr) {
     ind = index(addr, ':');
 #endif
     if (!ind) {
-        fprintf(stderr, "Invalid IP:port address: %s\n", addr);
+        debug("Invalid IP:port address: %s\n", addr); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     len = ind - addr;
@@ -59,9 +60,9 @@ int solvedclient_set_server(char* addr) {
     he = gethostbyname(buf);
     if (!he) {
 #ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
-        fprintf(stderr, "Solved server \"%s\" not found.\n", buf);
+        debug("Solved server \"%s\" not found.\n", buf); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 #else
-        fprintf(stderr, "Solved server \"%s\" not found: %s.\n", buf, hstrerror(h_errno));
+        debug("Solved server \"%s\" not found: %s.\n", buf, hstrerror(h_errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 #endif
         return -1;
     }
@@ -83,20 +84,20 @@ static int connect_to_server() {
         return 0;
     sock = socket(PF_INET, SOCK_STREAM, 0);
     if (sock == -1) {
-        fprintf(stderr, "Couldn't create socket: %s\n", strerror(errno));
+        debug("Couldn't create socket: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     fserver = fdopen(sock, "r+b");
     if (!fserver) {
-        fprintf(stderr, "Failed to fdopen socket: %s\n", strerror(errno));
+        debug("Failed to fdopen socket: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     assert(serveraddr_initialized);
     // gcc with strict-aliasing warns about this cast but it should be okay.
     if (connect(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr))) {
-        fprintf(stderr, "Couldn't connect to server: %s\n", strerror(errno));
+        debug("Couldn't connect to server: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         if (fclose(fserver))
-            fprintf(stderr, "Failed to close socket: %s\n", strerror(errno));
+            debug("Failed to close socket: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         fserver = NULL;
         return -1;
     }
@@ -114,13 +115,13 @@ int solvedclient_get(int filenum, int fieldnum) {
     nchars = sprintf(buf, "get %i %i\n", filenum, fieldnum);
     if ((fwrite(buf, 1, nchars, fserver) != nchars) ||
         fflush(fserver)) {
-        fprintf(stderr, "Failed to write request to server: %s\n", strerror(errno));
+        debug("Failed to write request to server: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         fclose(fserver);
         fserver = NULL;
         return -1;
     }
     if (!fgets(buf, 256, fserver)) {
-        fprintf(stderr, "Couldn't read response: %s\n", strerror(errno));
+        debug("Couldn't read response: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         fclose(fserver);
         fserver = NULL;
         return -1;
@@ -137,12 +138,12 @@ void solvedclient_set(int filenum, int fieldnum) {
     nchars = sprintf(buf, "set %i %i\n", filenum, fieldnum);
     if ((fwrite(buf, 1, nchars, fserver) != nchars) ||
         fflush(fserver)) {
-        fprintf(stderr, "Failed to send command (%s) to solvedserver: %s\n", buf, strerror(errno));
+        debug("Failed to send command (%s) to solvedserver: %s\n", buf, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return;
     }
     // wait for response.
     if (!fgets(buf, 256, fserver)) {
-        fprintf(stderr, "Couldn't read response: %s\n", strerror(errno));
+        debug("Couldn't read response: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         fclose(fserver);
         fserver = NULL;
         return;
@@ -166,24 +167,24 @@ il* solvedclient_get_fields(int filenum, int firstfield, int lastfield,
                      lastfield, maxnfields);
     if ((fwrite(buf, 1, nchars, fserver) != nchars) ||
         fflush(fserver)) {
-        fprintf(stderr, "Failed to send command (%s) to solvedserver: %s\n", buf, strerror(errno));
+        debug("Failed to send command (%s) to solvedserver: %s\n", buf, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     // wait for response.
     if (!fgets(buf, bufsize, fserver)) {
-        fprintf(stderr, "Couldn't read response: %s\n", strerror(errno));
+        debug("Couldn't read response: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         fclose(fserver);
         fserver = NULL;
         free(buf);
         return NULL;
     }
     if (sscanf(buf, "unsolved %i%n", &fld, &nchars) != 1) {
-        fprintf(stderr, "Couldn't parse response: %s\n", buf);
+        debug("Couldn't parse response: %s\n", buf); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         free(buf);
         return NULL;
     }
     if (fld != filenum) {
-        fprintf(stderr, "Expected file number %i, not %i.\n", filenum, fld);
+        debug("Expected file number %i, not %i.\n", filenum, fld); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         free(buf);
         return NULL;
     }
@@ -191,7 +192,7 @@ il* solvedclient_get_fields(int filenum, int firstfield, int lastfield,
     list = il_new(256);
     while (*cptr && *cptr != '\n') {
         if (sscanf(cptr, " %i%n", &fld, &nchars) != 1) {
-            fprintf(stderr, "Couldn't parse response: %s\n", buf);
+            debug("Couldn't parse response: %s\n", buf); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             il_free(list);
             free(buf);
             return NULL;

@@ -29,7 +29,7 @@ struct timeval {
 static startree_t* startree_alloc() {
     startree_t* s = calloc(1, sizeof(startree_t));
     if (!s) {
-        fprintf(stderr, "Failed to allocate a star kdtree struct.\n");
+        debug("Failed to allocate a star kdtree struct.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     return s;
@@ -424,7 +424,7 @@ void startree_compute_inverse_perm(startree_t* s) {
     // compute inverse permutation vector.
     s->inverse_perm = malloc(Ndata(s) * sizeof(int));
     if (!s->inverse_perm) {
-        fprintf(stderr, "Failed to allocate star kdtree inverse permutation vector.\n");
+        debug("Failed to allocate star kdtree inverse permutation vector.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return;
     }
 #ifndef NDEBUG
@@ -498,7 +498,7 @@ int startree_get(startree_t* s, int starid, double* posn) {
             return -1;
     }
     if (starid >= Ndata(s)) {
-        fprintf(stderr, "Invalid star ID: %u >= %u.\n", starid, Ndata(s));
+        debug("Invalid star ID: %u >= %u.\n", starid, Ndata(s)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         assert(0);
         return -1;
     }
@@ -524,7 +524,7 @@ startree_t* startree_new() {
     startree_t* s = startree_alloc();
     s->header = qfits_header_default();
     if (!s->header) {
-        fprintf(stderr, "Failed to create a qfits header for star kdtree.\n");
+        debug("Failed to create a qfits header for star kdtree.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         free(s);
         return NULL;
     }

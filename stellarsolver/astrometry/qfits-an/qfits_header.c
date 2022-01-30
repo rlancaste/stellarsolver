@@ -38,6 +38,7 @@
 #include "qfits_card.h"
 #include "qfits_error.h"
 #include "qfits_memory.h"
+#include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 struct qfits_header {
     void    *   first;         /* Pointer to list start */
@@ -260,7 +261,7 @@ void qfits_header_add(
 
     if (hdr==NULL || key==NULL) return;
     if (hdr->n<2) {
-		fprintf(stderr, "Caution: qfits thinks it knows better than you: %s:%i key=\"%s\"\n", __FILE__, __LINE__, key);
+        debug("Caution: qfits thinks it knows better than you: %s:%i key=\"%s\"\n", __FILE__, __LINE__, key); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 		return;
 	}
 
@@ -269,7 +270,7 @@ void qfits_header_add(
 
     if (((keytype)first->typ != keytype_top) ||
         ((keytype)last->typ != keytype_end)) {
-		fprintf(stderr, "Caution, qfits thinks it knows better than you: %s:%i\n", __FILE__, __LINE__);
+        debug("Caution, qfits thinks it knows better than you: %s:%i\n", __FILE__, __LINE__); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 		return;
 	}
     
@@ -961,7 +962,7 @@ int qfits_header_dump(
         /* Make line from information in the node */
         qfits_header_makeline(line, k, 1);
         if ((fwrite(line, 1, 80, out))!=80) {
-            fprintf(stderr, "error dumping FITS header");
+            debug("error dumping FITS header"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             return -1;
         }
         n_out ++;
@@ -994,7 +995,7 @@ int qfits_header_list(
         /* Make line from information in the node */
         qfits_header_makeline(line, k, 1);
         if ((fwrite(line, 1, 80, out))!=80) {
-            fprintf(stderr, "error dumping FITS header");
+            debug("error dumping FITS header"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             return -1;
         }
         fprintf(out, "\n");

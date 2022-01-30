@@ -317,8 +317,8 @@ void asprintf_safe(char** strp, const char* format, ...) {
     va_start(lst, format);
     rtn = vasprintf(strp, format, lst);
     if (rtn == -1) {
-        fprintf(stderr, "Error, vasprintf() failed: %s\n", strerror(errno));
-        fprintf(stderr, "  (format: \"%s\")\n", format);
+        debug("Error, vasprintf() failed: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
+        debug("  (format: \"%s\")\n", format); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         assert(0);
         *strp = NULL;
     }
@@ -328,7 +328,7 @@ void asprintf_safe(char** strp, const char* format, ...) {
 sl* dir_get_contents(const char* path, sl* list, anbool filesonly, anbool recurse) {
     DIR* dir = opendir(path);
     if (!dir) {
-        fprintf(stderr, "Failed to open directory \"%s\": %s\n", path, strerror(errno));
+        debug("Failed to open directory \"%s\": %s\n", path, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     if (!list)
@@ -343,7 +343,7 @@ sl* dir_get_contents(const char* path, sl* list, anbool filesonly, anbool recurs
         de = readdir(dir);
         if (!de) {
             if (errno)
-                fprintf(stderr, "Failed to read entry from directory \"%s\": %s\n", path, strerror(errno));
+                debug("Failed to read entry from directory \"%s\": %s\n", path, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             break;
         }
         name = de->d_name;
@@ -351,7 +351,7 @@ sl* dir_get_contents(const char* path, sl* list, anbool filesonly, anbool recurs
             continue;
         asprintf_safe(&fullpath, "%s/%s", path, name);
         if (stat(fullpath, &st)) {
-            fprintf(stderr, "Failed to stat file %s: %s\n", fullpath, strerror(errno));
+            debug("Failed to stat file %s: %s\n", fullpath, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             // this can happen when files are deleted, eg
             continue;
             //closedir(dir);
@@ -706,7 +706,7 @@ char* create_temp_file(const char* fn, const char* dir) {
     asprintf_safe(&tempfile, "%s/tmp.%s.XXXXXX", dir, fn);
     fid = mkstemp(tempfile);
     if (fid == -1) {
-        fprintf(stderr, "Failed to create temp file: %s\n", strerror(errno));
+        debug("Failed to create temp file: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         exit(-1);
     }
     close(fid);
@@ -818,22 +818,22 @@ void* file_get_contents(const char* fn, size_t* len, anbool addzero) {
     FILE* fid;
     off_t size;
     if (stat(fn, &st)) {
-        fprintf(stderr, "file_get_contents: failed to stat file \"%s\"", fn);
+        debug("file_get_contents: failed to stat file \"%s\"", fn); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     size = st.st_size;
     fid = fopen(fn, "rb");
     if (!fid) {
-        fprintf(stderr, "file_get_contents: failed to open file \"%s\": %s\n", fn, strerror(errno));
+        debug("file_get_contents: failed to open file \"%s\": %s\n", fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     buf = malloc(size + (addzero ? 1 : 0));
     if (!buf) {
-        fprintf(stderr, "file_get_contents: couldn't malloc %lu bytes.\n", (long)size);
+        debug("file_get_contents: couldn't malloc %lu bytes.\n", (long)size); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     if (fread(buf, 1, size, fid) != size) {
-        fprintf(stderr, "file_get_contents: failed to read %lu bytes: %s\n", (long)size, strerror(errno));
+        debug("file_get_contents: failed to read %lu bytes: %s\n", (long)size, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         free(buf);
         return NULL;
     }
@@ -971,7 +971,7 @@ char* strdup_safe(const char* str) {
     if (!str) return NULL;
     rtn = strdup(str);
     if (!rtn) {
-        fprintf(stderr, "Failed to strdup: %s\n", strerror(errno));
+        debug("Failed to strdup: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         assert(0);
     }
     return rtn;
@@ -981,11 +981,11 @@ char* strdup_safe(const char* str) {
 static int oldsigbus_valid = 0;
 static struct sigaction oldsigbus;
 static void sigbus_handler(int sig) {
-    fprintf(stderr, "\n\n"
+    debug("\n\n"
             "SIGBUS (Bus error) signal received.\n"
             "One reason this can happen is that an I/O error is encountered\n"
             "on a file that we are reading with \"mmap\".\n\n"
-            "Bailing out now.\n\n");
+            "Bailing out now.\n\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     fflush(stderr);
     exit(-1);
 }
@@ -995,7 +995,7 @@ void add_sigbus_mmap_warning() {
     memset(&sigbus, 0, sizeof(struct sigaction));
     sigbus.sa_handler = sigbus_handler;
     if (sigaction(SIGBUS, &sigbus, &oldsigbus)) {
-        fprintf(stderr, "Failed to change SIGBUS handler: %s\n", strerror(errno));
+        debug("Failed to change SIGBUS handler: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return;
     }
     oldsigbus_valid = 1;
@@ -1004,7 +1004,7 @@ void add_sigbus_mmap_warning() {
 void reset_sigbus_mmap_warning() {
     if (oldsigbus_valid) {
         if (sigaction(SIGBUS, &oldsigbus, NULL)) {
-            fprintf(stderr, "Failed to restore SIGBUS handler: %s\n", strerror(errno));
+            debug("Failed to restore SIGBUS handler: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             return;
         }
     }
@@ -1084,7 +1084,7 @@ int read_u32s_portable(FILE* fin, unsigned int* val, int n) {
     int i;
     uint32_t* u = malloc(sizeof(uint32_t) * n);
     if (!u) {
-        fprintf(stderr, "Couldn't real uint32s: couldn't allocate temp array.\n");
+        debug("Couldn't real uint32s: couldn't allocate temp array.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
     if (fread(u, sizeof(uint32_t), n, fin) == n) {
@@ -1118,7 +1118,7 @@ static char* growable_buffer_add(char* buf, int index, char c, int* size, int* s
         *size += *sizestep;
         buf = realloc(buf, *size);
         if (!buf) {
-            fprintf(stderr, "Couldn't allocate buffer: %i.\n", *size);
+            debug("Couldn't allocate buffer: %i.\n", *size); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             return NULL;
         }
         if (*sizestep < *maxstep)
@@ -1166,7 +1166,7 @@ char* read_string_terminated(FILE* fin, const char* terminators, int nterminator
         rtn = realloc(rtn, i);
         // shouldn't happen - we're shrinking.
         if (!rtn) {
-            fprintf(stderr, "Couldn't realloc buffer: %i\n", i);
+            debug("Couldn't realloc buffer: %i\n", i); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         }
     }
     return rtn;
@@ -1175,7 +1175,7 @@ char* read_string_terminated(FILE* fin, const char* terminators, int nterminator
 int write_string(FILE* fout, char* s) {
     int len = strlen(s) + 1;
     if (fwrite(s, 1, len, fout) != len) {
-        fprintf(stderr, "Couldn't write string: %s\n", strerror(errno));
+        debug("Couldn't write string: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
     return 0;
@@ -1186,14 +1186,14 @@ int write_fixed_length_string(FILE* fout, char* s, int length) {
     int res;
     str = calloc(length, 1);
     if (!str) {
-        fprintf(stderr, "Couldn't allocate a temp buffer of size %i.\n", length);
+        debug("Couldn't allocate a temp buffer of size %i.\n", length); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
     sprintf(str, "%.*s", length, s);
     res = fwrite(str, 1, length, fout);
     free(str);
     if (res != length) {
-        fprintf(stderr, "Couldn't write fixed-length string: %s\n", strerror(errno));
+        debug("Couldn't write fixed-length string: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
     return 0;
@@ -1203,7 +1203,7 @@ int write_double(FILE* fout, double val) {
     if (fwrite(&val, sizeof(double), 1, fout) == 1) {
         return 0;
     } else {
-        fprintf(stderr, "Couldn't write double: %s\n", strerror(errno));
+        debug("Couldn't write double: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
 }
@@ -1212,7 +1212,7 @@ int write_float(FILE* fout, float val) {
     if (fwrite(&val, sizeof(float), 1, fout) == 1) {
         return 0;
     } else {
-        fprintf(stderr, "Couldn't write float: %s\n", strerror(errno));
+        debug("Couldn't write float: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
 }
@@ -1221,7 +1221,7 @@ int write_u8(FILE* fout, unsigned char val) {
     if (fwrite(&val, 1, 1, fout) == 1) {
         return 0;
     } else {
-        fprintf(stderr, "Couldn't write u8: %s\n", strerror(errno));
+        debug("Couldn't write u8: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
 }
@@ -1231,7 +1231,7 @@ int write_u32_portable(FILE* fout, unsigned int val) {
     if (fwrite(&v, 4, 1, fout) == 1) {
         return 0;
     } else {
-        fprintf(stderr, "Couldn't write u32: %s\n", strerror(errno));
+        debug("Couldn't write u32: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
 }
@@ -1240,7 +1240,7 @@ int write_u32s_portable(FILE* fout, unsigned int* val, int n) {
     int i;
     uint32_t* v = malloc(sizeof(uint32_t) * n);
     if (!v) {
-        fprintf(stderr, "Couldn't write u32s: couldn't allocate temp array.\n");
+        debug("Couldn't write u32s: couldn't allocate temp array.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
     for (i=0; i<n; i++) {
@@ -1250,7 +1250,7 @@ int write_u32s_portable(FILE* fout, unsigned int* val, int n) {
         free(v);
         return 0;
     } else {
-        fprintf(stderr, "Couldn't write u32s: %s\n", strerror(errno));
+        debug("Couldn't write u32s: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         free(v);
         return 1;
     }
@@ -1261,7 +1261,7 @@ int write_u32(FILE* fout, unsigned int val) {
     if (fwrite(&v, 4, 1, fout) == 1) {
         return 0;
     } else {
-        fprintf(stderr, "Couldn't write u32: %s\n", strerror(errno));
+        debug("Couldn't write u32: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
 }
@@ -1271,7 +1271,7 @@ int write_u16(FILE* fout, unsigned int val) {
     if (fwrite(&v, 2, 1, fout) == 1) {
         return 0;
     } else {
-        fprintf(stderr, "Couldn't write u32: %s\n", strerror(errno));
+        debug("Couldn't write u32: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
 }
@@ -1280,7 +1280,7 @@ int write_uints(FILE* fout, unsigned int* val, int n) {
     if (fwrite(val, sizeof(unsigned int), n, fout) == n) {
         return 0;
     } else {
-        fprintf(stderr, "Couldn't write uints: %s\n", strerror(errno));
+        debug("Couldn't write uints: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
 }
@@ -1315,7 +1315,7 @@ void* buffered_read(bread_t* br) {
             return NULL;
         memset(br->buffer, 0, br->blocksize * br->elementsize);
         if (br->refill_buffer(br->userdata, br->buffer, br->off, n)) {
-            fprintf(stderr, "buffered_read: Error filling buffer.\n");
+            debug("buffered_read: Error filling buffer.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             return NULL;
         }
         br->nbuff = n;
@@ -1338,7 +1338,7 @@ void buffered_read_reset(bread_t* br) {
 
 void buffered_read_pushback(bread_t* br) {
     if (!br->buffind) {
-        fprintf(stderr, "buffered_read_pushback: Can't push back any further!\n");
+        debug("buffered_read_pushback: Can't push back any further!\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return;
     }
     br->buffind--;

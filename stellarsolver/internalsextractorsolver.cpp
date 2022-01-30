@@ -18,11 +18,21 @@
 #include <memory>
 
 #include "internalsextractorsolver.h"
+#include "stellarsolver.h"
 #include "sep/extract.h"
 #include "qmath.h"
 
 extern "C" {
 #include "astrometry/log.h"
+
+}
+
+extern "C" void logToStellarSolver(char* text)
+{
+    if(astroLogger)
+        return astroLogger->logFromAstrometry(text);
+    else
+        return;
 }
 
 using namespace SSolver;
@@ -36,9 +46,7 @@ InternalSextractorSolver::InternalSextractorSolver(ProcessType pType, ExtractorT
 {
     //This sets the base name used for the temp files.
     m_BaseName = "internalSextractorSolver_" + QString::number(solverNum++);
-
     m_PartitionThreads = QThread::idealThreadCount();
-
 }
 
 InternalSextractorSolver::~InternalSextractorSolver()
@@ -1095,25 +1103,14 @@ int InternalSextractorSolver::runInternalSolver()
     if(m_AstrometryLogLevel != SSolver::LOG_NONE)
     {
         if(m_LogToFile)
-        {
             logFile = fopen(m_LogFileName.toLatin1().constData(), "w");
-        }
         else
         {
-#ifndef _WIN32 //Windows does not support FIFO files
-            m_LogFileName = m_BasePath + "/" + m_BaseName + ".logFIFO.txt";
-            int mkFifoSuccess = 0; //Note if the return value of the command is 0 it succeeded, -1 means it failed.
-            if ((mkFifoSuccess = mkfifo(m_LogFileName.toLatin1(), S_IRUSR | S_IWUSR) == 0))
+            if(!this->isChildSolver)
             {
-                startLogMonitor();
-                logFile = fopen(m_LogFileName.toLatin1().constData(), "r+");
+                astroLogger = new AstrometryLogger();
+                connect(astroLogger, &AstrometryLogger::logOutput, this, &SextractorSolver::logOutput);
             }
-            else
-            {
-                emit logOutput("Error making FIFO file: " + m_LogFileName);
-                m_AstrometryLogLevel = SSolver::LOG_NONE; //No need to completely fail the solve just because of a fifo error
-            }
-#endif
         }
         if(logFile)
             log_to(logFile);
@@ -1232,28 +1229,11 @@ int InternalSextractorSolver::runInternalSolver()
     if (engine_run_job(engine, job))
         emit logOutput("Failed to run job");
 
-    //Needs to be done whether FIFO or regular file
+    //Needs to close the file after the logging is done
     if(m_AstrometryLogLevel != SSolver::LOG_NONE && logFile)
         fclose(logFile);
-
-    //These things need to be done if it is running off the FIFO file
-#ifndef _WIN32
-    if(!m_LogToFile && m_AstrometryLogLevel != SSolver::LOG_NONE)
-    {
-        if(logMonitor)
-            logMonitor->quit();
-
-        //Wait up to 10 seconds for the log to finish writing
-        int maxLogTime = 10000;
-        int time = 0;
-        int inc = 10;
-        while(logMonitorRunning && time < maxLogTime)
-        {
-            msleep(inc);
-            time += inc;
-        }
-    }
-#endif
+    if(m_AstrometryLogLevel != SSolver::LOG_NONE && !this->isChildSolver && astroLogger)
+        disconnect(astroLogger, &AstrometryLogger::logOutput, this, &SextractorSolver::logOutput);
 
     //This deletes or frees the items that are no longer needed.
     engine_free(engine);
@@ -1426,38 +1406,4 @@ bool InternalSextractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars
         oneStar.dec = dec;
     }
     return true;
-}
-
-//This starts a monitor for the FIFO file if on a Mac or Linux Machine
-//That way the output can be logged.
-void InternalSextractorSolver::startLogMonitor()
-{
-    logMonitor = new QThread();
-    connect(logMonitor, &QThread::started, [ = ]()
-    {
-        QString message;
-        FILE *FIFOReader = fopen(m_LogFileName.toLatin1().constData(), "r");
-        if(FIFOReader)
-        {
-            char c;
-            while((c = getc(FIFOReader)) != EOF)
-            {
-                if( c != '\n')
-                    message += c;
-                else
-                {
-                    emit logOutput(message);
-                    message = "";
-                    //If we don't do this, it could freeze your program it is so much output
-                    if(m_AstrometryLogLevel == SSolver::LOG_ALL)
-                        msleep(1);
-                }
-            }
-            fclose(FIFOReader);
-            emit logOutput(message);
-            logMonitorRunning = false;
-        }
-    });
-    logMonitor->start();
-    logMonitorRunning = true;
 }

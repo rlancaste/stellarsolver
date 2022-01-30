@@ -347,7 +347,7 @@ int sep_sum_circann_multi(sep_image *im,
         memset(maskarea, 0, (size_t)(n * sizeof(double)));
 
     /* initializations */
-    size = esize = msize = 0;
+    size = esize = msize = ssize = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library to initialize variable to eliminate error.
     datat = maskt = segt = NULL;
     errort = reinterpret_cast<uint8_t *>(im->noise);
     *flag = 0;

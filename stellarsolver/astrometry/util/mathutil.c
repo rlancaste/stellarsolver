@@ -319,7 +319,7 @@ double inverse_3by3(double *matrix)
     matrix[7] = b32;
     matrix[8] = b33;
 
-    //fprintf(stderr,"matrix determinant = %g\n",det);
+    //debug("matrix determinant = %g\n",det); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
     return (det);
 }
@@ -407,10 +407,10 @@ void fit_transform(double* star, double* field, int N, double* trans) {
     det = inverse_3by3(FFt);
 
     if (det < 0)
-        fprintf(stderr, "WARNING (fit_transform) -- determinant<0\n");
+        debug("WARNING (fit_transform) -- determinant<0\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
     if (det == 0.0) {
-        fprintf(stderr, "ERROR (fit_transform) -- determinant zero\n");
+        debug("ERROR (fit_transform) -- determinant zero\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         free(F); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         return;
     }

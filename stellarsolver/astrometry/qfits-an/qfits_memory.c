@@ -48,6 +48,7 @@
 #endif
 #include <errno.h>
 #include <assert.h>
+#include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 #include "qfits_error.h"
 
@@ -292,8 +293,8 @@ void * qfits_memory_malloc(
     /* Protect the call */
     if (size==0) {
         qfits_mem_debug(
-            fprintf(stderr, "qfits_mem: malloc called with 0 size - %s (%d)\n",
-                    filename, lineno);
+            debug("qfits_mem: malloc called with 0 size - %s (%d)\n",
+                    filename, lineno); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
         return NULL;
     }
@@ -323,7 +324,7 @@ void * qfits_memory_malloc(
     if (ptr==NULL) {
         /* No more RAM available: try to allocate private swap */
         qfits_mem_debug(
-            fprintf(stderr, "qfits_mem: hit a NULL pointer -- swapping\n");
+            debug("qfits_mem: hit a NULL pointer -- swapping\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
 
         /* Create swap file with rights: rw-rw-rw- */
@@ -331,7 +332,7 @@ void * qfits_memory_malloc(
         fname = qfits_memory_tmpfilename(swapfileid);
         swapfd = open(fname, O_RDWR | O_CREAT);
         if (swapfd==-1) {
-            fprintf(stderr, "qfits_mem: cannot create swap file\n");
+            debug("qfits_mem: cannot create swap file\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             exit(-1);
         }
 
@@ -348,8 +349,7 @@ void * qfits_memory_malloc(
         for (i=0; i<nbufs; i++) {
             if (write(swapfd, wbuf, MEMPAGESZ)==-1) {
                 perror("write");
-                fprintf(stderr,
-                        "qfits_mem: fatal error: cannot create swapfile\n");
+                debug("qfits_mem: fatal error: cannot create swapfile\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
                 close(swapfd);
                 remove(fname);
                 exit(-1);
@@ -369,16 +369,15 @@ void * qfits_memory_malloc(
 #endif
         if ((char*)ptr == (char*)-1) {
             perror("mmap");
-            fprintf(stderr,
-                    "qfits_mem: fatal error: mmap failed for swap file\n");
+            debug("qfits_mem: fatal error: mmap failed for swap file\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             close(swapfd);
             remove(fname);
             exit(-1);
         }
 
         qfits_mem_debug(
-            fprintf(stderr, "qfits_mem: swap [%s] created for %ld bytes\n", 
-                fname, (long)size);
+            debug("qfits_mem: swap [%s] created for %ld bytes\n",
+                fname, (long)size); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
 
         memtype = MEMTYPE_SWAP;
@@ -395,7 +394,7 @@ void * qfits_memory_malloc(
          * by the OS.
          */
         qfits_mem_debug(
-            fprintf(stderr, "qfits_mem: touching memory (Linux)\n");
+            debug("qfits_mem: touching memory (Linux)\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
         for (p=0; p<(int)size; p+=qfits_memory_table.pagesize) 
             ((char*)ptr)[p] = 0;
@@ -408,8 +407,8 @@ void * qfits_memory_malloc(
     
     /* Print out message in debug mode */
     qfits_mem_debug(
-        fprintf(stderr, "qfits_mem: %p alloc(%ld) in %s (%d)\n",
-            ptr, (long)size, filename, lineno);
+        debug("qfits_mem: %p alloc(%ld) in %s (%d)\n",
+            ptr, (long)size, filename, lineno); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     );
 
     /* Add cell into general table */
@@ -655,9 +654,8 @@ char * qfits_memory_falloc(
         }
 
         qfits_mem_debug(
-            fprintf(stderr,
-                    "qfits_mem: falloc mmap succeeded for [%s] - %s (%d)\n",
-                    name, srcname, srclin);
+            debug("qfits_mem: falloc mmap succeeded for [%s] - %s (%d)\n",
+                    name, srcname, srclin); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
 
         if (size!=NULL) (*size) = sta.st_size;
@@ -692,18 +690,16 @@ char * qfits_memory_falloc(
                     /* Check offset consistency wrt file size */
                     if (offs >= qfits_memory_p_size[i]) {
                         qfits_mem_debug(
-                            fprintf(stderr,
-                                "qfits_mem: falloc offset larger than file sz");
+                            debug("qfits_mem: falloc offset larger than file sz"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
                         );
                         return NULL;
                     }
                     /* Increase reference counter */
                     qfits_memory_p_mm_refcount[i] ++;
                     qfits_mem_debug(
-                        fprintf(stderr,
-                                "qfits_mem: incref on %s (%d mappings)\n",
+                        debug("qfits_mem: incref on %s (%d mappings)\n",
                                 name,
-                                qfits_memory_p_mm_refcount[i]);
+                                qfits_memory_p_mm_refcount[i]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
                     );
                     /* Increase number of mappings */
                     qfits_memory_table.n_mm_mappings ++;
@@ -725,16 +721,16 @@ char * qfits_memory_falloc(
     /* Check file's existence and compute its size */
     if (stat(name, &sta)==-1) {
         qfits_mem_debug(
-            fprintf(stderr, "qfits_mem: cannot stat file %s - %s (%d)\n",
-                    name, srcname, srclin);
+            debug("qfits_mem: cannot stat file %s - %s (%d)\n",
+                    name, srcname, srclin); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
         return NULL;
     }
     /* Check offset request does not go past end of file */
     if (offs>=(size_t)sta.st_size) {
         qfits_mem_debug(
-            fprintf(stderr,
-                "qfits_mem: falloc offsets larger than file size");
+            debug(
+                "qfits_mem: falloc offsets larger than file size"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
         return NULL;
     }
@@ -742,8 +738,8 @@ char * qfits_memory_falloc(
     /* Open file */
     if ((fd=open(name, O_RDONLY))==-1) {
         qfits_mem_debug(
-            fprintf(stderr, "qfits_mem: cannot open file %s - %s (%d)\n",
-                    name, srcname, srclin);
+            debug("qfits_mem: cannot open file %s - %s (%d)\n",
+                    name, srcname, srclin); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
         return NULL;
     }
@@ -760,7 +756,7 @@ char * qfits_memory_falloc(
     if (ptr == (char*)-1 || ptr==NULL) {
         qfits_mem_debug(
             perror("mmap");
-            fprintf(stderr, "qfits_mem: falloc cannot mmap file %s", name);
+            debug("qfits_mem: falloc cannot mmap file %s", name); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
         return NULL;
     }
@@ -768,9 +764,9 @@ char * qfits_memory_falloc(
     qfits_memory_table.n_mm_files ++;
     qfits_memory_table.n_mm_mappings ++;
     qfits_mem_debug(
-        fprintf(stderr,
+        debug(
                 "qfits_mem: falloc mmap succeeded for [%s] - %s (%d)\n",
-                name, srcname, srclin);
+                name, srcname, srclin); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     );
 
     /* Add cell into general table */
@@ -809,8 +805,8 @@ void qfits_memory_fdealloc(
     /* Do nothing for a NULL pointer */
     if (ptr==NULL) {
         /* Output a warning */
-        fprintf(stderr, "qfits_mem: free requested on NULL ptr -- %s (%d)\n",
-                filename, lineno);
+        debug("qfits_mem: free requested on NULL ptr -- %s (%d)\n",
+                filename, lineno); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return;
     }
     
@@ -843,9 +839,9 @@ void qfits_memory_fdealloc(
         if (nptrs>=qfits_memory_table.ncells) break;
     }
     if (pos==-1) {
-        fprintf(stderr,
+        debug(
                 "qfits_mem: %s (%d) free req. on unallocated pointer (%p)\n",
-                filename, lineno, ptr);
+                filename, lineno, ptr); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         /* Pointer sent to system's free() function, maybe it should not? */
         free(ptr);
         return;
@@ -863,8 +859,8 @@ void qfits_memory_fdealloc(
             /* --- SWAP pointer */
             swapname = qfits_memory_tmpfilename(qfits_memory_p_swapfileid[pos]);
             qfits_mem_debug(
-                    fprintf(stderr, "qfits_mem: deallocating swap file [%s]\n", 
-                        swapname);
+                    debug("qfits_mem: deallocating swap file [%s]\n",
+                        swapname); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             );
             /* Munmap file */
             if (munmap(ptr, qfits_memory_p_size[pos])!=0) {
@@ -890,17 +886,17 @@ void qfits_memory_fdealloc(
             /* Non-null ref count means the file stays mapped */
             if (qfits_memory_p_mm_refcount[pos]>0) {
                 qfits_mem_debug(
-                    fprintf(stderr, "qfits_mem: decref on %s (%d mappings)\n",
+                    debug("qfits_mem: decref on %s (%d mappings)\n",
                             qfits_memory_p_mm_filename[pos],
-                            qfits_memory_p_mm_refcount[pos]);
+                            qfits_memory_p_mm_refcount[pos]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
                 );
                 return;
             }
             /* Ref count reached zero: unmap the file */
             qfits_mem_debug(
-                    fprintf(stderr,
+                    debug(
                         "qfits_mem: unmapping file %s\n",
-                        qfits_memory_p_mm_filename[pos]);
+                        qfits_memory_p_mm_filename[pos]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             );
             munmap((char*)qfits_memory_p_val[pos],
                     qfits_memory_p_size[pos]);
@@ -909,7 +905,7 @@ void qfits_memory_fdealloc(
             break;
         default:
             qfits_mem_debug(
-                    fprintf(stderr, "qfits_mem: unknown memory cell type???");
+                    debug("qfits_mem: unknown memory cell type???"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             );
             break;
     }
@@ -920,11 +916,11 @@ void qfits_memory_fdealloc(
 
         /* Print out message in debug mode */
         qfits_mem_debug(
-            fprintf(stderr, "qfits_mem: free(%p) %ld bytes in %s (%d)\n",
+            debug("qfits_mem: free(%p) %ld bytes in %s (%d)\n",
                     ptr,
                     (long)qfits_memory_p_size[pos],
                     filename,
-                    lineno);
+                    lineno); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
     }
     /* Remove cell from main table */
@@ -965,8 +961,8 @@ void qfits_memory_free(
     /* Do nothing for a NULL pointer */
     if (ptr==NULL) {
         /* Output a warning */
-        fprintf(stderr, "qfits_mem: free requested on NULL ptr -- %s (%d)\n",
-                filename, lineno);
+        debug("qfits_mem: free requested on NULL ptr -- %s (%d)\n",
+                filename, lineno); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return;
     }
 
@@ -993,9 +989,9 @@ void qfits_memory_free(
         if (nptrs>=qfits_memory_table.ncells) break;
     }
     if (pos==-1) {
-        fprintf(stderr,
+        debug(
                 "qfits_mem: %s (%d) free requested on unallocated ptr (%p)\n",
-                filename, lineno, ptr);
+                filename, lineno, ptr); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         /* Pointer sent to system's free() function, maybe it should not? */
         free(ptr);
         return;
@@ -1013,8 +1009,8 @@ void qfits_memory_free(
             /* --- SWAP pointer */
             swapname = qfits_memory_tmpfilename(qfits_memory_p_swapfileid[pos]);
             qfits_mem_debug(
-                    fprintf(stderr, "qfits_mem: deallocating swap file [%s]\n", 
-                        swapname);
+                    debug("qfits_mem: deallocating swap file [%s]\n",
+                        swapname); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             );
             /* Munmap file */
             if (munmap(ptr, qfits_memory_p_size[pos])!=0) {
@@ -1040,17 +1036,17 @@ void qfits_memory_free(
             /* Non-null ref count means the file stays mapped */
             if (qfits_memory_p_mm_refcount[pos]>0) {
                 qfits_mem_debug(
-                    fprintf(stderr, "qfits_mem: decref on %s (%d mappings)\n",
+                    debug("qfits_mem: decref on %s (%d mappings)\n",
                             qfits_memory_p_mm_filename[pos],
-                            qfits_memory_p_mm_refcount[pos]);
+                            qfits_memory_p_mm_refcount[pos]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
                 );
                 return;
             }
             /* Ref count reached zero: unmap the file */
             qfits_mem_debug(
-                    fprintf(stderr,
+                    debug(
                         "qfits_mem: unmapping file %s\n",
-                        qfits_memory_p_mm_filename[pos]);
+                        qfits_memory_p_mm_filename[pos]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             );
             munmap((char*)qfits_memory_p_val[pos],
                     qfits_memory_p_size[pos]);
@@ -1059,7 +1055,7 @@ void qfits_memory_free(
             break;
         default:
             qfits_mem_debug(
-                    fprintf(stderr, "qfits_mem: unknown memory cell type???");
+                    debug("qfits_mem: unknown memory cell type???"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             );
             break;
     }
@@ -1070,11 +1066,11 @@ void qfits_memory_free(
 
         /* Print out message in debug mode */
         qfits_mem_debug(
-            fprintf(stderr, "qfits_mem: free(%p) %ld bytes in %s (%d)\n",
+            debug("qfits_mem: free(%p) %ld bytes in %s (%d)\n",
                     ptr,
                     (long)qfits_memory_p_size[pos],
                     filename,
-                    lineno);
+                    lineno); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
     }
     /* Remove cell from main table */
@@ -1130,9 +1126,9 @@ void * qfits_memory_realloc(
         }
     }
     if (pos==-1) {
-        fprintf(stderr,
+        debug(
             "qfits_mem: %s (%d) realloc requested on unallocated ptr (%p)\n",
-            filename, lineno, ptr);
+            filename, lineno, ptr); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         /* Pointer sent to system's realloc() function, maybe it should not? */
         return realloc(ptr, size);
     }
@@ -1210,34 +1206,34 @@ void qfits_memory_status(void)
     if ((QFITS_MEMORY_MODE == 0) || (QFITS_MEMORY_MODE == 1)) return;
     
 #if (QFITS_MEMORY_DEBUG>=1)
-    fprintf(stderr, "#----- memory diagnostics -----\n");
+    debug("#----- memory diagnostics -----\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
-    fprintf(stderr,
+    debug(
             "#- Peak memory usage\n"
             "ALL_maxalloc_kb     %ld\n"
             "ALL_maxpointers     %d\n",
             (long)(qfits_memory_table.alloc_max/1024),
-            qfits_memory_table.max_cells);
-    fprintf(stderr,
+            qfits_memory_table.max_cells); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
+    debug(
             "#- Local implementation\n"
             "TAB_ptrs            %d\n"
             "TAB_size            %u bytes\n",
             QFITS_MEMORY_MAXPTRS,
-            (unsigned)sizeof(qfits_memory_table));
+            (unsigned)sizeof(qfits_memory_table)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 #ifdef __linux__
-    fprintf(stderr,
+    debug(
             "#- Linux specific\n"
             "LINUX_pagesize      %d bytes\n"
             "LINUX_RLIMIT_DATA   %d kb\n",
             qfits_memory_table.pagesize,
-            qfits_memory_table.rlimit_data);
+            qfits_memory_table.rlimit_data); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 #endif
 #endif
 
     if (qfits_memory_table.ncells<1) return;
-    fprintf(stderr, "#----- memory diagnostics -----\n");
+    debug("#----- memory diagnostics -----\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
-    fprintf(stderr,
+    debug(
             "#- ALL status\n"
             "ALL_npointers       %d\n"
             "ALL_size            %ld\n"
@@ -1246,33 +1242,33 @@ void qfits_memory_status(void)
             qfits_memory_table.ncells,
             (long)qfits_memory_table.alloc_total,
             (long)(qfits_memory_table.alloc_max/1024),
-            qfits_memory_table.max_cells);
+            qfits_memory_table.max_cells); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
     if (qfits_memory_table.alloc_ram > 0) {
-        fprintf(stderr, 
+        debug(
                 "#- RAM status\n"
                 "RAM_alloc           %ld\n",
-                (long)qfits_memory_table.alloc_ram);
+                (long)qfits_memory_table.alloc_ram);//# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     }
     if (qfits_memory_table.alloc_swap > 0) {
-        fprintf(stderr,
+        debug(
                 "#- SWP status\n"
                 "SWP_alloc           %ld\n"
                 "SWP_files           %d\n",
                 (long)qfits_memory_table.alloc_swap,
-                qfits_memory_table.nswapfiles);
+                qfits_memory_table.nswapfiles); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     }
 
     if (qfits_memory_table.n_mm_files>0) {
-        fprintf(stderr,
+        debug(
                 "#- MAP status\n"
                 "MAP_files           %d\n"
                 "MAP_mappings        %d\n",
                 qfits_memory_table.n_mm_files,
-                qfits_memory_table.n_mm_mappings);
+                qfits_memory_table.n_mm_mappings); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     }
 
-    fprintf(stderr, "#- pointer details\n");
+    debug("#- pointer details\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     for (i=0; i<QFITS_MEMORY_MAXPTRS; i++) {
         qfits_memory_dumpcell(i, stderr);
     }
@@ -1370,10 +1366,10 @@ static void qfits_memory_init(void)
 #endif
 
     qfits_mem_debug(
-        fprintf(stderr,
+        debug(
                 "qfits_mem: initializing main table size=%d ptrs (%ld bytes)\n",
                 QFITS_MEMORY_MAXPTRS,
-                (long)sizeof(qfits_memory_table));
+                (long)sizeof(qfits_memory_table)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     );
     /* Initialize memory table */
     memset(&qfits_memory_table, 0, sizeof(qfits_memory_table));
@@ -1385,9 +1381,9 @@ static void qfits_memory_init(void)
     #ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
     getrlimit(RLIMIT_NOFILE, &rlim);
     qfits_mem_debug(
-        fprintf(stderr, "qfits_mem: increasing from %ld to %ld file handles\n",
+        debug("qfits_mem: increasing from %ld to %ld file handles\n",
                 (long)rlim.rlim_cur,
-                (long)rlim.rlim_max);
+                (long)rlim.rlim_max); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     );
     rlim.rlim_cur = rlim.rlim_max;
     setrlimit(RLIMIT_NOFILE, &rlim);
@@ -1398,8 +1394,8 @@ static void qfits_memory_init(void)
     getrlimit(RLIMIT_DATA, &rlim);
     qfits_memory_table.rlimit_data = rlim.rlim_cur;
     qfits_mem_debug(
-        fprintf(stderr, "qfits_mem: got RLIMIT_DATA=%d\n",
-                qfits_memory_table.rlimit_data);
+        debug("qfits_mem: got RLIMIT_DATA=%d\n",
+                qfits_memory_table.rlimit_data); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     );
     /* Get page size on Linux */
     qfits_memory_table.pagesize = getpagesize();
@@ -1422,7 +1418,7 @@ static void qfits_memory_cleanup(void)
 
     if (qfits_memory_table.file_reg>0) {
         qfits_mem_debug(
-            fprintf(stderr, "qfits_mem: cleaning up swap files... ");
+            debug("qfits_mem: cleaning up swap files... "); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
         /*
          * Call remove() on all possible VM files. If the file exists, it
@@ -1435,7 +1431,7 @@ static void qfits_memory_cleanup(void)
             remove(qfits_memory_tmpfilename(reg+1));
         }
         qfits_mem_debug(
-            fprintf(stderr, "qfits_mem: done cleaning swap files\n");
+            debug("qfits_mem: done cleaning swap files\n");  //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         );
     }
     return;
@@ -1474,8 +1470,8 @@ static int qfits_memory_addcell(
     
     /* Check there is still some space left */
     if (qfits_memory_table.ncells >= QFITS_MEMORY_MAXPTRS) {
-        fprintf(stderr, "fatal qfits_memory error: reached max pointers (%d)\n",
-                QFITS_MEMORY_MAXPTRS);
+        debug("fatal qfits_memory error: reached max pointers (%d)\n",
+                QFITS_MEMORY_MAXPTRS); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         exit(-1);
     }
     /* Find an available slot */
@@ -1485,7 +1481,7 @@ static int qfits_memory_addcell(
         if (qfits_memory_p_val[pos] == NULL) break;
     }
     qfits_mem_debug(
-            fprintf(stderr, "qfits_mem: freecell found at pos %d\n", pos);
+            debug("qfits_mem: freecell found at pos %d\n", pos); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             );
     
     /* Store information */
@@ -1531,7 +1527,7 @@ static int qfits_memory_addcell(
 static int qfits_memory_remcell(int pos)
 {
     qfits_mem_debug(
-        fprintf(stderr, "qfits_mem: removing cell from pos %d (cached)\n", pos);
+        debug("qfits_mem: removing cell from pos %d (cached)\n", pos); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     );
     /* Set pointer to NULL */
     qfits_memory_p_val[pos] = NULL;

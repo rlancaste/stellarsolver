@@ -13,6 +13,7 @@
 #include <stdlib.h>
 
 #include "bt.h"
+#include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 /*
  The AVL tree portion of this code was adapted from GNU libavl.
@@ -120,7 +121,7 @@ int bt_check(bt* tree) {
 bt* bt_new(int datasize, int blocksize) {
     bt* tree = calloc(1, sizeof(bt));
     if (!tree) {
-        fprintf(stderr, "Failed to allocate a new bt struct: %s\n", strerror(errno));
+        debug("Failed to allocate a new bt struct: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     tree->datasize = datasize;
@@ -184,7 +185,7 @@ static Pure void* first_element(bt_node* n) {
 static Malloc bt_node* bt_new_branch(bt* tree) {
     bt_node* n = calloc(1, sizeof(bt_node));
     if (!n) {
-        fprintf(stderr, "Failed to allocate a new bt_node: %s\n", strerror(errno));
+        debug("Failed to allocate a new bt_node: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     return n;
@@ -193,7 +194,7 @@ static Malloc bt_node* bt_new_branch(bt* tree) {
 static Malloc bt_node* bt_new_leaf(bt* tree) {
     bt_node* n = malloc(sizeof(bt_leaf) + tree->datasize * tree->blocksize);
     if (!n) {
-        fprintf(stderr, "Failed to allocate a new bt_node: %s\n", strerror(errno));
+        debug("Failed to allocate a new bt_node: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     n->leaf.isleaf = 1;

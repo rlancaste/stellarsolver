@@ -721,8 +721,8 @@ int bl_check_consistency(bl* list) {
     if (!list->tail)
         nnull++;
     if (nnull == 1) {
-        fprintf(stderr, "bl_check_consistency: head is %p, and tail is %p.\n",
-                list->head, list->tail);
+        debug("bl_check_consistency: head is %p, and tail is %p.\n",
+                list->head, list->tail); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
 
@@ -739,16 +739,16 @@ int bl_check_consistency(bl* list) {
         }
     }
     if (!tailok) {
-        fprintf(stderr, "bl_check_consistency: tail pointer is wrong.\n");
+        debug("bl_check_consistency: tail pointer is wrong.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
     if (nempty) {
-        fprintf(stderr, "bl_check_consistency: %i empty blocks.\n", nempty);
+        debug("bl_check_consistency: %i empty blocks.\n", nempty); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
     if (N != list->N) {
-        fprintf(stderr, "bl_check_consistency: list->N is %zu, but sum of blocks is %zu.\n",
-                list->N, N);
+        debug("bl_check_consistency: list->N is %zu, but sum of blocks is %zu.\n",
+                list->N, N); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
     return 0;
@@ -780,7 +780,7 @@ int bl_check_sorted(bl* list,
         }
     }
     if (nbad) {
-        fprintf(stderr, "bl_check_sorted: %zu are out of order.\n", nbad);
+        debug("bl_check_sorted: %zu are out of order.\n", nbad); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return 1;
     }
     return 0;

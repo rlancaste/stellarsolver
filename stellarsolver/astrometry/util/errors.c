@@ -11,6 +11,7 @@
 #include "errors.h"
 #include "ioutils.h"
 #include "an-bool.h"
+#include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 static pl* estack = NULL;
 static anbool atexit_registered = FALSE;
@@ -233,7 +234,7 @@ void errors_regex_error(int errcode, const regex_t* re) {
 void error_stack_add_entryv(err_t* e, const char* file, int line, const char* func, const char* format, va_list va) {
     char* str;
     if (vasprintf(&str, format, va) == -1) {
-        fprintf(stderr, "vasprintf failed with format string: \"%s\"\n", format);
+        debug("vasprintf failed with format string: \"%s\"\n", format); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return;
     }
     error_stack_add_entry(e, file, line, func, str);

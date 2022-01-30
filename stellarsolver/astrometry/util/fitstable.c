@@ -1600,11 +1600,11 @@ int fitstable_nrows(const fitstable_t* t) {
 
 void fitstable_print_missing(fitstable_t* tab, FILE* f) {
     int i;
-    fprintf(f, "Missing required columns: ");
+    debug("Missing required columns: "); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     for (i=0; i<ncols(tab); i++) {
         fitscol_t* col = getcol(tab, i);
         if (col->col == -1 && col->required) {
-            fprintf(f, "%s ", col->colname);
+            debug("%s ", col->colname); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         }
     }
 }

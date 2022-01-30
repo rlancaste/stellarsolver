@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 #include "solvedfile.h"
 #include "errors.h"
@@ -37,8 +38,8 @@ int solvedfile_getsize(char* fn) {
     }
     if (fseek(f, 0, SEEK_END) ||
         ((end = ftello(f)) == -1)) {
-        fprintf(stderr, "Error: seeking to end of file %s: %s\n",
-                fn, strerror(errno));
+        debug("Error: seeking to end of file %s: %s\n",
+                fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         fclose(f);
         return -1;
     }
@@ -60,8 +61,8 @@ int solvedfile_get(char* fn, int fieldnum) {
     }
     if (fseek(f, 0, SEEK_END) ||
         ((end = ftello(f)) == -1)) {
-        fprintf(stderr, "Error: seeking to end of file %s: %s\n",
-                fn, strerror(errno));
+        debug("Error: seeking to end of file %s: %s\n",
+                fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         fclose(f);
         return -1;
     }
@@ -72,8 +73,8 @@ int solvedfile_get(char* fn, int fieldnum) {
     if (fseeko(f, (off_t)fieldnum, SEEK_SET) ||
         (fread(&val, 1, 1, f) != 1) ||
         fclose(f)) {
-        fprintf(stderr, "Error: seeking, reading, or closing file %s: %s\n",
-                fn, strerror(errno));
+        debug("Error: seeking, reading, or closing file %s: %s\n",
+                fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         fclose(f);
         return -1;
     }
@@ -108,8 +109,8 @@ static il* solvedfile_getall_val(char* fn, int firstfield, int lastfield, int ma
 
     if (fseek(f, 0, SEEK_END) ||
         ((end = ftello(f)) == -1)) {
-        fprintf(stderr, "Error: seeking to end of file %s: %s\n",
-                fn, strerror(errno));
+        debug("Error: seeking to end of file %s: %s\n",
+                fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         fclose(f);
         il_free(list);
         return NULL;
@@ -125,7 +126,7 @@ static il* solvedfile_getall_val(char* fn, int firstfield, int lastfield, int ma
     map = mmap(NULL, end, PROT_READ, MAP_SHARED, fileno(f), 0);
     fclose(f);
     if (map == MAP_FAILED) {
-        fprintf(stderr, "Error: couldn't mmap file %s: %s\n", fn, strerror(errno));
+        debug("Error: couldn't mmap file %s: %s\n", fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         il_free(list);
         return NULL;
     }
@@ -167,13 +168,13 @@ int solvedfile_setsize(char* fn, int sz) {
     off_t off;
     f = open(fn, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
     if (f == -1) {
-        fprintf(stderr, "Error: failed to open file %s for writing: %s\n",
-                fn, strerror(errno));
+        debug("Error: failed to open file %s for writing: %s\n",
+                fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     off = lseek(f, 0, SEEK_END);
     if (off == -1) {
-        fprintf(stderr, "Error: failed to lseek() to end of file %s: %s\n", fn, strerror(errno));
+        debug("Error: failed to lseek() to end of file %s: %s\n", fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         close(f);
         return -1;
     }
@@ -185,14 +186,14 @@ int solvedfile_setsize(char* fn, int sz) {
         val = 0;
         for (i=0; i<npad; i++)
             if (write(f, &val, 1) != 1) {
-                fprintf(stderr, "Error: failed to write padding to file %s: %s\n",
-                        fn, strerror(errno));
+                debug("Error: failed to write padding to file %s: %s\n",
+                        fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
                 close(f);
                 return -1;
             }
     }
     if (close(f)) {
-        fprintf(stderr, "Error closing file %s: %s\n", fn, strerror(errno));
+        debug("Error closing file %s: %s\n", fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     return 0;
@@ -208,8 +209,8 @@ int solvedfile_set_array(char* fn, anbool* vals, int N) {
     // (file mode 666; umask will modify this, if set).
     f = open(fn, O_WRONLY | O_CREAT | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     if (f == -1) {
-        fprintf(stderr, "Error: failed to open file %s for writing: %s\n",
-                fn, strerror(errno));
+        debug("Error: failed to open file %s for writing: %s\n",
+                fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     val = 1;
@@ -218,14 +219,14 @@ int solvedfile_set_array(char* fn, anbool* vals, int N) {
             continue;
         if ((lseek(f, (off_t)i, SEEK_SET) == -1) ||
             (write(f, &val, 1) != 1)) {
-            fprintf(stderr, "Error: seeking or writing file %s: %s\n",
-                    fn, strerror(errno));
+            debug("Error: seeking or writing file %s: %s\n",
+                    fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
             return -1;
         }
     }
     if (close(f)) {
-        fprintf(stderr, "Error closing file %s: %s\n",
-                fn, strerror(errno));
+        debug("Error closing file %s: %s\n",
+                fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     return 0;
@@ -270,13 +271,13 @@ int solvedfile_set(char* fn, int fieldnum) {
     f = open(fn, O_WRONLY | O_CREAT | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 #endif
     if (f == -1) {
-        fprintf(stderr, "Error: failed to open file %s for writing: %s\n",
-                fn, strerror(errno));
+        debug("Error: failed to open file %s for writing: %s\n",
+                fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     off = lseek(f, 0, SEEK_END);
     if (off == -1) {
-        fprintf(stderr, "Error: failed to lseek() to end of file %s: %s\n", fn, strerror(errno));
+        debug("Error: failed to lseek() to end of file %s: %s\n", fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         close(f);
         return -1;
     }
@@ -288,8 +289,8 @@ int solvedfile_set(char* fn, int fieldnum) {
         val = 0;
         for (i=0; i<npad; i++)
             if (write(f, &val, 1) != 1) {
-                fprintf(stderr, "Error: failed to write padding to file %s: %s\n",
-                        fn, strerror(errno));
+                debug("Error: failed to write padding to file %s: %s\n",
+                        fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
                 close(f);
                 return -1;
             }
@@ -298,8 +299,8 @@ int solvedfile_set(char* fn, int fieldnum) {
     if ((lseek(f, (off_t)fieldnum, SEEK_SET) == -1) ||
         (write(f, &val, 1) != 1) ||
         close(f)) {
-        fprintf(stderr, "Error: seeking, writing, or closing file %s: %s\n",
-                fn, strerror(errno));
+        debug("Error: seeking, writing, or closing file %s: %s\n",
+                fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         close(f);
         return -1;
     }

@@ -127,7 +127,7 @@ int fits_convert_data_2(void* vdest, int deststride, tfits_type desttype,
                 src_is_int = FALSE;
                 break;
             default:
-                fprintf(stderr, "fits_convert_data: unknown source type %i\n", srctype);
+                debug("fits_convert_data: unknown source type %i\n", srctype); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
                 assert(0);
                 return -1;
             }
@@ -165,7 +165,7 @@ int fits_convert_data_2(void* vdest, int deststride, tfits_type desttype,
                 *((double*)adest) = (src_is_int ? ival : dval);
                 break;
             default:
-                fprintf(stderr, "fits_convert_data: unknown destination type %i\n", desttype);
+                debug("fits_convert_data: unknown destination type %i\n", desttype); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
                 assert(0);
                 return -1;
             }
@@ -290,7 +290,7 @@ int fits_convert_data_2(void* vdest, int deststride, tfits_type desttype,
                 src_is_int = 0;
                 break;
             default:
-                fprintf(stderr, "fits_convert_data: unknown source type %i\n", srctype);
+                debug("fits_convert_data: unknown source type %i\n", srctype); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
                 assert(0);
                 return -1;
             }
@@ -328,7 +328,7 @@ int fits_convert_data_2(void* vdest, int deststride, tfits_type desttype,
                 *((double*)adest) = (src_is_int ? ival : dval);
                 break;
             default:
-                fprintf(stderr, "fits_convert_data: unknown destination type %i\n", desttype);
+                debug("fits_convert_data: unknown destination type %i\n", desttype); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
                 assert(0);
                 return -1;
             }
@@ -348,7 +348,7 @@ int qfits_is_table(const char* filename, int ext) {
     int rtn;
     anqfits_t* anq = anqfits_open_hdu(filename, ext);
     if (!anq) {
-        fprintf(stderr, "qfits_is_table: failed to open \"%s\"", filename);
+        debug("qfits_is_table: failed to open \"%s\"", filename); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     rtn = anqfits_is_table(anq, ext);
@@ -361,7 +361,7 @@ int anqfits_is_table(const anqfits_t* qf, int ext) {
     int ttype;
     hdr = anqfits_get_header_const(qf, ext);
     if (!hdr) {
-        printf("Failed to read header of ext %i", ext);
+        debug("Failed to read header of ext %i", ext); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
     }
     ttype = qfits_is_table_header(hdr);
@@ -487,22 +487,22 @@ static char* file_get_contents_offset(const char* fn, int offset, int size) {
     FILE* fid;
     fid = fopen(fn, "rb");
     if (!fid) {
-        fprintf(stderr, "file_get_contents_offset: failed to open file \"%s\": %s\n", fn, strerror(errno));
+        debug("file_get_contents_offset: failed to open file \"%s\": %s\n", fn, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     buf = malloc(size);
     if (!buf) {
-        fprintf(stderr, "file_get_contents_offset: couldn't malloc %lu bytes.\n", (long)size);
+        debug("file_get_contents_offset: couldn't malloc %lu bytes.\n", (long)size); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
 	if (offset) {
 		if (fseeko(fid, offset, SEEK_SET)) {
-			fprintf(stderr, "file_get_contents_offset: failed to fseeko: %s.\n", strerror(errno));
+            debug("file_get_contents_offset: failed to fseeko: %s.\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 			return NULL;
 		}
 	}
 	if (fread(buf, 1, size, fid) != size) {
-        fprintf(stderr, "file_get_contents_offset: failed to read %lu bytes: %s\n", (long)size, strerror(errno));
+        debug("file_get_contents_offset: failed to read %lu bytes: %s\n", (long)size, strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         free(buf);
         return NULL;
     }

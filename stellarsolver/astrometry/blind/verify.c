@@ -73,7 +73,7 @@ verify_field_t* verify_field_preprocess(const starxy_t* fieldxy) {
 
     vf = malloc(sizeof(verify_field_t));
     if (!vf) {
-        fprintf(stderr, "Failed to allocate space for a verify_field_t().\n");
+        debug("Failed to allocate space for a verify_field_t().\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     vf->field = fieldxy;
@@ -84,7 +84,7 @@ verify_field_t* verify_field_preprocess(const starxy_t* fieldxy) {
     vf->fieldcopy = starxy_copy_xy(fieldxy);
     vf->xy = starxy_copy_xy(fieldxy);
     if (!vf->fieldcopy || !vf->xy) {
-        fprintf(stderr, "Failed to copy the field.\n");
+        debug("Failed to copy the field.\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         free(vf); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
         return NULL;
     }

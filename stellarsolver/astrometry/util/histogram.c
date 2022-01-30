@@ -7,18 +7,19 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 #include "histogram.h"
 
 static histogram* hist_new(int nbins) {
     histogram* h = calloc(1, sizeof(histogram));
     if (!h) {
-        fprintf(stderr, "Couldn't allocate a histogram.");
+        debug("Couldn't allocate a histogram."); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return NULL;
     }
     h->hist = calloc(nbins, sizeof(int));
     if (!h->hist) {
-        fprintf(stderr, "Couldn't allocate a histogram with %i bins.", nbins);
+        debug("Couldn't allocate a histogram with %i bins.", nbins); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         free(h);
         return NULL;
     }
