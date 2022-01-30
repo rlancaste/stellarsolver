@@ -39,12 +39,12 @@ ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, ExtractorTy
 
 ExternalSextractorSolver::~ExternalSextractorSolver()
 {
-    delete xcol;
-    delete ycol;
-    delete magcol;
-    delete colFormat;
-    delete colUnits;
-    delete magUnits;
+    free(xcol);
+    free(ycol);
+    free(magcol);
+    free(colFormat);
+    free(colUnits);
+    free(magUnits);
 }
 
 //The following methods are available to get the default paths for different operating systems and configurations.
