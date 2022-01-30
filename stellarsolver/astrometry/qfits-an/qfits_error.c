@@ -97,7 +97,7 @@ void qfits_err_remove_all(void) {
 void qfits_warning(const char *fmt, ...)
 {
     char msg[QFITS_ERR_MSGSIZE];
-    char all[QFITS_ERR_MSGSIZE];
+    char all[QFITS_ERR_MSGSIZE + 4]; //# Modified by Robert Lancaster for the StellarSolver Internal Library to correct overflow warning
     va_list ap;
 
     /* Check if display is activated */
@@ -115,7 +115,7 @@ void qfits_warning(const char *fmt, ...)
 void qfits_error(const char *fmt, ...)
 {
     char msg[QFITS_ERR_MSGSIZE];
-    char all[QFITS_ERR_MSGSIZE];
+    char all[QFITS_ERR_MSGSIZE + 7]; //# Modified by Robert Lancaster for the StellarSolver Internal Library to correct overflow warning
     va_list ap;
 
     /* Check if display is activated */
