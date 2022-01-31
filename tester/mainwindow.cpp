@@ -623,41 +623,41 @@ void MainWindow::toggleLogDisplay()
 
 void MainWindow::helpPopup()
 {
-  QString helpMessage = 
-    QString("<table>"
-            "<tr><td>Zoom In: </td><td>%1</td></tr>"
-            "<tr><td>Zoom Out: </td><td>%2</td></tr>\n"
-            "<tr><td>Pan Up: </td><td>%3</td></tr>\n"
-            "<tr><td>Pan Down: </td><td>%4</td></tr>\n"
-            "<tr><td>Pan Left: </td><td>%5</td></tr>\n"
-            "<tr><td>Pan Right: </td><td>%6</td></tr>\n"
-            "<tr><td>AutoScale: </td><td>%7</td></tr>\n"
-            "<tr><td>LoadImage: </td><td>%8</td></tr>\n"
-            "<tr><td>Quit: </td><td>%9</td></tr>\n"
-            "<tr><td>Toggle Log Display: </td><td>%10</td></tr>\n"
-            "<tr><td>Toggle Full Screen: </td><td>%11</td></tr>\n"
-            "<tr>Help: </td><td>%12</td></tr>\n"
-            "</table>"
-            )
-    .arg(QKeySequence(QKeySequence::ZoomIn).toString(QKeySequence::NativeText),
-    QKeySequence(QKeySequence::ZoomOut).toString(QKeySequence::NativeText),
-    QKeySequence(QKeySequence::MoveToPreviousLine).toString(QKeySequence::NativeText),
-    QKeySequence(QKeySequence::MoveToNextLine).toString(QKeySequence::NativeText),
-    QKeySequence(QKeySequence::MoveToPreviousChar).toString(QKeySequence::NativeText),
-    QKeySequence(QKeySequence::MoveToNextChar).toString(QKeySequence::NativeText),
-    "Ctrl+0",
-    QKeySequence(QKeySequence::Open).toString(QKeySequence::NativeText),
-    QKeySequence(QKeySequence::Quit).toString(QKeySequence::NativeText),
-    "Ctrl+l",
-    QKeySequence(QKeySequence::FullScreen).toString(QKeySequence::NativeText),
-    QKeySequence(QKeySequence::HelpContents).toString(QKeySequence::NativeText));
+      QString helpMessage =
+        QString("<table>"
+                "<tr><td>Zoom In: </td><td>%1</td></tr>"
+                "<tr><td>Zoom Out: </td><td>%2</td></tr>\n"
+                "<tr><td>Pan Up: </td><td>%3</td></tr>\n"
+                "<tr><td>Pan Down: </td><td>%4</td></tr>\n"
+                "<tr><td>Pan Left: </td><td>%5</td></tr>\n"
+                "<tr><td>Pan Right: </td><td>%6</td></tr>\n"
+                "<tr><td>AutoScale: </td><td>%7</td></tr>\n"
+                "<tr><td>LoadImage: </td><td>%8</td></tr>\n"
+                "<tr><td>Quit: </td><td>%9</td></tr>\n"
+                "<tr><td>Toggle Log Display: </td><td>%10</td></tr>\n"
+                "<tr><td>Toggle Full Screen: </td><td>%11</td></tr>\n"
+                "<tr><td>Help: </td><td>%12</td></tr>\n"
+                "</table>"
+                )
+        .arg(QKeySequence(QKeySequence::ZoomIn).toString(QKeySequence::NativeText))
+        .arg(QKeySequence(QKeySequence::ZoomOut).toString(QKeySequence::NativeText))
+        .arg(QKeySequence(QKeySequence::MoveToPreviousLine).toString(QKeySequence::NativeText))
+        .arg(QKeySequence(QKeySequence::MoveToNextLine).toString(QKeySequence::NativeText))
+        .arg(QKeySequence(QKeySequence::MoveToPreviousChar).toString(QKeySequence::NativeText))
+        .arg(QKeySequence(QKeySequence::MoveToNextChar).toString(QKeySequence::NativeText))
+        .arg("Ctrl+0")
+        .arg(QKeySequence(QKeySequence::Open).toString(QKeySequence::NativeText))
+        .arg(QKeySequence(QKeySequence::Quit).toString(QKeySequence::NativeText))
+        .arg("Ctrl+l")
+        .arg(QKeySequence(QKeySequence::FullScreen).toString(QKeySequence::NativeText))
+        .arg(QKeySequence(QKeySequence::HelpContents).toString(QKeySequence::NativeText));
 
-  QMessageBox *msgBox = new QMessageBox(this);
-  msgBox->setIcon( QMessageBox::Information );
-  msgBox->setText(helpMessage);
-  msgBox->setAttribute(Qt::WA_DeleteOnClose);
-  msgBox->setModal(false);
-  msgBox->show();
+      QMessageBox *msgBox = new QMessageBox(this);
+      msgBox->setIcon( QMessageBox::Information );
+      msgBox->setText(helpMessage);
+      msgBox->setAttribute(Qt::WA_DeleteOnClose);
+      msgBox->setModal(false);
+      msgBox->show();
 }
 
 void MainWindow::setSubframe()
