@@ -335,7 +335,7 @@ void StellarSolver::parallelSolve()
         double scaleConst = (maxScale - minScale) / pow(threads, 2);
         if(m_SSLogLevel != LOG_OFF)
             emit logOutput(QString("Starting %1 threads to solve on multiple scales").arg(threads));
-        for(double thread = 0; thread < threads; thread++)
+        for(int thread = 0; thread < threads; thread++)
         {
             double low = minScale + scaleConst * pow(thread, 2);
             double high = minScale + scaleConst * pow(thread + 1, 2);
@@ -374,7 +374,7 @@ void StellarSolver::parallelSolve()
                 emit logOutput(QString("Child Solver # %1, Depth Low %2, Depth High %3").arg(parallelSolvers.count()).arg(i).arg(i + inc));
         }
     }
-    for(auto solver : parallelSolvers)
+    for(auto &solver : parallelSolvers)
         solver->start();
 }
 
@@ -451,7 +451,7 @@ void StellarSolver::finishParallelSolve(int success)
 
     if(success == 0 && !m_HasSolved)
     {
-        for(auto solver : parallelSolvers)
+        for(auto &solver : parallelSolvers)
         {
             disconnect(solver, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
             if(solver != reportingSolver && solver->isRunning())
@@ -551,7 +551,7 @@ bool StellarSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &
 //This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
 void StellarSolver::abort()
 {
-    for(auto solver : parallelSolvers)
+    for(auto &solver : parallelSolvers)
         solver->abort();
     if(m_SextractorSolver)
         m_SextractorSolver->abort();
@@ -679,7 +679,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
 QList<SSolver::Parameters> StellarSolver::loadSavedOptionsProfiles(QString savedOptionsProfiles)
 {
     QList<SSolver::Parameters> optionsList;
-    if(!QFileInfo(savedOptionsProfiles).exists())
+    if(!QFileInfo::exists(savedOptionsProfiles))
     {
         return StellarSolver::getBuiltInProfiles();
     }
@@ -781,7 +781,7 @@ void addPathToListIfExists(QStringList *list, QString path)
 {
     if(list)
     {
-        if(QFileInfo(path).exists())
+        if(QFileInfo::exists(path))
             list->append(path);
     }
 }

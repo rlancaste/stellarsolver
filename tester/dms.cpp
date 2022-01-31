@@ -294,7 +294,6 @@ const dms dms::deltaAngle(dms angle) const
 
 const QString dms::toDMSString(const bool forceSign, const bool machineReadable, const bool highPrecision) const
 {
-    QString dummy;
     char pm(' ');
     QChar zero('0');
     int dd = abs(degree());

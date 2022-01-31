@@ -362,9 +362,9 @@ int sep_sum_circann_multi(sep_image *im,
     stepdens = 1.0 / step;
     prevbinmargin = 0.7072;
     nextbinmargin = step - 0.7072;
-    j = 0;
-    d = 0.;
-    ismasked = 0;
+    //j = 0;
+    //d = 0.;       //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, these values were not used
+    //ismasked = 0;
     errisarray = 0;
     errisstd = 0;
 
@@ -780,7 +780,7 @@ int sep_windowed(sep_image *im,
     PIXTYPE pix, varpix;
     double dx, dy, dx1, dy2, offset, scale, scale2, tmp, dxpos, dypos, weight;
     double maskarea, maskweight, maskdxpos, maskdypos;
-    double r, tv, twv, sigtv, totarea, overlap, rpix2, invtwosig2;
+    double r, tv, twv, totarea, overlap, rpix2, invtwosig2; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, removed sigtv since it was not used.
     double wpix;
     int i, ix, iy, xmin, xmax, ymin, ymax, sx, sy, status, size, esize, msize;
     long pos;
@@ -797,12 +797,12 @@ int sep_windowed(sep_image *im,
 
     /* initializations */
     size = esize = msize = 0;
-    tv = sigtv = 0.0;
-    overlap = totarea = maskweight = 0.0;
+    //sigtv = 0.0;  //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, these were not used.
+    //maskweight = 0.0;
     datat = maskt = NULL;
     errort = reinterpret_cast<uint8_t *>(im->noise);
     *flag = 0;
-    varpix = 0.0;
+    //varpix = 0.0; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, this was not used.
     scale = 1.0 / subpix;
     scale2 = scale * scale;
     offset = 0.5 * (scale - 1.0);
@@ -835,7 +835,7 @@ int sep_windowed(sep_image *im,
         }
         else
         {
-            varpix = (errisstd) ?  im->noiseval * im->noiseval : im->noiseval;
+           (errisstd) ?  im->noiseval * im->noiseval : im->noiseval; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, varpiz was not used.
         }
     }
 
@@ -851,8 +851,8 @@ int sep_windowed(sep_image *im,
         //mx2ph
         //my2ph
         // esum, emxy, emx2, emy2, mx2, my2, mxy
-        tv = twv = sigtv = 0.0;
-        overlap = totarea = maskarea = maskweight = 0.0;
+        tv = twv = 0.0;     //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, sigtv was not used.
+        totarea = maskarea = maskweight = 0.0;  //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, overlap was not used.
         dxpos = dypos = 0.0;
         maskdxpos = maskdypos = 0.0;
 

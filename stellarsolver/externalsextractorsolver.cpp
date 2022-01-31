@@ -144,7 +144,7 @@ int ExternalSextractorSolver::extract()
         emit logOutput("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
 #endif
 
-        if(!QFileInfo(sextractorBinaryPath).exists())
+        if(!QFileInfo::exists(sextractorBinaryPath))
         {
             emit logOutput("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
             return -1;
@@ -214,7 +214,7 @@ void ExternalSextractorSolver::run()
     //These are the solvers that use External Astrometry.
     if(m_SolverType == SOLVER_LOCALASTROMETRY)
     {
-        if(!QFileInfo(solverPath).exists())
+        if(!QFileInfo::exists(solverPath))
         {
             emit logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
             emit finished(-1);
@@ -230,7 +230,7 @@ void ExternalSextractorSolver::run()
     }
     else if(m_SolverType == SOLVER_ASTAP)
     {
-        if(!QFileInfo(astapBinaryPath).exists())
+        if(!QFileInfo::exists(astapBinaryPath))
         {
             emit logOutput("There is no ASTAP solver at " + astapBinaryPath + ", Aborting");
             emit finished(-1);
@@ -1209,10 +1209,10 @@ bool ExternalSextractorSolver::getSolutionInformation()
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
-    emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
+    emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr, decstr));
     if(m_UsePosition)
-        emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
-    emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw).arg( fieldh));
+        emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr, decErr));
+    emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw, fieldh));
     emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale ));
     emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
     emit logOutput(QString("Field parity: %1\n").arg( parity));
@@ -1323,11 +1323,11 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
 
         m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
         emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
-        emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
+        emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra, dec));
+        emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr, decstr));
         if(m_UsePosition)
-            emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
-        emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw).arg( fieldh));
+            emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr, decErr));
+        emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw, fieldh));
         emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale ));
         emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
         emit logOutput(QString("Field parity: %1\n").arg( parity));
@@ -1399,7 +1399,6 @@ int ExternalSextractorSolver::writeSextractorTable()
 
     int tfields = 3;
     int nrows = m_ExtractedStars.size();
-    QString extname = "Sextractor_File";
 
     //Columns: X_IMAGE, double, pixels, Y_IMAGE, double, pixels, MAG_AUTO, double, mag
     char* ttype[] = { xcol, ycol, magcol };
@@ -1468,7 +1467,6 @@ int ExternalSextractorSolver::writeSextractorTable()
 //This was copied and pasted and modified from ImageToFITS in fitsdata in KStars
 int ExternalSextractorSolver::saveAsFITS()
 {
-    QFileInfo fileInfo(fileToProcess);
     QString newFilename = m_BasePath + "/" + m_BaseName + ".fits";
 
     int status = 0;
@@ -1618,7 +1616,7 @@ int ExternalSextractorSolver::loadWCS()
     {
         char errmsg[512];
         fits_get_errstatus(status, errmsg);
-        emit logOutput(QString("Error opening fits file %1, %2").arg(solutionFile).arg(errmsg));
+        emit logOutput(QString("Error opening fits file %1, %2").arg(solutionFile, errmsg));
         return status;
     }
 

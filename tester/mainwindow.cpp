@@ -639,18 +639,18 @@ void MainWindow::helpPopup()
             "<tr>Help: </td><td>%12</td></tr>\n"
             "</table>"
             )
-    .arg(QKeySequence(QKeySequence::ZoomIn).toString(QKeySequence::NativeText))
-    .arg(QKeySequence(QKeySequence::ZoomOut).toString(QKeySequence::NativeText))
-    .arg(QKeySequence(QKeySequence::MoveToPreviousLine).toString(QKeySequence::NativeText))
-    .arg(QKeySequence(QKeySequence::MoveToNextLine).toString(QKeySequence::NativeText))
-    .arg(QKeySequence(QKeySequence::MoveToPreviousChar).toString(QKeySequence::NativeText))
-    .arg(QKeySequence(QKeySequence::MoveToNextChar).toString(QKeySequence::NativeText))
-    .arg("Ctrl+0")
-    .arg(QKeySequence(QKeySequence::Open).toString(QKeySequence::NativeText))
-    .arg(QKeySequence(QKeySequence::Quit).toString(QKeySequence::NativeText))
-    .arg("Ctrl+l")
-    .arg(QKeySequence(QKeySequence::FullScreen).toString(QKeySequence::NativeText))
-    .arg(QKeySequence(QKeySequence::HelpContents).toString(QKeySequence::NativeText));
+    .arg(QKeySequence(QKeySequence::ZoomIn).toString(QKeySequence::NativeText),
+    QKeySequence(QKeySequence::ZoomOut).toString(QKeySequence::NativeText),
+    QKeySequence(QKeySequence::MoveToPreviousLine).toString(QKeySequence::NativeText),
+    QKeySequence(QKeySequence::MoveToNextLine).toString(QKeySequence::NativeText),
+    QKeySequence(QKeySequence::MoveToPreviousChar).toString(QKeySequence::NativeText),
+    QKeySequence(QKeySequence::MoveToNextChar).toString(QKeySequence::NativeText),
+    "Ctrl+0",
+    QKeySequence(QKeySequence::Open).toString(QKeySequence::NativeText),
+    QKeySequence(QKeySequence::Quit).toString(QKeySequence::NativeText),
+    "Ctrl+l",
+    QKeySequence(QKeySequence::FullScreen).toString(QKeySequence::NativeText),
+    QKeySequence(QKeySequence::HelpContents).toString(QKeySequence::NativeText));
 
   QMessageBox *msgBox = new QMessageBox(this);
   msgBox->setIcon( QMessageBox::Information );
@@ -694,7 +694,7 @@ void MainWindow::stopProcessMonitor()
 //It was getting repetitive.
 bool MainWindow::prepareForProcesses()
 {
-    if(ui->vertSplitter->sizes().last() < 10)
+    if(ui->vertSplitter->sizes().size() - 1 < 10)
         ui->vertSplitter->setSizes(QList<int>() << ui->vertSplitter->height() / 2 << 100 );
     ui->logDisplay->verticalScrollBar()->setValue(ui->logDisplay->verticalScrollBar()->maximum());
 
@@ -737,7 +737,7 @@ void MainWindow::displayTable()
     sortStars();
     updateStarTableFromList();
 
-    if(ui->horSplitter->sizes().last() < 10)
+    if(ui->horSplitter->sizes().size() - 1 < 10)
         ui->horSplitter->setSizes(QList<int>() << ui->optionsBox->width() << ui->horSplitter->width() / 2 << 200 );
     updateImage();
 }
@@ -1114,7 +1114,7 @@ bool MainWindow::sextractorComplete()
     emit readyForStarTable();
     ui->resultsTable->insertRow(ui->resultsTable->rowCount());
     addSextractionToTable();
-    QTimer::singleShot(100, [this]()
+    QTimer::singleShot(100, this, [this]()
     {
         ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());
     });
@@ -1160,7 +1160,7 @@ bool MainWindow::solverComplete()
         addSolutionToTable(stellarSolver->getSolution());
     else
         addSolutionToTable(lastSolution);
-    QTimer::singleShot(100, [this]()
+    QTimer::singleShot(100, this, [this]()
     {
         ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());
     });
@@ -2029,8 +2029,8 @@ void MainWindow::mouseMovedOverImage(QPoint location)
         if(hasWCSData)
         {
             int index = x + y * stats.width;
-            mouseText = QString("RA: %1, DEC: %2, Value: %3").arg(StellarSolver::raString(wcs_coord[index].ra)).arg(
-                            StellarSolver::decString(wcs_coord[index].dec)).arg(getValue(x, y));
+            mouseText = QString("RA: %1, DEC: %2, Value: %3").arg(StellarSolver::raString(wcs_coord[index].ra),
+                            StellarSolver::decString(wcs_coord[index].dec), getValue(x, y));
         }
         else
             mouseText = QString("X: %1, Y: %2, Value: %3").arg(x).arg(y).arg(getValue(x, y));
@@ -2052,7 +2052,7 @@ void MainWindow::mouseMovedOverImage(QPoint location)
                 if(hasHFRData)
                     text += ", " + QString("HFR: %1").arg(star.HFR);
                 if(hasWCSData)
-                    text += "\n" + QString("RA: %1, DEC: %2").arg(StellarSolver::raString(star.ra)).arg(StellarSolver::decString(star.dec));
+                    text += "\n" + QString("RA: %1, DEC: %2").arg(StellarSolver::raString(star.ra), StellarSolver::decString(star.dec));
                 QToolTip::showText(QCursor::pos(), text, ui->Image);
                 selectedStar = i;
                 starFound = true;
@@ -2830,7 +2830,7 @@ void MainWindow::loadOptionsProfiles()
                       "INI files(*.ini)");
     if (fileURL.isEmpty())
         return;
-    if(!QFileInfo(fileURL).exists())
+    if(!QFileInfo::exists(fileURL))
     {
         QMessageBox::warning(this, "Message", "The file doesn't exist");
         return;

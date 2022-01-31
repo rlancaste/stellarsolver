@@ -703,8 +703,8 @@ int Extract::sep_extract(sep_image *image, float thresh, int thresh_type,
             if (status != RETURN_OK)
                 goto exit;
         }
-
-        QMALLOC(survives, int, finalobjlist->nobj, status);
+        if(finalobjlist->nobj > 0) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, in case nobj is 0 or less.
+            QMALLOC(survives, int, finalobjlist->nobj, status);
         clean(finalobjlist, clean_param, survives);
     }
 
@@ -1013,6 +1013,9 @@ int Extract::convert_to_catalog(objliststruct *objlist, int *survives, sep_catal
         for (i = 0; i < objlist->nobj; i++) nobj += survives[i];
     else
         nobj = objlist->nobj;
+
+    if(nobj ==0) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, if nobj is 0, we don't want to set all this up.
+        return 1;
 
     /* allocate catalog fields */
     cat->nobj = nobj;

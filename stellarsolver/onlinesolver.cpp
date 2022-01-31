@@ -210,7 +210,7 @@ void OnlineSolver::uploadFile()
     bool rc = fitsFile->open(QIODevice::ReadOnly);
     if (rc == false)
     {
-        emit logOutput(QString("Failed to open the file %1: %2").arg( fileToProcess).arg( fitsFile->errorString()));
+        emit logOutput(QString("Failed to open the file %1: %2").arg( fileToProcess, fitsFile->errorString()));
         delete (fitsFile);
         emit finished(-1);
         return;
@@ -419,7 +419,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
             sessionKey = result["session"].toString();
 
             if(m_SSLogLevel != LOG_OFF)
-                emit logOutput(QString("Authentication to %1 is successful. Session: %2").arg(astrometryAPIURL).arg(sessionKey));
+                emit logOutput(QString("Authentication to %1 is successful. Session: %2").arg(astrometryAPIURL, sessionKey));
 
             uploadFile(); //Go to NEXT STAGE
             break;

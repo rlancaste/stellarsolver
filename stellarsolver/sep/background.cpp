@@ -820,6 +820,10 @@ int bkg_line_flt_internal(sep_bkg *bkg, float *values, float *dvalues, int y,
                          dy3**(dbhi++);
 
         /*-- Computation of 2nd derivatives along x */
+        if(nbx <= 0){   //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, if nbx is 0 or less.
+            status = 1;
+            goto exit;
+        }
         QMALLOC(dnodebuf, float, nbx, status);  /* 2nd derivative along x */
         dnode = dnodebuf;
         if (nbx > 1)

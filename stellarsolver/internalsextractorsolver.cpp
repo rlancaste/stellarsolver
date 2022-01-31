@@ -1119,7 +1119,7 @@ int InternalSextractorSolver::runInternalSolver()
     //gslutils_use_error_system();
 
     //These set the folders in which Astrometry.net will look for index files, based on the folers set before the solver was started.
-    for(auto onePath : indexFolderPaths)
+    for(auto &onePath : indexFolderPaths)
     {
         engine_add_search_path(engine, onePath.toLatin1().constData());
     }
@@ -1151,7 +1151,7 @@ int InternalSextractorSolver::runInternalSolver()
     double *yArray = new double[m_ExtractedStars.size()];
 
     int i = 0;
-    for(auto oneStar : m_ExtractedStars)
+    for(auto &oneStar : m_ExtractedStars)
     {
         xArray[i] = oneStar.x;
         yArray[i] = oneStar.y;
@@ -1286,7 +1286,7 @@ int InternalSextractorSolver::runInternalSolver()
         emit logOutput(QString("Number of Matches:  %1").arg(match.nmatch));
         emit logOutput(QString("Solved with index:  %1").arg(match.indexid));
         emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
-        emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr).arg( decstr));
+        emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr, decstr));
         if(m_UsePosition)
             emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
         emit logOutput(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));

@@ -66,6 +66,9 @@ int Analyze::analysemthresh(int objnb, objliststruct *objlist, int minarea,
         return status;
     }
 
+    if(minarea <=0) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+        return 1;
+
     QMALLOC(heap, float, minarea, status);
     heapt = heap;
 
