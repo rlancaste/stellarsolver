@@ -285,6 +285,15 @@ else(WIN32)
     target_link_libraries(stellarsolver -lpthread)
 endif(WIN32)
 
+if (MSVC)
+    # Use secure functions by default and suppress warnings about deprecated or POSIX functions
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_NONSTDC_NO_DEPRECATE=1")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_NONSTDC_NO_WARNINGS=1 /D _CRT_SECURE_NO_WARNINGS=1")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS}")
+endif (MSVC)
+
 install(TARGETS stellarsolver
     EXPORT ${TARGET_EXPORT_NAME}
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
