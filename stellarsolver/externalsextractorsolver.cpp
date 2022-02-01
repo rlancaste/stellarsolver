@@ -726,8 +726,10 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
         solverArgs << "-z" << "0";
     if(m_UseScale)
     {
-        double scalemid = (scalehi + scalelo) / 2;
-        double degreesFOV = convertToDegreeHeight(scalemid);
+        double scale = scalelo;
+        if(scaleunit == ARCSEC_PER_PIX)
+            scale = (scalehi + scalelo) / 2;
+        double degreesFOV = convertToDegreeHeight(scale);
         solverArgs << "-fov" << QString::number(degreesFOV);
     }
     if(m_UsePosition)
