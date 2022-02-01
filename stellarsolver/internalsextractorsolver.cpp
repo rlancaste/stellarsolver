@@ -222,6 +222,42 @@ void InternalSextractorSolver::allocateDataBuffer(float *data, uint32_t x, uint3
     }
 }
 
+namespace
+{
+
+// This function adds a margin around the rectangle with corners x1,y1 x2,y2 for the image
+// with the given width and height, making sure the margin doesn't go outside the image.
+// It returns the expanded rectangle defined by corner startX,startY and width, height.
+void computeMargin(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2,
+                   uint32_t imageWidth, uint32_t imageHeight, uint32_t margin,
+                   uint32_t *startX, uint32_t *startY, uint32_t *width, uint32_t *height)
+{
+    // Figure out the start and start margins.
+    // Make sure these are signed operations.
+    int tempStartX = ((int) x1) - ((int)margin);
+    if (tempStartX < 0) {
+      tempStartX = 0;
+    }
+    *startX = tempStartX;
+
+    int tempStartY = ((int) y1) - ((int)margin);
+    if (tempStartY < 0) {
+      tempStartY = 0;
+    }
+    *startY = tempStartY;
+
+    // Figure out the end and end margins.
+    uint32_t endX = x2 + margin;
+    if (endX >= imageWidth) endX = imageWidth - 1;
+    uint32_t endY = y2 + margin;
+    if (endY >= imageHeight) endY = imageHeight - 1;
+
+    *width = endX - *startX + 1;
+    *height = endY - *startY + 1;
+}
+
+}  // namespace
+
 //The code in this section is my attempt at running an internal sextractor program based on SEP
 //I used KStars and the SEP website as a guide for creating these functions
 int InternalSextractorSolver::runSEPSextractor()
@@ -253,10 +289,38 @@ int InternalSextractorSolver::runSEPSextractor()
         raw_h = h;
     }
 
+    // This data structure defines partitions of the full image processed to parallelize computation.
+    // startX and startY define the x,y coordinates in the full image where this partition starts.
+    // innerStartX and Y, and innerEndX and Y are the corners of the image patch of interest,
+    // i.e. not including the margins. The endpoints are inclusive. Later, we will not include
+    // stars detected in the margins, e.g. points where x < innerStartX or x > innerEndX.
+    // Similar for Y.
+    class StartupOffset {
+    public:
+      int startX = 0, startY = 0, width = 0, height = 0;
+      int innerStartX = 0, innerStartY = 0, innerEndX = 0, innerEndY = 0;
+      StartupOffset(int x, int y, int w, int h, int inX1, int inY1, int inX2, int inY2)
+        :startX(x), startY(y), width(w), height(h),
+         innerStartX(inX1), innerStartY(inY1), innerEndX(inX2), innerEndY(inY2) {}
+    };
+
     QList<float *> dataBuffers;
     QVector<QFuture<QList<FITSImage::Star>>> futures;
-    QList<QPair<uint32_t, uint32_t>> startupOffsets;
+    QList<StartupOffset> startupOffsets;
     QList<FITSImage::Background> backgrounds;
+
+    // The margin is extra image placed around partitions, so we can detect large stars near
+    // the edges of the partitions. The margin size needs to be about half the size of a star to
+    // be detected, since the other half of the star would be internal to the partition.
+    // Below determines the margin size used.  If m_ActiveParameters.maxSize == 0, that means that the max
+    // star size is unspecified.  In this case we use a margin of 10, so stars of size > 20 may be missed
+    // on the edge of a partition. If the max-star size is given very large, we limit the size of the margin
+    // used to 50 (e.g. corresponding to a 100-pixel-wide star).
+    int DEFAULT_MARGIN = m_ActiveParameters.maxSize / 2;
+    if (DEFAULT_MARGIN <= 0)
+      DEFAULT_MARGIN = 10;
+    else if (DEFAULT_MARGIN > 50)
+      DEFAULT_MARGIN = 50;
 
     // Only partition if:
     // We have 2 or more threads.
@@ -293,26 +357,33 @@ int InternalSextractorSolver::runSEPSextractor()
             {
                 int offsetW = (j == horizontalPartitions - 1) ? horizontalOffset : 0;
                 int offsetH = (i == verticalPartitions - 1) ? verticalOffset : 0;
-                uint32_t subX = x + j * W_PARTITION_SIZE;
-                uint32_t subY = y + i * H_PARTITION_SIZE;
-                uint32_t subW = W_PARTITION_SIZE + offsetW;
-                uint32_t subH = H_PARTITION_SIZE + offsetH;
-                //uint32_t offset = subX + (subY * raw_w);
 
-                auto * data = new float[subW * subH];
-                allocateDataBuffer(data, subX, subY, subW, subH);
+                const uint32_t rawStartX = x + j * W_PARTITION_SIZE;
+                const uint32_t rawStartY = y + i * H_PARTITION_SIZE;
+                const uint32_t rawEndX = rawStartX + W_PARTITION_SIZE + offsetW;
+                const uint32_t rawEndY = rawStartY + H_PARTITION_SIZE + offsetH;
+
+                uint32_t startX, startY, subWidth, subHeight;
+                computeMargin(rawStartX, rawStartY, rawEndX-1, rawEndY-1,
+                              m_Statistics.width, m_Statistics.height, DEFAULT_MARGIN,
+                              &startX, &startY, &subWidth, &subHeight);
+
+                startupOffsets.append(StartupOffset(startX, startY, subWidth, subHeight,
+                                                    rawStartX, rawStartY, rawEndX-1, rawEndY-1));
+
+                auto * data = new float[subWidth * subHeight];
+                allocateDataBuffer(data, startX, startY, subWidth, subHeight);
                 dataBuffers.append(data);
-                startupOffsets.append(qMakePair(subX, subY));
                 FITSImage::Background tempBackground;
                 backgrounds.append(tempBackground);
 
                 ImageParams parameters = {data,
-                                          subW,
-                                          subH,
+                                          subWidth,
+                                          subHeight,
                                           0,
                                           0,
-                                          subW,
-                                          subH,
+                                          subWidth,
+                                          subHeight,
                                           m_ActiveParameters.initialKeep / m_PartitionThreads,
                                           &backgrounds[backgrounds.size() - 1]
                                          };
@@ -322,13 +393,20 @@ int InternalSextractorSolver::runSEPSextractor()
     }
     else
     {
-        auto * data = new float[w * h];
-        allocateDataBuffer(data, x, y, w, h);
+        // In this case, there is no partitioning, but it is still possible that margins apply.
+        // E.g. a subframe rectangle with enough space around it to have margins.
+        uint32_t startX, startY, subWidth, subHeight;
+        computeMargin(x, y, x+w-1, y+h-1, m_Statistics.width, m_Statistics.height, DEFAULT_MARGIN,
+                      &startX, &startY, &subWidth, &subHeight);
+
+        auto * data = new float[subWidth * subHeight];
+        allocateDataBuffer(data, startX, startY, subWidth, subHeight);
         dataBuffers.append(data);
-        startupOffsets.append(qMakePair(x, y));
+        startupOffsets.append(StartupOffset(startX, startY, subWidth, subHeight, x, y, x+w-1, y+h-1));
         FITSImage::Background tempBackground;
         backgrounds.append(tempBackground);
-        ImageParams parameters = {data, raw_w, raw_h, x, y, w, h, static_cast<uint32_t>(m_ActiveParameters.initialKeep), &backgrounds[backgrounds.size() - 1]};
+
+        ImageParams parameters = {data, subWidth, subHeight, 0, 0, subWidth, subHeight, static_cast<uint32_t>(m_ActiveParameters.initialKeep), &backgrounds[backgrounds.size() - 1]};
         futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
     }
 
@@ -336,16 +414,26 @@ int InternalSextractorSolver::runSEPSextractor()
     {
         oneFuture.waitForFinished();
         QList<FITSImage::Star> partitionStars = oneFuture.result();
+        QList<FITSImage::Star> acceptedStars;
         if (!startupOffsets.empty())
         {
-            QPair<uint32_t, uint32_t> oneOffset = startupOffsets.takeFirst();
+            const StartupOffset oneOffset = startupOffsets.takeFirst();
+            const int startX = oneOffset.startX;
+            const int startY = oneOffset.startY;
             for (auto &oneStar : partitionStars)
             {
-                oneStar.x += oneOffset.first;
-                oneStar.y += oneOffset.second;
+              // Don't use stars from the margins (they're detected in other partitions).
+              if (oneStar.x < (oneOffset.innerStartX - startX) ||
+                  oneStar.y < (oneOffset.innerStartY - startY) ||
+                  oneStar.x > (oneOffset.innerEndX   - startX) ||
+                  oneStar.y > (oneOffset.innerEndY   - startY))
+                  continue;
+                oneStar.x += startX;
+                oneStar.y += startY;
+                acceptedStars.append(oneStar);
             }
         }
-        m_ExtractedStars.append(partitionStars);
+        m_ExtractedStars.append(acceptedStars);
     }
 
     double sumGlobal = 0, sumRmsSq = 0;
@@ -463,7 +551,8 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     extractor.reset(new Extract());
     // #4 Source Extraction
     // Note that we set deblend_cont = 1.0 to turn off deblending.
-    status = extractor->sep_extract(&im, 2 * bkg->globalrms, SEP_THRESH_ABS, m_ActiveParameters.minarea,
+    const double extractionThreshold = 2.0 * bkg->globalrms;
+    status = extractor->sep_extract(&im, extractionThreshold, SEP_THRESH_ABS, m_ActiveParameters.minarea,
                                     m_ActiveParameters.convFilter.data(),
                                     sqrt(m_ActiveParameters.convFilter.size()), sqrt(m_ActiveParameters.convFilter.size()), SEP_FILTER_CONV,
                                     m_ActiveParameters.deblend_thresh,
