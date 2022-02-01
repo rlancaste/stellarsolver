@@ -1310,7 +1310,7 @@ int fitstable_append_to(fitstable_t* intable, FILE* fid) {
 
     exit: //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
     fitstable_close(outtable);
-    return 0;
+    return status; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
 }
 
 int fitstable_close(fitstable_t* tab) {

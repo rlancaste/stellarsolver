@@ -29,7 +29,7 @@ int APER_NAME(sep_image *im,
     /* initializations */
     size = esize = msize = ssize = 0;
     tv = sigtv = 0.0;
-    overlap = totarea = maskarea = 0.0;
+    totarea = maskarea = 0.0; //overlap //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, overlap was not used.
     datat = maskt = segt = NULL;
     errort = reinterpret_cast<uint8_t*>(im->noise);
     *flag = 0;

@@ -402,6 +402,9 @@ void backhisto(backstruct *backmesh,
                 wbuf += bw;
             continue;
         }
+        
+        if(!bm || !bm->histo) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+            return;
 
         nlevels = bm->nlevels;
         histo = bm->histo;
@@ -454,6 +457,9 @@ float backguess(backstruct *bkg, float *mean, float *sigma)
         *mean = *sigma = -BIG;
         return -BIG;
     }
+    
+    if(!bkg->histo) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning.
+        return 0.0;
 
     histo = bkg->histo;
     hcut = nlevelsm1 = bkg->nlevels - 1;

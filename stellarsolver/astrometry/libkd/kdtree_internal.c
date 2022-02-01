@@ -895,7 +895,7 @@ void MANGLE(kdtree_nn)(const kdtree_t* kd, const void* vquery,
     int nodestack[100];
     double dist2stack[100];
     int stackpos = 0;
-    int D = (kd ? kd->ndim : 0);
+    int D; // = (kd ? kd->ndim : 0); //# Modified by Robert Lancaster for the StellarSolver Internal Library, to avoid warning, D is initialized below.
 
     double bestd2 = *p_bestd2;
     int ibest = *p_ibest;

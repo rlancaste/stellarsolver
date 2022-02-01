@@ -113,7 +113,7 @@ void Extract::arraybuffer_readline(arraybuffer *buf)
 
 void Extract::arraybuffer_free(arraybuffer *buf)
 {
-    if(buf){    //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
+    if(buf && buf->bptr){    //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
         free(buf->bptr);
         buf->bptr = NULL;
     }

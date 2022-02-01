@@ -833,10 +833,12 @@ int sep_windowed(sep_image *im,
             if ((status = get_converter(im->ndtype, &econvert, &esize)))
                 return status;
         }
+        /*
         else
         {
-           (errisstd) ?  im->noiseval * im->noiseval : im->noiseval; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, varpiz was not used.
+           varpix = (errisstd) ?  im->noiseval * im->noiseval : im->noiseval; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, varpiz was not used.
         }
+         */
     }
 
     /* iteration loop */
@@ -961,7 +963,9 @@ int sep_windowed(sep_image *im,
         {
             /* this option will probably not yield accurate values */
             if (inflag & SEP_MASK_IGNORE)
-                totarea -= maskarea;
+            {
+                //totarea -= maskarea; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning, totarea was not used?
+            }
             else
             {
                 tmp = tv / (totarea - maskarea); /* avg unmasked pixel value */

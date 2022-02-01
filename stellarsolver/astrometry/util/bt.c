@@ -325,7 +325,7 @@ anbool bt_contains2(bt* tree, void* data, compare_func_2 compare, void* token) {
     if (!tree->root)
         return FALSE;
 
-    dir = 0;
+    //dir = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to avoid warning, dir gets immediately changed below.
     for (n = tree->root; !isleaf(n); n = getchild(n, dir)) {
         cmp = compare(data, first_element(n->branch.children[1]), token);
         if (cmp == 0)
@@ -382,7 +382,7 @@ anbool bt_insert2(bt* tree, void* data, anbool unique, compare_func_2 compare, v
     }
 
     z = y = tree->root;
-    dir = 0;
+    //dir = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to avoid warning, dir gets immediately changed below.
 
     for (q = z, p = y;
          !isleaf(p);
