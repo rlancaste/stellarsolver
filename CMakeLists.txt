@@ -285,12 +285,22 @@ else(WIN32)
     target_link_libraries(stellarsolver -lpthread)
 endif(WIN32)
 
-if (MSVC)
+if (MSVC) # We need to disable some warnings caused by using code designed for Unix on a Windows machine, otherwise astrometry code gives over 1500 warnings.
     # Use secure functions by default and suppress warnings about deprecated or POSIX functions
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_NONSTDC_NO_DEPRECATE=1")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_NONSTDC_NO_WARNINGS=1 /D _CRT_SECURE_NO_WARNINGS=1")
+    # Disabling warnings caused by assigning values to types defined with typedef double <variable>
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4244")
+    # Disbling warnings caused by size_t being assigned to int
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4267")
+    # Disabling warning for comparing signed and unsigned variables
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4018")
+    # Disabling warning for void function returning a value
+    #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4098")
+    # Disabling warning for unused local variables (This one is important because some variables only get used on Linux or MacOS)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4101")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS}")
 endif (MSVC)
 
