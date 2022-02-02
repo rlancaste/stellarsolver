@@ -866,8 +866,12 @@ static anbool record_match_callback(MatchObj* mo, void* userdata) {
 static time_t timer_callback(void* user_data) {
     blind_t* bp = user_data;
 
+    //# Modified by Robert Lancaster for the StellarSolver Internal Library since I got rid of the cancel file and I am just using the boolean
+    if(bp->cancelled)
+        return 0;
     check_time_limits(bp);
 
+    /* Modified by Robert Lancaster for the StellarSolver Internal Library since we aren't using any files in the internal library
     // check if the field has already been solved...
     if (is_field_solved(bp, bp->fieldnum))
         return 0;
@@ -876,6 +880,7 @@ static time_t timer_callback(void* user_data) {
         logmsg("File \"%s\" exists: cancelling.\n", bp->cancelfname);
         return 0;
     }
+    */
     return 1; // wait 1 second... FIXME config?
 }
 

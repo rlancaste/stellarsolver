@@ -36,8 +36,9 @@ struct engine {
     double minwidth;
     double maxwidth;
     float cpulimit;
-    char* cancelfn;
-    char* solvedfn;
+    //# Modified by Robert Lancaster for the StellarSolver Internal Library since we aren't using any files in the internal library
+    //char* cancelfn;
+    //char* solvedfn;
 };
 typedef struct engine engine_t;
 
@@ -65,12 +66,13 @@ int engine_parse_config_file(engine_t* engine, const char* fn);
 int engine_run_job(engine_t* engine, job_t* job);
 void engine_free(engine_t* engine);
 
-job_t* engine_read_job_file(engine_t* engine, const char* jobfn);
-int job_set_base_dir(job_t* job, const char* dir);
-int job_set_input_base_dir(job_t* job, const char* dir);
-int job_set_output_base_dir(job_t* job, const char* dir);
-void job_set_cancel_file(job_t* job, const char* fn);
-void job_set_solved_file(job_t* job, const char* fn);
+//# Modified by Robert Lancaster for the StellarSolver Internal Library since we aren't using any files in the internal library
+//job_t* engine_read_job_file(engine_t* engine, const char* jobfn);
+//int job_set_base_dir(job_t* job, const char* dir);
+//int job_set_input_base_dir(job_t* job, const char* dir);
+//int job_set_output_base_dir(job_t* job, const char* dir);
+//void job_set_cancel_file(job_t* job, const char* fn);
+//void job_set_solved_file(job_t* job, const char* fn);
 void job_free(job_t* job);
 
 

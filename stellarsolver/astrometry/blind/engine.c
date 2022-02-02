@@ -963,6 +963,8 @@ void engine_free(engine_t* engine) {
     free(engine);
 }
 
+/* //# Modified by Robert Lancaster for the StellarSolver Internal Library since we aren't using any files in the internal library
+
 job_t* engine_read_job_file(engine_t* engine, const char* jobfn) {
     qfits_header* hdr;
     job_t* job;
@@ -1098,4 +1100,5 @@ int job_set_output_base_dir(job_t* job, const char* dir) {
     }
     return 0;
 }
+*/
 

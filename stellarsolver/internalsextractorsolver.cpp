@@ -58,13 +58,8 @@ InternalSextractorSolver::~InternalSextractorSolver()
 //This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
 void InternalSextractorSolver::abort()
 {
-    QFile file(cancelfn);
-    if(QFileInfo(file).dir().exists())
-    {
-        file.open(QIODevice::WriteOnly);
-        file.write("Cancel");
-        file.close();
-    }
+    thejob.bp.cancelled = TRUE;
+
     if(!isChildSolver)
         emit logOutput("Aborting...");
     m_WasAborted = true;
@@ -95,9 +90,6 @@ SextractorSolver* InternalSextractorSolver::spawnChildSolver(int n)
         solver->setSearchPositionInDegrees(search_ra, search_dec);
     if(m_AstrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
         connect(solver, &SextractorSolver::logOutput, this,  &SextractorSolver::logOutput);
-    //This way they all share a solved and cancel fn
-    //solver->cancelfn = cancelfn;
-    solver->solvedfn = solvedfn;
     solver->usingDownsampledImage = usingDownsampledImage;
     return solver;
 }
@@ -130,17 +122,6 @@ void InternalSextractorSolver::run()
         if(QFile(m_LogFileName).exists())
             QFile(m_LogFileName).remove();
     }
-
-    if(cancelfn == "")
-        cancelfn = m_BasePath + "/" + m_BaseName + ".cancel";
-    if(solvedfn == "")
-        solvedfn = m_BasePath + "/" + m_BaseName + ".solved";
-
-    QFile solvedFile(solvedfn);
-    solvedFile.setPermissions(solvedFile.permissions() | QFileDevice::WriteOther);
-    solvedFile.remove();
-
-    QFile(cancelfn).remove();
 
     switch(m_ProcessType)
     {
@@ -186,10 +167,7 @@ void InternalSextractorSolver::run()
 
 void InternalSextractorSolver::cleanupTempFiles()
 {
-    QFile solvedFile(solvedfn);
-    solvedFile.setPermissions(solvedFile.permissions() | QFileDevice::WriteOther);
-    solvedFile.remove();
-    QFile(cancelfn).remove();
+    //There are NO temp files anymore!!!
 }
 
 void InternalSextractorSolver::allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
@@ -937,9 +915,6 @@ bool InternalSextractorSolver::prepare_job()
     sp->set_crpix = TRUE;
     sp->set_crpix_center = TRUE;
 
-    blind_set_cancel_file(bp, cancelfn.toLatin1().constData());
-    blind_set_solved_file(bp, solvedfn.toLatin1().constData());
-
     //Logratios for Solving
     bp->logratio_tosolve = m_ActiveParameters.logratio_tosolve;
     sp->logratio_tokeep = m_ActiveParameters.logratio_tokeep;
@@ -1230,8 +1205,6 @@ int InternalSextractorSolver::runInternalSolver()
     }
 
     prepare_job();
-    engine->cancelfn = cancelfn.toLatin1().data();
-    engine->solvedfn = solvedfn.toLatin1().data();
 
     blind_t* bp = &(job->bp);
 
