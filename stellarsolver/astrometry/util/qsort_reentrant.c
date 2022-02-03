@@ -28,7 +28,7 @@
  */
 
 // from https://groups.google.com/forum/#!topic/astrometry/quGEbY1CgR8
-#if __sun || _WIN32 //# Modified by Robert Lancaster for the SexySolver Internal Library
+#if __sun || _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 # include <stdio.h>
 #else
 # include <sys/cdefs.h>

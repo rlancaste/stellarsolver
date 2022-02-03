@@ -580,7 +580,7 @@ static void kdtree_nn_bb(const kdtree_t* kd, const etype* query,
     anbool use_tquery = FALSE;
     anbool use_tmath = FALSE;
     anbool use_bigtmath = FALSE;
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         ttype tquery[D];
 #else
         ttype *tquery = (ttype*) malloc(sizeof(ttype)*D);
@@ -754,7 +754,7 @@ static void kdtree_nn_bb(const kdtree_t* kd, const etype* query,
     *p_bestd2 = bestd2;
     *p_ibest = ibest;
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     free(tquery);
 #endif
 }
@@ -922,7 +922,7 @@ void MANGLE(kdtree_nn)(const kdtree_t* kd, const void* vquery,
     // Integers.
     if (TTYPE_INTEGER) {
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         ttype tquery[D];
 #else
         ttype *tquery = (ttype*) malloc(sizeof(ttype)*D);
@@ -931,7 +931,7 @@ void MANGLE(kdtree_nn)(const kdtree_t* kd, const void* vquery,
             kdtree_nn_int_split(kd, query, tquery, p_bestd2, p_ibest);
             return;
         }
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         free(tquery);
 #endif
     }
@@ -1074,7 +1074,7 @@ kdtree_qres_t* MANGLE(kdtree_rangesearch_options)
 
     //dtype dquery[D];
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         ttype tquery[D];
 #else
         ttype *tquery = (ttype*) malloc(sizeof(ttype)*D);
@@ -1306,7 +1306,7 @@ kdtree_qres_t* MANGLE(kdtree_rangesearch_options)
                     !bb_point_maxdist2_exceeds_bigttype(tlo, thi, tquery, D, bigtl2);
             } else {
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         etype bblo[D], bbhi[D];
 #else
         etype *bblo = (etype*) malloc(sizeof(etype)*D);
@@ -1322,7 +1322,7 @@ kdtree_qres_t* MANGLE(kdtree_rangesearch_options)
                 wholenode = do_wholenode_check &&
                     !bb_point_maxdist2_exceeds(bblo, bbhi, query, D, maxd2);
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
                 free(bblo);
                 free(bbhi);
 #endif
@@ -1437,7 +1437,7 @@ kdtree_qres_t* MANGLE(kdtree_rangesearch_options)
         }
     }
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     free(tquery);
 #endif
 
@@ -1515,6 +1515,7 @@ static int kdtree_qsort(dtype *arr, unsigned int *parr, int l, int r, int D, int
     tmparr = MALLOC(N * sizeof(dtype));
     if (!tmparr) {
         SYSERROR("Failed to allocate temp permutation array");
+        FREE(permute); //# Modified by Robert Lancaster for the StellarSolver Internal Library to prevent leak
         return -1;
     }
     for (j = 0; j < D; j++) {
@@ -1529,6 +1530,7 @@ static int kdtree_qsort(dtype *arr, unsigned int *parr, int l, int r, int D, int
     tmpparr = MALLOC(N * sizeof(int));
     if (!tmpparr) {
         SYSERROR("Failed to allocate temp permutation array");
+        FREE(permute); //# Modified by Robert Lancaster for the StellarSolver Internal Library to prevent leak
         return -1;
     }
     for (i = 0; i < N; i++) {
@@ -1604,7 +1606,7 @@ static void kdtree_quickselect_partition(dtype *arr, unsigned int *parr,
         int middle;
         int nless, nequal;
         // temp storage for ELEM_SWAP and ELEM_ROT macros.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         dtype tmpdata[D];
 #else
         dtype *tmpdata = (dtype*) malloc(sizeof(dtype)*D);
@@ -1774,7 +1776,7 @@ static void kdtree_quickselect_partition(dtype *arr, unsigned int *parr,
             /* median is in the ">" partition.  high is unchanged. */
             low = igreater;
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         free(tmpdata);
 #endif
     }
@@ -2175,7 +2177,7 @@ kdtree_t* MANGLE(kdtree_build_2)
     int lnext, level;
     int maxlevel;
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         dtype hi[D], lo[D];
 #else
         dtype *hi = (dtype*) malloc(sizeof(dtype)*D);
@@ -2183,7 +2185,7 @@ kdtree_t* MANGLE(kdtree_build_2)
 #endif
     dtype* data = NULL;
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         dtype nullbb[D];
 #else
         dtype *nullbb = (dtype*) malloc(sizeof(dtype)*D);
@@ -2410,7 +2412,6 @@ kdtree_t* MANGLE(kdtree_build_2)
             /* FIXME but qsort allocates a 2nd perm array GAH */
             if (kdtree_qsort(data, kd->perm, left, right, D, dim)) {
                 ERROR("kdtree_qsort failed");
-                // FIXME: memleak mania!
                 return NULL;
             }
             m = (1 + (size_t)left + (size_t)right)/2;
@@ -2554,7 +2555,7 @@ kdtree_t* MANGLE(kdtree_build_2)
     // set function table pointers.
     MANGLE(kdtree_update_funcs)(kd);
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     free(hi);
     free(lo);
     free(nullbb);
@@ -2573,7 +2574,7 @@ void MANGLE(kdtree_fix_bounding_boxes)(kdtree_t* kd) {
     for (i=0; i<kd->nnodes; i++) {
         unsigned int left, right;
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         dtype hi[D], lo[D];
 #else
         dtype *hi = (dtype*) malloc(sizeof(dtype)*D);
@@ -2584,7 +2585,7 @@ void MANGLE(kdtree_fix_bounding_boxes)(kdtree_t* kd) {
         compute_bb(KD_DATA(kd, D, left), D, right - left + 1, lo, hi);
         save_bb(kd, i, lo, hi);
 
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     free(hi);
     free(lo);
 #endif
@@ -2931,7 +2932,7 @@ void MANGLE(kdtree_nodes_contained)
     int D = kd->ndim;
     int d;
 
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
         ttype qlo[D], qhi[D];
 #else
         dtype *qhi = (dtype*) malloc(sizeof(dtype)*D);
@@ -2948,7 +2949,7 @@ void MANGLE(kdtree_nodes_contained)
             qlo[d] = TTYPE_MIN;
         } else if (q > TTYPE_MAX) {
             // query's low position is more than the tree's max: no overlap is possible.
-            goto cleanup; //# Modified by Robert Lancaster for the SexySolver Internal Library
+            goto cleanup; //# Modified by Robert Lancaster for the StellarSolver Internal Library
         }
         qhi[d] = q = POINT_ET(kd, d, queryhi [d], ceil );
         if (q > TTYPE_MAX) {
@@ -2956,14 +2957,14 @@ void MANGLE(kdtree_nodes_contained)
             qhi[d] = TTYPE_MAX;
         } else if (q < TTYPE_MIN) {
             // query's high position is less than the tree's min: no overlap is possible.
-            goto cleanup; //# Modified by Robert Lancaster for the SexySolver Internal Library
+            goto cleanup; //# Modified by Robert Lancaster for the StellarSolver Internal Library
         }
     }
 
     nodes_contained_rec(kd, 0, qlo, qhi, cb_contained, cb_overlap, cb_extra);
 
 cleanup:
-#ifdef _MSC_VER //# Modified by Robert Lancaster for the SexySolver Internal Library
+#ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     free(qhi);
     free(qlo);
 #else
