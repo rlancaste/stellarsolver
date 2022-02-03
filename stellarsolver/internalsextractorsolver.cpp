@@ -263,8 +263,6 @@ int InternalSextractorSolver::runSEPSextractor()
         y = std::max(0, m_SubFrameRect.y());
         h = std::min(static_cast<int>(raw_h), m_SubFrameRect.height());
 
-        raw_w = w;
-        raw_h = h;
     }
 
     // This data structure defines partitions of the full image processed to parallelize computation.

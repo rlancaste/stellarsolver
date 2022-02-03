@@ -1842,6 +1842,10 @@ dc1394error_t dc1394_bayer_VNG(const uint8_t *bayer, uint8_t *dst, int sx, int s
                 x2     = *cp++;
                 weight = *cp++;
                 grads  = *cp++;
+                
+                if(row < 0 || y1 < 0 || y2 < 0) //# Modified by Robert Lancaster for the StellarSolver Internal Library to fix warning
+                    return -1;
+                
                 color  = FC(row + y1, col + x1);
                 if ((int)FC(row + y2, col + x2) != color)
                     continue;
@@ -1987,6 +1991,10 @@ dc1394error_t dc1394_bayer_VNG_uint16(const uint16_t *bayer, uint16_t *dst, int 
                 x2     = *cp++;
                 weight = *cp++;
                 grads  = *cp++;
+                
+                if(row < 0 || y1 < 0 || y2 < 0) //# Modified by Robert Lancaster for the StellarSolver Internal Library to fix warning
+                    return -1;
+                
                 color  = FC(row + y1, col + x1);
                 if ((int)FC(row + y2, col + x2) != color)
                     continue;
@@ -2206,14 +2214,20 @@ dc1394error_t dc1394_bayer_AHD(const uint8_t *bayer, uint8_t *dst, int sx, int s
                 if (col == border && row >= border && row < height - border)
                     col = width - border;
                 memset(sum, 0, sizeof sum);
-                for (y = row - 1; y != row + 2; y++)
-                    for (x = col - 1; x != col + 2; x++)
+                for (y = row - 1; y != row + 2; y++){
+                    for (x = col - 1; x != col + 2; x++){
+                        
+                        if(x < 0 || y < 0) //# Modified by Robert Lancaster for the StellarSolver Internal Library to fix warning
+                            return -1;
+                
                         if (y < height && x < width)
                         {
                             f = FC(y, x);
                             sum[f] += dst[(y * width + x) * 3 + f]; /* [SA] */
                             sum[f + 4]++;
                         }
+                    }
+                }
                 f = FC(row, col);
                 FORC3 if (c != f && sum[c + 4])                             /* [SA] */
                     dst[(row * width + col) * 3 + c] = sum[c] / sum[c + 4]; /* [SA] */
@@ -2395,6 +2409,8 @@ dc1394error_t dc1394_bayer_AHD_uint16(const uint16_t *bayer, uint16_t *dst, int 
                     for (x = col - 1; x != col + 2; x++)
                         if (y < height && x < width)
                         {
+                            if(y < 0) //# Modified by Robert Lancaster for the StellarSolver Internal Library to fix warning
+                                return -1;
                             f = FC(y, x);
                             sum[f] += dst[(y * width + x) * 3 + f]; /* [SA] */
                             sum[f + 4]++;
