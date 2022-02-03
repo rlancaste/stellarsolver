@@ -483,8 +483,8 @@ MainWindow::MainWindow() :
     }
     optionsAreSaved = true;  //This way the next command won't trigger the unsaved warning.
     ui->optionsProfile->setCurrentIndex(0);
-    ui->sextractionProfile->setCurrentIndex(programSettings.value("sextractionProfile", 6).toInt());
-    ui->solverProfile->setCurrentIndex(programSettings.value("solverProfile", 7).toInt());
+    ui->sextractionProfile->setCurrentIndex(programSettings.value("sextractionProfile", 5).toInt());
+    ui->solverProfile->setCurrentIndex(programSettings.value("solverProfile", 4).toInt());
 
     QString storedPaths = programSettings.value("indexFolderPaths", "").toString();
     QStringList indexFilePaths;
