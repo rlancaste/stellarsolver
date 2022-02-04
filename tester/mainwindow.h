@@ -209,7 +209,7 @@ public slots:
     void saveStarTable();
 
     void mouseMovedOverImage(QPoint location);
-    QString getValue(int x, int y);
+    QString getValue(int x, int y, int channel);
     void mouseClickedInImage(QPoint location);
     void mousePressedInImage(QPoint location);
     QRect getStarSizeInImage(FITSImage::Star star, bool &accurate);

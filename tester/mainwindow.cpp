@@ -2004,8 +2004,8 @@ void MainWindow::mouseMovedOverImage(QPoint location)
             FITSImage::wcs_point wcsCoord;
             if(stellarSolver.get()->pixelToWCS(wcsPixelPoint, wcsCoord))
             {
-                mouseText = QString("RA: %1, DEC: %2, Value: %3").arg(StellarSolver::raString(wcsCoord.ra),
-                                StellarSolver::decString(wcsCoord.dec), getValue(x, y));
+                mouseText = QString("RA: %1, DEC: %2").arg(StellarSolver::raString(wcsCoord.ra),
+                                StellarSolver::decString(wcsCoord.dec));
             }
             else
             {
@@ -2013,7 +2013,11 @@ void MainWindow::mouseMovedOverImage(QPoint location)
             }
         }
         else
-            mouseText = QString("X: %1, Y: %2, Value: %3").arg(x).arg(y).arg(getValue(x, y));
+            mouseText = QString("X: %1, Y: %2").arg(x).arg(y);
+        if(stats.channels == 1)
+            mouseText = mouseText + QString(", Value: %1").arg(getValue(x, y, 0));
+        else
+            mouseText = mouseText + QString(", Value: R: %1, G: %2, B: %3").arg(getValue(x, y, 0), getValue(x, y, 1), getValue(x, y, 2));
         if(useSubframe)
             mouseText = mouseText + QString(", Subframe X: %1, Y: %2, W: %3, H: %4").arg(subframe.x()).arg(subframe.y()).arg(
                             subframe.width()).arg(subframe.height());
@@ -2049,12 +2053,12 @@ void MainWindow::mouseMovedOverImage(QPoint location)
 //This function is based upon code in the method mouseMoveEvent in FITSLabel in KStars
 //It is meant to get the value from the image buffer at a particular pixel location for the display
 //when the mouse is over a certain pixel
-QString MainWindow::getValue(int x, int y)
+QString MainWindow::getValue(int x, int y, int channel)
 {
     if (m_ImageBuffer == nullptr)
         return "";
 
-    int index = y * stats.width + x;
+    int index = y * stats.width + x + channel * stats.width * stats.height;
     QString stringValue;
 
     switch (stats.dataType)
