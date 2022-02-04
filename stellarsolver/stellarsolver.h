@@ -199,10 +199,6 @@ class StellarSolver : public QObject
         {
             return m_HasFailed;
         }
-        void setLoadWCS(bool set)
-        {
-            loadWCS = set;
-        }
         bool hasWCSData() const
         {
             return hasWCS;
@@ -245,8 +241,6 @@ class StellarSolver : public QObject
             return decstr;
         }
 
-        virtual FITSImage::wcs_point *getWCSCoord();
-
         bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint);
         bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint);
 
@@ -255,7 +249,6 @@ class StellarSolver : public QObject
         void processFinished(int code);
         void parallelSolve();
         void finishParallelSolve(int success);
-        void finishWCS();
 
     private:
         int whichSolver(SextractorSolver *solver);
@@ -340,10 +333,7 @@ class StellarSolver : public QObject
         //The number of stars found in the last operation
         int numStars;
         FITSImage::Solution solution;          //This is the solution that comes back from the Solver
-        bool loadWCS {true};
         bool hasWCS {false};        //This boolean gets set if the StellarSolver has WCS data to retrieve
-        bool hasWCSCoord{false};    //This boolean gets set if the Stellrsolver has already computed WCS Coordinates
-        FITSImage::wcs_point * wcs_coord {nullptr};
 
         bool wasAborted {false};
         // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
@@ -359,8 +349,6 @@ class StellarSolver : public QObject
         // Extraction and/or solving complete.
         // If can be completed successfully or in failure, but it's done.
         void ready();
-
-        void wcsReady();
 
         void finished();
 

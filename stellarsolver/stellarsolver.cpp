@@ -179,8 +179,6 @@ void StellarSolver::start()
         m_SolverStars.clear();
         m_HasSolved = false;
         hasWCS = false;
-        hasWCSCoord = false;
-        wcs_coord = nullptr;
     }
 
     //    if(m_isBlocking)
@@ -398,13 +396,8 @@ void StellarSolver::processFinished(int code)
             {
                 hasWCS = true;
                 solverWithWCS = m_SextractorSolver;
-                if(loadWCS)
-                {
-                    solverWithWCS->computingWCS = true;
-                    disconnect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::processFinished);
-                    connect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishWCS);
-                    solverWithWCS->start();
-                }
+                if(m_ExtractorStars.count() > 0)
+                    solverWithWCS->appendStarsRAandDEC(m_ExtractorStars);
             }
             m_HasSolved = true;
         }
@@ -421,13 +414,10 @@ void StellarSolver::processFinished(int code)
     else
         m_HasFailed = true;
 
-    if(m_ProcessType != SOLVE || !m_SextractorSolver->hasWCSData() || !loadWCS)
-        m_isRunning = false;
+    m_isRunning = false;
 
     emit ready();
-
-    if(m_ProcessType != SOLVE || !m_SextractorSolver->hasWCSData() || !loadWCS)
-        emit finished();
+    emit finished();
 }
 
 int StellarSolver::whichSolver(SextractorSolver *solver)
@@ -467,15 +457,14 @@ void StellarSolver::finishParallelSolve(int success)
         solution = reportingSolver->getSolution();
         m_SolverStars = reportingSolver->getStarList();
 
-        if(reportingSolver->hasWCSData() && loadWCS)
+        if(reportingSolver->hasWCSData())
         {
             solverWithWCS = reportingSolver;
             hasWCS = true;
-            solverWithWCS->computingWCS = true;
             disconnect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
-            connect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishWCS);
-            connect(solverWithWCS, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
-            solverWithWCS->start();
+            if(m_ExtractorStars.count() > 0)
+                solverWithWCS->appendStarsRAandDEC(m_ExtractorStars);
+            m_isRunning = false;
         }
         if(m_SextractorType !=
                 EXTRACTOR_BUILTIN) //Note this is just cleaning up the files from the star extraction done prior to the parallel solve.  So for built in, it doesn't even do it, so no files to clean up
@@ -491,41 +480,13 @@ void StellarSolver::finishParallelSolve(int success)
 
     if(m_ParallelSolversFinishedCount == parallelSolvers.count())
     {
-
-        if(m_HasSolved)
-        {
-            //Don't emit finished until WCS is done if we are doing WCS extraction.
-            if(!(loadWCS && hasWCS))
-            {
-                m_isRunning = false;
-                emit finished();
-            }
-        }
-        else
-        {
-            m_isRunning = false;
+        m_isRunning = false;
+        if(!m_HasSolved){
             m_HasFailed = true;
-            emit ready();
-            emit finished();
+            emit ready(); //Since this was emitted earlier if it had solved
         }
+        emit finished();
     }
-}
-
-void StellarSolver::finishWCS()
-{
-    if(solverWithWCS)
-    {
-        wcs_coord = solverWithWCS->getWCSCoord();
-        if(m_ExtractorStars.count() > 0)
-            solverWithWCS->appendStarsRAandDEC(m_ExtractorStars);
-        if(wcs_coord)
-        {
-            hasWCSCoord = true;
-            emit wcsReady();
-        }
-    }
-    m_isRunning = false;
-    emit finished();
 }
 
 bool StellarSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
@@ -805,16 +766,6 @@ QStringList StellarSolver::getDefaultIndexFolderPaths()
     addPathToListIfExists(&indexFilePaths, "C:/cygwin/usr/share/astrometry/data");
 #endif
     return indexFilePaths;
-}
-
-
-
-FITSImage::wcs_point * StellarSolver::getWCSCoord()
-{
-    if(hasWCS && hasWCSCoord)
-        return wcs_coord;
-    else
-        return nullptr;
 }
 
 bool StellarSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)

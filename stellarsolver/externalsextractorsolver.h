@@ -26,7 +26,6 @@ class ExternalSextractorSolver : public InternalSextractorSolver
         int extract() override;
         void abort() override;
         SextractorSolver * spawnChildSolver(int n) override;
-        //void getWCSDataFromChildSolver(SextractorSolver *solver) override;
 
         QStringList getSolverArgsList();
         bool generateAstrometryConfigFile();
@@ -77,7 +76,6 @@ class ExternalSextractorSolver : public InternalSextractorSolver
         void cleanupTempFiles() override;
 
         int loadWCS();
-        void computeWCSCoord() override;
         bool appendStarsRAandDEC(QList<FITSImage::Star> &stars) override;
 
         bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) override;

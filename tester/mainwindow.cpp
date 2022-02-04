@@ -814,7 +814,6 @@ void MainWindow::resetStellarSolver()
         solver->disconnect(this);
         if(solver->isRunning())
         {
-            solver->setLoadWCS(false);
             connect(solver, &StellarSolver::finished, solver, &StellarSolver::deleteLater);
             solver->abort();
         }
@@ -874,12 +873,6 @@ void MainWindow::solveImage()
 
     currentTrial++;
 
-    if(hasWCSData)
-    {
-        hasWCSData = false;
-        delete [] wcs_coord;
-    }
-
     //Since this tester uses it many times, it doesn't *need* to replace the stellarsolver every time
     //resetStellarSolver();
 
@@ -916,11 +909,12 @@ void MainWindow::solveImage()
     connect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::solverComplete);
     if(currentTrial >= numberOfTrials)
     {
-        stellarSolver->setLoadWCS(true);
-        connect(stellarSolver.get(), &StellarSolver::wcsReady, this, &MainWindow::loadWCSComplete);
+        hasWCSData = true;
+        stars = stellarSolver->getStarList();
+        hasHFRData = stellarSolver->isCalculatingHFR();
+        if(stars.count() > 0)
+            emit readyForStarTable();
     }
-    else
-        stellarSolver->setLoadWCS(false);
 
     startProcessMonitor();
     stellarSolver->start();
@@ -1167,23 +1161,6 @@ bool MainWindow::solverComplete()
     return true;
 }
 
-bool MainWindow::loadWCSComplete()
-{
-    disconnect(stellarSolver.get(), &StellarSolver::wcsReady, this, &MainWindow::loadWCSComplete);
-    FITSImage::wcs_point * coord = stellarSolver->getWCSCoord();
-    if(coord)
-    {
-        hasWCSData = true;
-        wcs_coord = coord;
-        stars = stellarSolver->getStarList();
-        hasHFRData = stellarSolver->isCalculatingHFR();
-        if(stars.count() > 0)
-            emit readyForStarTable();
-        return true;
-    }
-    return false;
-}
-
 //This method will attempt to abort the sextractor, sovler, and any other processes currently being run, no matter which type
 void MainWindow::abort()
 {
@@ -1240,11 +1217,6 @@ bool MainWindow::imageLoad()
     clearAstrometrySettings();
     if(stellarSolver != nullptr)
         disconnect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
-    if(hasWCSData)
-    {
-        delete [] wcs_coord;
-        hasWCSData = false;
-    }
 
     bool loadSuccess;
     if(newFileInfo.suffix() == "fits" || newFileInfo.suffix() == "fit")
@@ -1259,7 +1231,7 @@ bool MainWindow::imageLoad()
         ui->horSplitter->setSizes(QList<int>() << ui->optionsBox->width() << ui->horSplitter->width() << 0 );
         ui->fileNameDisplay->setText("Image: " + fileURL);
         initDisplayImage();
-
+        hasWCSData = false;
         resetStellarSolver();
         return true;
     }
@@ -2028,9 +2000,17 @@ void MainWindow::mouseMovedOverImage(QPoint location)
         QString mouseText = "";
         if(hasWCSData)
         {
-            int index = x + y * stats.width;
-            mouseText = QString("RA: %1, DEC: %2, Value: %3").arg(StellarSolver::raString(wcs_coord[index].ra),
-                            StellarSolver::decString(wcs_coord[index].dec), getValue(x, y));
+            QPointF wcsPixelPoint(x, y);
+            FITSImage::wcs_point wcsCoord;
+            if(stellarSolver.get()->pixelToWCS(wcsPixelPoint, wcsCoord))
+            {
+                mouseText = QString("RA: %1, DEC: %2, Value: %3").arg(StellarSolver::raString(wcsCoord.ra),
+                                StellarSolver::decString(wcsCoord.dec), getValue(x, y));
+            }
+            else
+            {
+                mouseText = QString("WCS Data not fully loaded");
+            }
         }
         else
             mouseText = QString("X: %1, Y: %2, Value: %3").arg(x).arg(y).arg(getValue(x, y));

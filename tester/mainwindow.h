@@ -150,8 +150,6 @@ private:
     void addSextractionToTable();
     FITSImage::Solution lastSolution;
 
-    FITSImage::wcs_point *wcs_coord { nullptr };
-
     QDialog *convInspector = nullptr;
     QTableWidget *convTable = nullptr;
 
@@ -229,7 +227,6 @@ public slots:
     //These functions get called when the sextractor or solver finishes
     bool sextractorComplete();
     bool solverComplete();
-    bool loadWCSComplete();
 
     //These functions handle the solution table
     void addSolutionToTable(FITSImage::Solution solution);

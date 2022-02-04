@@ -48,11 +48,6 @@ class SextractorSolver : public QThread
         virtual void cleanupTempFiles() = 0;
         //This will abort the solver
 
-        FITSImage::wcs_point *getWCSCoord()
-        {
-            return wcs_coord;
-        };
-        virtual void computeWCSCoord() = 0;
         virtual bool appendStarsRAandDEC(QList<FITSImage::Star> &stars) = 0;
 
         //Logging Settings for Astrometry
@@ -150,9 +145,6 @@ class SextractorSolver : public QThread
             m_SubFrameRect = frame;
         };
 
-        //This boolean gets set when the SextractorSolver is computing WCS Data
-        bool computingWCS = false;
-
         virtual bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) = 0;
         virtual bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) = 0;
 
@@ -188,9 +180,6 @@ class SextractorSolver : public QThread
         QString solvedfn;           //Filename whose creation tells astrometry.net it already solved the field.
 
         bool isChildSolver = false;              //This identifies that this solver is in fact a child solver.
-
-        //The pointer where the WCS Data will be computed
-        FITSImage::wcs_point *wcs_coord{ nullptr };
 
         inline double convertToDegreeHeight(double scale)
         {

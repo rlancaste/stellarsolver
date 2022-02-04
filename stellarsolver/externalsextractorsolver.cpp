@@ -177,19 +177,6 @@ int ExternalSextractorSolver::extract()
 
 void ExternalSextractorSolver::run()
 {
-    if(computingWCS)
-    {
-        if(m_HasSolved)
-        {
-            computeWCSCoord();
-            emit finished(0);
-        }
-        else
-            emit finished(-1);
-        computingWCS = false;
-        return;
-    }
-
     if(m_AstrometryLogLevel != LOG_NONE && m_LogToFile)
     {
         if(m_LogFileName == "")
@@ -1676,44 +1663,6 @@ int ExternalSextractorSolver::loadWCS()
     emit logOutput("Finished Loading WCS...");
 
     return 0;
-}
-
-//This was essentially copied from KStars' loadWCS method and split in half with some modifications
-void ExternalSextractorSolver::computeWCSCoord()
-{
-    if(!m_HasWCS)
-    {
-        emit logOutput("There is no WCS Data.  Did you solve the image first?");
-        return;
-    }
-    int w  = m_Statistics.width;
-    int h = m_Statistics.height;
-    wcs_coord = new FITSImage::wcs_point[w * h];
-    FITSImage::wcs_point * p = wcs_coord;
-    double imgcrd[2], phi = 0, pixcrd[2], theta = 0, world[2];
-    int status;
-    int stat[2];
-
-    for (int i = 0; i < h; i++)
-    {
-        for (int j = 0; j < w; j++)
-        {
-            pixcrd[0] = j;
-            pixcrd[1] = i;
-
-            if ((status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0])) != 0)
-            {
-                emit logOutput(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
-            }
-            else
-            {
-                p->ra  = world[0];
-                p->dec = world[1];
-
-                p++;
-            }
-        }
-    }
 }
 
 bool ExternalSextractorSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)

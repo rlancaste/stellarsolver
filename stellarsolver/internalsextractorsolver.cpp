@@ -102,19 +102,6 @@ int InternalSextractorSolver::extract()
 //This is the method that runs the solver or sextractor.  Do not call it, use the methods above instead, so that it can start a new thread.
 void InternalSextractorSolver::run()
 {
-    if(computingWCS)
-    {
-        if(m_HasSolved)
-        {
-            computeWCSCoord();
-            emit finished(0);
-        }
-        else
-            emit finished(-1);
-        computingWCS = false;
-        return;
-    }
-
     if(m_AstrometryLogLevel != SSolver::LOG_NONE && m_LogToFile)
     {
         if(m_LogFileName == "")
@@ -1379,37 +1366,6 @@ int InternalSextractorSolver::runInternalSolver()
     blind_cleanup(bp);
 
     return returnCode;
-}
-
-
-void InternalSextractorSolver::computeWCSCoord()
-{
-    if(!m_HasWCS)
-    {
-        emit logOutput("There is no WCS Data.");
-        return;
-    }
-    //We have to upscale back to the full size image
-    int d = m_ActiveParameters.downsample;
-    int w = m_Statistics.width * d;
-    int h = m_Statistics.height * d;
-
-
-    wcs_coord = new FITSImage::wcs_point[w * h];
-    FITSImage::wcs_point * p = wcs_coord;
-
-    for (int y = 0; y < h; y++)
-    {
-        for (int x = 0; x < w; x++)
-        {
-            double ra;
-            double dec;
-            sip_pixelxy2radec(&wcs, x / d, y / d, &ra, &dec);
-            p->ra = ra;
-            p->dec = dec;
-            p++;
-        }
-    }
 }
 
 bool InternalSextractorSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
