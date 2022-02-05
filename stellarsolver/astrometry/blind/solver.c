@@ -27,8 +27,8 @@
 #include "solver.h"
 #include "verify.h"
 #include "tic.h"
-#include "solvedclient.h"
-#include "solvedfile.h"
+    //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
+
 #include "fit-wcs.h"
 #include "sip-utils.h"
 #include "keywords.h"

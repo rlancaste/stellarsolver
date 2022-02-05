@@ -99,7 +99,7 @@ char* create_temp_file(const char* fn, const char* dir);
 
 char* shell_escape(const char* str);
 
-int mkdir_p(const char* path);
+//int mkdir_p(const char* path); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 // Returns 0 on error.
 time_t file_get_last_modified_time(const char* fn);

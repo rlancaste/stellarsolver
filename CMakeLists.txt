@@ -223,8 +223,6 @@ set(engine_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/quad-utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/matchfile.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/matchobj.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/solvedclient.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/solvedfile.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/tweak2.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/verify.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/tweak.c

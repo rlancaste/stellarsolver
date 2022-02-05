@@ -160,7 +160,7 @@ void blind_cleanup(blind_t* bp);
 
 int blind_parameters_are_sane(blind_t* bp, solver_t* sp);
 
-int blind_is_run_obsolete(blind_t* bp, solver_t* sp);
+//int blind_is_run_obsolete(blind_t* bp, solver_t* sp); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 void blind_log_run_parameters(blind_t* bp);
 

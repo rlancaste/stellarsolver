@@ -423,9 +423,10 @@ int engine_run_job(engine_t* engine, job_t* job) {
     double app_max_default;
     anbool solved = FALSE;
 
-    if (blind_is_run_obsolete(bp, sp)) {
-        goto finish;
-    }
+    //# Modified by Robert Lancaster for the StellarSolver Internal Library
+    //if (blind_is_run_obsolete(bp, sp)) {
+    //    goto finish;
+    //}
 
     app_min_default = deg2arcsec(engine->minwidth) / job_imagew(job);
     app_max_default = deg2arcsec(engine->maxwidth) / job_imagew(job);
@@ -537,10 +538,11 @@ int engine_run_job(engine_t* engine, job_t* job) {
             //blind_clear_indexes(bp); //Repetitive?
             solver_clear_indexes(sp);
 
-            if (blind_is_run_obsolete(bp, sp)) {
-                solved = TRUE;
-                break;
-            }
+            //# Modified by Robert Lancaster for the StellarSolver Internal Library
+            //if (blind_is_run_obsolete(bp, sp)) {
+            //    solved = TRUE;
+            //    break;
+            //}
         }
         if (solved)
             break;

@@ -42,8 +42,8 @@ struct timeval {
 #include "starutil.h"
 #include "mathutil.h"
 #include "quadfile.h"
-#include "solvedclient.h"
-#include "solvedfile.h"
+    //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
+
 #include "starkd.h"
 #include "codekd.h"
 #include "boilerplate.h"
@@ -61,13 +61,13 @@ struct timeval {
 static anbool record_match_callback(MatchObj* mo, void* userdata);
 static time_t timer_callback(void* user_data);
 static void add_blind_params(blind_t* bp, qfits_header* hdr);
-static void get_fields_from_solvedserver(blind_t* bp, solver_t* sp);
+//static void get_fields_from_solvedserver(blind_t* bp, solver_t* sp); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static void load_and_parse_wcsfiles(blind_t* bp);
 static void solve_fields(blind_t* bp, sip_t* verify_wcs);
 static void remove_invalid_fields(il* fieldlist, int maxfield);
-static anbool is_field_solved(blind_t* bp, int fieldnum);
+//static anbool is_field_solved(blind_t* bp, int fieldnum); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int write_solutions(blind_t* bp);
-static void solved_field(blind_t* bp, int fieldnum);
+//static void solved_field(blind_t* bp, int fieldnum); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int compare_matchobjs(const void* v1, const void* v2);
 static void remove_duplicate_solutions(blind_t* bp);
 
@@ -446,7 +446,7 @@ void blind_run(blind_t* bp) {
         for (i=0; i<bl_size(bp->solutions); i++) {
             MatchObj* mo = bl_access(bp->solutions, i);
             if (mo->logodds >= bp->logratio_tosolve)
-                solved_field(bp, mo->fieldnum);
+                bp->single_field_solved = TRUE; //solved_field(bp, mo->fieldnum); //# Modified by Robert Lancaster for the StellarSolver Internal Library
         }
     }
 
@@ -516,8 +516,8 @@ void blind_run(blind_t* bp) {
     // Clean up.
     //xylist_close(bp->xyls); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
-    if (bp->solvedserver)
-        solvedclient_set_server(NULL);
+    //if (bp->solvedserver) //# Modified by Robert Lancaster for the StellarSolver Internal Library
+    //    solvedclient_set_server(NULL);
 
     if (write_solutions(bp))
         exit(-1);
@@ -587,7 +587,7 @@ int blind_parameters_are_sane(blind_t* bp, solver_t* sp) {
     }
     return 1;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int blind_is_run_obsolete(blind_t* bp, solver_t* sp) {
     // If we're just solving one field, check to see if it's already
     // solved before doing a bunch of work and spewing tons of output.
@@ -630,7 +630,7 @@ static void get_fields_from_solvedserver(blind_t* bp, solver_t* sp) {
         logmsg("\n");
     }
 }
-
+**/
 static void load_and_parse_wcsfiles(blind_t* bp) {
     int i;
     for (i = 0; i < sl_size(bp->verify_wcsfiles); i++) {
@@ -989,14 +989,14 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
                 strncpy(template.fieldname, idstr, sizeof(template.fieldname) - 1);
             free(idstr);
         }
-**/
+
         // Has the field already been solved?
         if (is_field_solved(bp, fieldnum))
            return; //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
         // Get the field.
         //solver_set_field(sp, xylist_read_field(bp->xyls, NULL));   //# Modified by Robert Lancaster for the StellarSolver Internal Library
-
+**/
         if (!sp->fieldxy) {
             logerr("Failed to read xylist field.\n");
             return; //# Modified by Robert Lancaster for the StellarSolver Internal Library
@@ -1048,7 +1048,7 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
 
 
         if (sp->best_match_solves) {
-            solved_field(bp, fieldnum);
+            bp->single_field_solved = TRUE; //solved_field(bp, fieldnum); //# Modified by Robert Lancaster for the StellarSolver Internal Library
         } else if (!verify_wcs) {
             // Field unsolved.
             logerr("Field %i did not solve", fieldnum);
@@ -1090,7 +1090,7 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
         //We want to return here so that the sp object is preserved so we don't have to read the information from a wcs file
     }
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static anbool is_field_solved(blind_t* bp, int fieldnum) {
     anbool solved = FALSE;
     if (bp->solved_in) {
@@ -1127,7 +1127,7 @@ static void solved_field(blind_t* bp, int fieldnum) {
     if (il_size(bp->fieldlist) == 1)
         bp->single_field_solved = TRUE;
 }
-
+**/
 void blind_matchobj_deep_copy(const MatchObj* mo, MatchObj* dest) {
     if (!mo || !dest)
         return;

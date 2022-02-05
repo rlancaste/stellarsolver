@@ -628,7 +628,7 @@ int run_command_get_outputs(const char* cmd, sl** outlines, sl** errlines) {
     
     return 0;
 }
-**/
+
 int mkdir_p(const char* dirpath) {
     sl* tomake = sl_new(4);
     char* path = strdup(dirpath);
@@ -657,7 +657,7 @@ int mkdir_p(const char* dirpath) {
     sl_free2(tomake);
     return 0;
 }
-
+**/
 char* shell_escape(const char* str) {
     char* escape = "|&;()<> \t\n\\'\"";
     int nescape = 0;

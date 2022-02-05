@@ -328,7 +328,7 @@ int Deblend::gatherup(objliststruct *objlistin, objliststruct *objlistout)
             pixt2 = pixelout + (l = (k++*plistsize));
             memcpy(pixt2, pixt, (size_t)plistsize);
             PLIST(pixt2, nextpix) = -1;
-            distmin = 1e+31;
+            distmin = 1e+31f; //# Modified by Robert Lancaster for the StellarSolver Internal Library
             for (objt = objin + (i = 1); i < nobj; i++, objt++)
             {
                 dx = x - objt->mx;
