@@ -127,7 +127,7 @@ struct blind_params {
     anbool best_hit_only;
 };
 typedef struct blind_params blind_t;
-
+/* //# Modified by Robert Lancaster for the StellarSolver Internal Library, these are not used.
 void blind_set_field_file(blind_t* bp, const char* fn);
 void blind_set_cancel_file(blind_t* bp, const char* fn);
 void blind_set_solved_file(blind_t* bp, const char* fn);
@@ -138,6 +138,7 @@ void blind_set_rdls_file(blind_t* bp, const char* fn);
 void blind_set_scamp_file(blind_t* bp, const char* fn);
 void blind_set_corr_file(blind_t* bp, const char* fn);
 void blind_set_wcs_file(blind_t* bp, const char* fn);
+*/
 void blind_set_xcol(blind_t* bp, const char* x);
 void blind_set_ycol(blind_t* bp, const char* x);
 

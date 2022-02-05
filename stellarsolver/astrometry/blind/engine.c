@@ -93,7 +93,7 @@ int engine_autoindex_search_paths(engine_t* engine) {
             struct dirent* de;
             char* name;
             char* fullpath;
-            char* err;
+            //char* err; //# Modified by Robert Lancaster for the StellarSolver Internal Library, this is not used
             anbool ok;
             errno = 0;
             de = readdir(dir);
@@ -222,7 +222,7 @@ static void add_index_to_blind(engine_t* engine, blind_t* bp,
         blind_add_index(bp, index->indexname);
     }
 }
-
+/* //# Modified by Robert Lancaster for the StellarSolver Internal Library, these functions are not used
 int engine_parse_config_file(engine_t* engine, const char* fn) {
     FILE* fconf;
     int rtn;
@@ -387,7 +387,9 @@ int engine_parse_config_file_stream(engine_t* engine, FILE* fconf) {
     sl_free2(mindices);
     return rtn;
 }
+*/
 
+/* //# Modified by Robert Lancaster for the StellarSolver Internal Library, this function is not used, we make our jobs
 static job_t* job_new() {
     job_t* job = calloc(1, sizeof(job_t));
     if (!job) {
@@ -398,6 +400,7 @@ static job_t* job_new() {
     job->depths = il_new(8);
     return job;
 }
+*/
 
 void job_free(job_t* job) {
     if (!job)
@@ -553,13 +556,13 @@ int engine_run_job(engine_t* engine, job_t* job) {
     logverb("RA,Dec constraints: %i\n", sp->num_radec_skipped);
     logverb("AB scale constraints: %i\n", sp->num_abscale_skipped);
 
- finish:
+ //finish: //# Modified by Robert Lancaster for the StellarSolver Internal Library, this label is not used anymore
     //# Modified by Robert Lancaster for the StellarSolver Internal Library, we will clean these up back in StellarSolver.cpp
     //solver_cleanup(sp);
     //blind_cleanup(bp);
     return 0;
 }
-
+/* //# Modified by Robert Lancaster for the StellarSolver Internal Library, this function is not used
 static void parse_sip_coeffs(const qfits_header* hdr, const char* prefix, sip_t* wcs) {
     char key[64];
     int order, i, j;
@@ -913,7 +916,7 @@ static anbool parse_job_from_qfits_header(const qfits_header* hdr, job_t* job) {
  bailout:
     return FALSE;
 }
-
+*/
 
 
 engine_t* engine_new() {

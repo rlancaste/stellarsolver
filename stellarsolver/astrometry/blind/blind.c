@@ -60,11 +60,11 @@ struct timeval {
 
 static anbool record_match_callback(MatchObj* mo, void* userdata);
 static time_t timer_callback(void* user_data);
-static void add_blind_params(blind_t* bp, qfits_header* hdr);
+//static void add_blind_params(blind_t* bp, qfits_header* hdr); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 //static void get_fields_from_solvedserver(blind_t* bp, solver_t* sp); //# Modified by Robert Lancaster for the StellarSolver Internal Library
-static void load_and_parse_wcsfiles(blind_t* bp);
+//static void load_and_parse_wcsfiles(blind_t* bp); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static void solve_fields(blind_t* bp, sip_t* verify_wcs);
-static void remove_invalid_fields(il* fieldlist, int maxfield);
+//static void remove_invalid_fields(il* fieldlist, int maxfield); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 //static anbool is_field_solved(blind_t* bp, int fieldnum); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 //static int write_solutions(blind_t* bp); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 //static void solved_field(blind_t* bp, int fieldnum); //# Modified by Robert Lancaster for the StellarSolver Internal Library
@@ -219,7 +219,7 @@ void blind_clear_indexes(blind_t* bp) {
     sl_remove_all(bp->indexnames);
     pl_remove_all(bp->indexes);
 }
-
+/* //# Modified by Robert Lancaster for the StellarSolver Internal Library
 void blind_set_field_file(blind_t* bp, const char* fn) {
     free(bp->fieldfname);
     bp->fieldfname = strdup_safe(fn);
@@ -269,7 +269,7 @@ void blind_set_wcs_file(blind_t* bp, const char* fn) {
     free(bp->wcs_template);
     bp->wcs_template = strdup_safe(fn);
 }
-
+*/
 void blind_set_xcol(blind_t* bp, const char* x) {
     free(bp->xcolname);
     if (!x)
@@ -343,7 +343,7 @@ static void check_time_limits(blind_t* bp) {
 
 void blind_run(blind_t* bp) {
     solver_t* sp = &(bp->solver);
-    size_t i, I;
+    size_t I; //# Modified by Robert Lancaster for the StellarSolver Internal Library
     size_t Nindexes;
 
     // Record current time for total wall-clock time limit.
@@ -633,7 +633,7 @@ static void get_fields_from_solvedserver(blind_t* bp, solver_t* sp) {
         logmsg("\n");
     }
 }
-**/
+
 static void load_and_parse_wcsfiles(blind_t* bp) {
     int i;
     for (i = 0; i < sl_size(bp->verify_wcsfiles); i++) {
@@ -648,7 +648,7 @@ static void load_and_parse_wcsfiles(blind_t* bp) {
         bl_append(bp->verify_wcs_list, &wcs);
     }
 }
-
+**/
 void blind_log_run_parameters(blind_t* bp) {
     solver_t* sp = &(bp->solver);
     int i, N;
@@ -886,7 +886,7 @@ static time_t timer_callback(void* user_data) {
     */
     return 1; // wait 1 second... FIXME config?
 }
-
+/* //# Modified by Robert Lancaster for the StellarSolver Internal Library, unused functions
 static void add_blind_params(blind_t* bp, qfits_header* hdr) {
     solver_t* sp = &(bp->solver);
     int i;
@@ -958,7 +958,7 @@ static void remove_invalid_fields(il* fieldlist, int maxfield) {
         i--;
     }
 }
-
+*/
 static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
     solver_t* sp = &(bp->solver);
     double last_utime, last_stime;
@@ -972,7 +972,7 @@ static void solve_fields(blind_t* bp, sip_t* verify_wcs) {
     for (fi = 0; fi < il_size(bp->fieldlist); fi++) {
         int fieldnum;
         MatchObj template ;
-        qfits_header* fieldhdr = NULL;
+        //qfits_header* fieldhdr = NULL; //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
         fieldnum = il_get(bp->fieldlist, fi);
 
