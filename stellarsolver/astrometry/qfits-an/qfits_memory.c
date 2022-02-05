@@ -45,6 +45,7 @@
 #else
 #include "windows.h"
 #include "io.h"
+#include <process.h>
 #endif
 #include <errno.h>
 #include <assert.h>
@@ -539,10 +540,10 @@ void* qfits_memory_falloc2(
 
 	/* Memory-map input file */
 	// mmap requires page-aligned offsets.
+    get_mmap_size(offs, size, &mapstart, &maplen, &mapoff);
 #ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
     ptr = mmap_file(fd, size + offs);
 #else
-	get_mmap_size(offs, size, &mapstart, &maplen, &mapoff);
 	ptr = (char*)mmap(0, maplen, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd,
 					  mapstart);
 #endif
