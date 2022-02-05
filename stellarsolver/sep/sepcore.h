@@ -39,7 +39,7 @@ namespace SEP
 #define RELTHRESH_NO_NOISE  9
 #define UNKNOWN_NOISE_TYPE  10
 
-#define	BIG 1e+30  /* a huge number (< biggest value a float can store) */
+#define	BIG 1e+30f  /* a huge number (< biggest value a float can store) */
 #define	PI  3.1415926535898
 #define	DEG (PI/180.0)	    /* 1 deg in radians */
 
