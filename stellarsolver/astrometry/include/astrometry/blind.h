@@ -9,7 +9,7 @@
 #include "astrometry/an-bool.h"
 #include "astrometry/solver.h"
 #include "astrometry/matchobj.h"
-#include "astrometry/matchfile.h"
+//#include "astrometry/matchfile.h"  //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include "astrometry/rdlist.h"
 #include "astrometry/bl.h"
 
@@ -82,7 +82,7 @@ struct blind_params {
     xylist_t* xyls;
 
     // Output files
-    matchfile* mf;
+    //matchfile* mf; //# Modified by Robert Lancaster for the StellarSolver Internal Library
     rdlist_t* indexrdls;
 
     // extra fields to add to index rdls file:

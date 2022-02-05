@@ -15,7 +15,7 @@
 #include "log.h"
 #include "errors.h"
 #include "tweak.h"
-#include "matchfile.h"
+//#include "matchfile.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include "matchobj.h"
 #include "boilerplate.h"
 #include "xylist.h"

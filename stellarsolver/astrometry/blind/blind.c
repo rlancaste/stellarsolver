@@ -66,7 +66,7 @@ static void load_and_parse_wcsfiles(blind_t* bp);
 static void solve_fields(blind_t* bp, sip_t* verify_wcs);
 static void remove_invalid_fields(il* fieldlist, int maxfield);
 //static anbool is_field_solved(blind_t* bp, int fieldnum); //# Modified by Robert Lancaster for the StellarSolver Internal Library
-static int write_solutions(blind_t* bp);
+//static int write_solutions(blind_t* bp); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 //static void solved_field(blind_t* bp, int fieldnum); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int compare_matchobjs(const void* v1, const void* v2);
 static void remove_duplicate_solutions(blind_t* bp);
@@ -514,16 +514,18 @@ void blind_run(blind_t* bp) {
 
  cleanup:
     // Clean up.
-    //xylist_close(bp->xyls); //# Modified by Robert Lancaster for the StellarSolver Internal Library
+    return;
+    /* //# Modified by Robert Lancaster for the StellarSolver Internal Library
+    //We want to return here so that the match object is preserved so we don't have to read the information from a wcs file
+    //We also don't want to write any files and aren't using clients or servers.
 
-    //if (bp->solvedserver) //# Modified by Robert Lancaster for the StellarSolver Internal Library
-    //    solvedclient_set_server(NULL);
+    xylist_close(bp->xyls);
+
+    if (bp->solvedserver)
+        solvedclient_set_server(NULL);
 
     if (write_solutions(bp))
         exit(-1);
-
-    return;  //# Modified by Robert Lancaster for the StellarSolver Internal Library
-            //We want to return here so that the match object is preserved so we don't have to read the information from a wcs file
 
     for (i=0; i<bl_size(bp->solutions); i++) {
         MatchObj* mo = bl_access(bp->solutions, i);
@@ -531,6 +533,7 @@ void blind_run(blind_t* bp) {
         blind_free_matchobj(mo);
     }
     bl_remove_all(bp->solutions);
+    */
 }
 
 void blind_init(blind_t* bp) {
@@ -1232,7 +1235,7 @@ static void remove_duplicate_solutions(blind_t* bp) {
         }
     }
 }
-
+/* //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int write_match_file(blind_t* bp) {
     int i;
     bp->mf = matchfile_open_for_writing(bp->matchfname);
@@ -1640,7 +1643,7 @@ static int write_solutions(blind_t* bp) {
     }
     return 0;
 }
-
+*/
 static int compare_matchobjs(const void* v1, const void* v2) {
     int diff;
     float fdiff;
