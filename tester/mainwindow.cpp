@@ -907,14 +907,6 @@ void MainWindow::solveImage()
         stellarSolver->setProperty("UsePosition", false);
 
     connect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::solverComplete);
-    if(currentTrial >= numberOfTrials)
-    {
-        hasWCSData = true;
-        stars = stellarSolver->getStarList();
-        hasHFRData = stellarSolver->isCalculatingHFR();
-        if(stars.count() > 0)
-            emit readyForStarTable();
-    }
 
     startProcessMonitor();
     stellarSolver->start();
@@ -1158,6 +1150,15 @@ bool MainWindow::solverComplete()
     {
         ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());
     });
+
+    if(stellarSolver.get()->hasWCSData())
+    {
+        hasWCSData = true;
+        stars = stellarSolver->getStarList();
+        hasHFRData = stellarSolver->isCalculatingHFR();
+        if(stars.count() > 0)
+            emit readyForStarTable();
+    }
     return true;
 }
 
