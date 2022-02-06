@@ -11,12 +11,12 @@
 #include <sys/types.h>
 
 #ifdef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
+#include <io.h>
 #include <windirent.h>
 #else
 #include <dirent.h>
 #include <sys/time.h>
 #include <libgen.h>
-#include <dirent.h>
 #endif
 
 #include <fcntl.h>
@@ -377,7 +377,7 @@ sl* dir_get_contents(const char* path, sl* list, anbool filesonly, anbool recurs
     return list;
 }
 #endif
-
+/*
 static int readfd(int fd, char* buf, int NB, char** pcursor,
                   sl* lines, anbool* pdone) {
     int nr;
@@ -433,6 +433,7 @@ static int readfd(int fd, char* buf, int NB, char** pcursor,
     *pcursor = cursor;
     return 0;
 }
+*/
 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 //Removing this function since it won't be needed and will cause problems on windows
 /**
