@@ -12,7 +12,6 @@
 //#include "astrometry/matchfile.h"  //# Modified by Robert Lancaster for the StellarSolver Internal Library
 //#include "astrometry/rdlist.h"    //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include "astrometry/bl.h"
-#include "astrometry/xylist.h"//# Modified by Robert Lancaster for the StellarSolver Internal Library
 #define DEFAULT_QSF_LO 0.1
 #define DEFAULT_QSF_HI 1.0
 
@@ -79,7 +78,7 @@ struct blind_params {
     char *fieldid_key;
 
     // The fields to solve!
-    xylist_t* xyls;
+    //xylist_t* xyls; //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed xyls
 
     // Output files
     //matchfile* mf; //# Modified by Robert Lancaster for the StellarSolver Internal Library
@@ -96,8 +95,8 @@ struct blind_params {
     char* sort_rdls;
 
     // extra fields to add from the xyls file:
-    sl* xyls_tagalong;
-    anbool xyls_tagalong_all;
+    //sl* xyls_tagalong; //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed xyls
+    //anbool xyls_tagalong_all; //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed xyls
 
     // List of MatchObjs with logodds >= logodds_tokeep
     bl* solutions;

@@ -131,7 +131,7 @@ static anbool grab_tagalong_data(startree_t* starkd, MatchObj* mo, blind_t* bp,
     }
     return TRUE;
 }
-
+/* //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static anbool grab_field_tagalong_data(MatchObj* mo, xylist_t* xy, int N) {
     fitstable_t* tagalong;
     int i;
@@ -166,7 +166,7 @@ static anbool grab_field_tagalong_data(MatchObj* mo, xylist_t* xy, int N) {
     sl_free2(lst);
     return TRUE;
 }
-
+*/
 
 /** Index handling for in_parallel and not.
 
@@ -555,7 +555,7 @@ void blind_init(blind_t* bp) {
     bp->quad_size_fraction_hi = DEFAULT_QSF_HI;
     bp->nsolves = 1;
 
-    bp->xyls_tagalong_all = TRUE;
+    //bp->xyls_tagalong_all = TRUE; //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed xyls
     // don't set sp-> here because solver_set_default_values()
     // will get called next and wipe it out...
 }
@@ -834,10 +834,10 @@ static anbool record_match_callback(MatchObj* mo, void* userdata) {
             grab_tagalong_data(sp->index->starkd, mymo, bp, mymo->refstarid, mymo->nindex);
 
         // FIXME -- we don't support specifying individual fields (yet)
-        assert(bp->xyls_tagalong_all);
-        assert(!bp->xyls_tagalong);
-        if (bp->xyls_tagalong_all)
-            grab_field_tagalong_data(mymo, bp->xyls, mymo->nfield);
+        //assert(bp->xyls_tagalong_all);
+        //assert(!bp->xyls_tagalong);
+        //if (bp->xyls_tagalong_all) //# Modified by Robert Lancaster for the StellarSolver Internal Library
+       //     grab_field_tagalong_data(mymo, bp->xyls, mymo->nfield);
     }
 
     if (mymo->logodds < bp->logratio_tosolve)

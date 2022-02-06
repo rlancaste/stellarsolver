@@ -191,7 +191,6 @@ set(anfiles_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/index.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/codekd.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/starkd.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/xylist.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/starxy.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/quadfile.c
         )

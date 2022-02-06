@@ -18,7 +18,7 @@
 //#include "matchfile.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "matchobj.h"
 #include "boilerplate.h"
-#include "xylist.h"
+//#include "xylist.h"  //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 //#include "rdlist.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "mathutil.h"
 #include "verify.h"
