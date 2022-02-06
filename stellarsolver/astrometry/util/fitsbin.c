@@ -16,7 +16,7 @@
 #include "ioutils.h"
 #include "fitsfile.h"
 #include "errors.h"
-#include "an-endian.h"
+//#include "an-endian.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include "tic.h"
 #include "log.h"
 
@@ -280,8 +280,8 @@ static int write_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk, int flipped) {
             memcpy(tempdata, ((char *)chunk->data) + i*chunk->itemsize, chunk->itemsize);
 #endif
             // swap it...
-            for (j=0; j<nper; j++)
-                endian_swap(tempdata + j*flipped, flipped);
+            //for (j=0; j<nper; j++) //# Modified by Robert Lancaster for the StellarSolver Internal Library
+            //    endian_swap(tempdata + j*flipped, flipped);
             // write it...
             fitsbin_write_item(fb, chunk, tempdata);
         }

@@ -11,7 +11,7 @@
 #include "starkd.h"
 #include "errors.h"
 #include "log.h"
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 void quad_compute_star_code(const double* starxyz, double* code, int dimquads) {
     double Ax=0, Ay=0;
     double Bx=0, By=0;
@@ -53,7 +53,7 @@ void quad_compute_star_code(const double* starxyz, double* code, int dimquads) {
         code[2*(i-2)+1] = y;
     }
 }
-
+**/
 void quad_flip_parity(const double* code, double* flipcode, int dimcode) {
     int i;
     // swap CX <-> CY, DX <-> DY.
@@ -65,7 +65,7 @@ void quad_flip_parity(const double* code, double* flipcode, int dimcode) {
         flipcode[2*i+0] = tmp;
     }
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int quad_compute_code(const unsigned int* quad, int dimquads, startree_t* starkd, 
                       double* code) {
     int i;
@@ -155,4 +155,4 @@ void quad_enforce_invariants(unsigned int* quad, double* code,
         code[2*j+1] = dtmp;
     }
 }
-
+**/

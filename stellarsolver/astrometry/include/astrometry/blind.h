@@ -92,7 +92,7 @@ struct blind_params {
     //anbool done_rdls_tagalong_all;
 
     // field to sort RDLS file by; prefix by "-" for descending order.
-    char* sort_rdls;
+    //char* sort_rdls; //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
     // extra fields to add from the xyls file:
     //sl* xyls_tagalong; //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed xyls
@@ -166,6 +166,6 @@ void blind_log_run_parameters(blind_t* bp);
 
 void blind_free_matchobj(MatchObj* mo);
 
-void blind_matchobj_deep_copy(const MatchObj* mo, MatchObj* dest);
+//void blind_matchobj_deep_copy(const MatchObj* mo, MatchObj* dest); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 #endif

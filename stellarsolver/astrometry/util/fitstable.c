@@ -13,7 +13,7 @@
 #include "fitsioutils.h"
 #include "fitsfile.h"
 #include "ioutils.h"
-#include "an-endian.h"
+//#include "an-endian.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include "anqfits.h"
 
 #include "log.h"
@@ -52,11 +52,11 @@ struct fitsext {
 typedef struct fitsext fitsext_t;
 
 
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static anbool need_endian_flip() {
     return IS_BIG_ENDIAN == 0;
 }
-
+**/
 //static void fitstable_add_columns(fitstable_t* tab, fitscol_t* cols, int Ncols);
 static fitscol_t* fitstable_add_column(fitstable_t* tab, fitscol_t* col);
 static void fitstable_create_table(fitstable_t* tab);
@@ -233,7 +233,7 @@ int fitstable_read_nrows_data(fitstable_t* table, int row0, int nrows,
     }
     return 0;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 void fitstable_endian_flip_row_data(fitstable_t* table, void* data) {
     int i;
     char* cursor;
@@ -244,23 +244,23 @@ void fitstable_endian_flip_row_data(fitstable_t* table, void* data) {
         int j;
         fitscol_t* col = getcol(table, i);
         for (j=0; j<col->arraysize; j++) {
-            /*
+
              if (col->fitssize == 8)
              printf("col '%s': d=%g, i=%li\n",
              col->colname, *((double*)cursor), *((uint64_t*)cursor));
-             */
-            endian_swap(cursor, col->fitssize);
-            /*
+
+            //endian_swap(cursor, col->fitssize); //# Modified by Robert Lancaster for the StellarSolver Internal Library
+
              if (col->fitssize == 8)
              printf(" --> d=%g, i=%li\n",
              *((double*)cursor), *((uint64_t*)cursor));
-             */
+
 
             cursor += col->fitssize;
         }
     }
 }
-
+**/
 static int write_row_data(fitstable_t* table, void* data, int R) {
     assert(table);
     assert(data);
@@ -291,7 +291,7 @@ int fitstable_copy_rows_data(fitstable_t* intable, int* rows, int N, fitstable_t
     char* buf = NULL;
     int i;
     // We need to endian-flip if we're going from FITS file <--> memory.
-    anbool flip = need_endian_flip() && (in_memory(intable) != in_memory(outtable));
+    //anbool flip = need_endian_flip() && (in_memory(intable) != in_memory(outtable)); //# Modified by Robert Lancaster for the StellarSolver Internal Library
     R = fitstable_row_size(intable);
     buf = malloc(R);
     for (i=0; i<N; i++) {
@@ -301,12 +301,14 @@ int fitstable_copy_rows_data(fitstable_t* intable, int* rows, int N, fitstable_t
             return -1;
         }
         // The in-memory side (input/output) does the flip.
+        /** //# Modified by Robert Lancaster for the StellarSolver Internal Library
         if (flip) {
             if (in_memory(intable))
                 fitstable_endian_flip_row_data(intable, buf);
             else if (in_memory(outtable))
                 fitstable_endian_flip_row_data(outtable, buf);
         }
+        **/
 
         if (write_row_data(outtable, buf, R)) {
             ERROR("Failed to write data to output table");
@@ -317,11 +319,11 @@ int fitstable_copy_rows_data(fitstable_t* intable, int* rows, int N, fitstable_t
     free(buf);
     return 0;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int fitstable_copy_row_data(fitstable_t* table, int row, fitstable_t* outtable) {
     return fitstable_copy_rows_data(table, &row, 1, outtable);
 }
-
+**/
 int fitstable_row_size(const fitstable_t* t) {
     // FIXME - should this return the size of the *existing* FITS table
     // (when reading), or just the columns we care about (those in "cols")?

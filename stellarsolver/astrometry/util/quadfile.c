@@ -14,7 +14,7 @@
 #include "starutil.h"
 #include "ioutils.h"
 #include "errors.h"
-#include "an-endian.h"
+//#include "an-endian.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 #define CHUNK_QUADS 0
 

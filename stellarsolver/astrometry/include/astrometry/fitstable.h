@@ -381,14 +381,14 @@ int fitstable_write_row_noflip(fitstable_t* table, ...);
 int fitstable_read_nrows_data(fitstable_t* table, int row0, int nrows, void* dest);
 int fitstable_read_row_data(fitstable_t* table, int row, void* dest);
 int fitstable_write_row_data(fitstable_t* table, void* data);
-int fitstable_copy_row_data(fitstable_t* table, int row, fitstable_t* outtable);
+//int fitstable_copy_row_data(fitstable_t* table, int row, fitstable_t* outtable); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int fitstable_copy_rows_data(fitstable_t* table, int* rows, int Nrows, fitstable_t* outtable);
 
 /**
  Endian-flips a row of data, IF NECESSARY, according to the current
  list of columns.  (See fitstable_add_fits_columns_as_struct()).
  */
-void fitstable_endian_flip_row_data(fitstable_t* table, void* data);
+//void fitstable_endian_flip_row_data(fitstable_t* table, void* data); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 // Writes one row, with data drawn from the given structure.
 int fitstable_write_struct(fitstable_t* table, const void* struc);

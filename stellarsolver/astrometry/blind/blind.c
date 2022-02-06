@@ -667,6 +667,7 @@ void blind_log_run_parameters(blind_t* bp) {
     for (i = 0; i < sl_size(bp->verify_wcsfiles); i++)
         logverb("verify %s\n", sl_get(bp->verify_wcsfiles, i));
     logverb("fieldid %i\n", bp->fieldid);
+    /** //# Modified by Robert Lancaster for the StellarSolver Internal Library, we aren't using files
     if (bp->matchfname)
         logverb("matchfname %s\n", bp->matchfname);
     if (bp->solved_in)
@@ -679,10 +680,11 @@ void blind_log_run_parameters(blind_t* bp) {
         logverb("cancel %s\n", bp->cancelfname);
     if (bp->wcs_template)
         logverb("wcs %s\n", bp->wcs_template);
-    if (bp->fieldid_key)
-        logverb("fieldid_key %s\n", bp->fieldid_key);
     if (bp->indexrdlsfname)
         logverb("indexrdlsfname %s\n", bp->indexrdlsfname);
+    **/
+    if (bp->fieldid_key)
+        logverb("fieldid_key %s\n", bp->fieldid_key);
     logverb("parity %i\n", sp->parity);
     logverb("codetol %g\n", sp->codetol);
     logverb("startdepth %i\n", sp->startobj);
@@ -724,10 +726,10 @@ void blind_cleanup(blind_t* bp) {
     free(bp->wcs_template);
     free(bp->xcolname);
     free(bp->ycolname);
-    free(bp->sort_rdls);
+    //free(bp->sort_rdls); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 }
 
-#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int sort_rdls(MatchObj* mymo, blind_t* bp) {
     const solver_t* sp = &(bp->solver);
     anbool asc = TRUE;
@@ -775,7 +777,7 @@ static int sort_rdls(MatchObj* mymo, blind_t* bp) {
     free(perm);
     return 0;
 }
-#endif
+**/
 
 static anbool record_match_callback(MatchObj* mo, void* userdata) {
     blind_t* bp = userdata;
@@ -807,13 +809,13 @@ static anbool record_match_callback(MatchObj* mo, void* userdata) {
 
         // This must happen first, because it reorders the "ref" arrays,
         // and we want that to be done before more data are integrated.
-#ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
         if (bp->sort_rdls) {
             if (sort_rdls(mymo, bp)) {
                 ERROR("Failed to sort RDLS file by column \"%s\"", bp->sort_rdls);
             }
         }
-#endif
+**/
 
         logdebug("Converting %i reference stars from xyz to radec\n", mymo->nindex);
         mymo->refradec = malloc(mymo->nindex * 2 * sizeof(double));
@@ -1130,7 +1132,7 @@ static void solved_field(blind_t* bp, int fieldnum) {
     if (il_size(bp->fieldlist) == 1)
         bp->single_field_solved = TRUE;
 }
-**/
+
 void blind_matchobj_deep_copy(const MatchObj* mo, MatchObj* dest) {
     if (!mo || !dest)
         return;
@@ -1165,7 +1167,7 @@ void blind_matchobj_deep_copy(const MatchObj* mo, MatchObj* dest) {
     // NOT SUPPORTED (yet)
     assert(!mo->field_tagalong);
 }
-
+**/
 // Free the things I added to the mo.
 void blind_free_matchobj(MatchObj* mo) {
     if (!mo) return;

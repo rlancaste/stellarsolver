@@ -20,7 +20,7 @@
 #include "fitsioutils.h"
 #include "ioutils.h"
 #include "keywords.h"
-#include "an-endian.h"
+//#include "an-endian.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include "errors.h"
 #include "log.h"
 #include "errors.h"
@@ -303,18 +303,18 @@ double fits_get_double_val(const qfits_table* table, int column,
         memcpy(&fval, cdata, sizeof(fval));
         //Note: This is not what we want to do, but this function doesn't work right now
         //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
         v32_ntoh(&fval);
-#endif
+**/
         dval = fval;
         return fval;
     } else if (table->col[column].atom_type == TFITS_BIN_TYPE_D) {
         memcpy(&dval, cdata, sizeof(dval));
         //Note: This is not what we want to do, but this function doesn't work right now
         //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
         v64_ntoh(&dval);
-#endif
+**/
         return dval;
     } else {
         debug("Invalid column type %i.\n", table->col[column].atom_type); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
@@ -905,10 +905,10 @@ int fits_write_data_D(FILE* fid, double value, anbool flip) {
     assert(sizeof(double) == 8);
     //Note: This is not what we want to do, but this function doesn't work right now
     //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
     if (flip)
         v64_hton(&value);
-#endif
+**/
     if (fwrite(&value, 8, 1, fid) != 1) {
         debug("Failed to write a double to FITS file: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
@@ -920,10 +920,10 @@ int fits_write_data_E(FILE* fid, float value, anbool flip) {
     assert(sizeof(float) == 4);
     //Note: This is not what we want to do, but this function doesn't work right now
     //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
     if (flip)
         v32_hton(&value);
-#endif
+**/
     if (fwrite(&value, 4, 1, fid) != 1) {
         debug("Failed to write a float to FITS file: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
@@ -954,10 +954,10 @@ int fits_write_data_X(FILE* fid, unsigned char value) {
 int fits_write_data_I(FILE* fid, int16_t value, anbool flip) {
     //Note: This is not what we want to do, but this function doesn't work right now
     //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
     if (flip)
         v16_hton(&value);
-#endif
+**/
     if (fwrite(&value, 2, 1, fid) != 1) {
         debug("Failed to write a short to FITS file: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
@@ -968,10 +968,10 @@ int fits_write_data_I(FILE* fid, int16_t value, anbool flip) {
 int fits_write_data_J(FILE* fid, int32_t value, anbool flip) {
     //Note: This is not what we want to do, but this function doesn't work right now
     //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
     if (flip)
         v32_hton(&value);
-#endif
+**/
     if (fwrite(&value, 4, 1, fid) != 1) {
         debug("Failed to write an int to FITS file: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;
@@ -982,10 +982,9 @@ int fits_write_data_J(FILE* fid, int32_t value, anbool flip) {
 int fits_write_data_K(FILE* fid, int64_t value, anbool flip) {
     //Note: This is not what we want to do, but this function doesn't work right now
     //But I don't think it is used by the solver either.
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
     if (flip)
-        v64_hton(&value);
-#endif
+**/
     if (fwrite(&value, 8, 1, fid) != 1) {
         debug("Failed to write an int64 to FITS file: %s\n", strerror(errno)); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
         return -1;

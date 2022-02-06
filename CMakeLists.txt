@@ -162,12 +162,10 @@ set(anbase_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/permutedsort.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/ioutils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/os-features.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/an-endian.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/errors.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/tic.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/log.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/datalog.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/resample.c
     )
 
 set(anutils_SRCS
