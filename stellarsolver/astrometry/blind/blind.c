@@ -36,9 +36,9 @@ struct timeval {
 
 #include "os-features.h"
 #include "blind.h"
-#include "tweak.h"
+//#include "tweak.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "tweak2.h"
-#include "sip_qfits.h"
+//#include "sip_qfits.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "starutil.h"
 #include "mathutil.h"
 #include "quadfile.h"

@@ -10,9 +10,9 @@
 #include "astrometry/solver.h"
 #include "astrometry/matchobj.h"
 //#include "astrometry/matchfile.h"  //# Modified by Robert Lancaster for the StellarSolver Internal Library
-#include "astrometry/rdlist.h"
+//#include "astrometry/rdlist.h"    //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include "astrometry/bl.h"
-
+#include "astrometry/xylist.h"//# Modified by Robert Lancaster for the StellarSolver Internal Library
 #define DEFAULT_QSF_LO 0.1
 #define DEFAULT_QSF_HI 1.0
 
@@ -83,7 +83,7 @@ struct blind_params {
 
     // Output files
     //matchfile* mf; //# Modified by Robert Lancaster for the StellarSolver Internal Library
-    rdlist_t* indexrdls;
+    //rdlist_t* indexrdls; //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
     // extra fields to add to index rdls file:
     sl* rdls_tagalong;

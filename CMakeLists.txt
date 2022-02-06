@@ -158,7 +158,6 @@ set(anbase_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/mathutil.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/bl-sort.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/bl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/bt.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/healpix.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/permutedsort.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/ioutils.c
@@ -169,7 +168,6 @@ set(anbase_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/log.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/datalog.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/resample.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/intmap.c
     )
 
 set(anutils_SRCS
@@ -181,7 +179,6 @@ set(anutils_SRCS
 
     #These get added if QFITS is to be included
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/fitsioutils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/sip_qfits.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/fitstable.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/fitsbin.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/fitsfile.c
@@ -194,10 +191,8 @@ set(anfiles_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/index.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/codekd.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/starkd.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/rdlist.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/xylist.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/starxy.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/qidxfile.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/quadfile.c
         )
 
@@ -210,7 +205,6 @@ set(engine_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/matchobj.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/tweak2.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/verify.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/tweak.c
     )
 
 set (sep_SRCS

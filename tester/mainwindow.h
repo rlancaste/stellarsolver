@@ -68,7 +68,7 @@ extern "C"{
 #include "fitsioutils.h"
 #include "permutedsort.h"
 #include "fitstable.h"
-#include "sip_qfits.h"
+//#include "sip_qfits.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "sip-utils.h"
 #include "tabsort.h"
 }

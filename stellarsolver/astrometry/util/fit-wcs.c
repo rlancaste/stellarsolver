@@ -14,7 +14,7 @@
 #include "starutil.h"
 #include "mathutil.h"
 #include "sip.h"
-#include "sip_qfits.h"
+//#include "sip_qfits.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "log.h"
 #include "errors.h"
 #include "gslutils.h"
