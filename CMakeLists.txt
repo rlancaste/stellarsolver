@@ -159,34 +159,25 @@ set(anbase_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/bl-sort.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/bl.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/bt.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/healpix-utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/healpix.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/permutedsort.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/ioutils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/fileutils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/os-features.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/an-endian.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/errors.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/tic.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/log.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/datalog.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/sparsematrix.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/coadd.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/convolve-image.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/resample.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/intmap.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/histogram.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/histogram2d.c
     )
 
 set(anutils_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/sip-utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/fit-wcs.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/sip.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/anwcs.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/wcs-resample.c
+
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/gslutils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/wcs-pv2sip.c
 
     #These get added if QFITS is to be included
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/fitsioutils.c
@@ -198,7 +189,7 @@ set(anutils_SRCS
     )
 
 set(anfiles_SRCS
-    #I think thiese only get added if QFITS is to be included
+    #I think these only get added if QFITS is to be included
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/multiindex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/index.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/codekd.c
@@ -208,10 +199,6 @@ set(anfiles_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/starxy.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/qidxfile.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/quadfile.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/scamp.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/scamp-catalog.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/wcs-xy2rd.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/wcs-rd2xy.c
         )
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind")

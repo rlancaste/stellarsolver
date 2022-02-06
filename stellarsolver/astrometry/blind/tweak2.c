@@ -11,11 +11,11 @@
 #include "sip.h"
 #include "sip_qfits.h"
 #include "sip-utils.h"
-#include "scamp.h"
+//#include "scamp.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "log.h"
 #include "errors.h"
 #include "tweak.h"
-//#include "matchfile.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library
+//#include "matchfile.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "matchobj.h"
 #include "boilerplate.h"
 #include "xylist.h"

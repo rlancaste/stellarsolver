@@ -30,13 +30,13 @@
 #include <assert.h>
 
 #include "ioutils.h"
-#include "fileutils.h"
+//#include "fileutils.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "bl.h"
 #include "an-bool.h"
 #include "solver.h"
 #include "math.h"
 #include "fitsioutils.h"
-//#include "blindutils.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library
+//#include "blindutils.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "os-features.h"
 #include "blind.h"
 #include "log.h"

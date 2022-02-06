@@ -52,7 +52,7 @@
 extern "C"{
 #include "tic.h"
 #include "os-features.h"
-#include "fileutils.h"
+//#include "fileutils.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "ioutils.h"
 #include "bl.h"
 #include "an-bool.h"

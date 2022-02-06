@@ -54,7 +54,7 @@ struct timeval {
 #include "tic.h"
 #include "anqfits.h"
 #include "errors.h"
-#include "scamp-catalog.h"
+//#include "scamp-catalog.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "permutedsort.h"
 #include "bl-sort.h"
 
