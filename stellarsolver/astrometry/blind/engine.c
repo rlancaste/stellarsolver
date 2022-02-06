@@ -36,7 +36,7 @@
 #include "solver.h"
 #include "math.h"
 #include "fitsioutils.h"
-#include "blindutils.h"
+//#include "blindutils.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include "os-features.h"
 #include "blind.h"
 #include "log.h"

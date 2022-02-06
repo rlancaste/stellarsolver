@@ -58,7 +58,6 @@ extern "C"{
 #include "an-bool.h"
 #include "solver.h"
 #include "fitsioutils.h"
-#include "blindutils.h"
 #include "astrometry/blind.h"
 #include "log.h"
 #include "engine.h"

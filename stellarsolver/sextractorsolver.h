@@ -19,7 +19,6 @@
 
 //Astrometry.net includes
 extern "C" {
-#include "astrometry/blindutils.h"
 #include "astrometry/engine.h"
 #include "astrometry/sip-utils.h"
 }

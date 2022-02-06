@@ -217,7 +217,6 @@ set(anfiles_SRCS
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind")
 set(engine_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/engine.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/blindutils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/blind.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/solver.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/blind/quad-utils.c

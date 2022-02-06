@@ -1223,9 +1223,8 @@ int InternalSextractorSolver::runInternalSolver()
         //This sets the depths for the job.
         if (!il_size(engine->default_depths))
         {
-            parse_depth_string(engine->default_depths,
-                               "10 20 30 40 50 60 70 80 90 100 "
-                               "110 120 130 140 150 160 170 180 190 200");
+            for(int i = 10; i < 210; i+=10)
+                il_append(engine->default_depths, i);
         }
         if (il_size(job->depths) == 0)
         {
