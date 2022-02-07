@@ -46,7 +46,7 @@
 #include "tic.h"
 #include "healpix.h"
 #include "sip-utils.h"
-#include "multiindex.h"
+//#include "multiindex.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 
 void engine_add_search_path(engine_t* engine, const char* path) {
     sl_append(engine->index_paths, path);
@@ -949,6 +949,7 @@ void engine_free(engine_t* engine) {
         }
         pl_free(engine->free_indexes);
     }
+    /**
     if (engine->free_mindexes) {
         for (i=0; i<pl_size(engine->free_mindexes); i++) {
             multiindex_t* mi = pl_get(engine->free_mindexes, i);
@@ -956,6 +957,7 @@ void engine_free(engine_t* engine) {
         }
         pl_free(engine->free_mindexes);
     }
+    **/
     pl_free(engine->indexes);
     if (engine->ismallest)
         il_free(engine->ismallest);

@@ -181,7 +181,6 @@ set(anutils_SRCS
 
 set(anfiles_SRCS
     #I think these only get added if QFITS is to be included
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/multiindex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/index.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/codekd.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/starkd.c
