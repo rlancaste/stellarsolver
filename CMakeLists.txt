@@ -146,10 +146,6 @@ set(kd_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/kdtree_mem.c
     #kd fits
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/kdtree_fits_io.c
-    #dt
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/dualtree.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/dualtree_rangesearch.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/dualtree_nearestneighbour.c
     )
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util")
