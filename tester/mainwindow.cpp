@@ -271,6 +271,8 @@ MainWindow::MainWindow() :
     //no inflags???;
     ui->magzero->setToolTip("This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.");
     ui->minarea->setToolTip("This is the minimum area in pixels for a star detection, smaller stars are ignored.");
+    ui->thresh_multiple->setToolTip("Add the multiple times the rms background level to the detection threshold.");
+    ui->thresh_offset->setToolTip("Add this offset to the detection threshold");
     ui->deblend_thresh->setToolTip("The number of thresholds the intensity range is divided up into");
     ui->deblend_contrast->setToolTip("The percentage of flux a separate peak must # have to be considered a separate object");
 
@@ -972,6 +974,8 @@ SSolver::Parameters MainWindow::getSettingsFromUI()
     //params.inflags
     params.magzero = ui->magzero->text().toFloat();
     params.minarea = ui->minarea->text().toFloat();
+    params.threshold_bg_multiple = ui->thresh_multiple->text().toFloat();
+    params.threshold_offset = ui->thresh_offset->text().toFloat();
     params.deblend_thresh = ui->deblend_thresh->text().toInt();
     params.deblend_contrast = ui->deblend_contrast->text().toFloat();
     params.clean = (ui->cleanCheckBox->isChecked()) ? 1 : 0;
@@ -1024,6 +1028,8 @@ void MainWindow::sendSettingsToUI(SSolver::Parameters a)
 
     ui->magzero->setText(QString::number(a.magzero));
     ui->minarea->setText(QString::number(a.minarea));
+    ui->thresh_multiple->setText(QString::number(a.threshold_bg_multiple));
+    ui->thresh_offset->setText(QString::number(a.threshold_offset));
     ui->deblend_thresh->setText(QString::number(a.deblend_thresh));
     ui->deblend_contrast->setText(QString::number(a.deblend_contrast));
     ui->cleanCheckBox->setChecked(a.clean == 1);
@@ -2482,6 +2488,8 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table, "Subpix");
     addColumnToTable(table, "r_min");
     addColumnToTable(table, "minarea");
+    addColumnToTable(table, "thresh_mult");
+    addColumnToTable(table, "thresh_off");
     addColumnToTable(table, "d_thresh");
     addColumnToTable(table, "d_cont");
     addColumnToTable(table, "clean");
@@ -2543,6 +2551,8 @@ void MainWindow::addSextractionToTable()
     setItemInColumn(table, "Subpix", QString::number(params.subpix));
     setItemInColumn(table, "r_min", QString::number(params.r_min));
     setItemInColumn(table, "minarea", QString::number(params.minarea));
+    setItemInColumn(table, "thresh_mult", QString::number(params.threshold_bg_multiple));
+    setItemInColumn(table, "thresh_off", QString::number(params.threshold_offset));
     setItemInColumn(table, "d_thresh", QString::number(params.deblend_thresh));
     setItemInColumn(table, "d_cont", QString::number(params.deblend_contrast));
     setItemInColumn(table, "clean", QString::number(params.clean));
@@ -2615,6 +2625,8 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table, "Subpix", !showSextractorParams);
     setColumnHidden(table, "r_min", !showSextractorParams);
     setColumnHidden(table, "minarea", !showSextractorParams);
+    setColumnHidden(table, "thresh_mult", !showSextractorParams);
+    setColumnHidden(table, "thresh_off", !showSextractorParams);
     setColumnHidden(table, "d_thresh", !showSextractorParams);
     setColumnHidden(table, "d_cont", !showSextractorParams);
     setColumnHidden(table, "clean", !showSextractorParams);
