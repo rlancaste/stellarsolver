@@ -22,6 +22,9 @@ bool SSolver::Parameters::operator==(const Parameters& o)
             //skip conv filter?? This might be hard to compare
             partition == o.partition &&
 
+            threshold_offset == o.threshold_offset &&
+            threshold_bg_multiple == o.threshold_bg_multiple &&
+
             //StellarSolver Star Filter Settings
             maxSize == o.maxSize &&
             minSize == o.minSize &&
@@ -86,6 +89,9 @@ QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
     settingsMap.insert("convFilter", QVariant(conv.join(",")));
     settingsMap.insert("partition", QVariant(params.partition));
 
+    settingsMap.insert("threshold_offset", QVariant(params.threshold_offset));
+    settingsMap.insert("threshold_bg_multiple", QVariant(params.threshold_bg_multiple));
+    
     //StellarSolver Star Filter Settings
     settingsMap.insert("maxSize", QVariant(params.maxSize));
     settingsMap.insert("minSize", QVariant(params.minSize));
@@ -140,6 +146,9 @@ SSolver::Parameters SSolver::Parameters::convertFromMap(QMap<QString, QVariant> 
     params.clean = settingsMap.value("clean", params.clean).toInt();
     params.clean_param = settingsMap.value("clean_param", params.clean_param).toDouble();
 
+    params.threshold_offset = settingsMap.value("threshold_offset",params.threshold_offset).toDouble();
+    params.threshold_bg_multiple = settingsMap.value("threshold_bg_multiple",params.threshold_bg_multiple).toDouble();
+    
     //This is a StellarSolver parameter used for the creation of the convolution filter
     params.fwhm = settingsMap.value("fwhm",params.fwhm).toDouble();
 

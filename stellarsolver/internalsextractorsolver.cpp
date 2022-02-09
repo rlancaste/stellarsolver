@@ -514,7 +514,8 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     extractor.reset(new Extract());
     // #4 Source Extraction
     // Note that we set deblend_cont = 1.0 to turn off deblending.
-    const double extractionThreshold = 2.0 * bkg->globalrms;
+    const double extractionThreshold = m_ActiveParameters.threshold_bg_multiple * bkg->globalrms + m_ActiveParameters.threshold_offset;
+    fprintf(stderr, "Using %.1f =  %.1f * %.1f + %.1f\n", extractionThreshold, m_ActiveParameters.threshold_bg_multiple, bkg->globalrms,  m_ActiveParameters.threshold_offset);
     status = extractor->sep_extract(&im, extractionThreshold, SEP_THRESH_ABS, m_ActiveParameters.minarea,
                                     m_ActiveParameters.convFilter.data(),
                                     sqrt(m_ActiveParameters.convFilter.size()), sqrt(m_ActiveParameters.convFilter.size()), SEP_FILTER_CONV,

@@ -300,6 +300,10 @@ class Parameters
                                      0.260856, 0.483068, 0.260856
                                     };
 
+        // gain
+        double threshold_offset = 0;
+        double threshold_bg_multiple = 2.0;
+  
         //Star Filter Parameters
         double maxSize =
             0;                 // The maximum size of stars to include in the final list in pixels based on semi-major and semi-minor axes
