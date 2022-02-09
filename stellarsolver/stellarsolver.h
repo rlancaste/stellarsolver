@@ -30,6 +30,7 @@ class StellarSolver : public QObject
         Q_PROPERTY(QString BasePath MEMBER m_BasePath)
         Q_PROPERTY(QString FileToProcess MEMBER m_FileToProcess)
         Q_PROPERTY(QString ASTAPBinaryPath MEMBER m_ASTAPBinaryPath)
+        Q_PROPERTY(QString WatneyBinaryPath MEMBER m_WatneyBinaryPath)
         Q_PROPERTY(QString SextractorBinaryPath MEMBER m_SextractorBinaryPath)
         Q_PROPERTY(QString ConfPath MEMBER m_ConfPath)
         Q_PROPERTY(QString SolverPath MEMBER m_SolverPath)
@@ -281,6 +282,7 @@ class StellarSolver : public QObject
         //System File Paths
         QStringList m_IndexFilePaths;
         QString m_ASTAPBinaryPath;
+        QString m_WatneyBinaryPath;
         QString m_SextractorBinaryPath;
         QString m_ConfPath;
         QString m_SolverPath;

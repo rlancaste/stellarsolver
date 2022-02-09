@@ -45,6 +45,7 @@ typedef struct
     QString sextractorBinaryPath;   //Path to the Sextractor Program binary
     QString solverPath;             //Path to the Astrometry Solver binary
     QString astapBinaryPath;        //Path to the ASTAP Program binary
+    QString watneyBinaryPath;        //Path to the Watney Program binary
     QString wcsPath;                //Path to the WCSInfo binary
 } ExternalProgramPaths;
 
@@ -94,6 +95,7 @@ typedef enum { EXTRACTOR_INTERNAL, //This uses internal SEP to Sextract Sources
 typedef enum { SOLVER_STELLARSOLVER,    //This uses the internal build of astrometry.net
                SOLVER_LOCALASTROMETRY,  //This uses an astrometry.net or ANSVR locally on this computer
                SOLVER_ASTAP,            //This uses a local installation of ASTAP
+               SOLVER_WATNEYASTROMETRY,  //This uses the local Watney Astrometry Solver
                SOLVER_ONLINEASTROMETRY  //This uses the online astrometry.net or ASTAP
              } SolverType;
 
@@ -147,6 +149,10 @@ static QString getCommandString(SSolver::ProcessType processType, SSolver::Extra
 
             case SOLVER_ASTAP:
                 commandString += "local ASTAP ";
+                break;
+
+            case SOLVER_WATNEYASTROMETRY:
+                commandString += "local Watney ";
                 break;
 
             case SOLVER_ONLINEASTROMETRY:

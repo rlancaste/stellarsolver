@@ -25,10 +25,7 @@ ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, ExtractorTy
     //The code below sets default paths for these key external file settings.
 
 #if defined(Q_OS_OSX)
-    if(QFile("/usr/local/bin/solve-field").exists())
-        setExternalFilePaths(getMacHomebrewPaths());
-    else
-        setExternalFilePaths(getMacInternalPaths());
+    setExternalFilePaths(getMacHomebrewPaths());
 #elif defined(Q_OS_LINUX)
     setExternalFilePaths(getLinuxDefaultPaths());
 #else //Windows
@@ -53,13 +50,14 @@ ExternalProgramPaths ExternalSextractorSolver::getLinuxDefaultPaths()
 {
     return ExternalProgramPaths
     {
-        "/etc/astrometry.cfg",          //confPath
-        "/usr/bin/sextractor",          //sextractorBinaryPath
-        "/usr/bin/solve-field",         //solverPath
+        "/etc/astrometry.cfg",              //confPath
+        "/usr/bin/sextractor",              //sextractorBinaryPath
+        "/usr/bin/solve-field",             //solverPath
         (QFile("/bin/astap").exists()) ?
-        "/bin/astap" :              //astapBinaryPath
+        "/bin/astap" :                      //astapBinaryPath
         "/opt/astap/astap",
-        "/usr/bin/wcsinfo"              //wcsPath
+        "/bin/watney-solve",                //watneyBinaryPath
+        "/usr/bin/wcsinfo"                  //wcsPath
     };
 }
 
@@ -71,8 +69,9 @@ ExternalProgramPaths ExternalSextractorSolver::getLinuxInternalPaths()
         "/usr/bin/sextractor",                                  //sextractorBinaryPath
         "/usr/bin/solve-field",                                 //solverPath
         (QFile("/bin/astap").exists()) ?
-        "/bin/astap" :                                      //astapBinaryPath
+        "/bin/astap" :                                          //astapBinaryPath
         "/opt/astap/astap",
+        "/bin/watney-solve",                                    //watneyBinaryPath
         "/usr/bin/wcsinfo"                                      //wcsPath
     };
 }
@@ -85,21 +84,8 @@ ExternalProgramPaths ExternalSextractorSolver::getMacHomebrewPaths()
         "/usr/local/bin/sex",                           //sextractorBinaryPath
         "/usr/local/bin/solve-field",                   //solverPath
         "/Applications/ASTAP.app/Contents/MacOS/astap", //astapBinaryPath
+        "/usr/local/bin/watney-solve",                  //watneyBinaryPath
         "/usr/local/bin/wcsinfo"                        //wcsPath
-    };
-}
-
-//This one is now obsolete due to StellarSolver's acceptance since KStars will no longer needs an internal
-//build of astrometry.net on Macs.  I will delete this later.
-ExternalProgramPaths ExternalSextractorSolver::getMacInternalPaths()
-{
-    return ExternalProgramPaths
-    {
-        "/Applications/KStars.app/Contents/MacOS/astrometry/bin/astrometry.cfg",    //confPath
-        "/Applications/KStars.app/Contents/MacOS/astrometry/bin/sex",               //sextractorBinaryPath
-        "/Applications/KStars.app/Contents/MacOS/astrometry/bin/solve-field",       //solverPath
-        "/Applications/ASTAP.app/Contents/MacOS/astap",                             //astapBinaryPath
-        "/Applications/KStars.app/Contents/MacOS/astrometry/bin/wcsinfo"            //wcsPath
     };
 }
 
@@ -109,8 +95,9 @@ ExternalProgramPaths ExternalSextractorSolver::getWinANSVRPaths()
     {
         QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg",    //confPath
         "",                                                                             //sextractorBinaryPath
-        QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe",               //solverPath
+        QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe",//solverPath
         "C:/Program Files/astap/astap.exe",                                             //astapBinaryPath
+        "C:/Program Files/watney-solve-win-x64-1/watney-solve.exe",                     //watneyBinaryPath
         QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe" //wcsPath
     };
 }
@@ -123,6 +110,7 @@ ExternalProgramPaths ExternalSextractorSolver::getWinCygwinPaths()
         "",                                     //sextractorBinaryPath
         "C:/cygwin64/bin/solve-field",          //solverPath
         "C:/Program Files/astap/astap.exe",     //astapBinaryPath
+        "C:/Program Files/astap/astap.exe",     //watneyBinaryPath
         "C:/cygwin64/bin/wcsinfo"               //wcsPath
     };
 }
@@ -256,6 +244,12 @@ void ExternalSextractorSolver::run()
                 cleanupTempFiles();
                 emit finished(result);
             }
+            else if(m_ExtractorType == EXTRACTOR_BUILTIN && m_SolverType == SOLVER_WATNEYASTROMETRY)
+            {
+                int result = runExternalWatneySolver();
+                cleanupTempFiles();
+                emit finished(result);
+            }
             else
             {
                 if(!m_HasExtracted)
@@ -281,6 +275,12 @@ void ExternalSextractorSolver::run()
                     if(m_SolverType == SOLVER_ASTAP)
                     {
                         int result = runExternalASTAPSolver();
+                        cleanupTempFiles();
+                        emit finished(result);
+                    }
+                    if(m_SolverType == SOLVER_WATNEYASTROMETRY)
+                    {
+                        int result = runExternalWatneySolver();
                         cleanupTempFiles();
                         emit finished(result);
                     }
@@ -351,13 +351,10 @@ SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
 //This is the abort method.  For the external sextractor and solver, it uses the kill method to abort the processes
 void ExternalSextractorSolver::abort()
 {
-    QFile file(cancelfn);
-    if(QFileInfo(file).dir().exists())
-    {
-        file.open(QIODevice::WriteOnly);
-        file.write("Cancel");
-        file.close();
-    }
+    if(solver)
+        solver->kill();
+    if(sextractorProcess)
+        sextractorProcess->kill();
     if(!isChildSolver)
         emit logOutput("Aborting ...");
     m_WasAborted = true;
@@ -681,8 +678,7 @@ int ExternalSextractorSolver::runExternalSolver()
     return 0;
 }
 
-//The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
-//It runs the astrometry.net external program using the options selected.
+
 int ExternalSextractorSolver::runExternalASTAPSolver()
 {
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -780,6 +776,145 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     if(solver->exitStatus() == QProcess::CrashExit)
         return -1;
     if(!getASTAPSolutionInformation())
+        return -1;
+    loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
+    m_HasSolved = true;
+    return 0;
+}
+
+int ExternalSextractorSolver::runExternalWatneySolver()
+{
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Configuring external Watney Astrometry solver");
+
+    if(m_ExtractorType == EXTRACTOR_BUILTIN)
+    {
+        QFileInfo file(fileToProcess);
+        if(!file.exists())
+            return -1;
+
+        QString newFileURL = m_BasePath + "/" + m_BaseName + "." + file.suffix();
+        QFile::copy(fileToProcess, newFileURL);
+        fileToProcess = newFileURL;
+        fileToProcessIsTempFile = true;
+    }
+    else
+    {
+        QFileInfo sextractorFile(sextractorFilePath);
+        if(!sextractorFile.exists())
+        {
+            emit logOutput("Please Sextract the image first");
+        }
+        if(isChildSolver)
+        {
+            QString newFileURL = m_BasePath + "/" + m_BaseName + "." + sextractorFile.suffix();
+            QFile::copy(sextractorFilePath, newFileURL);
+            sextractorFilePath = newFileURL;
+            sextractorFilePathIsTempFile = true;
+        }
+    }
+
+    QStringList solverArgs;
+
+    QString watneySolutionFile = m_BasePath + "/" + m_BaseName + ".ini";
+    if(m_UsePosition)
+    {
+        solverArgs << "nearby";
+        solverArgs << "-r" << QString::number(search_ra);
+        solverArgs << "-d" << QString::number(search_dec);
+        solverArgs << "-s" << QString::number(m_ActiveParameters.search_radius);
+        solverArgs << "-m"; //manual, don't look in fits headers for position info
+    }
+    else
+    {
+        solverArgs << "blind";
+        solverArgs << "--min-radius" << QString::number(0.5);
+        solverArgs << "--max-radius" << QString::number(m_ActiveParameters.search_radius);
+    }
+    if(m_UseScale)
+    {
+        double scale = scalelo;
+        if(scaleunit == ARCSEC_PER_PIX)
+            scale = (scalehi + scalelo) / 2;
+        double degreesFOV = convertToDegreeHeight(scale);
+        solverArgs << "-f" << QString::number(degreesFOV);
+    }
+    if(m_ExtractorType != EXTRACTOR_BUILTIN)
+    {
+        solverArgs << "--xyls" << sextractorFilePath;
+        solverArgs << "--xyls-imagesize" << QString::number(m_Statistics.width) + "x" + QString::number(m_Statistics.height);
+    }
+    else
+        solverArgs << "-i" << fileToProcess;
+    solverArgs << "-o" << watneySolutionFile;
+    solverArgs << "-w" << solutionFile;
+    /*
+    if(m_ActiveParameters.downsample > 1)
+        solverArgs << "-z" << QString::number(m_ActiveParameters.downsample);
+    else
+        solverArgs << "-z" << "0";
+    */
+
+    if(m_AstrometryLogLevel != LOG_NONE){
+        if(m_LogFileName == "")
+            m_LogFileName = m_BasePath + "/" + m_BaseName + ".log";
+        if(QFile(m_LogFileName).exists())
+            QFile(m_LogFileName).remove();
+        solverArgs << "--log-file" << m_LogFileName;
+    }
+
+    solver.clear();
+    solver = new QProcess();
+
+    solver->setProcessChannelMode(QProcess::MergedChannels);
+    if(m_AstrometryLogLevel != LOG_NONE)
+        connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
+
+    solver->start(watneyBinaryPath, solverArgs);
+
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput("Starting external Watney Solver with the " + m_ActiveParameters.listName + " profile...");
+    emit logOutput("Command: " + watneyBinaryPath + " " + solverArgs.join(" "));
+
+    solver->waitForFinished(m_ActiveParameters.solverTimeLimit * 1000 *
+                            1.2); //Set to timeout in a little longer than the timeout
+
+    if(m_AstrometryLogLevel != LOG_NONE)
+    {
+        QFile logFile(m_BasePath + "/" + m_BaseName + ".log");
+        if(logFile.exists())
+        {
+            if(m_LogToFile)
+            {
+                if(m_LogFileName != "")
+                    logFile.copy(m_LogFileName);
+            }
+            else
+            {
+                if (logFile.open(QIODevice::ReadOnly))
+                {
+                    QTextStream in(&logFile);
+                    emit logOutput(in.readAll());
+                }
+                else
+                    emit logOutput("Failed to open Watney log file" + logFile.fileName());
+            }
+        }
+        else
+            emit logOutput("Watney log file " + logFile.fileName() + " does not exist.");
+    }
+
+    if(solver->error() == QProcess::Timedout)
+    {
+        emit logOutput("Solver timed out, aborting");
+        abort();
+        return solver->exitCode();
+    }
+    if(solver->exitCode() != 0)
+        return solver->exitCode();
+    if(solver->exitStatus() == QProcess::CrashExit)
+        return -1;
+    if(!getWatneySolutionInformation())
         return -1;
     loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
     m_HasSolved = true;
@@ -1153,6 +1288,7 @@ bool ExternalSextractorSolver::getSolutionInformation()
 
     double ra = 0, dec = 0, orient = 0;
     double fieldw = 0, fieldh = 0, pixscale = 0;
+    QString fieldunits;
     QString rastr, decstr;
     QString parity;
 
@@ -1172,6 +1308,8 @@ bool ExternalSextractorSolver::getSolutionInformation()
                 fieldw = key_value[1].toDouble();
             else if (key_value[0] == "fieldh")
                 fieldh = key_value[1].toDouble();
+            else if (key_value[0] == "fieldunits")
+                fieldunits = key_value[1];
             else if (key_value[0] == "ra_center_hms")
                 rastr = key_value[1];
             else if (key_value[0] == "dec_center_dms")
@@ -1194,14 +1332,25 @@ bool ExternalSextractorSolver::getSolutionInformation()
         decErr = (search_dec - dec) * 3600;
     }
 
+    if(fieldunits == "degrees")
+    {
+        fieldw *= 60;
+        fieldh *= 60;
+    }
+    if(fieldunits == "arcseconds")
+    {
+        fieldw /= 60;
+        fieldh /= 60;
+    }
+
     m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
     emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr, decstr));
     if(m_UsePosition)
-        emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr, decErr));
-    emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw, fieldh));
+        emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg(decErr));
+    emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw).arg(fieldh));
     emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale ));
     emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
     emit logOutput(QString("Field parity: %1\n").arg( parity));
@@ -1310,13 +1459,16 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
             decErr = (search_dec - dec) * 3600;
         }
 
+        if(orient < 0)
+            orient = 360 + orient;
+
         m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
         emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra, dec));
+        emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg(dec));
         emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr, decstr));
         if(m_UsePosition)
-            emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr, decErr));
-        emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw, fieldh));
+            emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg(decErr));
+        emit logOutput(QString("Field size: %1 x %2 arcminutes").arg(fieldw).arg(fieldh));
         emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale ));
         emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
         emit logOutput(QString("Field parity: %1\n").arg( parity));
@@ -1329,6 +1481,93 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
         return false;
     }
 }
+
+//This method was based on a method in KStars.
+//It reads the information from the Solution file from Astrometry.net and puts it into the solution
+bool ExternalSextractorSolver::getWatneySolutionInformation()
+{
+    QFile results(m_BasePath + "/" + m_BaseName + ".ini");
+
+    if (!results.open(QIODevice::ReadOnly))
+    {
+        emit logOutput("Failed to open solution file" + m_BasePath + "/" + m_BaseName + ".ini");
+        return false;
+    }
+
+    QString doc = results.readAll();
+    results.close();
+    QJsonParseError qjsonError;
+    QJsonDocument jdoc = QJsonDocument::fromJson(doc.toUtf8(), &qjsonError);
+    if (qjsonError.error != QJsonParseError::NoError)
+    {
+        emit logOutput("QJson parsing error!");
+        return false;
+    }
+
+    QJsonObject jsonObj = jdoc.object();
+
+    if (!jsonObj.contains("success") || !jsonObj["success"].toBool())
+    {
+        emit logOutput("Solving Failure!");
+        return false;
+    }
+
+    if(!jsonObj.contains("ra") || !jsonObj.contains("dec") || !jsonObj.contains("orientation")
+            || !jsonObj.contains("pixScale") || !jsonObj.contains("parity"))
+    {
+        emit logOutput("Output file not in expected format!");
+        return false;
+    }
+
+    double ra = 0, dec = 0, orient = 0;
+    double fieldw = 0, fieldh = 0, pixscale = 0;
+    char rastr[32], decstr[32];
+    QString parity = "";
+
+    if (jsonObj.contains("ra"))
+        ra = jsonObj["ra"].toDouble();
+    if (jsonObj.contains("dec"))
+        dec = jsonObj["dec"].toDouble();
+    if (jsonObj.contains("orientation"))
+        orient = jsonObj["orientation"].toDouble();
+    if (jsonObj.contains("pixScale"))
+        pixscale = jsonObj["pixScale"].toDouble();
+    if (jsonObj.contains("parity"))
+        parity = jsonObj["parity"].toString();
+
+    ra2hmsstring(ra, rastr);
+    dec2dmsstring(dec, decstr);
+    fieldw = m_Statistics.width * pixscale / 60;
+    fieldh = m_Statistics.height * pixscale / 60;
+
+    if(parity == "flipped")
+        parity = "neg";
+    else
+        parity = "pos";
+
+    double raErr = 0;
+    double decErr = 0;
+    if(m_UsePosition)
+    {
+        raErr = (search_ra - ra) * 3600;
+        decErr = (search_dec - dec) * 3600;
+    }
+
+    m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
+    emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    emit logOutput(QString("Field center: (RA,Dec) = (%1, %2) deg.").arg( ra).arg( dec));
+    emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr, decstr));
+    if(m_UsePosition)
+        emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg(decErr));
+    emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw).arg(fieldh));
+    emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale ));
+    emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
+    emit logOutput(QString("Field parity: %1\n").arg( parity));
+
+    return true;
+
+}
+
 
 //This method writes the table to the file
 //I had to create it from the examples on NASA's website

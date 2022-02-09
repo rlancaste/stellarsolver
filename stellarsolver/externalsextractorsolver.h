@@ -11,6 +11,9 @@
 #include "internalsextractorsolver.h"
 #include <QProcess>
 #include <QPointer>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 using namespace SSolver;
 
@@ -45,13 +48,13 @@ class ExternalSextractorSolver : public InternalSextractorSolver
         QString sextractorBinaryPath;   //Path to the Sextractor Program binary
         QString solverPath;             //Path to the Astrometry Solver binary
         QString astapBinaryPath;        //Path to the ASTAP Program binary
+        QString watneyBinaryPath;       //Path to the Watney Astrometry Solver Program binary
         QString wcsPath;                //Path to the WCSInfo binary
 
         //Methods to get default file paths
         static ExternalProgramPaths getLinuxDefaultPaths();
         static ExternalProgramPaths getLinuxInternalPaths();
         static ExternalProgramPaths getMacHomebrewPaths();
-        static ExternalProgramPaths getMacInternalPaths();
         static ExternalProgramPaths getWinANSVRPaths();
         static ExternalProgramPaths getWinCygwinPaths();
 
@@ -72,6 +75,7 @@ class ExternalSextractorSolver : public InternalSextractorSolver
         int getStarsFromXYLSFile();
         bool getSolutionInformation();
         bool getASTAPSolutionInformation();
+        bool getWatneySolutionInformation();
         int saveAsFITS();
         void cleanupTempFiles() override;
 
@@ -109,6 +113,7 @@ class ExternalSextractorSolver : public InternalSextractorSolver
 
         int runExternalSolver();
         int runExternalASTAPSolver();
+        int runExternalWatneySolver();
 
 };
 

@@ -73,6 +73,7 @@ SextractorSolver* StellarSolver::createSextractorSolver()
         extSolver->confPath = m_ConfPath;
         extSolver->solverPath = m_SolverPath;
         extSolver->astapBinaryPath = m_ASTAPBinaryPath;
+        extSolver->watneyBinaryPath = m_WatneyBinaryPath;
         extSolver->wcsPath = m_WCSPath;
         extSolver->cleanupTemporaryFiles = m_CleanupTemporaryFiles;
         extSolver->autoGenerateAstroConfig = m_AutoGenerateAstroConfig;
@@ -111,10 +112,6 @@ ExternalProgramPaths StellarSolver::getLinuxInternalPaths()
 ExternalProgramPaths StellarSolver::getMacHomebrewPaths()
 {
     return ExternalSextractorSolver::getMacHomebrewPaths();
-};
-ExternalProgramPaths StellarSolver::getMacInternalPaths()
-{
-    return ExternalSextractorSolver::getMacInternalPaths();
 };
 ExternalProgramPaths StellarSolver::getWinANSVRPaths()
 {

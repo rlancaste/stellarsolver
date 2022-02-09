@@ -208,6 +208,7 @@ MainWindow::MainWindow() :
     ui->sextractorPath->setToolTip("The path to the external Sextractor executable");
     ui->solverPath->setToolTip("The path to the external Astrometry.net solve-field executable");
     ui->astapPath->setToolTip("The path to the external ASTAP executable");
+    ui->watneyPath->setToolTip("The path to the external Watney Astrometry Solver executable");
     ui->basePath->setToolTip("The base path where sextractor and astrometry temporary files are saved on your computer");
     ui->openTemp->setToolTip("Opens the directory (above) to where the external solvers save their files");
     ui->wcsPath->setToolTip("The path to wcsinfo for the external Astrometry.net");
@@ -255,6 +256,7 @@ MainWindow::MainWindow() :
         ui->configFilePath->setText(paths.confPath);
         ui->solverPath->setText(paths.solverPath);
         ui->astapPath->setText(paths.astapBinaryPath);
+        ui->watneyPath->setText(paths.watneyBinaryPath);
         ui->wcsPath->setText(paths.wcsPath);
     });
     ui->setPathsAutomatically->setToolTip("This allows you to select the default values of typical configurations of paths to external files/programs on different systems from a dropdown");
@@ -462,6 +464,7 @@ MainWindow::MainWindow() :
     ui->configFilePath->setText(programSettings.value("confPath", extTemp.confPath).toString());
     ui->solverPath->setText(programSettings.value("solverPath", extTemp.solverPath).toString());
     ui->astapPath->setText(programSettings.value("astapBinaryPath", extTemp.astapBinaryPath).toString());
+    ui->watneyPath->setText(programSettings.value("watneyBinaryPath", extTemp.watneyBinaryPath).toString());
     ui->wcsPath->setText(programSettings.value("wcsPath", extTemp.wcsPath).toString());
     ui->cleanupTemp->setChecked(programSettings.value("cleanupTemporaryFiles", extTemp.cleanupTemporaryFiles).toBool());
     ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig",
@@ -922,6 +925,7 @@ void MainWindow::setupExternalSextractorSolverIfNeeded()
     stellarSolver->setProperty("ConfPath", ui->configFilePath->text());
     stellarSolver->setProperty("SolverPath", ui->solverPath->text());
     stellarSolver->setProperty("ASTAPBinaryPath", ui->astapPath->text());
+    stellarSolver->setProperty("WatneyBinaryPath", ui->watneyPath->text());
     stellarSolver->setProperty("WCSPath", ui->wcsPath->text());
     stellarSolver->setProperty("CleanupTemporaryFiles", ui->cleanupTemp->isChecked());
     stellarSolver->setProperty("AutoGenerateAstroConfig", ui->generateAstrometryConfig->isChecked());
@@ -2842,6 +2846,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     programSettings.setValue("solverPath", ui->solverPath->text());
     programSettings.setValue("solverProfile", ui->solverProfile->currentIndex());
     programSettings.setValue("astapBinaryPath", ui->astapPath->text());
+    programSettings.setValue("watneyBinaryPath", ui->watneyPath->text());
     programSettings.setValue("wcsPath", ui->wcsPath->text());
     programSettings.setValue("cleanupTemporaryFiles",  ui->cleanupTemp->isChecked());
     programSettings.setValue("autoGenerateAstroConfig", ui->generateAstrometryConfig->isChecked());

@@ -1327,6 +1327,17 @@ int InternalSextractorSolver::runInternalSolver()
             decErr = (search_dec - dec) * 3600;
         }
 
+        if(strcmp(fieldunits, "degrees") == 0)
+        {
+            fieldw *= 60;
+            fieldh *= 60;
+        }
+        if(strcmp(fieldunits, "arcseconds") == 0)
+        {
+            fieldw /= 60;
+            fieldh /= 60;
+        }
+
         emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         emit logOutput(QString("Solve Log Odds:  %1").arg(bp->solver.best_logodds));
         emit logOutput(QString("Number of Matches:  %1").arg(match.nmatch));
@@ -1335,7 +1346,7 @@ int InternalSextractorSolver::runInternalSolver()
         emit logOutput(QString("Field center: (RA H:M:S, Dec D:M:S) = (%1, %2).").arg( rastr, decstr));
         if(m_UsePosition)
             emit logOutput(QString("Field is: (%1, %2) deg from search coords.").arg( raErr).arg( decErr));
-        emit logOutput(QString("Field size: %1 x %2 %3").arg( fieldw).arg( fieldh).arg( fieldunits));
+        emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw).arg( fieldh));
         emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale));
         emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
         emit logOutput(QString("Field parity: %1\n").arg( parity));
