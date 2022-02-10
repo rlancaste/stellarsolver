@@ -924,7 +924,7 @@ engine_t* engine_new() {
     engine->index_paths = sl_new(10);
     engine->indexes = pl_new(16);
     engine->free_indexes = pl_new(16);
-    engine->free_mindexes = pl_new(16);
+    //engine->free_mindexes = pl_new(16); //# Modified by Robert Lancaster for the StellarSolver Internal Library
     engine->ismallest = il_new(4);
     engine->ibiggest = il_new(4);
     engine->default_depths = il_new(4);

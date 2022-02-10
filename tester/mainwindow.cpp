@@ -1351,9 +1351,6 @@ bool MainWindow::loadFits()
     stats.samples_per_channel = stats.width * stats.height;
 
     clearImageBuffers();
-
-
-
     m_ImageBufferSize = stats.samples_per_channel * stats.channels * static_cast<uint16_t>(stats.bytesPerPixel);
     m_ImageBuffer = new uint8_t[m_ImageBufferSize];
     if (m_ImageBuffer == nullptr)
@@ -1369,6 +1366,7 @@ bool MainWindow::loadFits()
     if (fits_read_img(fptr, static_cast<uint16_t>(stats.dataType), 1, nelements, nullptr, m_ImageBuffer, &anynullptr, &status))
     {
         errMessage = "Error reading image.";
+        clearImageBuffers();
         QMessageBox::critical(nullptr, "Message", errMessage);
         logOutput(errMessage);
         fits_close_file(fptr, &status);

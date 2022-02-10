@@ -25,7 +25,7 @@ struct engine {
     // indexes that need to be freed
     pl* free_indexes;
     // multiindexes that need to be freed
-    pl* free_mindexes;
+    //pl* free_mindexes; //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
     il* ibiggest;
     il* ismallest;
