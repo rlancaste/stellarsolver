@@ -295,9 +295,9 @@ class Parameters
         bool partition = true;
 
         //This is the filter used for convolution. You can create this directly or use the convenience method below.
-        QVector<float> convFilter = {0.260856, 0.483068, 0.260856,
-                                     0.483068, 0.894573, 0.483068,
-                                     0.260856, 0.483068, 0.260856
+        QVector<float> convFilter = {0.260856f, 0.483068f, 0.260856f,
+                                     0.483068f, 0.894573f, 0.483068f,
+                                     0.260856f, 0.483068f, 0.260856f
                                     };
 
         // gain
