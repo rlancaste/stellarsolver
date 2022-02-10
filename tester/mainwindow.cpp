@@ -266,7 +266,6 @@ MainWindow::MainWindow() :
     ui->apertureShape->setToolTip("This selects whether to instruct the Sextractor to use Ellipses or Circles for flux calculations");
     ui->kron_fact->setToolTip("This sets the Kron Factor for use with the kron radius for flux calculations.");
     ui->subpix->setToolTip("The subpix setting.  The instructions say to make it 5");
-    ui->detect_thresh->setToolTip("Currently disabled parameter for detection/analysis threshold.  We are using a different method.");
     ui->r_min->setToolTip("The minimum radius for stars for flux calculations.");
     //no inflags???;
     ui->magzero->setToolTip("This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.");
