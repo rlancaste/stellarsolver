@@ -266,8 +266,6 @@ if (MSVC) # We need to disable some warnings caused by using code designed for U
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4267")
     # Disabling warning for comparing signed and unsigned variables
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4018")
-    # Disabling warning for void function returning a value, since this is sometimes used in C programming and astrometry is C
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4098")
     # Disabling the warning for redefined macros, because ERROR had a conflict and it is used A LOT in astrometry
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4005")
     # Disabling warning for unused local variables (This one is important because some variables only get used on Linux or MacOS)
