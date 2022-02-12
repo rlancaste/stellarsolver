@@ -61,6 +61,11 @@ class SextractorSolver : public QThread
         Parameters m_ActiveParameters;                  //The currently set parameters for StellarSolver
         QStringList indexFolderPaths;       //This is the list of folder paths that the solver will use to search for index files
 
+        //This is the convolution filter used by SEP to help extract stars
+        QVector<float> convFilter = {1, 2, 1,
+                                     2, 4, 2,
+                                     1, 2, 1
+                                    };
         //Astrometry Scale Parameters, These are not saved parameters and change for each image, use the methods to set them
         bool m_UseScale = false;             //Whether or not to use the image scale parameters
         double scalelo = 0;                 //Lower bound of image scale estimate

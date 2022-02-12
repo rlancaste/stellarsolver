@@ -227,7 +227,7 @@ void computeMargin(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2,
 //I used KStars and the SEP website as a guide for creating these functions
 int InternalSextractorSolver::runSEPSextractor()
 {
-    if(m_ActiveParameters.convFilter.size() == 0)
+    if(convFilter.size() == 0)
     {
         emit logOutput("No convFilter included.");
         return -1;
@@ -517,8 +517,8 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     const double extractionThreshold = m_ActiveParameters.threshold_bg_multiple * bkg->globalrms + m_ActiveParameters.threshold_offset;
     fprintf(stderr, "Using %.1f =  %.1f * %.1f + %.1f\n", extractionThreshold, m_ActiveParameters.threshold_bg_multiple, bkg->globalrms,  m_ActiveParameters.threshold_offset);
     status = extractor->sep_extract(&im, extractionThreshold, SEP_THRESH_ABS, m_ActiveParameters.minarea,
-                                    m_ActiveParameters.convFilter.data(),
-                                    sqrt(m_ActiveParameters.convFilter.size()), sqrt(m_ActiveParameters.convFilter.size()), SEP_FILTER_CONV,
+                                    convFilter.data(),
+                                    sqrt(convFilter.size()), sqrt(convFilter.size()), SEP_FILTER_CONV,
                                     m_ActiveParameters.deblend_thresh,
                                     m_ActiveParameters.deblend_contrast, m_ActiveParameters.clean, m_ActiveParameters.clean_param, &catalog);
     if (status != 0)

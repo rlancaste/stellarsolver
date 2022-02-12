@@ -278,8 +278,9 @@ MainWindow::MainWindow() :
     ui->cleanCheckBox->setToolTip("Attempts to 'clean' the image to remove artifacts caused by bright objects");
     ui->clean_param->setToolTip("The cleaning parameter, not sure what it does.");
 
-    //This generates an array that can be used as a convFilter based on the desired FWHM
-    ui->fwhm->setToolTip("A function that I made that creates a convolution filter based upon the desired FWHM for better star detection of that star size and shape");
+    //The Convolution Filter Parameters
+    ui->convFilterType->setToolTip("This allows you to choose the type of Convolution Filter Generated");
+    ui->fwhm->setToolTip("This allows you to set the FWHM in Pixels for Convolution Filter Generation");
 
     ui->showConv->setToolTip("Loads the convolution filter into a window for viewing");
 
@@ -300,6 +301,7 @@ MainWindow::MainWindow() :
         reloadConvTable();
     });
 
+    connect(ui->convFilterType,QOverload<int>::of(&QComboBox::currentIndexChanged),this, &MainWindow::reloadConvTable);
     connect(ui->fwhm,QOverload<int>::of(&QSpinBox::valueChanged),this, &MainWindow::reloadConvTable);
 
     //Star Filter Settings
@@ -522,9 +524,10 @@ void MainWindow::reloadConvTable()
     if(convInspector && convInspector->isVisible())
     {
         convTable->clear();
-        Parameters params;
-        StellarSolver::createConvFilterFromFWHM(&params, ui->fwhm->value());
-        int size = sqrt(params.convFilter.size());
+        QVector<float> convFilter =
+        StellarSolver::generateConvFilter((SSolver::ConvFilterType) ui->convFilterType->currentIndex(), ui->fwhm->value());
+        int size = sqrt(convFilter.size());
+        double max = *std::max_element(convFilter.constBegin(), convFilter.constEnd());
         convTable->setRowCount(size);
         convTable->setColumnCount(size);
         int i = 0;
@@ -534,8 +537,8 @@ void MainWindow::reloadConvTable()
             for(int c = 0; c < size; c++)
             {
                 convTable->setColumnWidth(c, 50);
-                QTableWidgetItem *newItem = new QTableWidgetItem(QString::number(params.convFilter.at(i), 'g', 4));
-                double col = params.convFilter.at(i) * 255;
+                QTableWidgetItem *newItem = new QTableWidgetItem(QString::number(convFilter.at(i), 'g', 4));
+                double col = convFilter.at(i)/max * 255;
                 QFont font = newItem->font();
                 font.setPixelSize(10);
                 newItem->setFont(font);
@@ -979,7 +982,8 @@ SSolver::Parameters MainWindow::getSettingsFromUI()
     params.deblend_contrast = ui->deblend_contrast->text().toFloat();
     params.clean = (ui->cleanCheckBox->isChecked()) ? 1 : 0;
     params.clean_param = ui->clean_param->text().toDouble();
-    StellarSolver::createConvFilterFromFWHM(&params, ui->fwhm->value());
+    params.convFilterType = (SSolver::ConvFilterType)ui->convFilterType->currentIndex();
+    params.fwhm = ui->fwhm->text().toInt();
     params.partition = ui->partition->isChecked();
 
     //Star Filter Settings
@@ -1033,6 +1037,8 @@ void MainWindow::sendSettingsToUI(SSolver::Parameters a)
     ui->deblend_contrast->setText(QString::number(a.deblend_contrast));
     ui->cleanCheckBox->setChecked(a.clean == 1);
     ui->clean_param->setText(QString::number(a.clean_param));
+    ui->convFilterType->setCurrentIndex(a.convFilterType);
+    connect(ui->convFilterType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
     ui->fwhm->setValue(a.fwhm);
     ui->partition->setChecked(a.partition);
 
@@ -2491,6 +2497,7 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table, "d_cont");
     addColumnToTable(table, "clean");
     addColumnToTable(table, "clean param");
+    addColumnToTable(table, "conv");
     addColumnToTable(table, "fwhm");
     addColumnToTable(table, "part");
     //Star Filtering Parameters
@@ -2554,6 +2561,7 @@ void MainWindow::addSextractionToTable()
     setItemInColumn(table, "d_cont", QString::number(params.deblend_contrast));
     setItemInColumn(table, "clean", QString::number(params.clean));
     setItemInColumn(table, "clean param", QString::number(params.clean_param));
+    setItemInColumn(table, "conv", stellarSolver->getConvFilterString());
     setItemInColumn(table, "fwhm", QString::number(params.fwhm));
     setItemInColumn(table, "part", QString::number(params.partition));
     setItemInColumn(table, "Field", ui->fileNameDisplay->text());
@@ -2628,6 +2636,7 @@ void MainWindow::updateHiddenResultsTableColumns()
     setColumnHidden(table, "d_cont", !showSextractorParams);
     setColumnHidden(table, "clean", !showSextractorParams);
     setColumnHidden(table, "clean param", !showSextractorParams);
+    setColumnHidden(table, "conv", !showSextractorParams);
     setColumnHidden(table, "fwhm", !showSextractorParams);
     setColumnHidden(table, "part", !showSextractorParams);
     //Star Filtering Parameters

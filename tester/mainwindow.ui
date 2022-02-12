@@ -801,66 +801,17 @@
                  <x>0</x>
                  <y>0</y>
                  <width>303</width>
-                 <height>525</height>
+                 <height>533</height>
                 </rect>
                </property>
                <attribute name="label">
                 <string>Sextractor</string>
                </attribute>
                <layout class="QGridLayout" name="gridLayout_8">
-                <item row="10" column="1">
-                 <widget class="QLabel" name="label_19">
+                <item row="2" column="2">
+                 <widget class="QLineEdit" name="thresh_multiple">
                   <property name="text">
-                   <string>Min Cont.</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="20" column="1">
-                 <widget class="QLabel" name="label_12">
-                  <property name="text">
-                   <string>Shape</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="5" column="1">
-                 <widget class="QLabel" name="label_24">
-                  <property name="text">
-                   <string>Sub Pix</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="10" column="2">
-                 <widget class="QLineEdit" name="deblend_contrast">
-                  <property name="text">
-                   <string>1</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="21" column="1">
-                 <widget class="QLabel" name="label_13">
-                  <property name="text">
-                   <string>r_min</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="2">
-                 <widget class="QLineEdit" name="thresh_offset">
-                  <property name="text">
-                   <string>0</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="21" column="2">
-                 <widget class="QLineEdit" name="r_min">
-                  <property name="text">
-                   <string>3.5</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="19" column="1">
-                 <widget class="QLabel" name="label_25">
-                  <property name="text">
-                   <string>Kron Facy</string>
+                   <string>2.0</string>
                   </property>
                  </widget>
                 </item>
@@ -874,17 +825,64 @@
                   </property>
                  </widget>
                 </item>
-                <item row="2" column="2">
-                 <widget class="QLineEdit" name="thresh_multiple">
-                  <property name="text">
-                   <string>2.0</string>
-                  </property>
-                 </widget>
-                </item>
                 <item row="16" column="1" colspan="2">
                  <widget class="QPushButton" name="showConv">
                   <property name="text">
                    <string>Show Conv Filter</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="10" column="2">
+                 <widget class="QLineEdit" name="deblend_contrast">
+                  <property name="text">
+                   <string>1</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="8" column="1" colspan="2">
+                 <widget class="QLabel" name="label_20">
+                  <property name="text">
+                   <string>&lt;a href=&quot;https://sep.readthedocs.io/en/v1.0.x/api/sep.extract.html&quot;&gt;Deblending Params&lt;/a&gt;</string>
+                  </property>
+                  <property name="openExternalLinks">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="18" column="1" colspan="2">
+                 <widget class="QLabel" name="label_14">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>&lt;a href = &quot;https://sep.readthedocs.io/en/v1.0.x/api/sep.sum_ellipse.html&quot;&gt;Photometry Params&lt;/a&gt;</string>
+                  </property>
+                  <property name="openExternalLinks">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLabel" name="label_t1">
+                  <property name="text">
+                   <string>Thresh Mulitple</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="9" column="2">
+                 <widget class="QLineEdit" name="deblend_thresh">
+                  <property name="text">
+                   <string>32</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="20" column="1">
+                 <widget class="QLabel" name="label_12">
+                  <property name="text">
+                   <string>Shape</string>
                   </property>
                  </widget>
                 </item>
@@ -901,6 +899,13 @@
                   </property>
                  </spacer>
                 </item>
+                <item row="14" column="1">
+                 <widget class="QLabel" name="label_23">
+                  <property name="text">
+                   <string>Filter FWHM</string>
+                  </property>
+                 </widget>
+                </item>
                 <item row="9" column="1">
                  <widget class="QLabel" name="label_18">
                   <property name="text">
@@ -908,17 +913,48 @@
                   </property>
                  </widget>
                 </item>
+                <item row="19" column="2">
+                 <widget class="QLineEdit" name="kron_fact">
+                  <property name="text">
+                   <string>3.5</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="19" column="1">
+                 <widget class="QLabel" name="label_25">
+                  <property name="text">
+                   <string>Kron Facy</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="22" column="2">
+                 <widget class="QLineEdit" name="magzero">
+                  <property name="text">
+                   <string>20</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="6" column="1">
+                 <widget class="QCheckBox" name="cleanCheckBox">
+                  <property name="text">
+                   <string>Clean?</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="5" column="1">
+                 <widget class="QLabel" name="label_24">
+                  <property name="text">
+                   <string>Sub Pix</string>
+                  </property>
+                 </widget>
+                </item>
                 <item row="3" column="1">
                  <widget class="QLabel" name="label_t2">
                   <property name="text">
                    <string>Thresh Offset</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="15" column="1">
-                 <widget class="QLabel" name="label_23">
-                  <property name="text">
-                   <string>FWHM</string>
                   </property>
                  </widget>
                 </item>
@@ -944,58 +980,38 @@
                   </item>
                  </widget>
                 </item>
-                <item row="5" column="2">
-                 <widget class="QLineEdit" name="subpix">
+                <item row="10" column="1">
+                 <widget class="QLabel" name="label_19">
                   <property name="text">
-                   <string>5</string>
+                   <string>Min Cont.</string>
                   </property>
                  </widget>
                 </item>
-                <item row="8" column="1" colspan="2">
-                 <widget class="QLabel" name="label_20">
+                <item row="21" column="2">
+                 <widget class="QLineEdit" name="r_min">
                   <property name="text">
-                   <string>&lt;a href=&quot;https://sep.readthedocs.io/en/v1.0.x/api/sep.extract.html&quot;&gt;Deblending Params&lt;/a&gt;</string>
-                  </property>
-                  <property name="openExternalLinks">
-                   <bool>true</bool>
+                   <string>3.5</string>
                   </property>
                  </widget>
                 </item>
-                <item row="2" column="1">
-                 <widget class="QLabel" name="label_t1">
+                <item row="21" column="1">
+                 <widget class="QLabel" name="label_13">
                   <property name="text">
-                   <string>Thresh Mulitple</string>
+                   <string>r_min</string>
                   </property>
                  </widget>
                 </item>
-                <item row="15" column="2">
+                <item row="3" column="2">
+                 <widget class="QLineEdit" name="thresh_offset">
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="14" column="2">
                  <widget class="QSpinBox" name="fwhm">
                   <property name="minimum">
                    <number>1</number>
-                  </property>
-                 </widget>
-                </item>
-                <item row="6" column="1">
-                 <widget class="QCheckBox" name="cleanCheckBox">
-                  <property name="text">
-                   <string>Clean?</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item row="22" column="1">
-                 <widget class="QLabel" name="label_15">
-                  <property name="text">
-                   <string>magzero</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="22" column="2">
-                 <widget class="QLineEdit" name="magzero">
-                  <property name="text">
-                   <string>20</string>
                   </property>
                  </widget>
                 </item>
@@ -1006,33 +1022,17 @@
                   </property>
                  </widget>
                 </item>
-                <item row="9" column="2">
-                 <widget class="QLineEdit" name="deblend_thresh">
+                <item row="4" column="2">
+                 <widget class="QLineEdit" name="minarea">
                   <property name="text">
-                   <string>32</string>
+                   <string>5</string>
                   </property>
                  </widget>
                 </item>
-                <item row="19" column="2">
-                 <widget class="QLineEdit" name="kron_fact">
+                <item row="5" column="2">
+                 <widget class="QLineEdit" name="subpix">
                   <property name="text">
-                   <string>3.5</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="18" column="1" colspan="2">
-                 <widget class="QLabel" name="label_14">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>&lt;a href = &quot;https://sep.readthedocs.io/en/v1.0.x/api/sep.sum_ellipse.html&quot;&gt;Photometry Params&lt;/a&gt;</string>
-                  </property>
-                  <property name="openExternalLinks">
-                   <bool>true</bool>
+                   <string>5</string>
                   </property>
                  </widget>
                 </item>
@@ -1040,13 +1040,6 @@
                  <widget class="QLabel" name="label_21">
                   <property name="text">
                    <string>Min Area</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="2">
-                 <widget class="QLineEdit" name="minarea">
-                  <property name="text">
-                   <string>5</string>
                   </property>
                  </widget>
                 </item>
@@ -1066,17 +1059,47 @@
                   </property>
                  </widget>
                 </item>
-                <item row="11" column="1" colspan="2">
-                 <widget class="QLabel" name="label_22">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
+                <item row="22" column="1">
+                 <widget class="QLabel" name="label_15">
+                  <property name="text">
+                   <string>magzero</string>
                   </property>
+                 </widget>
+                </item>
+                <item row="11" column="1">
+                 <widget class="QLabel" name="label_65">
                   <property name="text">
                    <string>Conv Filter</string>
                   </property>
+                 </widget>
+                </item>
+                <item row="11" column="2">
+                 <widget class="QComboBox" name="convFilterType">
+                  <item>
+                   <property name="text">
+                    <string>Default</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Custom</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Gaussian</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Mexican Hat</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Top Hat</string>
+                   </property>
+                  </item>
                  </widget>
                 </item>
                </layout>

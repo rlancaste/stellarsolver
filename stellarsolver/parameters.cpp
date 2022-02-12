@@ -17,9 +17,10 @@ bool SSolver::Parameters::operator==(const Parameters& o)
             clean == o.clean &&
             clean_param == o.clean_param &&
 
-            //This is a StellarSolver parameter used for the creation of the convolution filter
+            //These are StellarSolver parameters used for the creation of the convolution filter
+            convFilterType == o.convFilterType &&
             fwhm == o.fwhm &&
-            //skip conv filter?? This might be hard to compare
+
             partition == o.partition &&
 
             threshold_offset == o.threshold_offset &&
@@ -78,15 +79,9 @@ QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
     settingsMap.insert("clean_param", QVariant(params.clean_param));
 
     //This is a StellarSolver parameter used for the creation of the convolution filter
+    settingsMap.insert("convFilterType", QVariant(params.convFilterType));
     settingsMap.insert("fwhm", QVariant(params.fwhm));
 
-    //This is the convolution filter itself
-    QStringList conv;
-    foreach(float num, params.convFilter)
-    {
-        conv << QString::number(QVariant(num).toDouble(), 'g', 4);
-    }
-    settingsMap.insert("convFilter", QVariant(conv.join(",")));
     settingsMap.insert("partition", QVariant(params.partition));
 
     settingsMap.insert("threshold_offset", QVariant(params.threshold_offset));
@@ -149,18 +144,10 @@ SSolver::Parameters SSolver::Parameters::convertFromMap(QMap<QString, QVariant> 
     params.threshold_offset = settingsMap.value("threshold_offset",params.threshold_offset).toDouble();
     params.threshold_bg_multiple = settingsMap.value("threshold_bg_multiple",params.threshold_bg_multiple).toDouble();
     
-    //This is a StellarSolver parameter used for the creation of the convolution filter
+    //These are StellarSolver parameters used for the creation of the convolution filter
     params.fwhm = settingsMap.value("fwhm",params.fwhm).toDouble();
+    params.convFilterType = (ConvFilterType)settingsMap.value("convFilterType",params.convFilterType).toInt();
 
-    //This is the convolution filter itself
-    if(settingsMap.contains("convFilter"))
-    {
-        QStringList conv = settingsMap.value("convFilter", "").toString().split(",");
-        QVector<float> filter;
-        foreach(QString item, conv)
-            filter.append(QVariant(item).toFloat());
-        params.convFilter = filter;
-    }
     params.partition = settingsMap.value("partition", params.partition).toBool();
 
     //StellarSolver Star Filter Settings

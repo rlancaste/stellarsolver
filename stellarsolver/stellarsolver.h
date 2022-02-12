@@ -82,6 +82,12 @@ class StellarSolver : public QObject
             return SSolver::getShapeString(params.apertureShape);
         }
 
+        //This gets a string for the Sextractor setting for calculating Flux using ellipses or circles
+        QString getConvFilterString()
+        {
+            return SSolver::getConvFilterString(params.convFilterType);
+        }
+
         //This gets a string for which Parallel Solving Algorithm we are using
         QString getMultiAlgoString()
         {
@@ -157,9 +163,16 @@ class StellarSolver : public QObject
             m_SSLogLevel = level;
         };
 
+        //These functions setup the convolution filter
+        void updateConvolutionFilter();
+        void setConvolutionFilter(QVector<float> filter)
+        {
+            params.convFilterType = SSolver::CONV_CUSTOM;
+            convFilter = filter;
+        }
+
         //These static methods can be used by classes to configure parameters or paths
-        //This creates the conv filter from a fwhm
-        static void createConvFilterFromFWHM(Parameters *params, double fwhm);
+        static QVector<float> generateConvFilter(SSolver::ConvFilterType filter, double fwhm);
         static QList<Parameters> getBuiltInProfiles();
         static QList<SSolver::Parameters> loadSavedOptionsProfiles(QString savedOptionsProfiles);
         static QStringList getDefaultIndexFolderPaths();
@@ -303,6 +316,11 @@ class StellarSolver : public QObject
 
         //The currently set parameters for StellarSolver
         Parameters params;
+        //This is the Convolution Filter used by the Source Extractor
+        QVector<float> convFilter = {1, 2, 1,
+                                     2, 4, 2,
+                                     1, 2, 1
+                                    };
         //This is the list of folder paths that the solver will use to search for index files
         QStringList indexFolderPaths {getDefaultIndexFolderPaths()};
 

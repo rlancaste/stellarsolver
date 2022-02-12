@@ -13,6 +13,15 @@ enum Shape
     SHAPE_CIRCLE,
     SHAPE_ELLIPSE
 };
+//This is the type of Convolution Filter to be Generated for use
+typedef enum
+{
+    CONV_DEFAULT,
+    CONV_CUSTOM,
+    CONV_GAUSSIAN,
+    CONV_MEXICAN_HAT,
+    CONV_TOP_HAT
+} ConvFilterType;
 
 //This gets a string for the Sextractor setting for calculating Flux using ellipses or circles
 static QString getShapeString(SSolver::Shape shape)
@@ -31,6 +40,38 @@ static QString getShapeString(SSolver::Shape shape)
         case SHAPE_ELLIPSE:
             return "Ellipse";
             break;
+        default:
+            return "";
+            break;
+    }
+}
+
+//This gets a string for the name of the Convolution Filter Type
+static QString getConvFilterString(SSolver::ConvFilterType type)
+
+{
+    switch(type)
+    {
+        case CONV_DEFAULT:
+            return "default";
+            break;
+
+        case CONV_CUSTOM:
+            return "custom";
+            break;
+
+        case CONV_GAUSSIAN:
+            return "gaussian";
+            break;
+
+        case CONV_MEXICAN_HAT:
+            return "mexican hat";
+            break;
+
+        case CONV_TOP_HAT:
+            return "top hat";
+            break;
+
         default:
             return "";
             break;
@@ -289,16 +330,13 @@ class Parameters
             0.005;    // The percentage of flux a separate peak must # have to be considered a separate object.
         int clean = 1;                      // Attempts to 'clean' the image to remove artifacts caused by bright objects
         double clean_param = 1;             // The cleaning parameter, not sure what it does.
-        // A variable to store the fwhm used to generate the conv filter, changing this WILL NOT change the conv filter, you can use the method below to create the conv filter based on the fwhm
+
+        // These are the variables used to generate the conv filter
+        ConvFilterType convFilterType = CONV_DEFAULT;
         double fwhm = 2;
+
         // Automatically partition the image to several threads to speed it up.
         bool partition = true;
-
-        //This is the filter used for convolution. You can create this directly or use the convenience method below.
-        QVector<float> convFilter = {0.260856f, 0.483068f, 0.260856f,
-                                     0.483068f, 0.894573f, 0.483068f,
-                                     0.260856f, 0.483068f, 0.260856f
-                                    };
 
         // gain
         double threshold_offset = 0;

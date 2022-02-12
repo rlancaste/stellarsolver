@@ -89,6 +89,7 @@ SextractorSolver* StellarSolver::createSextractorSolver()
     solver->m_SSLogLevel = m_SSLogLevel;
     solver->m_BasePath = m_BasePath;
     solver->m_ActiveParameters = params;
+    solver->convFilter = convFilter;
     solver->indexFolderPaths = indexFolderPaths;
     if(m_UseScale)
         solver->setSearchScale(m_ScaleLow, m_ScaleHigh, m_ScaleUnit);
@@ -161,6 +162,9 @@ void StellarSolver::start()
         emit finished();
         return;
     }
+
+    //This is necessary before starting up so that the correct convolution filter gets passed to the SextractorSolver
+    updateConvolutionFilter();
 
     m_SextractorSolver = createSextractorSolver();
 
@@ -527,20 +531,77 @@ bool StellarSolver::isRunning() const
 }
 
 //This method uses a fwhm value to generate the conv filter the sextractor will use.
-void StellarSolver::createConvFilterFromFWHM(Parameters *params, double fwhm)
+QVector<float> StellarSolver::generateConvFilter(SSolver::ConvFilterType filter, double fwhm)
 {
-    params->fwhm = fwhm;
-    params->convFilter.clear();
-    double a = 1;
+    QVector<float> convFilter;
     int size = abs(ceil(fwhm * 0.6));
-    for(int y = -size; y <= size; y++ )
+    double amplitude = 1.0;
+    if(filter == SSolver::CONV_DEFAULT)
     {
-        for(int x = -size; x <= size; x++ )
+        convFilter = {1, 2, 1,
+                      2, 4, 2,
+                      1, 2, 1
+                     };
+    }
+    else if(filter == SSolver::CONV_CUSTOM)
+    {
+        //Error! Generate Conv Filter should not get called if using a custom conv filter"
+    }
+    else if(filter == SSolver::CONV_GAUSSIAN)
+    {
+        for(int y = -size; y <= size; y++ )
         {
-            double value = a * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(fwhm, 2));
-            params->convFilter.append(value);
+            for(int x = -size; x <= size; x++ )
+            {
+                double value = amplitude * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(fwhm, 2));
+                convFilter.append(value);
+            }
         }
     }
+    else if(filter == SSolver::CONV_MEXICAN_HAT)
+    {
+
+        for(int y = -size; y <= size; y++ )
+        {
+            for(int x = -size; x <= size; x++ )
+            {
+                //Formula inspired by astropy package
+                double rr_ww = (pow((x - size/4.0), 2) + pow((y - size/4.0), 2)) / (2 * pow(size, 2));
+                convFilter.append(amplitude * (1 - rr_ww) * exp(- rr_ww));
+            }
+        }
+    }
+    else if(filter == SSolver::CONV_TOP_HAT)
+    {
+        for(int y = -size; y <= size; y++ )
+        {
+            for(int x = -size; x <= size; x++ )
+            {
+                double a = 0;
+                if(1.2*abs(x)/size + 1.2*abs(y)/size <= 1)
+                    a = 1.0;
+                else a = 0;
+
+                convFilter.append(amplitude * a);
+            }
+        }
+    }
+    else
+    {
+        convFilter = {1, 2, 1,
+                      2, 4, 2,
+                      1, 2, 1
+                     };
+    }
+    return convFilter;
+}
+
+void StellarSolver::updateConvolutionFilter()
+{
+    if(params.convFilterType == SSolver::CONV_CUSTOM)
+        return;
+    convFilter.clear();
+    convFilter = generateConvFilter(params.convFilterType, params.fwhm);
 }
 
 QList<Parameters> StellarSolver::getBuiltInProfiles()
@@ -561,7 +622,8 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     fastSolving.keepNum = 50;
     fastSolving.initialKeep = 500;
     fastSolving.maxEllipse = 1.5;
-    createConvFilterFromFWHM(&fastSolving, 4);
+    fastSolving.convFilterType = SSolver::CONV_GAUSSIAN;
+    fastSolving.fwhm = 4;
     profileList.append(fastSolving);
 
     Parameters parLargeSolving;
@@ -572,7 +634,8 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     parLargeSolving.keepNum = 50;
     parLargeSolving.initialKeep = 500;
     parLargeSolving.maxEllipse = 1.5;
-    createConvFilterFromFWHM(&parLargeSolving, 4);
+    parLargeSolving.convFilterType = SSolver::CONV_GAUSSIAN;
+    parLargeSolving.fwhm = 4;
     profileList.append(parLargeSolving);
 
     Parameters fastSmallSolving;
@@ -583,14 +646,16 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     fastSmallSolving.keepNum = 50;
     fastSmallSolving.initialKeep = 500;
     fastSmallSolving.maxEllipse = 1.5;
-    createConvFilterFromFWHM(&fastSmallSolving, 4);
+    fastSmallSolving.convFilterType = SSolver::CONV_GAUSSIAN;
+    fastSmallSolving.fwhm = 4;
     profileList.append(fastSmallSolving);
 
     Parameters stars;
     stars.listName = "5-AllStars";
     stars.description = "Profile for the source extraction of all the stars in an image.";
     stars.maxEllipse = 1.5;
-    createConvFilterFromFWHM(&stars, 1);
+    stars.convFilterType = SSolver::CONV_GAUSSIAN;
+    stars.fwhm = 2;
     stars.r_min = 2;
     profileList.append(stars);
 
@@ -598,7 +663,8 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     smallStars.listName = "6-SmallSizedStars";
     smallStars.description = "Profile optimized for source extraction of smaller stars.";
     smallStars.maxEllipse = 1.5;
-    createConvFilterFromFWHM(&smallStars, 1);
+    smallStars.convFilterType = SSolver::CONV_GAUSSIAN;
+    smallStars.fwhm = 2;
     smallStars.r_min = 2;
     smallStars.maxSize = 5;
     smallStars.initialKeep = 500;
@@ -610,7 +676,8 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     mid.description = "Profile optimized for source extraction of medium sized stars.";
     mid.maxEllipse = 1.5;
     mid.minarea = 20;
-    createConvFilterFromFWHM(&mid, 4);
+    mid.convFilterType = SSolver::CONV_GAUSSIAN;
+    mid.fwhm = 4;
     mid.r_min = 5;
     mid.removeDimmest = 20;
     mid.minSize = 2;
@@ -624,7 +691,8 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     big.description = "Profile optimized for source extraction of larger stars.";
     big.maxEllipse = 1.5;
     big.minarea = 40;
-    createConvFilterFromFWHM(&big, 8);
+    big.convFilterType = SSolver::CONV_GAUSSIAN;
+    big.fwhm = 8;
     big.r_min = 20;
     big.minSize = 5;
     big.initialKeep = 500;
