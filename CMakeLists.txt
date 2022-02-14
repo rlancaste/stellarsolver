@@ -411,6 +411,8 @@ if(BUILD_DEMOS)
     target_link_libraries(DemoFITSPlateSolve StellarSolverDemosLib)
     add_executable(DemoFITSExtractSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demofitsextractsolve.cpp)
     target_link_libraries(DemoFITSExtractSolve StellarSolverDemosLib)
+    add_executable(DemoTwoStellarSolvers ${CMAKE_CURRENT_SOURCE_DIR}/demos/demotwostellarsolvers.cpp)
+    target_link_libraries(DemoTwoStellarSolvers StellarSolverDemosLib)
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/pleiades.jpg" DESTINATION "${CMAKE_BINARY_DIR}/")
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/randomsky.fits" DESTINATION "${CMAKE_BINARY_DIR}/")
     # Note: These are the index files that solve the above images best.

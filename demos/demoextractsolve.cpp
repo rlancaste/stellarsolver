@@ -9,14 +9,14 @@
 
 DemoExtractSolve::DemoExtractSolve()
 {
-    fileio fileLoader;
-    if(!fileLoader.loadOtherFormat("pleiades.jpg"))
+    fileio imageLoader;
+    if(!imageLoader.loadOtherFormat("pleiades.jpg"))
     {
         printf("Error in loading FITS file");
         exit(1);
     }
-    FITSImage::Statistic stats = fileLoader.getStats();
-    uint8_t *imageBuffer = fileLoader.getImageBuffer();
+    FITSImage::Statistic stats = imageLoader.getStats();
+    uint8_t *imageBuffer = imageLoader.getImageBuffer();
 
     StellarSolver *stellarSolver = new StellarSolver(stats, imageBuffer, nullptr);
     stellarSolver->setProperty("ExtractorType", SSolver::EXTRACTOR_INTERNAL);
