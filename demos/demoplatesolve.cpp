@@ -25,7 +25,7 @@ DemoPlateSolve::DemoPlateSolve()
     stellarSolver->setProperty("SolverType", SSolver::SOLVER_STELLARSOLVER);
     stellarSolver->setProperty("ProcessType", SSolver::SOLVE);
     stellarSolver->setParameterProfile(SSolver::Parameters::PARALLEL_SMALLSCALE);
-    stellarSolver->setIndexFolderPaths(QStringList()<<"/Users/rlancaste/Linux Share/Astrometry");
+    stellarSolver->setIndexFolderPaths(QStringList() << "astrometry");
 
     printf("Starting to solve. . .\n");
     fflush( stdout );

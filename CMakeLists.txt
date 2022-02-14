@@ -413,6 +413,12 @@ if(BUILD_DEMOS)
     target_link_libraries(DemoFITSExtractSolve StellarSolverDemosLib)
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/pleiades.jpg" DESTINATION "${CMAKE_BINARY_DIR}/")
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/randomsky.fits" DESTINATION "${CMAKE_BINARY_DIR}/")
+    # Note: These are the index files that solve the above images best.
+    if(NOT EXISTS "${CMAKE_BINARY_DIR}/astrometry/")
+        make_directory("${CMAKE_BINARY_DIR}/astrometry/")
+        file(DOWNLOAD "http://data.astrometry.net/4100/index-4107.fits" "${CMAKE_BINARY_DIR}/astrometry/index-4107.fits")
+        file(DOWNLOAD "http://data.astrometry.net/4100/index-4110.fits" "${CMAKE_BINARY_DIR}/astrometry/index-4110.fits")
+    endif(NOT EXISTS "${CMAKE_BINARY_DIR}/astrometry/")
 
 endif(BUILD_DEMOS)
 

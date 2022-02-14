@@ -24,7 +24,7 @@ DemoFITSPlateSolve::DemoFITSPlateSolve()
     stellarSolver->setProperty("SolverType", SSolver::SOLVER_STELLARSOLVER);
     stellarSolver->setProperty("ProcessType", SSolver::SOLVE);
     stellarSolver->setParameterProfile(SSolver::Parameters::PARALLEL_SMALLSCALE);
-    stellarSolver->setIndexFolderPaths(QStringList()<<"/Users/rlancaste/Linux Share/Astrometry");
+    stellarSolver->setIndexFolderPaths(QStringList() << "astrometry");
 
     if(imageLoader.position_given)
     {

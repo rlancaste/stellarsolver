@@ -23,12 +23,13 @@ DemoStarExtract::DemoStarExtract()
     stellarSolver->setProperty("ExtractorType", SSolver::EXTRACTOR_INTERNAL);
     stellarSolver->setProperty("ProcessType", SSolver::EXTRACT);
     stellarSolver->setParameterProfile(SSolver::Parameters::ALL_STARS);
+
     QEventLoop loop;
     connect(stellarSolver, &StellarSolver::finished, &loop, &QEventLoop::quit);
     stellarSolver->start();
     loop.exec(QEventLoop::ExcludeUserInputEvents);
     QList<FITSImage::Star> starList = stellarSolver->getStarList();
-    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     printf("Stars found: %u", starList.count());
     for(int i=0; i < starList.count(); i++)
     {
