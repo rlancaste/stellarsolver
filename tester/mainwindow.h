@@ -43,10 +43,10 @@
 #include "fitsio.h"
 
 //KStars related includes
-#include "stretch.h"
+#include "testerutils/stretch.h"
 #include "math.h"
-#include "dms.h"
-#include "bayer.h"
+#include "testerutils/dms.h"
+#include "testerutils/bayer.h"
 
 //Astrometry.net includes
 extern "C"{
@@ -136,9 +136,6 @@ private:
     uint8_t *m_ImageBuffer { nullptr };
     /// Above buffer size in bytes
     uint32_t m_ImageBufferSize { 0 };
-    StretchParams stretchParams;
-    BayerParams debayerParams;
-    bool checkDebayer();
 
     QElapsedTimer processTimer;
     QTimer timerMonitor;
@@ -181,11 +178,6 @@ public slots:
 
     //These functions are for loading and displaying the image
     bool imageLoad();
-    bool loadFits();
-    bool loadOtherFormat();
-    bool debayer();
-    bool debayer_8bit();
-    bool debayer_16bit();
     void initDisplayImage();
     void doStretch(QImage *outputImage);
     void clearImageBuffers();
@@ -214,8 +206,6 @@ public slots:
     QRect getStarSizeInImage(FITSImage::Star star, bool &accurate);
 
     void reloadConvTable();
-    //This function is for loading and parsing the options
-    bool getSolverOptionsFromFITS();
 
     //These functions handle the settings for the Sextractors and Solvers
     SSolver::Parameters getSettingsFromUI();

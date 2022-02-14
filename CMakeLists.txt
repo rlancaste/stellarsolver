@@ -88,6 +88,7 @@ endif(WIN32)
 file(APPEND "${config_FN}" "#define HAVE_NETPBM 0")
 
 option(BUILD_TESTER "Build stellarsolver tester program, instead of just the library" Off)
+option(BUILD_DEMOS "Build stellarsolver basic demonstration programs, instead of just the library" Off)
 
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
@@ -297,6 +298,25 @@ install(DIRECTORY
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc DESTINATION ${PKGCONFIG_INSTALL_PREFIX})
 
+if(BUILD_TESTER OR BUILD_DEMOS)
+    set(TesterUtilsLib_SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/fileio.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/stretch.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/bayer.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/dms.cpp
+        )
+    add_library(TesterUtilsLib STATIC ${TesterUtilsLib_SRCS})
+    target_link_libraries(TesterUtilsLib
+        ${CFITSIO_LIBRARIES}
+        ${GSL_LIBRARIES}
+        ${WCSLIB_LIBRARIES}
+        Qt5::Gui
+        Qt5::Widgets
+        Qt5::Core
+        Qt5::Network
+        Qt5::Concurrent
+        )
+endif(BUILD_TESTER OR BUILD_DEMOS)
 #########################################################################################
 ## Stellar Solver Tester
 #########################################################################################
@@ -306,9 +326,6 @@ set(StellarSolverTester_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/mainwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/imagelabel.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tester/stretch.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tester/dms.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tester/bayer.c
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/resources.qrc
     )
 
@@ -326,7 +343,7 @@ if(WIN32)
 set(StellarSolverTesterApp_ICON ${CMAKE_CURRENT_SOURCE_DIR}/tester/windowsicon.rc)
 endif(WIN32)
 
-add_executable(StellarSolverTester ${StellarSolverTester_SRCS} ${StellarSolverui_SRCS} ${StellarSolverTesterApp_ICON} ${ALL_SRCS})
+add_executable(StellarSolverTester ${StellarSolverTester_SRCS} ${StellarSolverui_SRCS} ${StellarSolverTesterApp_ICON})
 
 if(APPLE)
     SET_TARGET_PROPERTIES(StellarSolverTester PROPERTIES MACOSX_BUNDLE TRUE)
@@ -334,6 +351,8 @@ endif(APPLE)
 
 
 target_link_libraries(StellarSolverTester
+    stellarsolver
+    TesterUtilsLib
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
     ${WCSLIB_LIBRARIES}
@@ -361,6 +380,42 @@ else(APPLE)
 endif(APPLE)
 
 endif(BUILD_TESTER)
+
+#########################################################################################
+## Stellar Solver Basic Demonstration Programs
+#########################################################################################
+if(BUILD_DEMOS)
+    add_library(StellarSolverDemosLib STATIC)
+    target_link_libraries(StellarSolverDemosLib
+        stellarsolver
+        TesterUtilsLib
+        ${CFITSIO_LIBRARIES}
+        ${GSL_LIBRARIES}
+        ${WCSLIB_LIBRARIES}
+        #Qt5::Gui
+        Qt5::Widgets
+        Qt5::Core
+        Qt5::Network
+        Qt5::Concurrent
+        )
+
+
+    add_executable(DemoStarExtract ${CMAKE_CURRENT_SOURCE_DIR}/demos/demostarextract.cpp)
+    target_link_libraries(DemoStarExtract StellarSolverDemosLib)
+    add_executable(DemoPlateSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demoplatesolve.cpp)
+    target_link_libraries(DemoPlateSolve StellarSolverDemosLib)
+    add_executable(DemoExtractSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demoextractsolve.cpp)
+    target_link_libraries(DemoExtractSolve StellarSolverDemosLib)
+    add_executable(DemoFITSStarExtract ${CMAKE_CURRENT_SOURCE_DIR}/demos/demofitsstarextract.cpp)
+    target_link_libraries(DemoFITSStarExtract StellarSolverDemosLib)
+   # add_executable(DemoFITSPlateSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demofitsplatesolve.cpp)
+   # target_link_libraries(DemoFITSPlateSolve StellarSolverDemosLib)
+    add_executable(DemoFITSExtractSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demofitsextractsolve.cpp)
+    target_link_libraries(DemoFITSExtractSolve StellarSolverDemosLib)
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/pleiades.jpg" DESTINATION "${CMAKE_BINARY_DIR}/")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/randomsky.fits" DESTINATION "${CMAKE_BINARY_DIR}/")
+
+endif(BUILD_DEMOS)
 
 #########################################################################################
 # Generate Package Config Files
