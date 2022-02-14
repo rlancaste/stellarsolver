@@ -28,9 +28,15 @@ DemoFITSExtractSolve::DemoFITSExtractSolve()
     stellarSolver->setIndexFolderPaths(QStringList()<<"/Users/rlancaste/Linux Share/Astrometry");
 
     if(imageLoader.position_given)
+    {
+        printf("Using Position: %f hours, %f degrees\n", imageLoader.ra, imageLoader.dec);
         stellarSolver->setSearchPositionRaDec(imageLoader.ra, imageLoader.dec);
+    }
     if(imageLoader.scale_given)
+    {
         stellarSolver->setSearchScale(imageLoader.scale_low, imageLoader.scale_high, imageLoader.scale_units);
+        printf("Using Scale: %f to %f, %s\n", imageLoader.scale_low, imageLoader.scale_high, SSolver::getScaleUnitString(imageLoader.scale_units).toUtf8().data());
+    }
 
     printf("Starting to solve. . .\n");
     fflush( stdout );

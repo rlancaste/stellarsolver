@@ -634,6 +634,6 @@ void fileio::logIssue(QString message){
     if(logToSignal)
         emit logOutput(message);
     else
-        printf(message.toUtf8().data());
+        printf("%s", message.toUtf8().data());
 }
 

@@ -399,7 +399,6 @@ if(BUILD_DEMOS)
         Qt5::Concurrent
         )
 
-
     add_executable(DemoStarExtract ${CMAKE_CURRENT_SOURCE_DIR}/demos/demostarextract.cpp)
     target_link_libraries(DemoStarExtract StellarSolverDemosLib)
     add_executable(DemoPlateSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demoplatesolve.cpp)
@@ -408,8 +407,8 @@ if(BUILD_DEMOS)
     target_link_libraries(DemoExtractSolve StellarSolverDemosLib)
     add_executable(DemoFITSStarExtract ${CMAKE_CURRENT_SOURCE_DIR}/demos/demofitsstarextract.cpp)
     target_link_libraries(DemoFITSStarExtract StellarSolverDemosLib)
-   # add_executable(DemoFITSPlateSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demofitsplatesolve.cpp)
-   # target_link_libraries(DemoFITSPlateSolve StellarSolverDemosLib)
+    add_executable(DemoFITSPlateSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demofitsplatesolve.cpp)
+    target_link_libraries(DemoFITSPlateSolve StellarSolverDemosLib)
     add_executable(DemoFITSExtractSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demofitsextractsolve.cpp)
     target_link_libraries(DemoFITSExtractSolve StellarSolverDemosLib)
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/pleiades.jpg" DESTINATION "${CMAKE_BINARY_DIR}/")

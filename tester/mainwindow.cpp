@@ -1201,10 +1201,6 @@ void MainWindow::clearAstrometrySettings()
     ui->dec->setText("");
 }
 
-
-
-
-
 //The following methods deal with the loading and displaying of the image
 
 //I wrote this method to select the file name for the image and call the load methods below to load it
@@ -1243,6 +1239,7 @@ bool MainWindow::imageLoad()
     if(loadSuccess)
     {
         imageLoaded = true;
+        clearImageBuffers();
         m_ImageBuffer = imageLoader.getImageBuffer();
         stats=imageLoader.getStats();
         clearAstrometrySettings();
@@ -1541,7 +1538,6 @@ void MainWindow::clearImageBuffers()
 {
     delete[] m_ImageBuffer;
     m_ImageBuffer = nullptr;
-    //m_BayerBuffer = nullptr;
 }
 
 //I wrote this method to respond when the user's mouse is over a star

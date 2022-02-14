@@ -5,48 +5,20 @@
 #include "stellarsolver.h"
 #include "externalsextractorsolver.h"
 #include "onlinesolver.h"
-
+#include "testerutils/fileio.h"
 
 DemoFITSPlateSolve::DemoFITSPlateSolve()
 {
-    QImage imageFromFile;
-    FITSImage::Statistic stats;
-    uint32_t imageBufferSize { 0 };
-    uint8_t *imageBuffer { nullptr };
-
-    printf("Loading image. . .\n");
-fflush( stdout );
-    if(!imageFromFile.load("pleiades.jpg"))
+    fileio imageLoader;
+    imageLoader.logToSignal = false;
+    if(!imageLoader.loadFits("randomsky.fits"))
     {
-        printf("Failed to open image.\n");
+        printf("Error in loading FITS file");
         exit(1);
     }
+    FITSImage::Statistic stats = imageLoader.getStats();
+    uint8_t *imageBuffer = imageLoader.getImageBuffer();
 
-    imageFromFile = imageFromFile.convertToFormat(QImage::Format_RGB32);
-
-    stats.dataType      = SEP_TBYTE;
-    stats.bytesPerPixel = sizeof(uint8_t);
-    stats.width = static_cast<uint16_t>(imageFromFile.width());
-    stats.height = static_cast<uint16_t>(imageFromFile.height());
-    stats.channels = 3;
-    stats.samples_per_channel = stats.width * stats.height;
-    imageBufferSize = stats.samples_per_channel * stats.channels * static_cast<uint16_t>(stats.bytesPerPixel);
-    imageBuffer = new uint8_t[imageBufferSize];
-    auto debayered_buffer = reinterpret_cast<uint8_t *>(imageBuffer);
-    auto * original_bayered_buffer = reinterpret_cast<uint8_t *>(imageFromFile.bits());
-
-    // Data in RGB32, with bytes in the order of B,G,R,A, we need to copy them into 3 layers for FITS
-    uint8_t * rBuff = debayered_buffer;
-    uint8_t * gBuff = debayered_buffer + (stats.width * stats.height);
-    uint8_t * bBuff = debayered_buffer + (stats.width * stats.height * 2);
-
-    int imax = stats.samples_per_channel * 4 - 4;
-    for (int i = 0; i <= imax; i += 4)
-    {
-        *rBuff++ = original_bayered_buffer[i + 2];
-        *gBuff++ = original_bayered_buffer[i + 1];
-        *bBuff++ = original_bayered_buffer[i + 0];
-    }
     StellarSolver *stellarSolver = new StellarSolver(stats, imageBuffer, nullptr);
     stellarSolver->setProperty("ExtractorType", SSolver::EXTRACTOR_INTERNAL);
     stellarSolver->setProperty("SolverType", SSolver::SOLVER_STELLARSOLVER);
@@ -54,7 +26,19 @@ fflush( stdout );
     stellarSolver->setParameterProfile(SSolver::Parameters::PARALLEL_SMALLSCALE);
     stellarSolver->setIndexFolderPaths(QStringList()<<"/Users/rlancaste/Linux Share/Astrometry");
 
+    if(imageLoader.position_given)
+    {
+        printf("Using Position: %f hours, %f degrees\n", imageLoader.ra, imageLoader.dec);
+        stellarSolver->setSearchPositionRaDec(imageLoader.ra, imageLoader.dec);
+    }
+    if(imageLoader.scale_given)
+    {
+        stellarSolver->setSearchScale(imageLoader.scale_low, imageLoader.scale_high, imageLoader.scale_units);
+        printf("Using Scale: %f to %f, %s\n", imageLoader.scale_low, imageLoader.scale_high, SSolver::getScaleUnitString(imageLoader.scale_units).toUtf8().data());
+    }
+
     printf("Starting to solve. . .\n");
+
     fflush( stdout );
     QEventLoop loop;
     connect(stellarSolver, &StellarSolver::finished, &loop, &QEventLoop::quit);
