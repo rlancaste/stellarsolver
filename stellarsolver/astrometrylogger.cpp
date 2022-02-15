@@ -13,6 +13,11 @@ void AstrometryLogger::logFromAstrometry(char* text)
     updateLog();
 }
 
+EXPORT_C void logFromAstrometry(AstrometryLogger* astroLogger, char* text)
+{
+    return astroLogger->logFromAstrometry(text);
+}
+
 void AstrometryLogger::updateLog()
 {
     if(readyToLog())

@@ -27,14 +27,6 @@ extern "C" {
 
 }
 
-extern "C" void logToStellarSolver(char* text)
-{
-    if(astroLogger)
-        return astroLogger->logFromAstrometry(text);
-    else
-        return;
-}
-
 using namespace SSolver;
 using namespace SEP;
 
@@ -1149,6 +1141,7 @@ int InternalSextractorSolver::runInternalSolver()
     engine->maxwidth = m_ActiveParameters.maxwidth;
 
     log_init((log_level)m_AstrometryLogLevel);
+    log_set_thread_specific();
 
     if(m_AstrometryLogLevel != SSolver::LOG_NONE)
     {
@@ -1160,13 +1153,12 @@ int InternalSextractorSolver::runInternalSolver()
             {
                 astroLogger = new AstrometryLogger();
                 connect(astroLogger, &AstrometryLogger::logOutput, this, &SextractorSolver::logOutput);
+                setAstroLogger(astroLogger);
             }
         }
         if(logFile)
             log_to(logFile);
     }
-
-    //gslutils_use_error_system();
 
     //These set the folders in which Astrometry.net will look for index files, based on the folers set before the solver was started.
     for(auto &onePath : indexFolderPaths)

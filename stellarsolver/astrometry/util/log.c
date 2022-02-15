@@ -127,6 +127,11 @@ void log_free(log_t* log) {
 * 3. Because on an armhf system, the former logging functions were not putting the correct variable values in the logs
 */
 
+void setAstroLogger(AstrometryLogger* logger)
+{
+    get_logger()->astroLogger = logger;
+}
+
 void logerr(const char* text, ...){
     va_list va;
     va_start(va, text);
@@ -178,7 +183,8 @@ void log_this(const char* text, enum log_level level, va_list va){
     else{
         char *formatted = NULL;
         vasprintf(&formatted, text, va);
-        logToStellarSolver(formatted);
+        if(get_logger()->astroLogger)
+            logFromAstrometry(get_logger()->astroLogger, formatted);
         free(formatted);
     }
 }

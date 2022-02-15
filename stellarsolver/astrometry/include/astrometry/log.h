@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "astrometry/an-bool.h"
+#include "astrometrylogger.h" // Modified by Robert Lancaster for the StellarSolver Internal Library
 
 enum log_level {
     LOG_NONE,
@@ -27,6 +28,7 @@ struct log_t {
     double t0;
     // User-specified logging functions
     logfunc_t logfunc;
+    AstrometryLogger *astroLogger; // Modified by Robert Lancaster for the StellarSolver Internal Library
     void* baton;
 };
 typedef struct log_t log_t;
@@ -100,7 +102,7 @@ void loglevel(enum log_level level, const char* text, ...);
 
 void log_this(const char* text, enum log_level level, va_list va);
 
-void logToStellarSolver(char* text);
+void setAstroLogger(AstrometryLogger* logger);
 
 // This is the end of the added functions.
 

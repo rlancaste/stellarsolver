@@ -298,8 +298,8 @@ class Parameters
         // You can just use them without having to set any parameters yourself.
         typedef enum
         {
-            FAST_SOLVING,
-            PARALLEL_SOLVING,
+            DEFAULT,
+            SINGLE_THREAD_SOLVING,
             PARALLEL_LARGESCALE,
             PARALLEL_SMALLSCALE,
             ALL_STARS,

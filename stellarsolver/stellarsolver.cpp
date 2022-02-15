@@ -613,18 +613,18 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     defaultProfile.description = "Default profile. Generic and not optimized for any specific purpose.";
     profileList.append(defaultProfile);
 
-    Parameters fastSolving;
-    fastSolving.listName = "2-SingleThreadSolving";
-    fastSolving.description = "Profile intended for Plate Solving telescopic sized images in a single CPU Thread";
-    fastSolving.multiAlgorithm = NOT_MULTI;
-    fastSolving.minwidth = 0.1;
-    fastSolving.maxwidth = 10;
-    fastSolving.keepNum = 50;
-    fastSolving.initialKeep = 500;
-    fastSolving.maxEllipse = 1.5;
-    fastSolving.convFilterType = SSolver::CONV_GAUSSIAN;
-    fastSolving.fwhm = 4;
-    profileList.append(fastSolving);
+    Parameters singleThreadSolving;
+    singleThreadSolving.listName = "2-SingleThreadSolving";
+    singleThreadSolving.description = "Profile intended for Plate Solving telescopic sized images in a single CPU Thread";
+    singleThreadSolving.multiAlgorithm = NOT_MULTI;
+    singleThreadSolving.minwidth = 0.1;
+    singleThreadSolving.maxwidth = 10;
+    singleThreadSolving.keepNum = 50;
+    singleThreadSolving.initialKeep = 500;
+    singleThreadSolving.maxEllipse = 1.5;
+    singleThreadSolving.convFilterType = SSolver::CONV_GAUSSIAN;
+    singleThreadSolving.fwhm = 4;
+    profileList.append(singleThreadSolving);
 
     Parameters parLargeSolving;
     parLargeSolving.listName = "3-LargeScaleSolving";
@@ -638,26 +638,26 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     parLargeSolving.fwhm = 4;
     profileList.append(parLargeSolving);
 
-    Parameters fastSmallSolving;
-    fastSmallSolving.listName = "4-SmallScaleSolving";
-    fastSmallSolving.description = "Profile intended for Plate Solving telescopic sized images";
-    fastSmallSolving.minwidth = 0.1;
-    fastSmallSolving.maxwidth = 10;
-    fastSmallSolving.keepNum = 50;
-    fastSmallSolving.initialKeep = 500;
-    fastSmallSolving.maxEllipse = 1.5;
-    fastSmallSolving.convFilterType = SSolver::CONV_GAUSSIAN;
-    fastSmallSolving.fwhm = 4;
-    profileList.append(fastSmallSolving);
+    Parameters parSmallSolving;
+    parSmallSolving.listName = "4-SmallScaleSolving";
+    parSmallSolving.description = "Profile intended for Plate Solving telescopic sized images";
+    parSmallSolving.minwidth = 0.1;
+    parSmallSolving.maxwidth = 10;
+    parSmallSolving.keepNum = 50;
+    parSmallSolving.initialKeep = 500;
+    parSmallSolving.maxEllipse = 1.5;
+    parSmallSolving.convFilterType = SSolver::CONV_GAUSSIAN;
+    parSmallSolving.fwhm = 4;
+    profileList.append(parSmallSolving);
 
-    Parameters stars;
-    stars.listName = "5-AllStars";
-    stars.description = "Profile for the source extraction of all the stars in an image.";
-    stars.maxEllipse = 1.5;
-    stars.convFilterType = SSolver::CONV_GAUSSIAN;
-    stars.fwhm = 2;
-    stars.r_min = 2;
-    profileList.append(stars);
+    Parameters allStars;
+    allStars.listName = "5-AllStars";
+    allStars.description = "Profile for the source extraction of all the stars in an image.";
+    allStars.maxEllipse = 1.5;
+    allStars.convFilterType = SSolver::CONV_GAUSSIAN;
+    allStars.fwhm = 2;
+    allStars.r_min = 2;
+    profileList.append(allStars);
 
     Parameters smallStars;
     smallStars.listName = "6-SmallSizedStars";

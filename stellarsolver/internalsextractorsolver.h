@@ -13,7 +13,6 @@
 //Sextractor Includes
 #include "sep/sep.h"
 
-static AstrometryLogger *astroLogger;
 using namespace SSolver;
 
 class InternalSextractorSolver: public SextractorSolver
@@ -85,6 +84,7 @@ class InternalSextractorSolver: public SextractorSolver
         void downSampleImageType(int d);
 
         FILE *logFile = nullptr;
+        AstrometryLogger *astroLogger;
         uint32_t m_PartitionThreads = {16};
 };
 
