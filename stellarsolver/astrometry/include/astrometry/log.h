@@ -43,7 +43,7 @@ void log_use_function(logfunc_t func, void* baton);
 /**
  Make all logging commands thread-specific rather than global.
  */
-void log_set_thread_specific(void);
+//void log_set_thread_specific(void); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 void log_set_timestamp(anbool b);
 

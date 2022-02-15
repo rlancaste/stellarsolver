@@ -45,10 +45,15 @@ int vasprintf(char **strp, const char *fmt, va_list ap)
 #include "an-thread.h"
 #include "tic.h"
 
-static int g_thread_specific = 0;
-static log_t g_logger;
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
+//static int g_thread_specific = 0;
+#ifdef _MSC_VER
+__declspec(thread) log_t g_logger;
+#else
+_Thread_local log_t g_logger;
+#endif
 int astrometryLogToFile = 0; //# Modified by Robert Lancaster for the StellarSolver Internal Library
-
+/* //# Modified by Robert Lancaster for the StellarSolver Internal Library
 void log_set_thread_specific() {
     g_thread_specific = 1;
 }
@@ -59,14 +64,11 @@ static void* logts_init_key(void* user) {
         memcpy(l, user, sizeof(log_t));
     return l;
 }
-#define TSNAME logts
-#include "thread-specific.inc"
-
+*/
 static log_t* get_logger() {
-#ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
-    if (g_thread_specific)
-        return logts_get_key(&g_logger);
-#endif
+ //# Modified by Robert Lancaster for the StellarSolver Internal Library
+//    if (g_thread_specific)
+//        return logts_get_key(&g_logger);
     return &g_logger;
 }
 

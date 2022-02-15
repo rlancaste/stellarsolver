@@ -1141,7 +1141,6 @@ int InternalSextractorSolver::runInternalSolver()
     engine->maxwidth = m_ActiveParameters.maxwidth;
 
     log_init((log_level)m_AstrometryLogLevel);
-    log_set_thread_specific();
 
     if(m_AstrometryLogLevel != SSolver::LOG_NONE)
     {
