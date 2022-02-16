@@ -545,7 +545,7 @@ QVector<float> StellarSolver::generateConvFilter(SSolver::ConvFilterType filter,
     }
     else if(filter == SSolver::CONV_CUSTOM)
     {
-        //Error! Generate Conv Filter should not get called if using a custom conv filter"
+        //Error! Generate Conv Filter should not get called if using a custom conv filter
     }
     else if(filter == SSolver::CONV_GAUSSIAN)
     {
@@ -583,6 +583,18 @@ QVector<float> StellarSolver::generateConvFilter(SSolver::ConvFilterType filter,
                 else a = 0;
 
                 convFilter.append(amplitude * a);
+            }
+        }
+    }
+    else if(filter == SSolver::CONV_RING)
+    {
+        for(int y = -size; y <= size; y++ )
+        {
+            for(int x = -size; x <= size; x++ )
+            {
+                double value1 = amplitude * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(fwhm, 2));
+                double value2 = amplitude/2 * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(fwhm/2, 2));
+                convFilter.append(value1 - value2);
             }
         }
     }

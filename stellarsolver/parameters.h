@@ -20,7 +20,8 @@ typedef enum
     CONV_CUSTOM,
     CONV_GAUSSIAN,
     CONV_MEXICAN_HAT,
-    CONV_TOP_HAT
+    CONV_TOP_HAT,
+    CONV_RING
 } ConvFilterType;
 
 //This gets a string for the Sextractor setting for calculating Flux using ellipses or circles

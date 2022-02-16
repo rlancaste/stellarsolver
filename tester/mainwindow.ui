@@ -1100,6 +1100,11 @@
                     <string>Top Hat</string>
                    </property>
                   </item>
+                  <item>
+                   <property name="text">
+                    <string>Ring</string>
+                   </property>
+                  </item>
                  </widget>
                 </item>
                </layout>
