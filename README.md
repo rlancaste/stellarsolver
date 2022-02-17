@@ -123,7 +123,7 @@ So please play around with the settings and find out what can work the best.
 ## Linux
 You can follow this set of steps on ubuntu build the program StellarSolver on Linux if you don't want to use the installer above.
 
-	sudo apt -y install git cmake qt5-default libcfitsio-dev libgsl-dev wcslib-dev
+	sudo apt -y install git cmake qtbase5-dev libcfitsio-dev libgsl-dev wcslib-dev
 	git clone https://github.com/rlancaste/stellarsolver.git
 	mkdir build
 	cd build
