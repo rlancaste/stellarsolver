@@ -341,7 +341,23 @@ MainWindow::MainWindow() :
 
     ui->use_position->setToolTip("Whether or not to use the estimated position below to try to speed up the solve");
     ui->ra->setToolTip("The estimated RA of the object in decimal form in hours not degrees");
+    ui->raString->setToolTip("The display of how the RA looks in H:M:S form");
+    connect(ui->ra, &QLineEdit::textChanged, this, [this]()
+    {
+        char rastr[32];
+        double ra = ui->ra->text().toDouble() * 15;
+        ra2hmsstring(ra, rastr);
+        ui->raString->setText(rastr);
+    });
     ui->dec->setToolTip("The estimated DEC of the object in decimal form in degrees");
+    ui->deString->setToolTip("The display of how the DEC looks in D:M:S form");
+    connect(ui->dec, &QLineEdit::textChanged, this, [this]()
+    {
+        char decstr[32];
+        double de = ui->dec->text().toDouble();
+        dec2dmsstring(de, decstr);
+        ui->deString->setText(decstr);
+    });
     ui->radius->setToolTip("The search radius (degrees) of a circle centered on this position for astrometry.net to search for solutions");
 
     ui->oddsToKeep->setToolTip("The Astrometry oddsToKeep Parameter.  This may need to be changed or removed");
@@ -1224,6 +1240,35 @@ bool MainWindow::solverComplete()
     {
         ui->singleIndexNum->setText(lastIndexNumber);
         loadIndexFilesToUse();
+    }
+    if(ui->autoUpdateScaleAndPosition->isChecked())
+    {
+        FITSImage::Solution s = stellarSolver->getSolution();
+        ui->ra->setText(QString::number(s.ra / 15));
+        ui->dec->setText(QString::number(s.dec));
+        double scale_low;
+        double scale_high;
+        switch(ui->units->currentIndex())
+        {
+        case SSolver::ARCMIN_WIDTH:
+            scale_low = s.fieldHeight;
+            scale_high = s.fieldWidth;
+            break;
+        case SSolver::ARCSEC_PER_PIX:
+            scale_low = s.pixscale * 0.9;
+            scale_high = s.pixscale * 1.1;
+            break;
+        case SSolver::DEG_WIDTH:
+            scale_low = s.fieldHeight / 60;
+            scale_high = s.fieldWidth / 60;
+            break;
+        default:
+            scale_low = s.fieldHeight;
+            scale_high = s.fieldWidth;
+            break;
+        }
+        ui->scale_low->setText(QString::number(scale_low));
+        ui->scale_high->setText(QString::number(scale_high));
     }
     QTimer::singleShot(100, this, [this]()
     {
