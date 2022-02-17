@@ -71,6 +71,7 @@ SextractorSolver* InternalSextractorSolver::spawnChildSolver(int n)
     solver->isChildSolver = true;
     solver->m_ActiveParameters = m_ActiveParameters;
     solver->indexFolderPaths = indexFolderPaths;
+    solver->indexFiles = indexFiles;
     //Set the log level one less than the main solver
     if(m_SSLogLevel == LOG_VERBOSE )
         solver->m_SSLogLevel = LOG_NORMAL;
@@ -1158,7 +1159,10 @@ int InternalSextractorSolver::runInternalSolver()
         if(logFile)
             log_to(logFile);
     }
-
+    for(auto &onePath : indexFiles)
+    {
+        engine_add_index(engine, onePath.toUtf8().data());
+    }
     //These set the folders in which Astrometry.net will look for index files, based on the folers set before the solver was started.
     for(auto &onePath : indexFolderPaths)
     {
@@ -1166,7 +1170,8 @@ int InternalSextractorSolver::runInternalSolver()
     }
 
     //This actually adds the index files in the directories above.
-    engine_autoindex_search_paths(engine);
+    if(indexFolderPaths.count() > 0)
+        engine_autoindex_search_paths(engine);
 
     //This checks to see that index files were found in the paths above, if not, it prints this warning and aborts.
     if (!pl_size(engine->indexes))
@@ -1344,6 +1349,7 @@ int InternalSextractorSolver::runInternalSolver()
         emit logOutput(QString("Field parity: %1\n").arg( parity));
 
         m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
+        solutionIndexNumber = match.indexid;
         m_HasSolved = true;
         returnCode = 0;
     }

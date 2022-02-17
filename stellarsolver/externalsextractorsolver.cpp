@@ -330,6 +330,7 @@ SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
     solver->isChildSolver = true;
     solver->m_ActiveParameters = m_ActiveParameters;
     solver->indexFolderPaths = indexFolderPaths;
+    solver->indexFiles = indexFiles;
     //Set the log level one less than the main solver
     if(m_SSLogLevel == LOG_VERBOSE )
         solver->m_SSLogLevel = LOG_NORMAL;
@@ -1039,10 +1040,15 @@ bool ExternalSextractorSolver::generateAstrometryConfigFile()
         out << "minwidth " << m_ActiveParameters.minwidth << "\n";
         out << "maxwidth " << m_ActiveParameters.maxwidth << "\n";
         out << "cpulimit " << m_ActiveParameters.solverTimeLimit << "\n";
-        out << "autoindex\n";
+        if(indexFolderPaths.count() > 0)
+            out << "autoindex\n";
         foreach(QString folder, indexFolderPaths)
         {
             out << "add_path " << folder << "\n";
+        }
+        foreach(QString file, indexFiles)
+        {
+            out << "index " << file << "\n";
         }
         configFile.close();
     }
@@ -1866,6 +1872,24 @@ int ExternalSextractorSolver::loadWCS()
         return status;
     }
     fits_close_file(fptr, &status);
+
+    QFile solFile(solutionFile);
+    if (!solFile.open(QIODevice::ReadOnly))
+        emit logOutput(("File Read Error"));
+    else
+    {
+        QString searchString("COMMENT index id: ");
+        QTextStream in (&solFile);
+        QString text = in.readAll();
+        if(text.contains(searchString))
+        {
+            int before = text.indexOf(searchString);
+            QString cut = text.mid(before).remove(searchString);
+            int after = cut.indexOf(" ");
+            solutionIndexNumber = cut.left(after).toShort();
+        }
+        solFile.close();
+    }
 
 #ifndef _WIN32 //For some very strange reason, this causes a crash on Windows??
     free(header);

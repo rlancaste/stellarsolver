@@ -145,6 +145,8 @@ private:
     void clearAstrometrySettings();
     void addSextractionToTable();
     FITSImage::Solution lastSolution;
+    QStringList indexFileList;
+    QString lastIndexNumber = "4";
 
     QDialog *convInspector = nullptr;
     QTableWidget *convTable = nullptr;
@@ -163,7 +165,8 @@ public slots:
     void loadOptionsProfile();
     void settingJustChanged();
 
-    void loadIndexFilesList();
+    void loadIndexFilesListInFolder();
+    void loadIndexFilesToUse();
     void setSubframe();
 
     //These are the functions that run when the bottom buttons are clicked

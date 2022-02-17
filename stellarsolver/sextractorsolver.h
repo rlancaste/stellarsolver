@@ -60,6 +60,7 @@ class SextractorSolver : public QThread
 
         Parameters m_ActiveParameters;                  //The currently set parameters for StellarSolver
         QStringList indexFolderPaths;       //This is the list of folder paths that the solver will use to search for index files
+        QStringList indexFiles;             //This is an alternative to the indexFolderPaths variable.  We can just load individual index files instead of searching for them
 
         //This is the convolution filter used by SEP to help extract stars
         QVector<float> convFilter = {1, 2, 1,
@@ -127,6 +128,10 @@ class SextractorSolver : public QThread
         {
             return m_Solution;
         };
+        short getSolutionIndexNumber()
+        {
+            return solutionIndexNumber;
+        };
         bool hasWCSData()
         {
             return m_HasWCS;
@@ -175,6 +180,7 @@ class SextractorSolver : public QThread
         //This is the list of stars that get sextracted from the image, saved to the file, and then solved by astrometry.net
         QList<FITSImage::Star> m_ExtractedStars;
         FITSImage::Solution m_Solution;          //This is the solution that comes back from the Solver
+        short solutionIndexNumber = -1; // This is the index number of the index used to solve the image.
 
         bool runSEPSextractor();    //This is the method that actually runs the internal sextractor
         bool m_HasWCS = false;        //This boolean gets set if the StellarSolver has WCS data to retrieve

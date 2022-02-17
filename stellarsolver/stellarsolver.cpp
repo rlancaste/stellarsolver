@@ -91,6 +91,7 @@ SextractorSolver* StellarSolver::createSextractorSolver()
     solver->m_ActiveParameters = params;
     solver->convFilter = convFilter;
     solver->indexFolderPaths = indexFolderPaths;
+    solver->indexFiles = indexFiles;
     if(m_UseScale)
         solver->setSearchScale(m_ScaleLow, m_ScaleHigh, m_ScaleUnit);
     if(m_UsePosition)
@@ -392,6 +393,7 @@ void StellarSolver::processFinished(int code)
         if(m_ProcessType == SOLVE && m_SextractorSolver->solvingDone())
         {
             solution = m_SextractorSolver->getSolution();
+            solutionIndexNumber = m_SextractorSolver->getSolutionIndexNumber();
             m_SolverStars = m_SextractorSolver->getStarList();
             if(m_SextractorSolver->hasWCSData())
             {
@@ -456,6 +458,7 @@ void StellarSolver::finishParallelSolve(int success)
 
         numStars = reportingSolver->getNumStarsFound();
         solution = reportingSolver->getSolution();
+        solutionIndexNumber = reportingSolver->getSolutionIndexNumber();
         m_SolverStars = reportingSolver->getStarList();
 
         if(reportingSolver->hasWCSData())

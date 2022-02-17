@@ -148,6 +148,15 @@ class StellarSolver : public QObject
         {
             indexFolderPaths = indexPaths;
         };
+        void setIndexFilePaths(QStringList indexFilePaths)
+        {
+            indexFiles = indexFilePaths;
+        };
+        void clearIndexFileAndFolderPaths()
+        {
+            indexFiles.clear();
+            indexFolderPaths.clear();
+        }
         void setSearchScale(double fov_low, double fov_high, const QString &scaleUnits);
         //This sets the scale range for the image to speed up the solver
         void setSearchScale(double fov_low, double fov_high, ScaleUnits units);
@@ -199,6 +208,10 @@ class StellarSolver : public QObject
         {
             return solution;
         }
+        short getSolutionIndexNumber()
+        {
+            return solutionIndexNumber;
+        };
 
         bool sextractionDone() const
         {
@@ -322,8 +335,9 @@ class StellarSolver : public QObject
                                      1, 2, 1
                                     };
         //This is the list of folder paths that the solver will use to search for index files
-        QStringList indexFolderPaths {getDefaultIndexFolderPaths()};
-
+        QStringList indexFolderPaths;
+        //This is an alternative to the indexFolderPaths variable.  We can just load individual index files instead of searching for them
+        QStringList indexFiles;
         //Astrometry Scale Parameters, These are not saved parameters and change for each image, use the methods to set them
         bool m_UseScale {false};               //Whether or not to use the image scale parameters
         double m_ScaleLow {0};                 //Lower bound of image scale estimate
@@ -353,6 +367,7 @@ class StellarSolver : public QObject
         //The number of stars found in the last operation
         int numStars;
         FITSImage::Solution solution;          //This is the solution that comes back from the Solver
+        short solutionIndexNumber = -1; // This is the index number of the index used to solve the image.
         bool hasWCS {false};        //This boolean gets set if the StellarSolver has WCS data to retrieve
 
         bool wasAborted {false};

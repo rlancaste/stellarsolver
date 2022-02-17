@@ -354,7 +354,7 @@ MainWindow::MainWindow() :
 
     connect(ui->indexFolderPaths, &QComboBox::currentTextChanged, this, [this]()
     {
-        loadIndexFilesList();
+        loadIndexFilesListInFolder();
     });
     ui->indexFolderPaths->setToolTip("The paths on your compute to search for index files.  To add another, just start typing in the box.  To select one to look at, use the drop down.");
     connect(ui->removeIndexPath, &QPushButton::clicked, this, [this]()
@@ -374,6 +374,23 @@ MainWindow::MainWindow() :
         ui->indexFolderPaths->setCurrentIndex(ui->indexFolderPaths->count() - 1);
     });
     ui->addIndexPath->setToolTip("Adds a path the user selects to the list of index folder paths");
+    ui->singleIndexNum->setToolTip("The number of the index series to use in solving, if selected");
+    ui->useAllIndexes->setToolTip("Whether to use all the index files, or just the one index series selected");
+    connect(ui->useAllIndexes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int ind)
+    {
+        ui->singleIndexNum->setReadOnly(ind == 0 || ind == 2);
+        if(ind == 0)
+            ui->singleIndexNum->clear();
+        else if(ind == 0)
+        {
+            if(ui->singleIndexNum->text() == "")
+                ui->singleIndexNum->setText("4");
+        }
+        else
+            ui->singleIndexNum->setText(lastIndexNumber);
+    });
+    connect(ui->singleIndexNum, &QLineEdit::textChanged, this, &MainWindow::loadIndexFilesToUse);
+    connect(ui->useAllIndexes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::loadIndexFilesToUse);
 
     //Behaviors and Settings for the StarTable
     connect(this, &MainWindow::readyForStarTable, this, &MainWindow::displayTable);
@@ -497,7 +514,8 @@ MainWindow::MainWindow() :
         indexFilePaths = storedPaths.split(",");
     foreach(QString pathName, indexFilePaths)
         ui->indexFolderPaths->addItem(pathName);
-    loadIndexFilesList();
+    loadIndexFilesListInFolder();
+    loadIndexFilesToUse();
 
     ui->imageScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     ui->imageScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -747,7 +765,7 @@ void MainWindow::displayTable()
 }
 
 //This method is intended to load a list of the index files to display as feedback to the user.
-void MainWindow::loadIndexFilesList()
+void MainWindow::loadIndexFilesListInFolder()
 {
     QString currentPath = ui->indexFolderPaths->currentText();
     QDir dir(currentPath);
@@ -763,6 +781,41 @@ void MainWindow::loadIndexFilesList()
         ui->indexFiles->addItem("Invalid Folder");
 }
 
+//This loads and updates the list of files we will use, if not autoindexing.
+void MainWindow::loadIndexFilesToUse()
+{
+    ui->indexFilesToUse->clear();
+    indexFileList.clear();
+    for(int i = 0; i < ui->indexFolderPaths->count(); i++)
+    {
+        QString currentPath = ui->indexFolderPaths->itemText(i);
+        QDir dir(currentPath);
+        QStringList indexFiles;
+        if(dir.exists())
+        {
+            if(ui->useAllIndexes->currentIndex() == 0)
+            {
+                //This finds all fits files in the folder
+                dir.setNameFilters(QStringList() << "*.fits" << "*.fit");
+                indexFiles << dir.entryList();
+            }
+            else
+            {
+               //This finds all the fits files associated with that index number in the folder
+               short num = ui->singleIndexNum->text().toShort();
+               QString name1 = "index-" + QString::number(num) + "*.fits";
+               QString name2 = "index-" + QString::number(num) + "*.fit";
+               dir.setNameFilters(QStringList() << name1 << name2);
+               indexFiles << dir.entryList();
+            }
+            ui->indexFilesToUse->addItems(indexFiles);
+            for(int i = 0; i < indexFiles.count(); i++)
+            {
+               indexFileList.append(dir.absolutePath() + QDir::separator() + indexFiles.at(i));
+            }
+        }
+    }
+}
 
 //The following methods are meant for starting the sextractor and image solving.
 //The methods run when the buttons are clicked.  They call the methods inside StellarSolver and ExternalSextractorSovler
@@ -940,13 +993,20 @@ void MainWindow::setupExternalSextractorSolverIfNeeded()
 
 void MainWindow::setupStellarSolverParameters()
 {
-    //Index Folder Paths
-    QStringList indexFolderPaths;
-    for(int i = 0; i < ui->indexFolderPaths->count(); i++)
+    stellarSolver->clearIndexFileAndFolderPaths();
+    if(ui->useAllIndexes->currentIndex() == 0)
     {
-        indexFolderPaths << ui->indexFolderPaths->itemText(i);
+        QStringList indexFolderPaths;
+        for(int i = 0; i < ui->indexFolderPaths->count(); i++)
+        {
+            indexFolderPaths << ui->indexFolderPaths->itemText(i);
+        }
+        stellarSolver->setIndexFolderPaths(indexFolderPaths);
     }
-    stellarSolver->setIndexFolderPaths(indexFolderPaths);
+    else
+    {
+        stellarSolver->setIndexFilePaths(indexFileList);
+    }
 
     //These setup Logging if desired
     stellarSolver->setProperty("LogToFile", ui->logToFile->isChecked());
@@ -1158,6 +1218,13 @@ bool MainWindow::solverComplete()
         addSolutionToTable(stellarSolver->getSolution());
     else
         addSolutionToTable(lastSolution);
+    short solutionIndexNumber =stellarSolver->getSolutionIndexNumber();
+    lastIndexNumber = QString::number(stellarSolver->getSolutionIndexNumber());
+    if(solutionIndexNumber != -1 && ui->useAllIndexes->currentIndex() == 2)
+    {
+        ui->singleIndexNum->setText(lastIndexNumber);
+        loadIndexFilesToUse();
+    }
     QTimer::singleShot(100, this, [this]()
     {
         ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());
@@ -1240,6 +1307,10 @@ bool MainWindow::imageLoad()
     {
         imageLoaded = true;
         clearImageBuffers();
+        lastIndexNumber = "4"; //This will reset the filtering for index files
+        if(ui->useAllIndexes != 0)
+            ui->singleIndexNum->setText(lastIndexNumber);
+        loadIndexFilesToUse();
         m_ImageBuffer = imageLoader.getImageBuffer();
         stats=imageLoader.getStats();
         clearAstrometrySettings();

@@ -624,24 +624,14 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>305</width>
-                 <height>416</height>
+                 <width>291</width>
+                 <height>564</height>
                 </rect>
                </property>
                <attribute name="label">
                 <string>Index Files</string>
                </attribute>
                <layout class="QGridLayout" name="gridLayout_10">
-                <item row="4" column="1" colspan="3">
-                 <widget class="QListWidget" name="indexFiles"/>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QPushButton" name="addIndexPath">
-                  <property name="text">
-                   <string>Add</string>
-                  </property>
-                 </widget>
-                </item>
                 <item row="0" column="3">
                  <widget class="QPushButton" name="removeIndexPath">
                   <property name="text">
@@ -649,10 +639,61 @@
                   </property>
                  </widget>
                 </item>
+                <item row="4" column="1" colspan="3">
+                 <widget class="QListWidget" name="indexFiles"/>
+                </item>
+                <item row="7" column="1" colspan="3">
+                 <widget class="QListWidget" name="indexFilesToUse"/>
+                </item>
+                <item row="5" column="1" colspan="2">
+                 <widget class="QComboBox" name="useAllIndexes">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="sizeAdjustPolicy">
+                   <enum>QComboBox::AdjustToContents</enum>
+                  </property>
+                  <item>
+                   <property name="text">
+                    <string>Auto Index Files</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Filter indexes</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Use Last Solve</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
                 <item row="2" column="1" colspan="3">
                  <widget class="QComboBox" name="indexFolderPaths">
                   <property name="editable">
                    <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="6" column="1" colspan="3">
+                 <widget class="QLabel" name="label_66">
+                  <property name="text">
+                   <string>Index Files to use:</string>
+                  </property>
+                  <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QPushButton" name="addIndexPath">
+                  <property name="text">
+                   <string>Add</string>
                   </property>
                  </widget>
                 </item>
@@ -669,9 +710,34 @@
                 <item row="3" column="1" colspan="4">
                  <widget class="QLabel" name="label_30">
                   <property name="text">
-                   <string>Index Files</string>
+                   <string>Index Files in Selected Folder:</string>
                   </property>
                   <property name="wordWrap">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="5" column="3">
+                 <widget class="QLineEdit" name="singleIndexNum">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>50</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="readOnly">
                    <bool>true</bool>
                   </property>
                  </widget>

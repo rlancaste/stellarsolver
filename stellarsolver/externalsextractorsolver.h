@@ -43,7 +43,6 @@ class ExternalSextractorSolver : public InternalSextractorSolver
         bool onlySendFITSFiles = true;
 
         //System File Paths
-        QStringList indexFilePaths;
         QString confPath;               //Path to the Astrometry Config File
         QString sextractorBinaryPath;   //Path to the Sextractor Program binary
         QString solverPath;             //Path to the Astrometry Solver binary
