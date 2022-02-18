@@ -1387,6 +1387,7 @@ bool MainWindow::imageLoad()
         imageLoaded = true;
         clearImageBuffers();
         lastIndexNumber = "4"; //This will reset the filtering for index files
+        lastHealpix = "";
         if(ui->useAllIndexes != 0)
         {
             ui->singleIndexNum->setText(lastIndexNumber);
