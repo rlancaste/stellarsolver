@@ -63,6 +63,17 @@ class StellarSolver : public QObject
         static ExternalProgramPaths getWinANSVRPaths();
         static ExternalProgramPaths getWinCygwinPaths();
 
+
+        // Return the full path to index files to use when solving.
+        // The input is a list of directory names, and index and healpix constraints.
+        // If indexToUse and healpixToUse are -1, then return all the .fit or .fits
+        // files in the directories. If indexToUse >= 0, then constrain the list to
+        // just those of the correct index. If healpixToUse is also >= 0 then
+        // further constrain the list to correct healpix. It is assumed the index
+        // filename format is index-$INDEX.fit or .fits, or index-$INDEX-$HH.fit or
+        // .fits where $HH is a 2-character healpix number, e.g. index-4205-03.fits.
+        static QStringList getIndexFiles(const QStringList &directoryList, int indexToUse = -1, int healpixToUse = -1);
+  
         //This gets the processType as a string explaining the command StellarSolver is Running
         QString getCommandString()
         {

@@ -124,6 +124,50 @@ ExternalProgramPaths StellarSolver::getWinCygwinPaths()
     return ExternalSextractorSolver::getLinuxDefaultPaths();
 };
 
+QStringList StellarSolver::getIndexFiles(const QStringList &directoryList, int indexToUse, int healpixToUse)
+{
+    QStringList indexFileList;
+    for(int i = 0; i < directoryList.count(); i++)
+    {
+        const QString &currentPath = directoryList[i];
+        QDir dir(currentPath);
+        QStringList dirIndexFiles;
+        if(dir.exists())
+        {
+            if(indexToUse < 0)
+            {
+                // Find all fits files in the folder.
+                dir.setNameFilters(QStringList() << "*.fits" << "*.fit");
+                dirIndexFiles << dir.entryList();
+            }
+            else
+            {
+                QString name1, name2;
+                if (healpixToUse >= 0)
+                {
+                    // Find all the fits files in the folder associated with the index and healpix.
+                    QString hStr = QString("%1").arg(healpixToUse, 2, 10, (QChar) '0');
+                    name1 = "index-" + QString::number(indexToUse) + "-" + hStr + ".fits";
+                    name2 = "index-" + QString::number(indexToUse) + "-" + hStr + ".fit";
+                }
+                else
+                {
+                    // Find all the fits files in the folder associated with the index number.
+                    name1 = "index-" + QString::number(indexToUse) + "*.fits";
+                    name2 = "index-" + QString::number(indexToUse) + "*.fit";
+                }
+                dir.setNameFilters(QStringList() << name1 << name2);
+                dirIndexFiles << dir.entryList();
+            }
+            for(int i = 0; i < dirIndexFiles.count(); i++)
+            {
+               indexFileList.append(dir.absolutePath() + QDir::separator() + dirIndexFiles.at(i));
+            }
+        }
+    }
+    return indexFileList;
+}
+
 bool StellarSolver::extract(bool calculateHFR, QRect frame)
 {
     m_ProcessType = calculateHFR ? EXTRACT_WITH_HFR : EXTRACT;
