@@ -537,7 +537,7 @@ bool StellarSolver::isRunning() const
 QVector<float> StellarSolver::generateConvFilter(SSolver::ConvFilterType filter, double fwhm)
 {
     QVector<float> convFilter;
-    int size = abs(ceil(fwhm * 0.6));
+    int size = abs(ceil(fwhm));
     double amplitude = 1.0;
     if(filter == SSolver::CONV_DEFAULT)
     {
@@ -556,7 +556,7 @@ QVector<float> StellarSolver::generateConvFilter(SSolver::ConvFilterType filter,
         {
             for(int x = -size; x <= size; x++ )
             {
-                double value = amplitude * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(fwhm, 2));
+                double value = amplitude * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(size, 2));
                 convFilter.append(value);
             }
         }
@@ -569,7 +569,7 @@ QVector<float> StellarSolver::generateConvFilter(SSolver::ConvFilterType filter,
             for(int x = -size; x <= size; x++ )
             {
                 //Formula inspired by astropy package
-                double rr_ww = (pow((x - size/4.0), 2) + pow((y - size/4.0), 2)) / (2 * pow(size, 2));
+                double rr_ww = (pow(x, 2) + pow(y, 2)) / (2 * pow(size, 2));
                 convFilter.append(amplitude * (1 - rr_ww) * exp(- rr_ww));
             }
         }
@@ -595,8 +595,8 @@ QVector<float> StellarSolver::generateConvFilter(SSolver::ConvFilterType filter,
         {
             for(int x = -size; x <= size; x++ )
             {
-                double value1 = amplitude * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(fwhm, 2));
-                double value2 = amplitude/2 * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(fwhm/2, 2));
+                double value1 = amplitude * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(size, 2));
+                double value2 = amplitude * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(size/2.0, 2));
                 convFilter.append(value1 - value2);
             }
         }

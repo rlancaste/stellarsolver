@@ -295,6 +295,10 @@ MainWindow::MainWindow() :
             convInspector->setWindowFlags(Qt::Tool | Qt::WindowStaysOnTopHint);
             convTable = new QTableWidget(this);
             QGridLayout *layout = new QGridLayout(this);
+            convTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            convTable->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            convTable->horizontalHeader()->hide();
+            convTable->verticalHeader()->hide();
             convInspector->setLayout(layout);
             layout->addWidget(convTable);
         }
@@ -580,7 +584,11 @@ void MainWindow::reloadConvTable()
                 i++;
             }
         }
-        convInspector->resize(size* 50 + 60, size * 50 + 60);
+        //convInspector->resize(size* 50 + 60, size * 50 + 60);
+        int dialogWidth = convTable->horizontalHeader()->length() + 40;
+        int dialogHeight= convTable->verticalHeader()->length()   + 40;
+        convInspector->resize(dialogWidth, dialogHeight);
+
     }
 }
 
