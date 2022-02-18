@@ -404,6 +404,7 @@ void StellarSolver::processFinished(int code)
         {
             solution = m_SextractorSolver->getSolution();
             solutionIndexNumber = m_SextractorSolver->getSolutionIndexNumber();
+            solutionHealpix = m_SextractorSolver->getSolutionHealpix();
             m_SolverStars = m_SextractorSolver->getStarList();
             if(m_SextractorSolver->hasWCSData())
             {
@@ -469,6 +470,7 @@ void StellarSolver::finishParallelSolve(int success)
         numStars = reportingSolver->getNumStarsFound();
         solution = reportingSolver->getSolution();
         solutionIndexNumber = reportingSolver->getSolutionIndexNumber();
+        solutionHealpix = reportingSolver->getSolutionHealpix();
         m_SolverStars = reportingSolver->getStarList();
 
         if(reportingSolver->hasWCSData())

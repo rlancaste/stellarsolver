@@ -147,6 +147,7 @@ private:
     FITSImage::Solution lastSolution;
     QStringList indexFileList;
     QString lastIndexNumber = "4";
+    QString lastHealpix = "";
 
     QDialog *convInspector = nullptr;
     QTableWidget *convTable = nullptr;

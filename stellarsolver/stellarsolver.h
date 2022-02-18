@@ -212,6 +212,10 @@ class StellarSolver : public QObject
         {
             return solutionIndexNumber;
         };
+        short getSolutionHealpix()
+        {
+            return solutionHealpix;
+        };
 
         bool sextractionDone() const
         {
@@ -368,6 +372,7 @@ class StellarSolver : public QObject
         int numStars;
         FITSImage::Solution solution;          //This is the solution that comes back from the Solver
         short solutionIndexNumber = -1; // This is the index number of the index used to solve the image.
+        short solutionHealpix = -1; // This is the healpix of the index used to solve the image.
         bool hasWCS {false};        //This boolean gets set if the StellarSolver has WCS data to retrieve
 
         bool wasAborted {false};
