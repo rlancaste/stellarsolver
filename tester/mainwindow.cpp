@@ -391,21 +391,33 @@ MainWindow::MainWindow() :
     });
     ui->addIndexPath->setToolTip("Adds a path the user selects to the list of index folder paths");
     ui->singleIndexNum->setToolTip("The number of the index series to use in solving, if selected");
+    ui->singleHealpix->setToolTip("The healpix (sky position) of the index series to use in solving, if selected");
     ui->useAllIndexes->setToolTip("Whether to use all the index files, or just the one index series selected");
     connect(ui->useAllIndexes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int ind)
     {
         ui->singleIndexNum->setReadOnly(ind == 0 || ind == 2);
+        ui->singleHealpix->setReadOnly(ind == 0 || ind == 2);
         if(ind == 0)
-            ui->singleIndexNum->clear();
-        else if(ind == 0)
         {
+            ui->singleIndexNum->clear();
+            ui->singleHealpix->clear();
+        }
+        else if(ind == 0) // ?? this condition can't succeed ??
+        {            
             if(ui->singleIndexNum->text() == "")
+            {
                 ui->singleIndexNum->setText("4");
+                ui->singleHealpix->clear();
+            }
         }
         else
+        {
             ui->singleIndexNum->setText(lastIndexNumber);
+            ui->singleHealpix->setText(lastHealpix);
+        }
     });
     connect(ui->singleIndexNum, &QLineEdit::textChanged, this, &MainWindow::loadIndexFilesToUse);
+    connect(ui->singleHealpix, &QLineEdit::textChanged, this, &MainWindow::loadIndexFilesToUse);
     connect(ui->useAllIndexes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::loadIndexFilesToUse);
 
     //Behaviors and Settings for the StarTable
@@ -817,12 +829,24 @@ void MainWindow::loadIndexFilesToUse()
             }
             else
             {
-               //This finds all the fits files associated with that index number in the folder
-               short num = ui->singleIndexNum->text().toShort();
-               QString name1 = "index-" + QString::number(num) + "*.fits";
-               QString name2 = "index-" + QString::number(num) + "*.fit";
-               dir.setNameFilters(QStringList() << name1 << name2);
-               indexFiles << dir.entryList();
+                //This finds all the fits files associated with that index number in the folder
+                short num = ui->singleIndexNum->text().toShort();
+                short numH = ui->singleHealpix->text().toShort();
+                QString name1, name2;
+                if (!ui->singleHealpix->text().isEmpty() && numH >= 0)
+                {
+                  QString hStr = QString("%1").arg(numH, 2, 10, (QChar) '0');
+                  name1 = "index-" + QString::number(num) + "-" + hStr + ".fits";
+                  name2 = "index-" + QString::number(num) + "-" + hStr + ".fit";
+                  fprintf(stderr, "NAME1: \"%s\"\n", name1.toLatin1().data());
+                }
+                else
+                {
+                    name1 = "index-" + QString::number(num) + "*.fits";
+                    name2 = "index-" + QString::number(num) + "*.fit";
+                }
+                dir.setNameFilters(QStringList() << name1 << name2);
+                indexFiles << dir.entryList();
             }
             ui->indexFilesToUse->addItems(indexFiles);
             for(int i = 0; i < indexFiles.count(); i++)
@@ -1236,9 +1260,11 @@ bool MainWindow::solverComplete()
         addSolutionToTable(lastSolution);
     short solutionIndexNumber =stellarSolver->getSolutionIndexNumber();
     lastIndexNumber = QString::number(stellarSolver->getSolutionIndexNumber());
+    lastHealpix = QString::number(stellarSolver->getSolutionHealpix());
     if(solutionIndexNumber != -1 && ui->useAllIndexes->currentIndex() == 2)
     {
         ui->singleIndexNum->setText(lastIndexNumber);
+        ui->singleHealpix->setText(lastHealpix);
         loadIndexFilesToUse();
     }
     if(ui->autoUpdateScaleAndPosition->isChecked())
@@ -1354,7 +1380,10 @@ bool MainWindow::imageLoad()
         clearImageBuffers();
         lastIndexNumber = "4"; //This will reset the filtering for index files
         if(ui->useAllIndexes != 0)
+        {
             ui->singleIndexNum->setText(lastIndexNumber);
+            ui->singleHealpix->setText(lastHealpix);
+        }
         loadIndexFilesToUse();
         m_ImageBuffer = imageLoader.getImageBuffer();
         stats=imageLoader.getStats();

@@ -1888,6 +1888,14 @@ int ExternalSextractorSolver::loadWCS()
             int after = cut.indexOf(" ");
             solutionIndexNumber = cut.left(after).toShort();
         }
+        searchString = "COMMENT index healpix: ";
+        if(text.contains(searchString))
+        {
+            int before = text.indexOf(searchString);
+            QString cut = text.mid(before).remove(searchString);
+            int after = cut.indexOf(" ");
+            solutionHealpix = cut.left(after).toShort();
+        }
         solFile.close();
     }
 

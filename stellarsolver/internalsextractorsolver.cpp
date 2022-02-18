@@ -1350,6 +1350,7 @@ int InternalSextractorSolver::runInternalSolver()
 
         m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
         solutionIndexNumber = match.indexid;
+        solutionHealpix = match.healpix;
         m_HasSolved = true;
         returnCode = 0;
     }

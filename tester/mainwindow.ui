@@ -794,10 +794,10 @@
                   </property>
                  </widget>
                 </item>
-                <item row="4" column="1" colspan="3">
+                <item row="4" column="1" colspan="4">
                  <widget class="QListWidget" name="indexFiles"/>
                 </item>
-                <item row="7" column="1" colspan="3">
+                <item row="7" column="1" colspan="4">
                  <widget class="QListWidget" name="indexFilesToUse"/>
                 </item>
                 <item row="5" column="1" colspan="2">
@@ -835,7 +835,7 @@
                   </property>
                  </widget>
                 </item>
-                <item row="6" column="1" colspan="3">
+                <item row="6" column="1" colspan="4">
                  <widget class="QLabel" name="label_66">
                   <property name="text">
                    <string>Index Files to use:</string>
@@ -852,7 +852,7 @@
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="1" colspan="4">
+                <item row="1" column="1" colspan="5">
                  <widget class="QLabel" name="label_26">
                   <property name="text">
                    <string>Index File Folder Paths</string>
@@ -862,7 +862,7 @@
                   </property>
                  </widget>
                 </item>
-                <item row="3" column="1" colspan="4">
+                <item row="3" column="1" colspan="5">
                  <widget class="QLabel" name="label_30">
                   <property name="text">
                    <string>Index Files in Selected Folder:</string>
@@ -874,6 +874,31 @@
                 </item>
                 <item row="5" column="3">
                  <widget class="QLineEdit" name="singleIndexNum">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>50</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="5" column="4">
+                 <widget class="QLineEdit" name="singleHealpix">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
