@@ -820,49 +820,34 @@ void MainWindow::loadIndexFilesListInFolder()
 //This loads and updates the list of files we will use, if not autoindexing.
 void MainWindow::loadIndexFilesToUse()
 {
-    ui->indexFilesToUse->clear();
-    indexFileList.clear();
+    // Convert the UI to a QStringList of directories to search.
+    QStringList dirList;
     for(int i = 0; i < ui->indexFolderPaths->count(); i++)
+      dirList << ui->indexFolderPaths->itemText(i);
+  
+    indexFileList.clear();
+    if (ui->useAllIndexes->currentIndex() == 0)
+        // Get all the fits files.
+        indexFileList = StellarSolver::getIndexFiles(dirList, -1, -1);
+    else
     {
-        QString currentPath = ui->indexFolderPaths->itemText(i);
-        QDir dir(currentPath);
-        QStringList indexFiles;
-        if(dir.exists())
-        {
-            if(ui->useAllIndexes->currentIndex() == 0)
-            {
-                //This finds all fits files in the folder
-                dir.setNameFilters(QStringList() << "*.fits" << "*.fit");
-                indexFiles << dir.entryList();
-            }
-            else
-            {
-                //This finds all the fits files associated with that index number in the folder
-                short num = ui->singleIndexNum->text().toShort();
-                short numH = ui->singleHealpix->text().toShort();
-                QString name1, name2;
-                if (!ui->singleHealpix->text().isEmpty() && numH >= 0)
-                {
-                  QString hStr = QString("%1").arg(numH, 2, 10, (QChar) '0');
-                  name1 = "index-" + QString::number(num) + "-" + hStr + ".fits";
-                  name2 = "index-" + QString::number(num) + "-" + hStr + ".fit";
-                  fprintf(stderr, "NAME1: \"%s\"\n", name1.toLatin1().data());
-                }
-                else
-                {
-                    name1 = "index-" + QString::number(num) + "*.fits";
-                    name2 = "index-" + QString::number(num) + "*.fit";
-                }
-                dir.setNameFilters(QStringList() << name1 << name2);
-                indexFiles << dir.entryList();
-            }
-            ui->indexFilesToUse->addItems(indexFiles);
-            for(int i = 0; i < indexFiles.count(); i++)
-            {
-               indexFileList.append(dir.absolutePath() + QDir::separator() + indexFiles.at(i));
-            }
-        }
+        // Constraining the index files by index and possibly healpix.
+        int healpix = -1;
+        if (!ui->singleHealpix->text().isEmpty())
+            healpix = ui->singleHealpix->text().toShort();
+        int index = ui->singleIndexNum->text().toShort();
+        indexFileList = StellarSolver::getIndexFiles(dirList, index, healpix);
     }
+    // Strip directory paths for the UI.
+    QStringList filenames;
+    for (int i = 0; i < indexFileList.count(); ++i)
+    {
+        QFileInfo f(indexFileList[i]);
+        filenames.append(f.fileName());
+    }
+    // Add the filenames (without the full path) to the UI.
+    ui->indexFilesToUse->clear();
+    ui->indexFilesToUse->addItems(filenames);
 }
 
 //The following methods are meant for starting the sextractor and image solving.
