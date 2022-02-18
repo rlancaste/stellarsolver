@@ -124,14 +124,27 @@ ExternalProgramPaths StellarSolver::getWinCygwinPaths()
     return ExternalSextractorSolver::getLinuxDefaultPaths();
 };
 
-void StellarSolver::extract(bool calculateHFR, QRect frame)
+bool StellarSolver::extract(bool calculateHFR, QRect frame)
 {
     m_ProcessType = calculateHFR ? EXTRACT_WITH_HFR : EXTRACT;
     useSubframe = !frame.isNull() && frame.isValid();
     if (useSubframe)
         m_Subframe = frame;
+    QEventLoop loop;
+    connect(this, &StellarSolver::finished, &loop, &QEventLoop::quit);
     start();
-    m_SextractorSolver->wait();
+    loop.exec(QEventLoop::ExcludeUserInputEvents);
+    return m_HasExtracted;
+}
+
+bool StellarSolver::solve()
+{
+    m_ProcessType = SOLVE;
+    QEventLoop loop;
+    connect(this, &StellarSolver::finished, &loop, &QEventLoop::quit);
+    start();
+    loop.exec(QEventLoop::ExcludeUserInputEvents);
+    return m_HasSolved;
 }
 
 //This will allow the solver to gracefully disconnect, abort, finish, and get deleted
@@ -182,9 +195,6 @@ void StellarSolver::start()
         m_HasSolved = false;
         hasWCS = false;
     }
-
-    //    if(m_isBlocking)
-    //        return;
 
     //These are the solvers that support parallelization, ASTAP and the online ones do not
     if(params.multiAlgorithm != NOT_MULTI && m_ProcessType == SOLVE && (m_SolverType == SOLVER_STELLARSOLVER

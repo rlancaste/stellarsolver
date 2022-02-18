@@ -131,9 +131,9 @@ class StellarSolver : public QObject
          * @param calculateHFR If true, it will also calculated Half-Flux Radius for each detected star. HFR calculations can be very CPU-intensive.
          * @param frame If set, it will only extract stars within this rectangular region of the image.
          */
-        void extract(bool calculateHFR = false, QRect frame = QRect());
+        bool extract(bool calculateHFR = false, QRect frame = QRect());
 
-        void solve();
+        bool solve();
         void start();
         void releaseSextractorSolver(SextractorSolver *solver);
         void abort();

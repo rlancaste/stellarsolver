@@ -20,14 +20,13 @@ DemoStarExtract::DemoStarExtract()
     uint8_t *imageBuffer = imageLoader.getImageBuffer();
 
     StellarSolver *stellarSolver = new StellarSolver(stats, imageBuffer, nullptr);
-    stellarSolver->setProperty("ExtractorType", SSolver::EXTRACTOR_INTERNAL);
-    stellarSolver->setProperty("ProcessType", SSolver::EXTRACT);
     stellarSolver->setParameterProfile(SSolver::Parameters::ALL_STARS);
 
-    QEventLoop loop;
-    connect(stellarSolver, &StellarSolver::finished, &loop, &QEventLoop::quit);
-    stellarSolver->start();
-    loop.exec(QEventLoop::ExcludeUserInputEvents);
+    if(!stellarSolver->extract(false))
+    {
+        printf("Solver Failed");
+        exit(0);
+    }
     QList<FITSImage::Star> starList = stellarSolver->getStarList();
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     printf("Stars found: %u", starList.count());

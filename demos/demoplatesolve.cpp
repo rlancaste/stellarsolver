@@ -21,18 +21,15 @@ DemoPlateSolve::DemoPlateSolve()
     uint8_t *imageBuffer = imageLoader.getImageBuffer();
 
     StellarSolver *stellarSolver = new StellarSolver(stats, imageBuffer, nullptr);
-    stellarSolver->setProperty("ExtractorType", SSolver::EXTRACTOR_INTERNAL);
-    stellarSolver->setProperty("SolverType", SSolver::SOLVER_STELLARSOLVER);
-    stellarSolver->setProperty("ProcessType", SSolver::SOLVE);
-    stellarSolver->setParameterProfile(SSolver::Parameters::PARALLEL_SMALLSCALE);
     stellarSolver->setIndexFolderPaths(QStringList() << "astrometry");
 
     printf("Starting to solve. . .\n");
     fflush( stdout );
-    QEventLoop loop;
-    connect(stellarSolver, &StellarSolver::finished, &loop, &QEventLoop::quit);
-    stellarSolver->start();
-    loop.exec(QEventLoop::ExcludeUserInputEvents);
+    if(!stellarSolver->solve())
+    {
+        printf("Solver Failed");
+        exit(0);
+    }
 
     FITSImage::Solution solution = stellarSolver->getSolution();
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
@@ -54,8 +51,6 @@ int main(int argc, char *argv[])
 #endif
     DemoPlateSolve *demo = new DemoPlateSolve();
     app.exec();
-
     delete demo;
-
     return 0;
 }

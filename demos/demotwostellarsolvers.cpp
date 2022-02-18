@@ -10,9 +10,7 @@
 DemoTwoStellarSolvers::DemoTwoStellarSolvers()
 {
     //Setting up simultaneous solvers.  Not usually recommended, but it does work.
-    solversRunning = 4;
-    setupStellarSolver("randomsky.fits");
-    setupStellarSolver("pleiades.jpg");
+    solversRunning = 2;
     setupStellarSolver("randomsky.fits");
     setupStellarSolver("pleiades.jpg");
 }
@@ -40,7 +38,6 @@ void DemoTwoStellarSolvers::setupStellarSolver(QString fileName)
     stellarSolver->setParameterProfile(SSolver::Parameters::SINGLE_THREAD_SOLVING);
     stellarSolver->setIndexFolderPaths(QStringList() << "astrometry");
     stellarSolver->setLogLevel(SSolver::LOG_ALL);
-/*
     if(imageLoader.position_given)
     {
         printf("Using Position: %f hours, %f degrees\n", imageLoader.ra, imageLoader.dec);
@@ -51,7 +48,6 @@ void DemoTwoStellarSolvers::setupStellarSolver(QString fileName)
         stellarSolver->setSearchScale(imageLoader.scale_low, imageLoader.scale_high, imageLoader.scale_units);
         printf("Using Scale: %f to %f, %s\n", imageLoader.scale_low, imageLoader.scale_high, SSolver::getScaleUnitString(imageLoader.scale_units).toUtf8().data());
     }
-*/
     printf("Starting to solve. . .\n");
     fflush( stdout );
 
