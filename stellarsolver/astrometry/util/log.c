@@ -42,7 +42,7 @@ int vasprintf(char **strp, const char *fmt, va_list ap)
 #include <assert.h>
 
 #include "log.h"
-#include "an-thread.h"
+//#include "an-thread.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include "tic.h"
 
 //# Modified by Robert Lancaster for the StellarSolver Internal Library

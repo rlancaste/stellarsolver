@@ -62,7 +62,6 @@ extern "C"{
 #include "log.h"
 #include "engine.h"
 #include "gslutils.h"
-#include "augment-xylist.h"
 #include "anqfits.h"
 #include "ioutils.h"
 #include "fitsioutils.h"
@@ -70,7 +69,6 @@ extern "C"{
 #include "fitstable.h"
 //#include "sip_qfits.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "sip-utils.h"
-#include "tabsort.h"
 }
 
 namespace Ui {
