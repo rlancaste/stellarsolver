@@ -1,4 +1,4 @@
-#include "demostarextract.h"
+#include <QApplication>
 #include <QImageReader>
 //Includes for this project
 #include "structuredefinitions.h"
@@ -7,8 +7,13 @@
 #include "onlinesolver.h"
 #include "testerutils/fileio.h"
 
-DemoStarExtract::DemoStarExtract()
+
+int main(int argc, char *argv[])
 {
+    QApplication app(argc, argv);
+#if defined(__linux__)
+    setlocale(LC_NUMERIC, "C");
+#endif
     fileio imageLoader;
     imageLoader.logToSignal = false;
     if(!imageLoader.loadImage("pleiades.jpg"))
@@ -29,26 +34,12 @@ DemoStarExtract::DemoStarExtract()
     }
     QList<FITSImage::Star> starList = stellarSolver->getStarList();
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-    printf("Stars found: %u", starList.count());
+    printf("Stars found: %u\n", starList.count());
     for(int i=0; i < starList.count(); i++)
     {
         FITSImage::Star star = starList.at(i);
         printf("Star #%u: (%f x, %f y), (%f a, %f b, %f theta), mag: %f, flux: %f, peak: %f \n ", i, star.x, star.y, star.a, star.b, star.theta, star.mag, star.flux, star.peak);
     }
-    exit(0);
-}
-
-
-int main(int argc, char *argv[])
-{
-    QApplication app(argc, argv);
-#if defined(__linux__)
-    setlocale(LC_NUMERIC, "C");
-#endif
-    DemoStarExtract *demo = new DemoStarExtract();
-    app.exec();
-
-    delete demo;
 
     return 0;
 }

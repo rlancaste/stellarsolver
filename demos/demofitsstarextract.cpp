@@ -1,4 +1,4 @@
-#include "demofitsstarextract.h"
+#include <QApplication>
 #include <QImageReader>
 //Includes for this project
 #include "structuredefinitions.h"
@@ -7,9 +7,12 @@
 #include "onlinesolver.h"
 #include "testerutils/fileio.h"
 
-
-DemoFITSStarExtract::DemoFITSStarExtract()
+int main(int argc, char *argv[])
 {
+    QApplication app(argc, argv);
+#if defined(__linux__)
+    setlocale(LC_NUMERIC, "C");
+#endif
     fileio fileLoader;
     fileLoader.logToSignal = false;
     if(!fileLoader.loadImage("randomsky.fits"))
@@ -32,26 +35,12 @@ DemoFITSStarExtract::DemoFITSStarExtract()
     }
     QList<FITSImage::Star> starList = stellarSolver->getStarList();
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-    printf("Stars found: %u", starList.count());
+    printf("Stars found: %u\n", starList.count());
     for(int i=0; i < starList.count(); i++)
     {
         FITSImage::Star star = starList.at(i);
         printf("Star #%u: (%f x, %f y), (%f a, %f b, %f theta), mag: %f, flux: %f, peak: %f \n ", i, star.x, star.y, star.a, star.b, star.theta, star.mag, star.flux, star.peak);
     }
-    exit(0);
-}
-
-
-int main(int argc, char *argv[])
-{
-    QApplication app(argc, argv);
-#if defined(__linux__)
-    setlocale(LC_NUMERIC, "C");
-#endif
-    DemoFITSStarExtract *demo = new DemoFITSStarExtract();
-    app.exec();
-
-    delete demo;
 
     return 0;
 }

@@ -1,4 +1,4 @@
-#include "demoplatesolve.h"
+#include <QApplication>
 #include <QImageReader>
 //Includes for this project
 #include "structuredefinitions.h"
@@ -7,9 +7,10 @@
 #include "onlinesolver.h"
 #include "testerutils/fileio.h"
 
-
-DemoPlateSolve::DemoPlateSolve()
+int main(int argc, char *argv[])
 {
+    QApplication app(argc, argv);
+
     fileio imageLoader;
     imageLoader.logToSignal = false;
     if(!imageLoader.loadImage("pleiades.jpg"))
@@ -39,18 +40,5 @@ DemoPlateSolve::DemoPlateSolve()
     printf("Pixel Scale: %f\"\n", solution.pixscale);
     printf("Field rotation angle: up is %f degrees E of N\n", solution.orientation);
     printf("Field parity: %s\n\n", solution.parity.toUtf8().data());
-    exit(0);
-}
-
-
-int main(int argc, char *argv[])
-{
-    QApplication app(argc, argv);
-#if defined(__linux__)
-    setlocale(LC_NUMERIC, "C");
-#endif
-    DemoPlateSolve *demo = new DemoPlateSolve();
-    app.exec();
-    delete demo;
     return 0;
 }

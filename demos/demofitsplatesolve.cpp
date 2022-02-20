@@ -1,4 +1,4 @@
-#include "demofitsplatesolve.h"
+#include <QApplication>
 #include <QImageReader>
 //Includes for this project
 #include "structuredefinitions.h"
@@ -7,8 +7,13 @@
 #include "onlinesolver.h"
 #include "testerutils/fileio.h"
 
-DemoFITSPlateSolve::DemoFITSPlateSolve()
+
+int main(int argc, char *argv[])
 {
+    QApplication app(argc, argv);
+#if defined(__linux__)
+    setlocale(LC_NUMERIC, "C");
+#endif
     fileio imageLoader;
     imageLoader.logToSignal = false;
     if(!imageLoader.loadImage("randomsky.fits"))
@@ -48,18 +53,5 @@ DemoFITSPlateSolve::DemoFITSPlateSolve()
     printf("Pixel Scale: %f\"\n", solution.pixscale);
     printf("Field rotation angle: up is %f degrees E of N\n", solution.orientation);
     printf("Field parity: %s\n\n", solution.parity.toUtf8().data());
-    exit(0);
-}
-
-
-int main(int argc, char *argv[])
-{
-    QApplication app(argc, argv);
-#if defined(__linux__)
-    setlocale(LC_NUMERIC, "C");
-#endif
-    DemoFITSPlateSolve *demo = new DemoFITSPlateSolve();
-    app.exec();
-    delete demo;
     return 0;
 }
