@@ -1,10 +1,8 @@
 #include "demotwostellarsolvers.h"
-#include <QImageReader>
+
 //Includes for this project
 #include "structuredefinitions.h"
 #include "stellarsolver.h"
-#include "externalsextractorsolver.h"
-#include "onlinesolver.h"
 #include "testerutils/fileio.h"
 
 DemoTwoStellarSolvers::DemoTwoStellarSolvers()
@@ -18,12 +16,7 @@ DemoTwoStellarSolvers::DemoTwoStellarSolvers()
 void DemoTwoStellarSolvers::setupStellarSolver(QString fileName)
 {
     fileio imageLoader;
-    bool success = false;
-    if(fileName.endsWith(".fits"))
-        success = imageLoader.loadFits(fileName);
-    else
-        success = imageLoader.loadOtherFormat(fileName);
-    if(!success)
+    if(!imageLoader.loadImage(fileName))
     {
         printf("Error in loading file");
         exit(1);

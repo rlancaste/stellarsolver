@@ -1,10 +1,8 @@
 #include <QApplication>
-#include <QImageReader>
+
 //Includes for this project
 #include "structuredefinitions.h"
 #include "stellarsolver.h"
-#include "externalsextractorsolver.h"
-#include "onlinesolver.h"
 #include "testerutils/fileio.h"
 
 
