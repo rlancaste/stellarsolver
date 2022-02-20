@@ -24,6 +24,7 @@ class fileio : public QObject
 public:
     fileio();
     bool logToSignal = false;
+    bool loadImage(QString fileName);
     bool loadFits(QString fileName);
     bool loadOtherFormat(QString fileName);
     bool checkDebayer();

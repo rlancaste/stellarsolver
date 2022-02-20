@@ -10,7 +10,7 @@
 DemoExtractSolve::DemoExtractSolve()
 {
     fileio imageLoader;
-    if(!imageLoader.loadOtherFormat("pleiades.jpg"))
+    if(!imageLoader.loadImage("pleiades.jpg"))
     {
         printf("Error in loading FITS file");
         exit(1);

@@ -12,7 +12,7 @@ DemoFITSExtractSolve::DemoFITSExtractSolve()
 {
     fileio imageLoader;
     imageLoader.logToSignal = false;
-    if(!imageLoader.loadFits("randomsky.fits"))
+    if(!imageLoader.loadImage("randomsky.fits"))
     {
         printf("Error in loading FITS file");
         exit(1);

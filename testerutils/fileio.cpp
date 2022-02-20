@@ -1,4 +1,5 @@
 #include "fileio.h"
+#include <QFileInfo>
 
 
 fileio::fileio()
@@ -6,6 +7,15 @@ fileio::fileio()
     debayerParams.method  = DC1394_BAYER_METHOD_NEAREST;
     debayerParams.filter  = DC1394_COLOR_FILTER_RGGB;
     debayerParams.offsetX = debayerParams.offsetY = 0;
+}
+
+bool fileio::loadImage(QString fileName)
+{
+    QFileInfo newFileInfo(fileName);
+    if(newFileInfo.suffix() == "fits" || newFileInfo.suffix() == "fit")
+        return loadFits(fileName);
+    else
+        return loadOtherFormat(fileName);
 }
 
 //This method was copied and pasted and modified from the method privateLoad in fitsdata in KStars

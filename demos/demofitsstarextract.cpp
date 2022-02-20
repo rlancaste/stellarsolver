@@ -12,7 +12,7 @@ DemoFITSStarExtract::DemoFITSStarExtract()
 {
     fileio fileLoader;
     fileLoader.logToSignal = false;
-    if(!fileLoader.loadFits("randomsky.fits"))
+    if(!fileLoader.loadImage("randomsky.fits"))
     {
         printf("Error in loading FITS file");
         exit(1);

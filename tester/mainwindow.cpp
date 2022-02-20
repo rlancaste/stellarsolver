@@ -1350,7 +1350,6 @@ bool MainWindow::imageLoad()
     if(!fileInfo.exists())
         return false;
 
-    QFileInfo newFileInfo(fileURL);
     dirPath = fileInfo.absolutePath();
     fileToProcess = fileURL;
 
@@ -1361,13 +1360,8 @@ bool MainWindow::imageLoad()
     fileio imageLoader;
     imageLoader.logToSignal = true;
     connect(&imageLoader, &fileio::logOutput, this, &MainWindow::logOutput);
-    bool loadSuccess;
-    if(newFileInfo.suffix() == "fits" || newFileInfo.suffix() == "fit")
-        loadSuccess = imageLoader.loadFits(fileToProcess);
-    else
-        loadSuccess = imageLoader.loadOtherFormat(fileToProcess);
 
-    if(loadSuccess)
+    if(imageLoader.loadImage(fileToProcess))
     {
         imageLoaded = true;
         clearImageBuffers();

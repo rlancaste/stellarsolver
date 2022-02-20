@@ -11,7 +11,7 @@ DemoStarExtract::DemoStarExtract()
 {
     fileio imageLoader;
     imageLoader.logToSignal = false;
-    if(!imageLoader.loadOtherFormat("pleiades.jpg"))
+    if(!imageLoader.loadImage("pleiades.jpg"))
     {
         printf("Error in loading FITS file");
         exit(1);
