@@ -374,6 +374,10 @@ install(TARGETS StellarSolverTester
 else(APPLE)
         #installation for Linux
         install(TARGETS StellarSolverTester RUNTIME DESTINATION bin)
+        install(DIRECTORY tester/icons
+                DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
+        install(FILES tester/com.github.rlancaste.stellarsolver.desktop
+                DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
 endif(APPLE)
 
 endif(BUILD_TESTER)
