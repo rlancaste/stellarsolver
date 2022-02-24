@@ -93,22 +93,14 @@ MainWindow::MainWindow() :
 
     //The Options at the bottom of the Window
     ui->trials->setToolTip("The number of times to Sextract or Solve to get an average time that it takes.");
-    connect(ui->startSextraction, &QAbstractButton::clicked, this, &MainWindow::sextractButtonClicked );
+    connect(ui->startExtraction, &QAbstractButton::clicked, this, &MainWindow::extractButtonClicked );
     connect(ui->startSolving, &QAbstractButton::clicked, this, &MainWindow::solveButtonClicked );
-    //ui->SextractStars->setToolTip("Sextract the stars in the image using the chosen method and load them into the star table");
-    //ui->m_ExtractorType->setToolTip("Lets you choose the Internal StellarSolver SEP or external Sextractor program");
-    //ui->optionsProfileSextract->setToolTip("The Options Profile to use for Sextracting.");
-    //ui->editSextractorProfile->setToolTip("Loads the currently selected sextrctor profile into the profile editor");
-    connect(ui->editSextractorProfile, &QAbstractButton::clicked, this, [this]()
+    connect(ui->editExtractorProfile, &QAbstractButton::clicked, this, [this]()
     {
-        ui->optionsProfile->setCurrentIndex(ui->sextractionProfile->currentIndex());
+        ui->optionsProfile->setCurrentIndex(ui->extractionProfile->currentIndex());
         ui->optionsTab->setCurrentIndex(1);
-        ui->sextractionProfile->setCurrentIndex(0);
+        ui->extractionProfile->setCurrentIndex(0);
     });
-    // ui->SolveImage->setToolTip("Solves the image using the method chosen in the dropdown box");
-    //ui->solverType->setToolTip("Lets you choose how to solve the image");
-    //ui->optionsProfileSolve->setToolTip("The Options Profile to use for Solving.");
-    //ui->editSolverProfile->setToolTip("Loads the currently selected solver profile into the profile editor");
     connect(ui->editSolverProfile, &QAbstractButton::clicked, this, [this]()
     {
         ui->optionsProfile->setCurrentIndex(ui->solverProfile->currentIndex());
@@ -124,7 +116,7 @@ MainWindow::MainWindow() :
     ui->ClearResults->setToolTip("Clears the Results Table");
 
     //The Options for the StellarSolver Options
-    ui->optionsProfile->setToolTip("The Options Profile currently in the options box. Selecting a profile will reset all the Sextractor and Solver settings to that profile.");
+    ui->optionsProfile->setToolTip("The Options Profile currently in the options box. Selecting a profile will reset all the Star Extractor and Solver settings to that profile.");
     connect(ui->optionsProfile, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::loadOptionsProfile);
     ui->addOptionProfile->setToolTip("Adds the current options in the left option pane to a new profile");
     connect(ui->addOptionProfile, &QAbstractButton::clicked, this, [this]()
@@ -141,7 +133,7 @@ MainWindow::MainWindow() :
             ui->optionsProfile->setCurrentIndex(0); //So we don't trigger any loading of any other profiles
             optionsList.append(params);
             ui->optionsProfile->addItem(name);
-            ui->sextractionProfile->addItem(name);
+            ui->extractionProfile->addItem(name);
             ui->solverProfile->addItem(name);
             ui->optionsProfile->setCurrentText(name);
         }
@@ -157,7 +149,7 @@ MainWindow::MainWindow() :
         }
         ui->optionsProfile->setCurrentIndex(0); //So we don't trigger any loading of any other profiles
         ui->optionsProfile->removeItem(item);
-        ui->sextractionProfile->removeItem(item);
+        ui->extractionProfile->removeItem(item);
         ui->solverProfile->removeItem(item);
         optionsList.removeAt(item - 1);
 
@@ -167,33 +159,33 @@ MainWindow::MainWindow() :
     ui->loadSettings->setToolTip("Loads a file with Options Profiles from a saved location");
     connect(ui->loadSettings, &QPushButton::clicked, this, &MainWindow::loadOptionsProfiles);
 
-    QWidget *sextractorOptions = ui->optionsBox->widget(0);
+    QWidget *extractorOptions = ui->optionsBox->widget(0);
     QWidget *starFilterOptions = ui->optionsBox->widget(1);
     QWidget *astrometryOptions = ui->optionsBox->widget(2);
 
     QList<QLineEdit *> lines;
-    lines = sextractorOptions->findChildren<QLineEdit *>();
+    lines = extractorOptions->findChildren<QLineEdit *>();
     lines.append(starFilterOptions->findChildren<QLineEdit *>());
     lines.append(astrometryOptions->findChildren<QLineEdit *>());
     foreach(QLineEdit *line, lines)
         connect(line, &QLineEdit::textEdited, this, &MainWindow::settingJustChanged);
 
     QList<QCheckBox *> checks;
-    checks = sextractorOptions->findChildren<QCheckBox *>();
+    checks = extractorOptions->findChildren<QCheckBox *>();
     checks.append(starFilterOptions->findChildren<QCheckBox *>());
     checks.append(astrometryOptions->findChildren<QCheckBox *>());
     foreach(QCheckBox *check, checks)
         connect(check, &QCheckBox::stateChanged, this, &MainWindow::settingJustChanged);
 
     QList<QComboBox *> combos;
-    combos = sextractorOptions->findChildren<QComboBox *>();
+    combos = extractorOptions->findChildren<QComboBox *>();
     combos.append(starFilterOptions->findChildren<QComboBox *>());
     combos.append(astrometryOptions->findChildren<QComboBox *>());
     foreach(QComboBox *combo, combos)
         connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
 
     QList<QSpinBox *> spins;
-    spins = sextractorOptions->findChildren<QSpinBox *>();
+    spins = extractorOptions->findChildren<QSpinBox *>();
     spins.append(starFilterOptions->findChildren<QSpinBox *>());
     spins.append(astrometryOptions->findChildren<QSpinBox *>());
     foreach(QSpinBox *spin, spins)
@@ -206,11 +198,11 @@ MainWindow::MainWindow() :
 
     //Settings for the External Sextractor and Solver
     ui->configFilePath->setToolTip("The path to the Astrometry.cfg file used by astrometry.net for configuration.");
-    ui->sextractorPath->setToolTip("The path to the external Sextractor executable");
+    ui->sextractorPath->setToolTip("The path to the external SExtractor executable");
     ui->solverPath->setToolTip("The path to the external Astrometry.net solve-field executable");
     ui->astapPath->setToolTip("The path to the external ASTAP executable");
     ui->watneyPath->setToolTip("The path to the external Watney Astrometry Solver executable");
-    ui->basePath->setToolTip("The base path where sextractor and astrometry temporary files are saved on your computer");
+    ui->basePath->setToolTip("The base path where SExtractor and astrometry.net temporary files are saved on your computer");
     ui->openTemp->setToolTip("Opens the directory (above) to where the external solvers save their files");
     ui->wcsPath->setToolTip("The path to wcsinfo for the external Astrometry.net");
     ui->cleanupTemp->setToolTip("This option allows the program to clean up temporary files created when running various processes");
@@ -234,22 +226,22 @@ MainWindow::MainWindow() :
         switch(num)
         {
             case 0:
-                paths = ExternalSextractorSolver::getLinuxDefaultPaths();
+                paths = ExternalExtractorSolver::getLinuxDefaultPaths();
                 break;
             case 1:
-                paths = ExternalSextractorSolver::getLinuxInternalPaths();
+                paths = ExternalExtractorSolver::getLinuxInternalPaths();
                 break;
             case 2:
-                paths = ExternalSextractorSolver::getMacHomebrewPaths();
+                paths = ExternalExtractorSolver::getMacHomebrewPaths();
                 break;
             case 3:
-                paths = ExternalSextractorSolver::getWinANSVRPaths();
+                paths = ExternalExtractorSolver::getWinANSVRPaths();
                 break;
             case 4:
-                paths = ExternalSextractorSolver::getWinCygwinPaths();
+                paths = ExternalExtractorSolver::getWinCygwinPaths();
                 break;
             default:
-                paths = ExternalSextractorSolver::getLinuxDefaultPaths();
+                paths = ExternalExtractorSolver::getLinuxDefaultPaths();
                 break;
         }
 
@@ -262,9 +254,9 @@ MainWindow::MainWindow() :
     });
     ui->setPathsAutomatically->setToolTip("This allows you to select the default values of typical configurations of paths to external files/programs on different systems from a dropdown");
 
-    //Sextractor Settings
+    //Star Extractor Settings
 
-    ui->apertureShape->setToolTip("This selects whether to instruct the Sextractor to use Ellipses or Circles for flux calculations");
+    ui->apertureShape->setToolTip("This selects whether to instruct the Star Extractor to use Ellipses or Circles for flux calculations");
     ui->kron_fact->setToolTip("This sets the Kron Factor for use with the kron radius for flux calculations.");
     ui->subpix->setToolTip("The subpix setting.  The instructions say to make it 5");
     ui->r_min->setToolTip("The minimum radius for stars for flux calculations.");
@@ -457,12 +449,12 @@ MainWindow::MainWindow() :
     ui->resultsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     connect(ui->exportResultsTable, &QAbstractButton::clicked, this, &MainWindow::saveResultsTable);
     ui->exportResultsTable->setToolTip("Exports the log of processes executed during this session to a CSV file for further analysis");
-    connect(ui->showSextractorParams, &QCheckBox::stateChanged, this, [this]()
+    connect(ui->showExtractorParams, &QCheckBox::stateChanged, this, [this]()
     {
-        showSextractorParams = ui->showSextractorParams->isChecked();
+        showExtractorParams = ui->showExtractorParams->isChecked();
         updateHiddenResultsTableColumns();
     });
-    ui->showSextractorParams->setToolTip("This toggles whether to show or hide the Sextractor Settings in the Results table at the bottom");
+    ui->showExtractorParams->setToolTip("This toggles whether to show or hide the Star Extractor Settings in the Results table at the bottom");
     connect(ui->showAstrometryParams, &QCheckBox::stateChanged, this, [this]()
     {
         showAstrometryParams = ui->showAstrometryParams->isChecked();
@@ -506,9 +498,9 @@ MainWindow::MainWindow() :
     index = programSettings.value("setPathsIndex", index).toInt();
     ui->setPathsAutomatically->setCurrentIndex(index);
 
-    //This gets a temporary ExternalSextractorSolver to get the defaults
+    //This gets a temporary ExternalExtractorSolver to get the defaults
     //It tries to load from the saved settings if possible as well.
-    ExternalSextractorSolver extTemp(processType, m_ExtractorType, solverType, stats, m_ImageBuffer, this);
+    ExternalExtractorSolver extTemp(processType, m_ExtractorType, solverType, stats, m_ImageBuffer, this);
     ui->sextractorPath->setText(programSettings.value("sextractorBinaryPath", extTemp.sextractorBinaryPath).toString());
     ui->configFilePath->setText(programSettings.value("confPath", extTemp.confPath).toString());
     ui->solverPath->setText(programSettings.value("solverPath", extTemp.solverPath).toString());
@@ -530,12 +522,12 @@ MainWindow::MainWindow() :
     foreach(SSolver::Parameters param, optionsList)
     {
         ui->optionsProfile->addItem(param.listName);
-        ui->sextractionProfile->addItem(param.listName);
+        ui->extractionProfile->addItem(param.listName);
         ui->solverProfile->addItem(param.listName);
     }
     optionsAreSaved = true;  //This way the next command won't trigger the unsaved warning.
     ui->optionsProfile->setCurrentIndex(0);
-    ui->sextractionProfile->setCurrentIndex(programSettings.value("sextractionProfile", 5).toInt());
+    ui->extractionProfile->setCurrentIndex(programSettings.value("sextractionProfile", 5).toInt());
     ui->solverProfile->setCurrentIndex(programSettings.value("solverProfile", 4).toInt());
 
     QString storedPaths = programSettings.value("indexFolderPaths", "").toString();
@@ -771,7 +763,7 @@ bool MainWindow::prepareForProcesses()
                 if(QMessageBox::question(this, "Abort?", "StellarSolver is solving now. Abort it?") == QMessageBox::No)
                     return false;
             }
-            else if((type == EXTRACT || type == EXTRACT_WITH_HFR) && !sextractorComplete())
+            else if((type == EXTRACT || type == EXTRACT_WITH_HFR) && !extractorComplete())
             {
                 if(QMessageBox::question(this, "Abort?", "StellarSolver is extracting sources now. Abort it?") == QMessageBox::No)
                     return false;
@@ -850,16 +842,16 @@ void MainWindow::loadIndexFilesToUse()
     ui->indexFilesToUse->addItems(filenames);
 }
 
-//The following methods are meant for starting the sextractor and image solving.
-//The methods run when the buttons are clicked.  They call the methods inside StellarSolver and ExternalSextractorSovler
+//The following methods are meant for starting the star extractor and image solver.
+//The methods run when the buttons are clicked.  They call the methods inside StellarSolver and ExternalExtractorSovler
 
 //This method responds when the user clicks the Sextract Button
-void MainWindow::sextractButtonClicked()
+void MainWindow::extractButtonClicked()
 {
     if(!prepareForProcesses())
         return;
 
-    int type = ui->sextractorTypeForSextraction->currentIndex();
+    int type = ui->extractorTypeForExtraction->currentIndex();
     switch(type)
     {
         case 0:
@@ -880,7 +872,7 @@ void MainWindow::sextractButtonClicked()
             break;
 
     }
-    profileSelection = ui->sextractionProfile->currentIndex();
+    profileSelection = ui->extractionProfile->currentIndex();
     sextractImage();
 }
 
@@ -939,7 +931,7 @@ void MainWindow::sextractImage()
         stellarSolver->setParameters(optionsList.at(profileSelection - 1));
 
 
-    setupExternalSextractorSolverIfNeeded();
+    setupExternalExtractorSolverIfNeeded();
     setupStellarSolverParameters();
 
     if(useSubframe)
@@ -947,7 +939,7 @@ void MainWindow::sextractImage()
     else
         stellarSolver->clearSubFrame();
 
-    connect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::sextractorComplete);
+    connect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::extractorComplete);
 
     startProcessMonitor();
     stellarSolver->start();
@@ -966,7 +958,7 @@ void MainWindow::solveImage()
     //Since this tester uses it many times, it doesn't *need* to replace the stellarsolver every time
     //resetStellarSolver();
 
-    m_ExtractorType = (SSolver::ExtractorType) ui->sextractorTypeForSolving->currentIndex();
+    m_ExtractorType = (SSolver::ExtractorType) ui->extractorTypeForSolving->currentIndex();
     solverType = (SSolver::SolverType) ui->solverType->currentIndex();
 
     stellarSolver->setProperty("ProcessType", processType);
@@ -980,7 +972,7 @@ void MainWindow::solveImage()
         stellarSolver->setParameters(optionsList.at(profileSelection - 1));
 
     setupStellarSolverParameters();
-    setupExternalSextractorSolverIfNeeded();
+    setupExternalExtractorSolverIfNeeded();
 
     stellarSolver->clearSubFrame();
 
@@ -1002,8 +994,8 @@ void MainWindow::solveImage()
     stellarSolver->start();
 }
 
-//This sets up the External Sextractor and Solver and sets settings specific to them
-void MainWindow::setupExternalSextractorSolverIfNeeded()
+//This sets up the External SExtractor and Solver and sets settings specific to them
+void MainWindow::setupExternalExtractorSolverIfNeeded()
 {
     //External options
     stellarSolver->setProperty("FileToProcess", fileToProcess);
@@ -1050,7 +1042,7 @@ void MainWindow::setupStellarSolverParameters()
     stellarSolver->setSSLogLevel((SSolver::SSolverLogLevel)ui->stellarSolverLogLevel->currentIndex());
 }
 
-//This sets all the settings for either the internal or external sextractor
+//This sets all the settings for either internal SEP or external SExtractor
 //based on the requested settings in the mainwindow interface.
 //If you are implementing the StellarSolver Library in your progra, you may choose to change some or all of these settings or use the defaults.
 SSolver::Parameters MainWindow::getSettingsFromUI()
@@ -1058,7 +1050,7 @@ SSolver::Parameters MainWindow::getSettingsFromUI()
     SSolver::Parameters params;
     params.listName = "Custom";
     params.description = ui->description->toPlainText();
-    //These are to pass the parameters to the internal sextractor
+    //These are to pass the parameters to the internal star extractor
     params.apertureShape = (SSolver::Shape) ui->apertureShape->currentIndex();
     params.kron_fact = ui->kron_fact->text().toDouble();
     params.subpix = ui->subpix->text().toInt() ;
@@ -1111,7 +1103,8 @@ SSolver::Parameters MainWindow::getSettingsFromUI()
 void MainWindow::sendSettingsToUI(SSolver::Parameters a)
 {
     ui->description->setText(a.description);
-    //Sextractor Settings
+
+    //Star Extractor Settings
 
     ui->apertureShape->setCurrentIndex(a.apertureShape);
     connect(ui->apertureShape, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::settingJustChanged);
@@ -1163,14 +1156,14 @@ void MainWindow::sendSettingsToUI(SSolver::Parameters a)
 }
 
 
-//This runs when the sextractor is complete.
+//This runs when the star extractor is complete.
 //It reports the time taken, prints a message, loads the sextraction stars to the startable, and adds the sextraction stats to the results table.
-bool MainWindow::sextractorComplete()
+bool MainWindow::extractorComplete()
 {
     elapsed = processTimer.elapsed() / 1000.0;
 
 
-    disconnect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::sextractorComplete);
+    disconnect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::extractorComplete);
 
     if(!stellarSolver->failed() && stellarSolver->sextractionDone())
     {
@@ -1305,7 +1298,7 @@ bool MainWindow::solverComplete()
     return true;
 }
 
-//This method will attempt to abort the sextractor, sovler, and any other processes currently being run, no matter which type
+//This method will attempt to abort the star extractor, sovler, and any other processes currently being run, no matter which type
 void MainWindow::abort()
 {
     numberOfTrials = currentTrial;
@@ -1987,7 +1980,7 @@ void MainWindow::setupResultsTable()
     addColumnToTable(table, "Profile");
     addColumnToTable(table, "Loglvl");
     addColumnToTable(table, "Stars");
-    //Sextractor Parameters
+    //Star Extractor Parameters
     addColumnToTable(table, "Shape");
     addColumnToTable(table, "Kron");
     addColumnToTable(table, "Subpix");
@@ -2051,7 +2044,7 @@ void MainWindow::addSextractionToTable()
     setItemInColumn(table, "Profile", params.listName);
     setItemInColumn(table, "Loglvl", stellarSolver->getLogLevelString());
     setItemInColumn(table, "Stars", QString::number(stellarSolver->getNumStarsFound()));
-    //Sextractor Parameters
+    //Star Extractor Parameters
     setItemInColumn(table, "Shape", stellarSolver->getShapeString());
     setItemInColumn(table, "Kron", QString::number(params.kron_fact));
     setItemInColumn(table, "Subpix", QString::number(params.subpix));
@@ -2126,30 +2119,30 @@ void MainWindow::addSolutionToTable(FITSImage::Solution solution)
 void MainWindow::updateHiddenResultsTableColumns()
 {
     QTableWidget *table = ui->resultsTable;
-    //Sextractor Params
-    setColumnHidden(table, "Shape", !showSextractorParams);
-    setColumnHidden(table, "Kron", !showSextractorParams);
-    setColumnHidden(table, "Subpix", !showSextractorParams);
-    setColumnHidden(table, "r_min", !showSextractorParams);
-    setColumnHidden(table, "minarea", !showSextractorParams);
-    setColumnHidden(table, "thresh_mult", !showSextractorParams);
-    setColumnHidden(table, "thresh_off", !showSextractorParams);
-    setColumnHidden(table, "d_thresh", !showSextractorParams);
-    setColumnHidden(table, "d_cont", !showSextractorParams);
-    setColumnHidden(table, "clean", !showSextractorParams);
-    setColumnHidden(table, "clean param", !showSextractorParams);
-    setColumnHidden(table, "conv", !showSextractorParams);
-    setColumnHidden(table, "fwhm", !showSextractorParams);
-    setColumnHidden(table, "part", !showSextractorParams);
+    //Star Extractor Params
+    setColumnHidden(table, "Shape", !showExtractorParams);
+    setColumnHidden(table, "Kron", !showExtractorParams);
+    setColumnHidden(table, "Subpix", !showExtractorParams);
+    setColumnHidden(table, "r_min", !showExtractorParams);
+    setColumnHidden(table, "minarea", !showExtractorParams);
+    setColumnHidden(table, "thresh_mult", !showExtractorParams);
+    setColumnHidden(table, "thresh_off", !showExtractorParams);
+    setColumnHidden(table, "d_thresh", !showExtractorParams);
+    setColumnHidden(table, "d_cont", !showExtractorParams);
+    setColumnHidden(table, "clean", !showExtractorParams);
+    setColumnHidden(table, "clean param", !showExtractorParams);
+    setColumnHidden(table, "conv", !showExtractorParams);
+    setColumnHidden(table, "fwhm", !showExtractorParams);
+    setColumnHidden(table, "part", !showExtractorParams);
     //Star Filtering Parameters
-    setColumnHidden(table, "Max Size", !showSextractorParams);
-    setColumnHidden(table, "Min Size", !showSextractorParams);
-    setColumnHidden(table, "Max Ell", !showSextractorParams);
-    setColumnHidden(table, "Ini Keep", !showSextractorParams);
-    setColumnHidden(table, "Keep #", !showSextractorParams);
-    setColumnHidden(table, "Cut Bri", !showSextractorParams);
-    setColumnHidden(table, "Cut Dim", !showSextractorParams);
-    setColumnHidden(table, "Sat Lim", !showSextractorParams);
+    setColumnHidden(table, "Max Size", !showExtractorParams);
+    setColumnHidden(table, "Min Size", !showExtractorParams);
+    setColumnHidden(table, "Max Ell", !showExtractorParams);
+    setColumnHidden(table, "Ini Keep", !showExtractorParams);
+    setColumnHidden(table, "Keep #", !showExtractorParams);
+    setColumnHidden(table, "Cut Bri", !showExtractorParams);
+    setColumnHidden(table, "Cut Dim", !showExtractorParams);
+    setColumnHidden(table, "Sat Lim", !showExtractorParams);
     //Astrometry Parameters
     setColumnHidden(table, "Pos?", !showAstrometryParams);
     setColumnHidden(table, "Scale?", !showAstrometryParams);
@@ -2172,7 +2165,7 @@ void MainWindow::updateHiddenResultsTableColumns()
 }
 
 //This will write the Results table to a csv file if the user desires
-//Then the user can analyze the solution information in more detail to try to perfect sextractor and solver parameters
+//Then the user can analyze the solution information in more detail to try to perfect star extractor and solver parameters
 void MainWindow::saveResultsTable()
 {
     if (ui->resultsTable->rowCount() == 0)
@@ -2242,7 +2235,7 @@ void MainWindow::saveResultsTable()
 }
 
 //This will write the Star table to a csv file if the user desires
-//Then the user can analyze the solution information in more detail to try to analyze the stars found or try to perfect sextractor parameters
+//Then the user can analyze the solution information in more detail to try to analyze the stars found or try to perfect star extractor parameters
 void MainWindow::saveStarTable()
 {
     if (ui->starTable->rowCount() == 0)
@@ -2361,7 +2354,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     programSettings.setValue("setPathsIndex", ui->setPathsAutomatically->currentIndex());
 
     programSettings.setValue("sextractorBinaryPath", ui->sextractorPath->text());
-    programSettings.setValue("sextractionProfile", ui->sextractionProfile->currentIndex());
+    programSettings.setValue("sextractionProfile", ui->extractionProfile->currentIndex());
     programSettings.setValue("confPath", ui->configFilePath->text());
     programSettings.setValue("solverPath", ui->solverPath->text());
     programSettings.setValue("solverProfile", ui->solverProfile->currentIndex());

@@ -7,7 +7,7 @@
 */
 #pragma once
 
-#include "externalsextractorsolver.h"
+#include "externalextractorsolver.h"
 
 #include <QFile>
 #include <QHttpMultiPart>
@@ -26,7 +26,7 @@
 
 using namespace SSolver;
 
-class OnlineSolver : public ExternalSextractorSolver
+class OnlineSolver : public ExternalExtractorSolver
 {
         Q_OBJECT
     public:

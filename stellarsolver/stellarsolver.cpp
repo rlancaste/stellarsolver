@@ -14,8 +14,8 @@
 #endif
 
 #include "stellarsolver.h"
-#include "sextractorsolver.h"
-#include "externalsextractorsolver.h"
+#include "extractorsolver.h"
+#include "externalextractorsolver.h"
 #include "onlinesolver.h"
 #include <QApplication>
 #include <QSettings>
@@ -47,13 +47,13 @@ StellarSolver::~StellarSolver()
 
 }
 
-SextractorSolver* StellarSolver::createSextractorSolver()
+ExtractorSolver* StellarSolver::createExtractorSolver()
 {
-    SextractorSolver *solver;
+    ExtractorSolver *solver;
 
     if(m_ProcessType == SOLVE && m_SolverType == SOLVER_ONLINEASTROMETRY)
     {
-        OnlineSolver *onlineSolver = new OnlineSolver(m_ProcessType, m_SextractorType, m_SolverType, m_Statistics, m_ImageBuffer,
+        OnlineSolver *onlineSolver = new OnlineSolver(m_ProcessType, m_ExtractorType, m_SolverType, m_Statistics, m_ImageBuffer,
                 this);
         onlineSolver->fileToProcess = m_FileToProcess;
         onlineSolver->astrometryAPIKey = m_AstrometryAPIKey;
@@ -62,11 +62,11 @@ SextractorSolver* StellarSolver::createSextractorSolver()
         solver = onlineSolver;
     }
     else if((m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER) || (m_ProcessType != SOLVE
-            && m_SextractorType != EXTRACTOR_EXTERNAL))
-        solver = new InternalSextractorSolver(m_ProcessType, m_SextractorType, m_SolverType, m_Statistics, m_ImageBuffer, this);
+            && m_ExtractorType != EXTRACTOR_EXTERNAL))
+        solver = new InternalExtractorSolver(m_ProcessType, m_ExtractorType, m_SolverType, m_Statistics, m_ImageBuffer, this);
     else
     {
-        ExternalSextractorSolver *extSolver = new ExternalSextractorSolver(m_ProcessType, m_SextractorType, m_SolverType,
+        ExternalExtractorSolver *extSolver = new ExternalExtractorSolver(m_ProcessType, m_ExtractorType, m_SolverType,
                 m_Statistics, m_ImageBuffer, this);
         extSolver->fileToProcess = m_FileToProcess;
         extSolver->sextractorBinaryPath = m_SextractorBinaryPath;
@@ -97,7 +97,7 @@ SextractorSolver* StellarSolver::createSextractorSolver()
     if(m_UsePosition)
         solver->setSearchPositionInDegrees(m_SearchRA, m_SearchDE);
     if(m_SSLogLevel != LOG_OFF)
-        connect(solver, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
+        connect(solver, &ExtractorSolver::logOutput, this, &StellarSolver::logOutput);
 
     return solver;
 }
@@ -105,23 +105,23 @@ SextractorSolver* StellarSolver::createSextractorSolver()
 //Methods to get default file paths
 ExternalProgramPaths StellarSolver::getLinuxDefaultPaths()
 {
-    return ExternalSextractorSolver::getLinuxDefaultPaths();
+    return ExternalExtractorSolver::getLinuxDefaultPaths();
 };
 ExternalProgramPaths StellarSolver::getLinuxInternalPaths()
 {
-    return ExternalSextractorSolver::getLinuxInternalPaths();
+    return ExternalExtractorSolver::getLinuxInternalPaths();
 };
 ExternalProgramPaths StellarSolver::getMacHomebrewPaths()
 {
-    return ExternalSextractorSolver::getMacHomebrewPaths();
+    return ExternalExtractorSolver::getMacHomebrewPaths();
 };
 ExternalProgramPaths StellarSolver::getWinANSVRPaths()
 {
-    return ExternalSextractorSolver::getWinANSVRPaths();
+    return ExternalExtractorSolver::getWinANSVRPaths();
 };
 ExternalProgramPaths StellarSolver::getWinCygwinPaths()
 {
-    return ExternalSextractorSolver::getLinuxDefaultPaths();
+    return ExternalExtractorSolver::getLinuxDefaultPaths();
 };
 
 QStringList StellarSolver::getIndexFiles(const QStringList &directoryList, int indexToUse, int healpixToUse)
@@ -194,13 +194,13 @@ bool StellarSolver::solve()
 //This will allow the solver to gracefully disconnect, abort, finish, and get deleted
 //Right now the internal solvers are all deleted when StellarSolver is deleted
 //I might try experimenting with this.
-void StellarSolver::releaseSextractorSolver(SextractorSolver *solver)
+void StellarSolver::releaseExtractorSolver(ExtractorSolver *solver)
 {
     if(solver != nullptr)
     {
         if(solver->isRunning())
         {
-            connect(solver, &SextractorSolver::finished, solver, &SextractorSolver::deleteLater);
+            connect(solver, &ExtractorSolver::finished, solver, &ExtractorSolver::deleteLater);
             solver->disconnect(this);
             solver->abort();
         }
@@ -221,10 +221,10 @@ void StellarSolver::start()
         return;
     }
 
-    //This is necessary before starting up so that the correct convolution filter gets passed to the SextractorSolver
+    //This is necessary before starting up so that the correct convolution filter gets passed to the ExtractorSolver
     updateConvolutionFilter();
 
-    m_SextractorSolver = createSextractorSolver();
+    m_ExtractorSolver = createExtractorSolver();
 
     m_isRunning = true;
     m_HasFailed = false;
@@ -245,10 +245,10 @@ void StellarSolver::start()
             || m_SolverType == SOLVER_LOCALASTROMETRY))
     {
         //Note that it is good to do the Star Extraction before parallelization because it doesn't make sense to repeat this step in all the threads, especially since SEP is now also parallelized in StellarSolver.
-        if(m_SextractorType != EXTRACTOR_BUILTIN)
+        if(m_ExtractorType != EXTRACTOR_BUILTIN)
         {
-            m_SextractorSolver->extract();
-            if(m_SextractorSolver->getNumStarsFound() == 0)
+            m_ExtractorSolver->extract();
+            if(m_ExtractorSolver->getNumStarsFound() == 0)
             {
                 emit logOutput("No stars were found, so the image cannot be solved");
                 m_isRunning = false;
@@ -259,9 +259,9 @@ void StellarSolver::start()
             }
         }
         //Note that converting the image to a FITS file if desired, doesn't need to be repeated in all the threads, but also CFITSIO fails when accessed by multiple parallel threads.
-        if(m_SolverType == SOLVER_LOCALASTROMETRY && m_SextractorType == EXTRACTOR_BUILTIN && m_OnlySendFITSFiles)
+        if(m_SolverType == SOLVER_LOCALASTROMETRY && m_ExtractorType == EXTRACTOR_BUILTIN && m_OnlySendFITSFiles)
         {
-            QPointer<ExternalSextractorSolver> extSolver = (ExternalSextractorSolver*) (SextractorSolver*) m_SextractorSolver;
+            QPointer<ExternalExtractorSolver> extSolver = (ExternalExtractorSolver*) (ExtractorSolver*) m_ExtractorSolver;
             QFileInfo file(extSolver->fileToProcess);
             if(file.suffix() != "fits" && file.suffix() != "fit")
             {
@@ -277,24 +277,24 @@ void StellarSolver::start()
     }
     else if(m_SolverType == SOLVER_ONLINEASTROMETRY)
     {
-        connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
-        m_SextractorSolver->execute();
+        connect(m_ExtractorSolver, &ExtractorSolver::finished, this, &StellarSolver::processFinished);
+        m_ExtractorSolver->execute();
     }
     else
     {
-        connect(m_SextractorSolver, &SextractorSolver::finished, this, &StellarSolver::processFinished);
-        m_SextractorSolver->start();
+        connect(m_ExtractorSolver, &ExtractorSolver::finished, this, &StellarSolver::processFinished);
+        m_ExtractorSolver->start();
     }
 
 }
 
 bool StellarSolver::checkParameters()
 {
-    if(m_SolverType == SOLVER_ASTAP && m_SextractorType != EXTRACTOR_BUILTIN)
+    if(m_SolverType == SOLVER_ASTAP && m_ExtractorType != EXTRACTOR_BUILTIN)
     {
         if(m_SSLogLevel != LOG_OFF)
             emit logOutput("ASTAP no longer supports alternative star extraction methods.  Changing to built-in star extraction.");
-        m_SextractorType = EXTRACTOR_BUILTIN;
+        m_ExtractorType = EXTRACTOR_BUILTIN;
     }
 
     if(params.multiAlgorithm != NOT_MULTI && m_SolverType == SOLVER_ASTAP && m_ProcessType == SOLVE)
@@ -315,11 +315,11 @@ bool StellarSolver::checkParameters()
 
     if(m_ProcessType == SOLVE && m_SolverType != SOLVER_ASTAP)
     {
-        if(m_SolverType == SOLVER_STELLARSOLVER && m_SextractorType != EXTRACTOR_INTERNAL)
+        if(m_SolverType == SOLVER_STELLARSOLVER && m_ExtractorType != EXTRACTOR_INTERNAL)
         {
             if(m_SSLogLevel != LOG_OFF)
-                emit logOutput("StellarSolver only uses the Internal SEP Sextractor since it doesn't save files to disk. Changing to Internal Star Extractor.");
-            m_SextractorType = EXTRACTOR_INTERNAL;
+                emit logOutput("StellarSolver only uses the Internal SEP Star Extractor since it doesn't save files to disk. Changing to Internal Star Extractor.");
+            m_ExtractorType = EXTRACTOR_INTERNAL;
         }
 
         if(params.multiAlgorithm == MULTI_AUTO)
@@ -393,8 +393,8 @@ void StellarSolver::parallelSolve()
         {
             double low = minScale + scaleConst * pow(thread, 2);
             double high = minScale + scaleConst * pow(thread + 1, 2);
-            SextractorSolver *solver = m_SextractorSolver->spawnChildSolver(thread);
-            connect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
+            ExtractorSolver *solver = m_ExtractorSolver->spawnChildSolver(thread);
+            connect(solver, &ExtractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             solver->setSearchScale(low, high, units);
             parallelSolvers.append(solver);
             if(m_SSLogLevel != LOG_OFF)
@@ -419,8 +419,8 @@ void StellarSolver::parallelSolve()
             emit logOutput(QString("Starting %1 threads to solve on multiple depths").arg(sourceNum / inc));
         for(int i = 1; i < sourceNum; i += inc)
         {
-            SextractorSolver *solver = m_SextractorSolver->spawnChildSolver(i);
-            connect(solver, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
+            ExtractorSolver *solver = m_ExtractorSolver->spawnChildSolver(i);
+            connect(solver, &ExtractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             solver->depthlo = i;
             solver->depthhi = i + inc;
             parallelSolvers.append(solver);
@@ -441,29 +441,29 @@ bool StellarSolver::parallelSolversAreRunning() const
 }
 void StellarSolver::processFinished(int code)
 {
-    numStars  = m_SextractorSolver->getNumStarsFound();
+    numStars  = m_ExtractorSolver->getNumStarsFound();
     if(code == 0)
     {
-        if(m_ProcessType == SOLVE && m_SextractorSolver->solvingDone())
+        if(m_ProcessType == SOLVE && m_ExtractorSolver->solvingDone())
         {
-            solution = m_SextractorSolver->getSolution();
-            solutionIndexNumber = m_SextractorSolver->getSolutionIndexNumber();
-            solutionHealpix = m_SextractorSolver->getSolutionHealpix();
-            m_SolverStars = m_SextractorSolver->getStarList();
-            if(m_SextractorSolver->hasWCSData())
+            solution = m_ExtractorSolver->getSolution();
+            solutionIndexNumber = m_ExtractorSolver->getSolutionIndexNumber();
+            solutionHealpix = m_ExtractorSolver->getSolutionHealpix();
+            m_SolverStars = m_ExtractorSolver->getStarList();
+            if(m_ExtractorSolver->hasWCSData())
             {
                 hasWCS = true;
-                solverWithWCS = m_SextractorSolver;
+                solverWithWCS = m_ExtractorSolver;
                 if(m_ExtractorStars.count() > 0)
                     solverWithWCS->appendStarsRAandDEC(m_ExtractorStars);
             }
             m_HasSolved = true;
         }
-        else if((m_ProcessType == EXTRACT || m_ProcessType == EXTRACT_WITH_HFR) && m_SextractorSolver->sextractionDone())
+        else if((m_ProcessType == EXTRACT || m_ProcessType == EXTRACT_WITH_HFR) && m_ExtractorSolver->sextractionDone())
         {
-            m_ExtractorStars = m_SextractorSolver->getStarList();
-            background = m_SextractorSolver->getBackground();
-            m_CalculateHFR = m_SextractorSolver->isCalculatingHFR();
+            m_ExtractorStars = m_ExtractorSolver->getStarList();
+            background = m_ExtractorSolver->getBackground();
+            m_CalculateHFR = m_ExtractorSolver->isCalculatingHFR();
             if(solverWithWCS)
                 solverWithWCS->appendStarsRAandDEC(m_ExtractorStars);
             m_HasExtracted = true;
@@ -478,7 +478,7 @@ void StellarSolver::processFinished(int code)
     emit finished();
 }
 
-int StellarSolver::whichSolver(SextractorSolver *solver)
+int StellarSolver::whichSolver(ExtractorSolver *solver)
 {
     for(int i = 0; i < parallelSolvers.count(); i++ )
     {
@@ -493,7 +493,7 @@ int StellarSolver::whichSolver(SextractorSolver *solver)
 void StellarSolver::finishParallelSolve(int success)
 {
     m_ParallelSolversFinishedCount++;
-    SextractorSolver *reportingSolver = qobject_cast<SextractorSolver*>(sender());
+    ExtractorSolver *reportingSolver = qobject_cast<ExtractorSolver*>(sender());
     if(!reportingSolver)
         return;
 
@@ -501,7 +501,7 @@ void StellarSolver::finishParallelSolve(int success)
     {
         for(auto &solver : parallelSolvers)
         {
-            disconnect(solver, &SextractorSolver::logOutput, this, &StellarSolver::logOutput);
+            disconnect(solver, &ExtractorSolver::logOutput, this, &StellarSolver::logOutput);
             if(solver != reportingSolver && solver->isRunning())
                 solver->abort();
         }
@@ -521,14 +521,14 @@ void StellarSolver::finishParallelSolve(int success)
         {
             solverWithWCS = reportingSolver;
             hasWCS = true;
-            disconnect(solverWithWCS, &SextractorSolver::finished, this, &StellarSolver::finishParallelSolve);
+            disconnect(solverWithWCS, &ExtractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             if(m_ExtractorStars.count() > 0)
                 solverWithWCS->appendStarsRAandDEC(m_ExtractorStars);
             m_isRunning = false;
         }
-        if(m_SextractorType !=
+        if(m_ExtractorType !=
                 EXTRACTOR_BUILTIN) //Note this is just cleaning up the files from the star extraction done prior to the parallel solve.  So for built in, it doesn't even do it, so no files to clean up
-            m_SextractorSolver->cleanupTempFiles();
+            m_ExtractorSolver->cleanupTempFiles();
         m_HasSolved = true;
         emit ready();
     }
@@ -574,8 +574,8 @@ void StellarSolver::abort()
 {
     for(auto &solver : parallelSolvers)
         solver->abort();
-    if(m_SextractorSolver)
-        m_SextractorSolver->abort();
+    if(m_ExtractorSolver)
+        m_ExtractorSolver->abort();
     wasAborted = true;
 }
 
@@ -584,12 +584,12 @@ bool StellarSolver::isRunning() const
 {
     if(parallelSolversAreRunning())
         return true;
-    if(m_SextractorSolver && m_SextractorSolver->isRunning())
+    if(m_ExtractorSolver && m_ExtractorSolver->isRunning())
         return true;
     return m_isRunning;
 }
 
-//This method uses a fwhm value to generate the conv filter the sextractor will use.
+//This method uses a fwhm value to generate the conv filter the star extractor will use.
 QVector<float> StellarSolver::generateConvFilter(SSolver::ConvFilterType filter, double fwhm)
 {
     QVector<float> convFilter;
@@ -612,7 +612,7 @@ QVector<float> StellarSolver::generateConvFilter(SSolver::ConvFilterType filter,
         {
             for(int x = -size; x <= size; x++ )
             {
-                double value = amplitude * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(size, 2));
+                double value = amplitude * exp( ( -4.0 * log(2.0) * pow(sqrt( pow(x, 2) + pow(y, 2) ), 2) ) / pow(size * 1.5, 2));
                 convFilter.append(value);
             }
         }

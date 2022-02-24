@@ -9,8 +9,8 @@
 #include <QTimer>
 #include <QEventLoop>
 
-OnlineSolver::OnlineSolver(ProcessType type, ExtractorType sexType, SolverType solType, FITSImage::Statistic imagestats,
-                           uint8_t const *imageBuffer, QObject *parent) : ExternalSextractorSolver(type, sexType, solType, imagestats, imageBuffer,
+OnlineSolver::OnlineSolver(ProcessType type, ExtractorType exType, SolverType solType, FITSImage::Statistic imagestats,
+                           uint8_t const *imageBuffer, QObject *parent) : ExternalExtractorSolver(type, exType, solType, imagestats, imageBuffer,
                                        parent)
 {
     connect(this, &OnlineSolver::timeToCheckJobs, this, &OnlineSolver::checkJobs);
@@ -35,9 +35,9 @@ void OnlineSolver::execute()
         ycol = strdup("Y"); //This is the column for the y-coordinates, it doesn't accept Y_IMAGE like the other one
         int fail = 0;
         if(m_ExtractorType == EXTRACTOR_INTERNAL)
-            fail = runSEPSextractor();
+            fail = runSEPExtractor();
         else if(m_ExtractorType == EXTRACTOR_EXTERNAL)
-            fail = runExternalSextractor();
+            fail = runExternalExtractor();
         if(fail != 0)
         {
             emit finished(fail);
@@ -49,7 +49,7 @@ void OnlineSolver::execute()
             emit finished(-1);
             return;
         }
-        if((fail = writeSextractorTable()) != 0)
+        if((fail = writeStarExtractorTable()) != 0)
         {
             emit finished(fail);
             return;
@@ -206,7 +206,7 @@ void OnlineSolver::uploadFile()
     if(m_ExtractorType == EXTRACTOR_BUILTIN)
         fitsFile = new QFile(fileToProcess);
     else
-        fitsFile = new QFile(sextractorFilePath);
+        fitsFile = new QFile(starXYLSFilePath);
     bool rc = fitsFile->open(QIODevice::ReadOnly);
     if (rc == false)
     {

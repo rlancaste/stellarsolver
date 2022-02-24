@@ -1,4 +1,4 @@
-/*  SextractorSolver, StellarSolver Intenal Library developed by Robert Lancaster, 2020
+/*  ExtractorSolver, StellarSolver Intenal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
@@ -25,13 +25,13 @@ extern "C" {
 
 using namespace SSolver;
 
-class SextractorSolver : public QThread
+class ExtractorSolver : public QThread
 {
         Q_OBJECT
     public:
-        SextractorSolver(ProcessType type, ExtractorType sexType, SolverType solType, const FITSImage::Statistic &statistics,
+        ExtractorSolver(ProcessType type, ExtractorType sexType, SolverType solType, const FITSImage::Statistic &statistics,
                          const uint8_t *imageBuffer, QObject *parent = nullptr);
-        ~SextractorSolver();
+        ~ExtractorSolver();
 
         ProcessType m_ProcessType;
         ExtractorType m_ExtractorType;
@@ -43,7 +43,7 @@ class SextractorSolver : public QThread
         //This starts the process in a separate thread
         virtual void execute();
         virtual void abort() = 0;
-        virtual SextractorSolver* spawnChildSolver(int n) = 0;
+        virtual ExtractorSolver* spawnChildSolver(int n) = 0;
         virtual void cleanupTempFiles() = 0;
         //This will abort the solver
 

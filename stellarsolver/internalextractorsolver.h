@@ -1,4 +1,4 @@
-/*  InternalSextractorSolver, StellarSolver Intenal Library developed by Robert Lancaster, 2020
+/*  InternalExtractorSolver, StellarSolver Intenal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
@@ -7,7 +7,7 @@
 */
 #pragma once
 
-#include "sextractorsolver.h"
+#include "extractorsolver.h"
 #include "astrometrylogger.h"
 
 //Sextractor Includes
@@ -15,17 +15,17 @@
 
 using namespace SSolver;
 
-class InternalSextractorSolver: public SextractorSolver
+class InternalExtractorSolver: public ExtractorSolver
 {
     public:
-        explicit InternalSextractorSolver(ProcessType pType, ExtractorType eType, SolverType sType,
+        explicit InternalExtractorSolver(ProcessType pType, ExtractorType eType, SolverType sType,
                                           FITSImage::Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
-        ~InternalSextractorSolver();
+        ~InternalExtractorSolver();
 
         int extract() override;
         void abort() override;
         bool appendStarsRAandDEC(QList<FITSImage::Star> &stars) override;
-        SextractorSolver* spawnChildSolver(int n) override;
+        ExtractorSolver* spawnChildSolver(int n) override;
         void cleanupTempFiles() override;
 
         bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) override;
@@ -46,7 +46,7 @@ class InternalSextractorSolver: public SextractorSolver
 
     protected:
         //This is the method that actually runs the internal sextractor
-        int runSEPSextractor();
+        int runSEPExtractor();
         //This applies the star filter to the stars list.
         void applyStarFilters(QList<FITSImage::Star> &starList);
         QList<FITSImage::Star> extractPartition(const ImageParams &parameters);

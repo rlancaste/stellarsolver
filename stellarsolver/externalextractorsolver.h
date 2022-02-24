@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "internalsextractorsolver.h"
+#include "internalextractorsolver.h"
 #include <QProcess>
 #include <QPointer>
 #include <QJsonArray>
@@ -17,18 +17,18 @@
 
 using namespace SSolver;
 
-class ExternalSextractorSolver : public InternalSextractorSolver
+class ExternalExtractorSolver : public InternalExtractorSolver
 {
         Q_OBJECT
     public:
-        explicit ExternalSextractorSolver(ProcessType type, ExtractorType sexType, SolverType solType,
+        explicit ExternalExtractorSolver(ProcessType type, ExtractorType sexType, SolverType solType,
                                           FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
-        ~ExternalSextractorSolver();
+        ~ExternalExtractorSolver();
 
 
         int extract() override;
         void abort() override;
-        SextractorSolver * spawnChildSolver(int n) override;
+        ExtractorSolver * spawnChildSolver(int n) override;
 
         QStringList getSolverArgsList();
         bool generateAstrometryConfigFile();
@@ -62,15 +62,15 @@ class ExternalSextractorSolver : public InternalSextractorSolver
 
         // This is the xyls file path that sextractor will be saving for Astrometry.net
         // If it is not set, it will be set to a random temporary file
-        QString sextractorFilePath;
-        bool sextractorFilePathIsTempFile = false; //This will be set to true if it gets generated
+        QString starXYLSFilePath;
+        bool starXYLSFilePathIsTempFile = false; //This will be set to true if it gets generated
 
         QString solutionFile;
 
         void logSolver();
         void logSextractor();
 
-        int writeSextractorTable();
+        int writeStarExtractorTable();
         int getStarsFromXYLSFile();
         bool getSolutionInformation();
         bool getASTAPSolutionInformation();
@@ -100,7 +100,7 @@ class ExternalSextractorSolver : public InternalSextractorSolver
         char* colUnits = strdup("pixels"); //This is the unit for the xy columns in the file
         char* magUnits = strdup("magnitude"); //This is the unit for the magnitude in the file
 
-        int runExternalSextractor();
+        int runExternalExtractor();
 
     private:
         QPointer<QProcess> solver;

@@ -43,10 +43,10 @@ typedef struct Star
 {
     float x;        // The x position of the star in Pixels
     float y;        // The y position of the star in Pixels
-    float mag;      // The magnitude of the star
+    float mag;      // The magnitude of the star, note that this is a relative magnitude based on the star extraction options.
     float flux;     // The calculated total flux
     float peak;     // The peak value of the star
-    float HFR;      // The half flux radius
+    float HFR;      // The half flux radius of the star
     float a;        // The semi-major axis of the star
     float b;        // The semi-minor axis of the star
     float theta;    // The angle of orientation of the star
@@ -71,10 +71,10 @@ typedef struct Solution
 {
     double fieldWidth;  // The calculated width of the field in arcminutes
     double fieldHeight; // The calculated height of the field in arcminutes
-    double ra;          // The Right Ascension of the center of the field
-    double dec;         // The Declination of the center of the field
+    double ra;          // The Right Ascension of the center of the field in degrees
+    double dec;         // The Declination of the center of the field in degrees
     double orientation; // The orientation angle of the image from North in degrees
-    double pixscale;    // The pixel scale of the image
+    double pixscale;    // The pixel scale of the image in arcseconds per pixel
     QString parity;     // The parity of the solved image. (Whether it has been flipped)  JPEG images tend to have negative parity while FITS files tend to have positive parity.
     double raError;     // The error between the search_ra position and the solution ra position in arcseconds
     double decError;    // The error between the search_dec position and the solution dec position in arcseconds

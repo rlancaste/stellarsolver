@@ -458,7 +458,7 @@ bool fileio::debayer_16bit()
 }
 
 //This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
-//Then it was split in two parts, the other part was sent to the ExternalSextractorSolver class since the internal solver doesn't need it
+//Then it was split in two parts, the other part was sent to the ExternalExtractorSolver class since the internal solver doesn't need it
 //This part extracts the options from the FITS file and prepares them for use by the internal or external solver
 bool fileio::getSolverOptionsFromFITS()
 {

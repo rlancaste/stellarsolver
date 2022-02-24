@@ -56,7 +56,9 @@ int main(int argc, char *argv[])
     for(int i=0; i < starList.count(); i++)
     {
         FITSImage::Star star = starList.at(i);
-        printf("Star #%u: (%f x, %f y), (ra: %s,dec: %s), mag: %f, peak: %f, hfr: %f \n", i, star.x, star.y, StellarSolver::raString(star.ra).toUtf8().data(), StellarSolver::raString(star.dec).toUtf8().data(), star.mag, star.peak, star.HFR);
+        char *ra = StellarSolver::raString(star.ra).toUtf8().data();
+        char *dec = StellarSolver::decString(star.dec).toUtf8().data();
+        printf("Star #%u: (%f x, %f y), (ra: %s,dec: %s), mag: %f, peak: %f, hfr: %f \n", i, star.x, star.y, ra , dec, star.mag, star.peak, star.HFR);
     }
     return 0;
 }

@@ -1,4 +1,4 @@
-/*  InternalSextractorSolver, StellarSolver Internal Library developed by Robert Lancaster, 2020
+/*  InternalExtractorSolver, StellarSolver Internal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
@@ -17,7 +17,7 @@
 #include <QtConcurrent>
 #include <memory>
 
-#include "internalsextractorsolver.h"
+#include "internalextractorsolver.h"
 #include "stellarsolver.h"
 #include "sep/extract.h"
 #include "qmath.h"
@@ -32,23 +32,23 @@ using namespace SEP;
 
 static int solverNum = 1;
 
-InternalSextractorSolver::InternalSextractorSolver(ProcessType pType, ExtractorType eType, SolverType sType,
-        FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : SextractorSolver(pType, eType, sType,
+InternalExtractorSolver::InternalExtractorSolver(ProcessType pType, ExtractorType eType, SolverType sType,
+        FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : ExtractorSolver(pType, eType, sType,
                     imagestats, imageBuffer, parent)
 {
     //This sets the base name used for the temp files.
-    m_BaseName = "internalSextractorSolver_" + QString::number(solverNum++);
+    m_BaseName = "internalExtractorSolver_" + QString::number(solverNum++);
     m_PartitionThreads = QThread::idealThreadCount();
 }
 
-InternalSextractorSolver::~InternalSextractorSolver()
+InternalExtractorSolver::~InternalExtractorSolver()
 {
     if(downSampledBuffer)
         delete [] downSampledBuffer;
 }
 
 //This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
-void InternalSextractorSolver::abort()
+void InternalExtractorSolver::abort()
 {
     thejob.bp.cancelled = TRUE;
 
@@ -58,11 +58,11 @@ void InternalSextractorSolver::abort()
 }
 
 //This method generates child solvers with the options of the current solver
-SextractorSolver* InternalSextractorSolver::spawnChildSolver(int n)
+ExtractorSolver* InternalExtractorSolver::spawnChildSolver(int n)
 {
     Q_UNUSED(n);
 
-    InternalSextractorSolver *solver = new InternalSextractorSolver(m_ProcessType, m_ExtractorType, m_SolverType, m_Statistics,
+    InternalExtractorSolver *solver = new InternalExtractorSolver(m_ProcessType, m_ExtractorType, m_SolverType, m_Statistics,
             m_ImageBuffer, nullptr);
     solver->m_ExtractedStars = m_ExtractedStars;
     solver->m_BasePath = m_BasePath;
@@ -82,18 +82,18 @@ SextractorSolver* InternalSextractorSolver::spawnChildSolver(int n)
     if(m_UsePosition)
         solver->setSearchPositionInDegrees(search_ra, search_dec);
     if(m_AstrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
-        connect(solver, &SextractorSolver::logOutput, this,  &SextractorSolver::logOutput);
+        connect(solver, &ExtractorSolver::logOutput, this,  &ExtractorSolver::logOutput);
     solver->usingDownsampledImage = usingDownsampledImage;
     return solver;
 }
 
-int InternalSextractorSolver::extract()
+int InternalExtractorSolver::extract()
 {
-    return(runSEPSextractor());
+    return(runSEPExtractor());
 }
 
-//This is the method that runs the solver or sextractor.  Do not call it, use the methods above instead, so that it can start a new thread.
-void InternalSextractorSolver::run()
+//This is the method that runs the solver or star extractor.  Do not call it, use the methods above instead, so that it can start a new thread.
+void InternalExtractorSolver::run()
 {
     if(m_AstrometryLogLevel != SSolver::LOG_NONE && m_LogToFile)
     {
@@ -145,12 +145,12 @@ void InternalSextractorSolver::run()
     }
 }
 
-void InternalSextractorSolver::cleanupTempFiles()
+void InternalExtractorSolver::cleanupTempFiles()
 {
     //There are NO temp files anymore!!!
 }
 
-void InternalSextractorSolver::allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
+void InternalExtractorSolver::allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
     switch (m_Statistics.dataType)
     {
@@ -216,9 +216,9 @@ void computeMargin(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2,
 
 }  // namespace
 
-//The code in this section is my attempt at running an internal sextractor program based on SEP
+//The code in this section is my attempt at running an internal star extractor program based on SEP
 //I used KStars and the SEP website as a guide for creating these functions
-int InternalSextractorSolver::runSEPSextractor()
+int InternalExtractorSolver::runSEPExtractor()
 {
     if(convFilter.size() == 0)
     {
@@ -226,7 +226,7 @@ int InternalSextractorSolver::runSEPSextractor()
         return -1;
     }
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting Internal StellarSolver Sextractor with the " + m_ActiveParameters.listName + " profile . . .");
+    emit logOutput("Starting Internal StellarSolver Star Extractor with the " + m_ActiveParameters.listName + " profile . . .");
 
     //Only downsample images before SEP if the Sextraction is being used for plate solving
     if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && m_ActiveParameters.downsample != 1)
@@ -343,7 +343,7 @@ int InternalSextractorSolver::runSEPSextractor()
                                           m_ActiveParameters.initialKeep / m_PartitionThreads,
                                           &backgrounds[backgrounds.size() - 1]
                                          };
-                futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
+                futures.append(QtConcurrent::run(this, &InternalExtractorSolver::extractPartition, parameters));
             }
         }
     }
@@ -363,7 +363,7 @@ int InternalSextractorSolver::runSEPSextractor()
         backgrounds.append(tempBackground);
 
         ImageParams parameters = {data, subWidth, subHeight, 0, 0, subWidth, subHeight, static_cast<uint32_t>(m_ActiveParameters.initialKeep), &backgrounds[backgrounds.size() - 1]};
-        futures.append(QtConcurrent::run(this, &InternalSextractorSolver::extractPartition, parameters));
+        futures.append(QtConcurrent::run(this, &InternalExtractorSolver::extractPartition, parameters));
     }
 
     for (auto oneFuture : futures)
@@ -418,7 +418,7 @@ int InternalSextractorSolver::runSEPSextractor()
     return 0;
 }
 
-QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImageParams &parameters)
+QList<FITSImage::Star> InternalExtractorSolver::extractPartition(const ImageParams &parameters)
 {
     float *imback = nullptr;
     double *fluxerr = nullptr, *area = nullptr;
@@ -641,7 +641,7 @@ QList<FITSImage::Star> InternalSextractorSolver::extractPartition(const ImagePar
     return partitionStars;
 }
 
-void InternalSextractorSolver::applyStarFilters(QList<FITSImage::Star> &starList)
+void InternalExtractorSolver::applyStarFilters(QList<FITSImage::Star> &starList)
 {
     if(starList.size() > 1)
     {
@@ -745,7 +745,7 @@ void InternalSextractorSolver::applyStarFilters(QList<FITSImage::Star> &starList
 }
 
 template <typename T>
-void InternalSextractorSolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
+void InternalExtractorSolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
 {
     auto * rawBuffer = reinterpret_cast<T const *>(m_ImageBuffer);
     float * floatPtr = buffer;
@@ -763,7 +763,7 @@ void InternalSextractorSolver::getFloatBuffer(float * buffer, int x, int y, int 
     }
 }
 
-void InternalSextractorSolver::downsampleImage(int d)
+void InternalExtractorSolver::downsampleImage(int d)
 {
     switch (m_Statistics.dataType)
     {
@@ -795,7 +795,7 @@ void InternalSextractorSolver::downsampleImage(int d)
 }
 
 template <typename T>
-void InternalSextractorSolver::downSampleImageType(int d)
+void InternalExtractorSolver::downSampleImageType(int d)
 {
     int w = m_Statistics.width;
     int h = m_Statistics.height;
@@ -866,7 +866,7 @@ void InternalSextractorSolver::downSampleImageType(int d)
 
 //This method prepares the job file.  It is based upon the methods parse_job_from_qfits_header and engine_read_job_file in engine.c of astrometry.net
 //as well as the part of the method augment_xylist in augment_xylist.c where it handles xyls files
-bool InternalSextractorSolver::prepare_job()
+bool InternalExtractorSolver::prepare_job()
 {
     blind_t* bp = &(job->bp);
     solver_t* sp = &(bp->solver);
@@ -968,7 +968,7 @@ bool InternalSextractorSolver::prepare_job()
 }
 
 //This was copied and pasted and modified from ImageToFITS in fitsdata in KStars
-int InternalSextractorSolver::saveAsFITS()
+int InternalExtractorSolver::saveAsFITS()
 {
     QString newFilename = m_BasePath + "/" + m_BaseName + "_downsample.fits";
 
@@ -1125,7 +1125,7 @@ int InternalSextractorSolver::saveAsFITS()
 }
 
 //This method was adapted from the main method in engine-main.c in astrometry.net
-int InternalSextractorSolver::runInternalSolver()
+int InternalExtractorSolver::runInternalSolver()
 {
     if(!isChildSolver)
     {
@@ -1152,7 +1152,7 @@ int InternalSextractorSolver::runInternalSolver()
             if(!this->isChildSolver)
             {
                 astroLogger = new AstrometryLogger();
-                connect(astroLogger, &AstrometryLogger::logOutput, this, &SextractorSolver::logOutput);
+                connect(astroLogger, &AstrometryLogger::logOutput, this, &ExtractorSolver::logOutput);
                 setAstroLogger(astroLogger);
             }
         }
@@ -1276,7 +1276,7 @@ int InternalSextractorSolver::runInternalSolver()
     if(m_AstrometryLogLevel != SSolver::LOG_NONE && logFile)
         fclose(logFile);
     if(m_AstrometryLogLevel != SSolver::LOG_NONE && !this->isChildSolver && astroLogger)
-        disconnect(astroLogger, &AstrometryLogger::logOutput, this, &SextractorSolver::logOutput);
+        disconnect(astroLogger, &AstrometryLogger::logOutput, this, &ExtractorSolver::logOutput);
 
     //This deletes or frees the items that are no longer needed.
     engine_free(engine);
@@ -1377,7 +1377,7 @@ int InternalSextractorSolver::runInternalSolver()
     return returnCode;
 }
 
-bool InternalSextractorSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
+bool InternalExtractorSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
 {
     if(!hasWCSData())
     {
@@ -1393,7 +1393,7 @@ bool InternalSextractorSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::
     return true;
 }
 
-bool InternalSextractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
+bool InternalExtractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
 {
     if(!hasWCSData())
     {
@@ -1410,7 +1410,7 @@ bool InternalSextractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, 
     return true;
 }
 
-bool InternalSextractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
+bool InternalExtractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 {
     if(!m_HasWCS)
     {

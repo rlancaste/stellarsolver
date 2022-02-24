@@ -24,7 +24,7 @@ typedef enum
     CONV_RING
 } ConvFilterType;
 
-//This gets a string for the Sextractor setting for calculating Flux using ellipses or circles
+//This gets a string for the Star Extractor setting for calculating Flux using ellipses or circles
 static QString getShapeString(SSolver::Shape shape)
 
 {
@@ -287,7 +287,7 @@ static QString getLogLevelString(SSolver::logging_level logLevel)
 }
 
 //STELLARSOLVER PARAMETERS
-//These are the parameters used by the StellarSolver for both Sextracting and Solving
+//These are the parameters used by the StellarSolver for both Star Extraction and Solving
 //The values here are the defaults unless they get changed.
 //If you are fine with those defaults, you don't need to set any of them.
 
@@ -359,7 +359,7 @@ class Parameters
         //Astrometry Config/Engine Parameters
         MultiAlgo multiAlgorithm = MULTI_AUTO;// Algorithm for running multiple threads on possibly multiple cores to solve faster
         bool inParallel =
-            true;             // Check the indices in parallel? if the indices you are using take less than 2 GB of space, and you have at least as much physical memory as indices, you want this enabled,
+            true;             // Check the indices in parallel? This loads them in memory at the same time. If the indices you are using take less than 2 GB of space, and you have at least as much physical memory as indices, you want this enabled,
         int solverTimeLimit = 600;          // Give up solving after the specified number of seconds of CPU time
         double minwidth =
             0.1;              // If no scale estimate is given, this is the limit on the minimum field width in degrees.

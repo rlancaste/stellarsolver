@@ -9,7 +9,7 @@
 
 //Includes for this project
 #include "structuredefinitions.h"
-#include "sextractorsolver.h"
+#include "extractorsolver.h"
 #include "parameters.h"
 #include "version.h"
 
@@ -46,7 +46,7 @@ class StellarSolver : public QObject
         Q_PROPERTY(bool LogToFile MEMBER m_LogToFile)
         Q_PROPERTY(SolverType SolverType MEMBER m_SolverType)
         Q_PROPERTY(ProcessType ProcessType MEMBER m_ProcessType)
-        Q_PROPERTY(ExtractorType ExtractorType MEMBER m_SextractorType)
+        Q_PROPERTY(ExtractorType ExtractorType MEMBER m_ExtractorType)
 
     public:
         //The constructor and destructor foe the StellarSolver Object
@@ -55,11 +55,10 @@ class StellarSolver : public QObject
         explicit StellarSolver(const FITSImage::Statistic &imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
         ~StellarSolver();
 
-        //Methods to get default file paths
+        //Methods to get default file paths on different operating systems and configurations
         static ExternalProgramPaths getLinuxDefaultPaths();
         static ExternalProgramPaths getLinuxInternalPaths();
         static ExternalProgramPaths getMacHomebrewPaths();
-        static ExternalProgramPaths getMacInternalPaths();
         static ExternalProgramPaths getWinANSVRPaths();
         static ExternalProgramPaths getWinCygwinPaths();
 
@@ -74,47 +73,73 @@ class StellarSolver : public QObject
         // .fits where $HH is a 2-character healpix number, e.g. index-4205-03.fits.
         static QStringList getIndexFiles(const QStringList &directoryList, int indexToUse = -1, int healpixToUse = -1);
   
-        //This gets the processType as a string explaining the command StellarSolver is Running
+        /**
+         * @brief getCommandString gets the processType as a string explaining the command StellarSolver is Running
+         * @return The details of what StellarSolver is doing.
+         */
         QString getCommandString()
         {
-            return SSolver::getCommandString(m_ProcessType, m_SextractorType, m_SolverType);
+            return SSolver::getCommandString(m_ProcessType, m_ExtractorType, m_SolverType);
         }
 
-        //This gets the scale unit string for astrometry.net input
-        //This should NOT be translated
+        /**
+         * @brief getScaleUnitString gets a string for the scale units used in the scale for plate solving
+         * @return The string for the scale units used.
+         */
         QString getScaleUnitString()
         {
             return SSolver::getScaleUnitString(m_ScaleUnit);
         }
 
-        //This gets a string for the Sextractor setting for calculating Flux using ellipses or circles
+        /**
+         * @brief getShapeString gets a string for the Star Extractor setting for calculating Flux using ellipses or circles
+         * @return The name of the shape
+         */
         QString getShapeString()
         {
             return SSolver::getShapeString(params.apertureShape);
         }
 
-        //This gets a string for the Sextractor setting for calculating Flux using ellipses or circles
+        /**
+         * @brief getConvFilterString gets a string for the name of the Convolution Filter used in Star Extraction
+         * @return The name of the Convolution Filter
+         */
         QString getConvFilterString()
         {
             return SSolver::getConvFilterString(params.convFilterType);
         }
 
-        //This gets a string for which Parallel Solving Algorithm we are using
+        /**
+         * @brief getMultiAlgoString gets a string for which algorithm we are using to solve in parallel threads
+         * @return The name of the parallel thread solving algorithm
+         */
         QString getMultiAlgoString()
         {
             return SSolver::getMultiAlgoString(params.multiAlgorithm);
         }
 
+        /**
+         * @brief getLogLevelString gets a string for the current Astrometry Logging Level we are using
+         * @return The name of the current logging level
+         */
         QString getLogLevelString()
         {
             return SSolver::getLogLevelString(m_AstrometryLogLevel);
         }
 
+        /**
+         * @brief getVersion gets the StellarSolver Version String
+         * @return The version string
+         */
         static QString getVersion()
         {
             return QString("StellarSolver Library Version: %1, build: %2").arg(StellarSolver_VERSION).arg(StellarSolver_BUILD_TS);
         }
 
+        /**
+         * @brief getVersionNumber gets the StellarSolver Version Number
+         * @return The version number
+         */
         static QString getVersionNumber()
         {
             return StellarSolver_VERSION;
@@ -138,137 +163,309 @@ class StellarSolver : public QObject
         //These are the most important methods that you can use for the StellarSolver
 
         /**
-         * @brief sextract Extracts stars from the image.
+         * @brief extract Performs Star Extraction on the image.  This is performed synchronously and blocks the calling thread until the finished signal is emitted.
          * @param calculateHFR If true, it will also calculated Half-Flux Radius for each detected star. HFR calculations can be very CPU-intensive.
          * @param frame If set, it will only extract stars within this rectangular region of the image.
+         * @return A boolean that reports whether it was successful, true means success.
          */
         bool extract(bool calculateHFR = false, QRect frame = QRect());
 
+        /**
+         * @brief solve Plate Solves the image.  This is performed synchronously and blocks the calling thread until the finished signal is emitted.
+         * @return A boolean that reports whether it was successful, true means success.
+         */
         bool solve();
+
+        /**
+         * @brief start Starts a Star Extraction or Plate Solving proccess.  The process is performed asynchronously.  The calling program should then wait for the ready or finished signal.
+         */
         void start();
-        void releaseSextractorSolver(SextractorSolver *solver);
+
+        /**
+         * @brief abort will abort the Star Extraction or Plate Solving process.  For external programs it runs the kill command.
+         */
         void abort();
 
-        //These set the settings for the StellarSolver
+        /**
+         * @brief setParameters sets the Parameters for the StellarSolver based on a Parameters object you set up.
+         * @param parameters The Parameters object
+         */
         void setParameters(Parameters parameters)
         {
             params = parameters;
         };
+
+        /**
+         * @brief setParameterProfile sets the Parameters for the StellarSolver based on a selection of a built in parameters profile.
+         * @param profile The selected built in profile
+         */
         void setParameterProfile(SSolver::Parameters::ParametersProfile profile);
+
+        /**
+         * @brief setIndexFolderPaths Sets the IndexFolderPaths to automatically search for index files.
+         * @param indexPaths A QStringList containing the list of folders to search.
+         */
         void setIndexFolderPaths(QStringList indexPaths)
         {
             indexFolderPaths = indexPaths;
         };
+
+        /**
+         * @brief setIndexFilePaths Sets the IndexFilePaths variable to a list of index file paths to use.
+         * @param indexFilePaths A QStringList containing the list of index file paths.
+         */
         void setIndexFilePaths(QStringList indexFilePaths)
         {
             indexFiles = indexFilePaths;
         };
+
+        /**
+         * @brief clearIndexFileAndFolderPaths Clears both the Index File paths and Index Folder paths in case they were set before.
+         */
         void clearIndexFileAndFolderPaths()
         {
             indexFiles.clear();
             indexFolderPaths.clear();
         }
+
+        /**
+         * @brief setSearchScale will set the Search Scale range to speed up the solver based on the ScaleUnits QString
+         * @param fov_low The low end of the search range in the specified units
+         * @param fov_high The high end of the search range in the specified units
+         * @param scaleUnits The specified units for the range.
+         */
         void setSearchScale(double fov_low, double fov_high, const QString &scaleUnits);
-        //This sets the scale range for the image to speed up the solver
+
+        /**
+         * @brief setSearchScale will set the Search Scale range to speed up the solver based on the ScaleUnits enum
+         * @param fov_low The low end of the search range in the specified units
+         * @param fov_high The high end of the search range in the specified units
+         * @param units The specified units for the range.
+         */
         void setSearchScale(double fov_low, double fov_high, ScaleUnits units);
-        void setSearchPositionRaDec(double ra,
-                                    double dec);                                                    //This sets the search RA/DEC/Radius to speed up the solver
+
+        /**
+         * @brief setSearchPositionRaDec sets the search RA/DEC/Radius to speed up the solver when plate solving
+         * @param ra The Right Ascension in decimal hours
+         * @param dec The Declination in decimal degrees
+         */
+        void setSearchPositionRaDec(double ra, double dec);
+
+        /**
+         * @brief setSearchPositionInDegrees sets the search RA/DEC/Radius to speed up the solver when plate solving
+         * @param ra The Right Ascension in decimal degrees
+         * @param dec The Declination in decimal degrees
+         */
         void setSearchPositionInDegrees(double ra, double dec);
+
+        /**
+         * @brief setLogLevel sets the astrometry logging level
+         * @param level The level of logging
+         */
         void setLogLevel(logging_level level)
         {
             m_AstrometryLogLevel = level;
         };
+
+        /**
+         * @brief setSSLogLevel sets the logging level for StellarSolver
+         * @param level The level of logging
+         */
         void setSSLogLevel(SSolverLogLevel level)
         {
             m_SSLogLevel = level;
         };
 
-        //These functions setup the convolution filter
-        void updateConvolutionFilter();
+        /**
+         * @brief setConvolutionFilter lets you set up your own custom QVector convolution filter
+         * @param filter the QVector of float values that is the convolution filter
+         */
         void setConvolutionFilter(QVector<float> filter)
         {
             params.convFilterType = SSolver::CONV_CUSTOM;
             convFilter = filter;
         }
 
-        //These static methods can be used by classes to configure parameters or paths
+        /**
+         * @brief generateConvFilter can be used to generate a Convolution Filter based on the selected parameters
+         * @param filter The selected Convolution Filter type
+         * @param fwhm The fwhm of the filter in pixels
+         * @return The QVector of float values that is the Convolution Filter
+         */
         static QVector<float> generateConvFilter(SSolver::ConvFilterType filter, double fwhm);
+
+        /**
+         * @brief getBuiltInProfiles gets the built in Parameter options profiles
+         * @return The QList of Parameter Options Profiles
+         */
         static QList<Parameters> getBuiltInProfiles();
+
+        /**
+         * @brief loadSavedOptionsProfiles loads saved Parameter Options Profiles from a file on the computer
+         * @param savedOptionsProfiles The file path where the profiles are saved
+         * @return The QList full of Parameter Options Profiles
+         */
         static QList<SSolver::Parameters> loadSavedOptionsProfiles(QString savedOptionsProfiles);
+
+        /**
+         * @brief getDefaultIndexFolderPaths gets the default astrometry Index folder paths for the Operating System
+         * @return A QStringList full of folder paths to search for index files
+         */
         static QStringList getDefaultIndexFolderPaths();
 
 
         //Accessor Method for external classes
+        /**
+         * @brief getNumStarsFound gets the number of stars found in the star extraction
+         * @return The number of stars found
+         */
         int getNumStarsFound() const
         {
             return numStars;
         }
+        /**
+         * @brief getStarList gets the list of stars found during star extraction
+         * @return A QList full of stars and their properties
+         */
         const QList<FITSImage::Star> &getStarList() const
         {
             return m_ExtractorStars;
         }
-        const FITSImage::Background &getBackground() const
-        {
-            return background;
-        }
+
+        /**
+         * @brief getStarListFromSolve gets the list of stars used to plate solve the image
+         * @return A QList full of stars and their properties
+         */
         const QList<FITSImage::Star> &getStarListFromSolve() const
         {
             return m_SolverStars;
         }
+
+        /**
+         * @brief getBackground gets information about the image background found during star exraction
+         * @return The background information
+         */
+        const FITSImage::Background &getBackground() const
+        {
+            return background;
+        }
+
+        /**
+         * @brief getSolution gets the Solution information from the latest plate solve
+         * @return The Solution information
+         */
         const FITSImage::Solution &getSolution() const
         {
             return solution;
         }
+
+        /**
+         * @brief getSolutionIndexNumber gets the astrometry index file number used to solve the latest plate solve
+         * @return The index number
+         */
         short getSolutionIndexNumber()
         {
             return solutionIndexNumber;
         };
+
+        /**
+         * @brief getSolutionHealpix gets the healpix identifying which image in the index series solved the image in the latest plate solve
+         * @return The healpix number
+         */
         short getSolutionHealpix()
         {
             return solutionHealpix;
         };
 
+        /**
+         * @brief sextractionDone Whether or not star extraction has been completed
+         * @return true means the star extraction is done
+         */
         bool sextractionDone() const
         {
             return m_HasExtracted;
         }
+        /**
+         * @brief sextractionDone Whether or not plate solving has been completed
+         * @return true means the plate solving is done
+         */
         bool solvingDone() const
         {
             return m_HasSolved;
         }
 
+        /**
+         * @brief failed Whether or not the Star Extraction or Plate Solving has failed
+         * @return true means that it failed
+         */
         bool failed() const
         {
             return m_HasFailed;
         }
+
+        /**
+         * @brief hasWCSData gets whether or not WCS Data has been retrieved for the image after plate solving
+         * @return true means we have WCS data
+         */
         bool hasWCSData() const
         {
             return hasWCS;
         };
+
+        /**
+         * @brief getNumThreads gets the number of sextractor solvers used to plate solve the image
+         * @return the number of solvers
+         */
         int getNumThreads() const
         {
             if(parallelSolvers.size() == 0) return 1;
             else return parallelSolvers.size();
         }
 
+        /**
+         * @brief getCurrentParameters gets a Parameters object containing the current Options Profile
+         * @return The current parameters
+         */
         const Parameters &getCurrentParameters()
         {
             return params;
         }
+
+        /**
+         * @brief isCalculatingHFR returns whether or not the star extraction is also doing HFR
+         * @return true means HFR is being done too
+         */
         bool isCalculatingHFR()
         {
             return m_CalculateHFR;
         }
 
+        /**
+         * @brief setUseSubframe sets up a subframe for star extraction
+         * @param frame The QRect that represents the subframe in the image
+         */
         void setUseSubframe(QRect frame);
+
+        /**
+         * @brief clearSubFrame removes the subframe so that star extraction does the whole image.
+         */
         void clearSubFrame()
         {
             useSubframe = false;
             m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
         };
 
+        /**
+         * @brief isRunning returns whether or not a process is currently running
+         * @return true means it is running
+         */
         bool isRunning() const;
 
+        /**
+         * @brief raString will generate a nicely formatted QString for the Right Ascension
+         * @param ra The ra in decimal hours
+         * @return A QString for the Right Ascension
+         */
         inline static QString raString(double ra)
         {
             char rastr[32];
@@ -276,6 +473,11 @@ class StellarSolver : public QObject
             return rastr;
         }
 
+        /**
+         * @brief decString will generate a nicely formatted QString for the Declination
+         * @param dec The dec in decimal degrees
+         * @return A QString for the Declination
+         */
         inline static QString decString(double dec)
         {
             char decstr[32];
@@ -283,26 +485,65 @@ class StellarSolver : public QObject
             return decstr;
         }
 
+        /**
+         * @brief pixelToWCS converts the image X, Y Pixel coordinates to RA, DEC sky coordinates using the WCS data
+         * @param pixelPoint The X, Y coordinate in pixels
+         * @param skyPoint The RA, DEC coordinates
+         * @return A boolean to say whether it succeeded, true means it did
+         */
         bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint);
+
+        /**
+         * @brief wcsToPixel converts the RA, DEC sky coordinates to image X, Y Pixel coordinates using the WCS data
+         * @param skyPoint The RA, DEC coordinates
+         * @param pixelPoint The X, Y coordinate in pixels
+         * @return A boolean to say whether it succeeded, true means it did
+         */
         bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint);
 
 
     public slots:
+        /**
+         * @brief processFinished slot gets called when a Star Extraction or a Plate Solve finishes.
+         * @param code Whether the process has failed or not.  0 means success.
+         */
         void processFinished(int code);
-        void parallelSolve();
+
+        /**
+         * @brief finishParallelSolve slot gets called when a Parallel Plate Solve finishes.
+         * @param code Whether the process has failed or not.  0 means success.
+         */
         void finishParallelSolve(int success);
 
     private:
-        int whichSolver(SextractorSolver *solver);
+        //Reports the index of this particular solver in the Parallel Solvers list
+        int whichSolver(ExtractorSolver *solver);
         //Static Utility
         static double snr(const FITSImage::Background &background,
                           const FITSImage::Star &star, double gain = 0.5);
 
+        /**
+         * @brief parallelSolve method gets called to start up a parallel solve.
+         */
+        void parallelSolve();
+
+        /**
+         * @brief releaseSextractorSolver is an experimental method to release the SextractorSolvers.
+         * @param solver The specified solver to release.
+         */
+        void releaseExtractorSolver(ExtractorSolver *solver);
+
+        /**
+         * @brief updateConvolutionFilter This will update the convolution filter when the StellarSolver gets set up
+         */
+        void updateConvolutionFilter();
 
         bool appendStarsRAandDEC(QList<FITSImage::Star> &stars);
 
+        //This method checks the current Parameters before starting an operation to make sure they are sound.
         bool checkParameters();
-        SextractorSolver* createSextractorSolver();
+        //This is an internal StellarSolver method that creates the SextractorSolvers that will be used in the operation.
+        ExtractorSolver* createExtractorSolver();
 
         //This finds out the amount of available RAM on the system
         bool getAvailableRAM(double &availableRAM, double &totalRAM);
@@ -311,7 +552,7 @@ class StellarSolver : public QObject
 
         //This defines the type of process to perform.
         ProcessType m_ProcessType { EXTRACT };
-        ExtractorType m_SextractorType { EXTRACTOR_INTERNAL };
+        ExtractorType m_ExtractorType { EXTRACTOR_INTERNAL };
         SolverType m_SolverType {SOLVER_STELLARSOLVER};
 
         //External Options
@@ -336,9 +577,9 @@ class StellarSolver : public QObject
         bool useSubframe {false};
         QRect m_Subframe;
         bool m_isRunning {false};
-        QList<SextractorSolver*> parallelSolvers;
-        QPointer<SextractorSolver> m_SextractorSolver;
-        QPointer<SextractorSolver> solverWithWCS;
+        QList<ExtractorSolver*> parallelSolvers;
+        QPointer<ExtractorSolver> m_ExtractorSolver;
+        QPointer<ExtractorSolver> solverWithWCS;
         int m_ParallelSolversFinishedCount {0};
         bool parallelSolversAreRunning() const;
 
@@ -360,9 +601,9 @@ class StellarSolver : public QObject
         ScaleUnits m_ScaleUnit {ARCMIN_WIDTH}; //In what units are the lower and upper bounds?
 
         //Astrometry Position Parameters, These are not saved parameters and change for each image, use the methods to set them
-        bool m_UsePosition = false;          //Whether or not to use initial information about the position
-        double m_SearchRA = HUGE_VAL;        //RA of field center for search, format: decimal degrees
-        double m_SearchDE = HUGE_VAL;       //DEC of field center for search, format: decimal degrees
+        bool m_UsePosition = false;          // Whether or not to use initial information about the position
+        double m_SearchRA = HUGE_VAL;        // RA of field center for search, format: decimal degrees
+        double m_SearchDE = HUGE_VAL;       // DEC of field center for search, format: decimal degrees
 
         //StellarSolver Internal settings that are needed by ExternalSextractorSolver as well
         bool m_CalculateHFR {false};          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
@@ -374,7 +615,7 @@ class StellarSolver : public QObject
         const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
 
         //The Results
-        FITSImage::Background background;      //This is a report on the background levels found during sextraction
+        FITSImage::Background background;      //This is a report on the background levels found during star extraction
         //This is the list of stars that get extracted from the image, saved to the file, and then solved by astrometry.net
         QList<FITSImage::Star> m_ExtractorStars;
         //This is the list of stars that were extracted for the last successful solve
@@ -387,20 +628,25 @@ class StellarSolver : public QObject
         bool hasWCS {false};        //This boolean gets set if the StellarSolver has WCS data to retrieve
 
         bool wasAborted {false};
-        // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
-        QString cancelfn;           //Filename whose creation signals the process to stop
-        QString solvedfn;           //Filename whose creation tells astrometry.net it already solved the field.
-
-        bool m_isBlocking = false;              //This boolean determines whether to run in a blocking way.
 
     signals:
-        //This signals that there is infomation that should be printed to a log file or log window
+        /**
+         * @brief logOutput signals that there is infomation that should be printed to a log file or log window
+         * @param logText is the QString that should be logged
+         */
         void logOutput(QString logText);
 
-        // Extraction and/or solving complete.
-        // If can be completed successfully or in failure, but it's done.
+        // Ready signal note: StellarSolver might not be shut down yet, especially if doing a parallel solve.
+        // You can certainly use the results, but do not delete a StellarSolver until the parallel threads are all finished.
+        /**
+         * @brief ready Extraction and/or solving complete, whether successful or not.  Warning, do not delete StellarSolver yet!
+         */
         void ready();
 
+        // Finished Signal note: It is safe to delete StellarSolver at this time.
+        /**
+         * @brief finished Extraction and/or solving complete, whether successful or not, and StellarSolver has shut down.
+         */
         void finished();
 
 };

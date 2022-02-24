@@ -1,11 +1,11 @@
-/*  ExternalSextractorSolver, StellarSolver Internal Library developed by Robert Lancaster, 2020
+/*  ExternalExtractorSolver, StellarSolver Internal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
     License as published by the Free Software Foundation; either
     version 2 of the License, or (at your option) any later version.
 */
-#include "externalsextractorsolver.h"
+#include "externalextractorsolver.h"
 #include <QTextStream>
 #include <QMessageBox>
 #include <qmath.h>
@@ -14,13 +14,13 @@
 
 static int solverNum = 1;
 
-ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, ExtractorType sexType, SolverType solType,
-        FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalSextractorSolver(type, sexType,
+ExternalExtractorSolver::ExternalExtractorSolver(ProcessType type, ExtractorType sexType, SolverType solType,
+        FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalExtractorSolver(type, sexType,
                     solType, imagestats, imageBuffer, parent)
 {
 
     //This sets the base name used for the temp files.
-    m_BaseName = "externalSextractorSolver_" + QString::number(solverNum++);
+    m_BaseName = "externalExtractorSolver_" + QString::number(solverNum++);
 
     //The code below sets default paths for these key external file settings.
 
@@ -34,7 +34,7 @@ ExternalSextractorSolver::ExternalSextractorSolver(ProcessType type, ExtractorTy
 
 }
 
-ExternalSextractorSolver::~ExternalSextractorSolver()
+ExternalExtractorSolver::~ExternalExtractorSolver()
 {
     free(xcol);
     free(ycol);
@@ -46,7 +46,7 @@ ExternalSextractorSolver::~ExternalSextractorSolver()
 
 //The following methods are available to get the default paths for different operating systems and configurations.
 
-ExternalProgramPaths ExternalSextractorSolver::getLinuxDefaultPaths()
+ExternalProgramPaths ExternalExtractorSolver::getLinuxDefaultPaths()
 {
     return ExternalProgramPaths
     {
@@ -61,7 +61,7 @@ ExternalProgramPaths ExternalSextractorSolver::getLinuxDefaultPaths()
     };
 }
 
-ExternalProgramPaths ExternalSextractorSolver::getLinuxInternalPaths()
+ExternalProgramPaths ExternalExtractorSolver::getLinuxInternalPaths()
 {
     return ExternalProgramPaths
     {
@@ -76,7 +76,7 @@ ExternalProgramPaths ExternalSextractorSolver::getLinuxInternalPaths()
     };
 }
 
-ExternalProgramPaths ExternalSextractorSolver::getMacHomebrewPaths()
+ExternalProgramPaths ExternalExtractorSolver::getMacHomebrewPaths()
 {
     return ExternalProgramPaths
     {
@@ -89,7 +89,7 @@ ExternalProgramPaths ExternalSextractorSolver::getMacHomebrewPaths()
     };
 }
 
-ExternalProgramPaths ExternalSextractorSolver::getWinANSVRPaths()
+ExternalProgramPaths ExternalExtractorSolver::getWinANSVRPaths()
 {
     return ExternalProgramPaths
     {
@@ -102,7 +102,7 @@ ExternalProgramPaths ExternalSextractorSolver::getWinANSVRPaths()
     };
 }
 
-ExternalProgramPaths ExternalSextractorSolver::getWinCygwinPaths()
+ExternalProgramPaths ExternalExtractorSolver::getWinCygwinPaths()
 {
     return ExternalProgramPaths
     {
@@ -115,7 +115,7 @@ ExternalProgramPaths ExternalSextractorSolver::getWinCygwinPaths()
     };
 }
 
-void ExternalSextractorSolver::setExternalFilePaths(ExternalProgramPaths paths)
+void ExternalExtractorSolver::setExternalFilePaths(ExternalProgramPaths paths)
 {
     confPath = paths.confPath;
     sextractorBinaryPath = paths.sextractorBinaryPath;
@@ -124,12 +124,12 @@ void ExternalSextractorSolver::setExternalFilePaths(ExternalProgramPaths paths)
     wcsPath = paths.wcsPath;
 }
 
-int ExternalSextractorSolver::extract()
+int ExternalExtractorSolver::extract()
 {
     if(m_ExtractorType == EXTRACTOR_EXTERNAL)
     {
 #ifdef _WIN32  //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
-        emit logOutput("Sextractor is not easily installed on windows. Please select the Internal Sextractor and External Solver.");
+        emit logOutput("SExtractor is not easily installed on windows. Please select the Internal SEP and External Solver.");
 #endif
 
         if(!QFileInfo::exists(sextractorBinaryPath))
@@ -139,31 +139,31 @@ int ExternalSextractorSolver::extract()
         }
     }
 
-    if(sextractorFilePath == "")
+    if(starXYLSFilePath == "")
     {
-        sextractorFilePathIsTempFile = true;
-        sextractorFilePath = m_BasePath + "/" + m_BaseName + ".xyls";
+        starXYLSFilePathIsTempFile = true;
+        starXYLSFilePath = m_BasePath + "/" + m_BaseName + ".xyls";
     }
 
     if(m_ProcessType == EXTRACT_WITH_HFR || m_ProcessType == EXTRACT)
-        return runExternalSextractor();
+        return runExternalExtractor();
     else
     {
         int fail = 0;
         if(m_ExtractorType == EXTRACTOR_INTERNAL)
         {
-            fail = runSEPSextractor();
+            fail = runSEPExtractor();
             if(fail != 0)
                 return fail;
-            return(writeSextractorTable());
+            return(writeStarExtractorTable());
         }
         else if(m_ExtractorType == EXTRACTOR_EXTERNAL)
-            return(runExternalSextractor());
+            return(runExternalExtractor());
     }
     return -1;
 }
 
-void ExternalSextractorSolver::run()
+void ExternalExtractorSolver::run()
 {
     if(m_AstrometryLogLevel != LOG_NONE && m_LogToFile)
     {
@@ -213,10 +213,10 @@ void ExternalSextractorSolver::run()
         }
     }
 
-    if(sextractorFilePath == "")
+    if(starXYLSFilePath == "")
     {
-        sextractorFilePathIsTempFile = true;
-        sextractorFilePath = m_BasePath + "/" + m_BaseName + ".xyls";
+        starXYLSFilePathIsTempFile = true;
+        starXYLSFilePath = m_BasePath + "/" + m_BaseName + ".xyls";
     }
 
     switch(m_ProcessType)
@@ -307,16 +307,16 @@ void ExternalSextractorSolver::run()
 }
 
 //This method generates child solvers with the options of the current solver
-SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
+ExtractorSolver* ExternalExtractorSolver::spawnChildSolver(int n)
 {
-    ExternalSextractorSolver *solver = new ExternalSextractorSolver(m_ProcessType, m_ExtractorType, m_SolverType, m_Statistics,
+    ExternalExtractorSolver *solver = new ExternalExtractorSolver(m_ProcessType, m_ExtractorType, m_SolverType, m_Statistics,
             m_ImageBuffer, nullptr);
     solver->m_ExtractedStars = m_ExtractedStars;
     solver->m_BasePath = m_BasePath;
     solver->m_BaseName = m_BaseName + "_" + QString::number(n);
     solver->m_HasExtracted = true;
-    solver->sextractorFilePath = sextractorFilePath;
-    solver->sextractorFilePathIsTempFile = sextractorFilePathIsTempFile;
+    solver->starXYLSFilePath = starXYLSFilePath;
+    solver->starXYLSFilePathIsTempFile = starXYLSFilePathIsTempFile;
     solver->fileToProcess = fileToProcess;
     solver->sextractorBinaryPath = sextractorBinaryPath;
     solver->confPath = confPath;
@@ -341,7 +341,7 @@ SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
     if(m_UsePosition)
         solver->setSearchPositionInDegrees(search_ra, search_dec);
     if(m_AstrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
-        connect(solver, &SextractorSolver::logOutput, this, &SextractorSolver::logOutput);
+        connect(solver, &ExtractorSolver::logOutput, this, &ExtractorSolver::logOutput);
     //This way they all share a solved and cancel fn
     solver->solutionFile = solutionFile;
     //solver->cancelfn = cancelfn;
@@ -350,10 +350,18 @@ SextractorSolver* ExternalSextractorSolver::spawnChildSolver(int n)
 }
 
 //This is the abort method.  For the external sextractor and solver, it uses the kill method to abort the processes
-void ExternalSextractorSolver::abort()
+void ExternalExtractorSolver::abort()
 {
-    if(solver)
+    if(solver){
         solver->kill();
+        QFile file(cancelfn);
+        if(QFileInfo(file).dir().exists())
+        {
+            file.open(QIODevice::WriteOnly);
+            file.write("Cancel");
+            file.close();
+        }
+    }
     if(sextractorProcess)
         sextractorProcess->kill();
     if(!isChildSolver)
@@ -361,7 +369,7 @@ void ExternalSextractorSolver::abort()
     m_WasAborted = true;
 }
 
-void ExternalSextractorSolver::cleanupTempFiles()
+void ExternalExtractorSolver::cleanupTempFiles()
 {
     if(cleanupTemporaryFiles)
     {
@@ -390,19 +398,19 @@ void ExternalSextractorSolver::cleanupTempFiles()
         solvedFile.remove();
         QFile(solutionFile).remove();
         QFile(cancelfn).remove();
-        if(sextractorFilePathIsTempFile)
-            QFile(sextractorFilePath).remove();
+        if(starXYLSFilePathIsTempFile)
+            QFile(starXYLSFilePath).remove();
         if(fileToProcessIsTempFile)
             QFile(fileToProcess).remove();
     }
 }
 
-//This method is copied and pasted and modified from the code I wrote to use sextractor in OfflineAstrometryParser in KStars
-//It creates key files needed to run Sextractor from the desired options, then runs the sextractor program using the options.
-int ExternalSextractorSolver::runExternalSextractor()
+//This method is copied and pasted and modified from the code I wrote to use SExtractor in OfflineAstrometryParser in KStars
+//It creates key files needed to run SExtractor from the desired options, then runs the SExtractor program using the options.
+int ExternalExtractorSolver::runExternalExtractor()
 {
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Configuring external Sextractor");
+    emit logOutput("Configuring external SExtractor");
     QFileInfo file(fileToProcess);
     if(!file.exists())
         return -1;
@@ -426,7 +434,7 @@ int ExternalSextractorSolver::runExternalSextractor()
     //We will set all of the things we need in the parameters below
     //sextractorArgs << "-c" << "/usr/local/share/sextractor/default.sex";
 
-    sextractorArgs << "-CATALOG_NAME" << sextractorFilePath;
+    sextractorArgs << "-CATALOG_NAME" << starXYLSFilePath;
     sextractorArgs << "-CATALOG_TYPE" << "FITS_1.0";
 
     //sextractor needs a default.param file in the working directory
@@ -521,7 +529,7 @@ int ExternalSextractorSolver::runExternalSextractor()
     sextractorProcess->setWorkingDirectory(m_BasePath);
     sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
     if(m_SSLogLevel != LOG_OFF)
-        connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSextractor);
+        connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalExtractorSolver::logSextractor);
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Starting external sextractor with the " + m_ActiveParameters.listName + " profile...");
@@ -561,7 +569,7 @@ int ExternalSextractorSolver::runExternalSextractor()
 
 //The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
 //It runs the astrometry.net external program using the options selected.
-int ExternalSextractorSolver::runExternalSolver()
+int ExternalExtractorSolver::runExternalSolver()
 {
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     if(m_ExtractorType == EXTRACTOR_BUILTIN)
@@ -600,7 +608,7 @@ int ExternalSextractorSolver::runExternalSolver()
     }
     else
     {
-        QFileInfo sextractorFile(sextractorFilePath);
+        QFileInfo sextractorFile(starXYLSFilePath);
         if(!sextractorFile.exists())
         {
             emit logOutput("Please Sextract the image first");
@@ -608,9 +616,9 @@ int ExternalSextractorSolver::runExternalSolver()
         if(isChildSolver)
         {
             QString newFileURL = m_BasePath + "/" + m_BaseName + "." + sextractorFile.suffix();
-            QFile::copy(sextractorFilePath, newFileURL);
-            sextractorFilePath = newFileURL;
-            sextractorFilePathIsTempFile = true;
+            QFile::copy(starXYLSFilePath, newFileURL);
+            starXYLSFilePath = newFileURL;
+            starXYLSFilePathIsTempFile = true;
         }
     }
 
@@ -618,18 +626,18 @@ int ExternalSextractorSolver::runExternalSolver()
 
     if(m_ExtractorType == EXTRACTOR_BUILTIN)
     {
-        solverArgs << "--keep-xylist" << sextractorFilePath;
+        solverArgs << "--keep-xylist" << starXYLSFilePath;
         solverArgs << fileToProcess;
     }
     else
-        solverArgs << sextractorFilePath;
+        solverArgs << starXYLSFilePath;
 
     solver.clear();
     solver = new QProcess();
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     if(m_AstrometryLogLevel != LOG_NONE)
-        connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
+        connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalExtractorSolver::logSolver);
 
 #ifdef _WIN32 //This will set up the environment so that the ANSVR internal solver will work when started from this program.  This is needed for all types of astrometry solvers using ANSVR
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
@@ -640,17 +648,6 @@ int ExternalSextractorSolver::runExternalSolver()
     pathsToInsert += ansvrPath + "lib/astrometry/bin;";
     env.insert("Path", pathsToInsert + path);
     solver->setProcessEnvironment(env);
-#endif
-
-#ifdef Q_OS_OSX //This is needed so that astrometry.net can find netpbm and python on Mac when started from this program.  It is not needed when using an alternate sextractor
-    if(m_ExtractorType == EXTRACTOR_BUILTIN && m_SolverType == SOLVER_LOCALASTROMETRY)
-    {
-        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-        QString path            = env.value("PATH", "");
-        QString pythonExecPath = "/usr/local/opt/python/libexec/bin";
-        env.insert("PATH", "/Applications/KStars.app/Contents/MacOS/netpbm/bin:" + pythonExecPath + ":/usr/local/bin:" + path);
-        solver->setProcessEnvironment(env);
-    }
 #endif
 
     solver->start(solverPath, solverArgs);
@@ -680,7 +677,7 @@ int ExternalSextractorSolver::runExternalSolver()
 }
 
 
-int ExternalSextractorSolver::runExternalASTAPSolver()
+int ExternalExtractorSolver::runExternalASTAPSolver()
 {
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Configuring external ASTAP solver");
@@ -730,7 +727,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     if(m_AstrometryLogLevel != LOG_NONE)
-        connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
+        connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalExtractorSolver::logSolver);
 
     solver->start(astapBinaryPath, solverArgs);
 
@@ -783,7 +780,7 @@ int ExternalSextractorSolver::runExternalASTAPSolver()
     return 0;
 }
 
-int ExternalSextractorSolver::runExternalWatneySolver()
+int ExternalExtractorSolver::runExternalWatneySolver()
 {
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Configuring external Watney Astrometry solver");
@@ -801,7 +798,7 @@ int ExternalSextractorSolver::runExternalWatneySolver()
     }
     else
     {
-        QFileInfo sextractorFile(sextractorFilePath);
+        QFileInfo sextractorFile(starXYLSFilePath);
         if(!sextractorFile.exists())
         {
             emit logOutput("Please Sextract the image first");
@@ -809,9 +806,9 @@ int ExternalSextractorSolver::runExternalWatneySolver()
         if(isChildSolver)
         {
             QString newFileURL = m_BasePath + "/" + m_BaseName + "." + sextractorFile.suffix();
-            QFile::copy(sextractorFilePath, newFileURL);
-            sextractorFilePath = newFileURL;
-            sextractorFilePathIsTempFile = true;
+            QFile::copy(starXYLSFilePath, newFileURL);
+            starXYLSFilePath = newFileURL;
+            starXYLSFilePathIsTempFile = true;
         }
     }
 
@@ -842,7 +839,7 @@ int ExternalSextractorSolver::runExternalWatneySolver()
     }
     if(m_ExtractorType != EXTRACTOR_BUILTIN)
     {
-        solverArgs << "--xyls" << sextractorFilePath;
+        solverArgs << "--xyls" << starXYLSFilePath;
         solverArgs << "--xyls-imagesize" << QString::number(m_Statistics.width) + "x" + QString::number(m_Statistics.height);
     }
     else
@@ -869,7 +866,7 @@ int ExternalSextractorSolver::runExternalWatneySolver()
 
     solver->setProcessChannelMode(QProcess::MergedChannels);
     if(m_AstrometryLogLevel != LOG_NONE)
-        connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalSextractorSolver::logSolver);
+        connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalExtractorSolver::logSolver);
 
     solver->start(watneyBinaryPath, solverArgs);
 
@@ -925,7 +922,7 @@ int ExternalSextractorSolver::runExternalWatneySolver()
 //This method is copied and pasted and modified from getSolverOptionsFromFITS in Align in KStars
 //Then it was split in two parts (The other part is located in the MainWindow class)
 //This part generates the argument list from the options for the external solver only
-QStringList ExternalSextractorSolver::getSolverArgsList()
+QStringList ExternalExtractorSolver::getSolverArgsList()
 {
     QStringList solverArgs;
 
@@ -990,7 +987,7 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
         }
     }
 
-    //Note This set of items is NOT NEEDED for Sextractor or for astrometry.net to solve, it is needed to avoid python usage.
+    //Note This set of items is NOT NEEDED for SExtractor or for astrometry.net to solve, it is needed to avoid python usage.
     //On many user's systems especially on Mac and sometimes on Windows, there is an issue in the Python setup that causes astrometry to fail.
     //This should avoid those problems as long as you send a FITS file or a xy list to astrometry.
     solverArgs << "--no-remove-lines";
@@ -1023,7 +1020,7 @@ QStringList ExternalSextractorSolver::getSolverArgsList()
 
 //This will generate a temporary Astrometry.cfg file to use for solving so that we have more control over these options
 //for the external solvers from inside the program.
-bool ExternalSextractorSolver::generateAstrometryConfigFile()
+bool ExternalExtractorSolver::generateAstrometryConfigFile()
 {
     confPath =  m_BasePath + "/" + m_BaseName + ".cfg";
     QFile configFile(confPath);
@@ -1058,7 +1055,7 @@ bool ExternalSextractorSolver::generateAstrometryConfigFile()
 
 //These methods are for the logging of information to the textfield at the bottom of the window.
 
-void ExternalSextractorSolver::logSextractor()
+void ExternalExtractorSolver::logSextractor()
 {
     if(sextractorProcess->canReadLine())
     {
@@ -1087,7 +1084,7 @@ void ExternalSextractorSolver::logSextractor()
     }
 }
 
-void ExternalSextractorSolver::logSolver()
+void ExternalExtractorSolver::logSolver()
 {
     if(solver->canReadLine())
     {
@@ -1116,10 +1113,10 @@ void ExternalSextractorSolver::logSolver()
 }
 
 //This method is copied and pasted and modified from tablist.c in astrometry.net
-//This is needed to load in the stars sextracted by an extrnal sextractor to get them into the table
-int ExternalSextractorSolver::getStarsFromXYLSFile()
+//This is needed to load in the stars sextracted by an external SExtractor to get them into the table
+int ExternalExtractorSolver::getStarsFromXYLSFile()
 {
-    QFile sextractorFile(sextractorFilePath);
+    QFile sextractorFile(starXYLSFilePath);
     if(!sextractorFile.exists())
     {
         emit logOutput("Can't get sextractor file since it doesn't exist.");
@@ -1136,7 +1133,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
     long nelements[1000];
     long jj, nrows, kk;
 
-    if (fits_open_diskfile(&new_fptr, sextractorFilePath.toLocal8Bit(), READONLY, &status))
+    if (fits_open_diskfile(&new_fptr, starXYLSFilePath.toLocal8Bit(), READONLY, &status))
     {
         fits_report_error(stderr, status);
         fits_get_errstatus(status, error_status);
@@ -1258,7 +1255,7 @@ int ExternalSextractorSolver::getStarsFromXYLSFile()
 
 //This method was based on a method in KStars.
 //It reads the information from the Solution file from Astrometry.net and puts it into the solution
-bool ExternalSextractorSolver::getSolutionInformation()
+bool ExternalExtractorSolver::getSolutionInformation()
 {
     if(solutionFile == "")
         solutionFile = m_BasePath + "/" + m_BaseName + ".wcs";
@@ -1366,7 +1363,7 @@ bool ExternalSextractorSolver::getSolutionInformation()
 
 //This method was based on a method in KStars.
 //It reads the information from the Solution file from Astrometry.net and puts it into the solution
-bool ExternalSextractorSolver::getASTAPSolutionInformation()
+bool ExternalExtractorSolver::getASTAPSolutionInformation()
 {
     QFile results(m_BasePath + "/" + m_BaseName + ".ini");
 
@@ -1490,7 +1487,7 @@ bool ExternalSextractorSolver::getASTAPSolutionInformation()
 
 //This method was based on a method in KStars.
 //It reads the information from the Solution file from Astrometry.net and puts it into the solution
-bool ExternalSextractorSolver::getWatneySolutionInformation()
+bool ExternalExtractorSolver::getWatneySolutionInformation()
 {
     QFile results(m_BasePath + "/" + m_BaseName + ".ini");
 
@@ -1577,11 +1574,11 @@ bool ExternalSextractorSolver::getWatneySolutionInformation()
 
 //This method writes the table to the file
 //I had to create it from the examples on NASA's website
-//When I first made this program, I needed it to generate an xyls file from the internal sextraction
-//Now it is just used on Windows for the external solving because it needs to use the internal sextractor and the external solver.
+//When I first made this program, I needed it to generate an xyls file from the internal star extraction
+//Now it is just used on Windows for the external solving because it needs to use the internal star extractor and the external solver.
 //https://heasarc.gsfc.nasa.gov/docs/software/fitsio/quick/node10.html
 //https://heasarc.gsfc.nasa.gov/docs/software/fitsio/cookbook/node16.html
-int ExternalSextractorSolver::writeSextractorTable()
+int ExternalExtractorSolver::writeStarExtractorTable()
 {
     int status = 0;
     fitsfile * new_fptr;
@@ -1614,17 +1611,17 @@ int ExternalSextractorSolver::writeSextractorTable()
     }
     else
     {
-        if(sextractorFilePath == "")
+        if(starXYLSFilePath == "")
         {
-            sextractorFilePathIsTempFile = true;
-            sextractorFilePath = m_BasePath + "/" + m_BaseName + ".xyls";
+            starXYLSFilePathIsTempFile = true;
+            starXYLSFilePath = m_BasePath + "/" + m_BaseName + ".xyls";
         }
 
-        QFile sextractorFile(sextractorFilePath);
+        QFile sextractorFile(starXYLSFilePath);
         if(sextractorFile.exists())
             sextractorFile.remove();
 
-        if (fits_create_file(&new_fptr, sextractorFilePath.toLocal8Bit(), &status))
+        if (fits_create_file(&new_fptr, starXYLSFilePath.toLocal8Bit(), &status))
         {
             fits_report_error(stderr, status);
             return status;
@@ -1697,9 +1694,9 @@ int ExternalSextractorSolver::writeSextractorTable()
         return status;
 }
 
-//This is very necessary for solving non-fits images with external Sextractor
+//This is very necessary for solving non-fits images with the external Star Extractor
 //This was copied and pasted and modified from ImageToFITS in fitsdata in KStars
-int ExternalSextractorSolver::saveAsFITS()
+int ExternalExtractorSolver::saveAsFITS()
 {
     QString newFilename = m_BasePath + "/" + m_BaseName + ".fits";
 
@@ -1826,7 +1823,7 @@ int ExternalSextractorSolver::saveAsFITS()
 }
 
 //This was essentially copied from KStars' loadWCS method and split in half with some modifications.
-int ExternalSextractorSolver::loadWCS()
+int ExternalExtractorSolver::loadWCS()
 {
     if(solutionFile == "")
         solutionFile = m_BasePath + "/" + m_BaseName + ".wcs";
@@ -1936,7 +1933,7 @@ int ExternalSextractorSolver::loadWCS()
     return 0;
 }
 
-bool ExternalSextractorSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
+bool ExternalExtractorSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
 {
     if(!hasWCSData())
     {
@@ -1962,7 +1959,7 @@ bool ExternalSextractorSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::
     return true;
 }
 
-bool ExternalSextractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
+bool ExternalExtractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
 {
     if(!hasWCSData())
     {
@@ -1985,7 +1982,7 @@ bool ExternalSextractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, 
     return true;
 }
 
-bool ExternalSextractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
+bool ExternalExtractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 {
     if(!m_HasWCS)
     {

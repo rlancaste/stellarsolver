@@ -65,7 +65,7 @@ QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
     settingsMap.insert("listName", QVariant(params.listName));
     settingsMap.insert("description", QVariant(params.description));
 
-    //These are to pass the parameters to the internal sextractor
+    //These are to pass the parameters to the internal star extractor
     settingsMap.insert("apertureShape", QVariant(params.apertureShape));
     settingsMap.insert("kron_fact", QVariant(params.kron_fact));
     settingsMap.insert("subpix", QVariant(params.subpix));
@@ -127,7 +127,7 @@ SSolver::Parameters SSolver::Parameters::convertFromMap(QMap<QString, QVariant> 
     params.listName = settingsMap.value("listName", params.listName).toString();
     params.description = settingsMap.value("description", params.description).toString();
 
-    //These are to pass the parameters to the internal sextractor
+    //These are to pass the parameters to the internal star extractor
 
     params.apertureShape = (Shape)settingsMap.value("apertureShape", params.listName).toInt();
     params.kron_fact = settingsMap.value("kron_fact", params.listName).toDouble();

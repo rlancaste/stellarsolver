@@ -11,7 +11,7 @@
 //Includes for this project
 #include "structuredefinitions.h"
 #include "stellarsolver.h"
-#include "externalsextractorsolver.h"
+#include "externalextractorsolver.h"
 #include "onlinesolver.h"
 
 //system includes
@@ -102,7 +102,7 @@ private:
     bool hasWCSData = false;
     bool showFluxInfo = false;
     bool showStarShapeInfo = false;
-    bool showSextractorParams = false;
+    bool showExtractorParams = false;
     bool showAstrometryParams = false;
     bool showSolutionDetails = true;
     bool settingSubframe = false;
@@ -169,7 +169,7 @@ public slots:
     void setSubframe();
 
     //These are the functions that run when the bottom buttons are clicked
-    void sextractButtonClicked();
+    void extractButtonClicked();
     void solveButtonClicked();
     void sextractImage();
     void solveImage();
@@ -212,11 +212,11 @@ public slots:
     //These functions handle the settings for the Sextractors and Solvers
     SSolver::Parameters getSettingsFromUI();
     void sendSettingsToUI(SSolver::Parameters a);
-    void setupExternalSextractorSolverIfNeeded();
+    void setupExternalExtractorSolverIfNeeded();
     void setupStellarSolverParameters();
 
     //These functions get called when the sextractor or solver finishes
-    bool sextractorComplete();
+    bool extractorComplete();
     bool solverComplete();
 
     //These functions handle the solution table
