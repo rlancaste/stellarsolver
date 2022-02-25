@@ -22,29 +22,50 @@
 
 using namespace SSolver;
 
-StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &imagestats, const uint8_t *imageBuffer,
-                             QObject *parent) : QObject(parent), m_Statistics(imagestats)
+StellarSolver::StellarSolver(QObject *parent) : QObject(parent)
 {
-    qRegisterMetaType<SolverType>("SolverType");
-    qRegisterMetaType<ProcessType>("ProcessType");
-    qRegisterMetaType<ExtractorType>("ExtractorType");
-    m_ProcessType = type;
-    m_ImageBuffer = imageBuffer;
-    m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
+    registerMetaTypes();
 }
 
 StellarSolver::StellarSolver(const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer,
-                             QObject *parent) : QObject(parent), m_Statistics(imagestats)
+                             QObject *parent) : QObject(parent)
+{
+    registerMetaTypes();
+    loadNewImageBuffer(imagestats, imageBuffer);
+}
+
+StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &imagestats, const uint8_t *imageBuffer,
+                             QObject *parent) : QObject(parent)
+{
+    registerMetaTypes();
+    m_ProcessType = type;
+    loadNewImageBuffer(imagestats, imageBuffer);
+}
+
+StellarSolver::~StellarSolver()
+{
+    abort();
+    while(isRunning())
+        qApp->processEvents();
+}
+
+void StellarSolver::registerMetaTypes()
 {
     qRegisterMetaType<SolverType>("SolverType");
     qRegisterMetaType<ProcessType>("ProcessType");
     qRegisterMetaType<ExtractorType>("ExtractorType");
-    m_ImageBuffer = imageBuffer;
-    m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
 }
-StellarSolver::~StellarSolver()
-{
 
+bool StellarSolver::loadNewImageBuffer(const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer)
+{
+    if(imageBuffer == nullptr)
+        return false;
+    if(isRunning())
+        return false;
+    m_ImageBuffer = imageBuffer;
+    m_Statistics = imagestats;
+    m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
+    return true;
 }
 
 ExtractorSolver* StellarSolver::createExtractorSolver()
@@ -290,6 +311,11 @@ void StellarSolver::start()
 
 bool StellarSolver::checkParameters()
 {
+    if(m_ImageBuffer == nullptr)
+    {
+        emit logOutput("The image buffer is not loaded, please load an image before processing it");
+        return false;
+    }
     if(m_SolverType == SOLVER_ASTAP && m_ExtractorType != EXTRACTOR_BUILTIN)
     {
         if(m_SSLogLevel != LOG_OFF)

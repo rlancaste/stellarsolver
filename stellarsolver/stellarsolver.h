@@ -49,20 +49,72 @@ class StellarSolver : public QObject
         Q_PROPERTY(ExtractorType ExtractorType MEMBER m_ExtractorType)
 
     public:
-        //The constructor and destructor foe the StellarSolver Object
-        explicit StellarSolver(ProcessType type, const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer,
-                               QObject *parent = nullptr);
+        /**
+         * @brief StellarSolver This constructor makes a StellarSolver without any image or information
+         * @param parent The parent of this StellarSolver, allows it to be deleted with its parent, defaults to nullptr
+         */
+        explicit StellarSolver(QObject *parent = nullptr);
+
+         /**
+         * @brief StellarSolver This constructor makes a StellarSolver with just the image information
+         * @param imagestats Information about the imagebuffer provided
+         * @param imageBuffer The imagebuffer to be processed
+         * @param parent The parent of this StellarSolver, allows it to be deleted with its parent, defaults to nullptr
+         */
         explicit StellarSolver(const FITSImage::Statistic &imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
+
+        /**
+         * @brief StellarSolver This constructor makes a StellarSolver with the ProcessType included
+         * @param type The type of process you are planning to perform on the image
+         * @param imagestats Information about the imagebuffer provided
+         * @param imageBuffer The imagebuffer to be processed
+         * @param parent The parent of this StellarSolver, allows it to be deleted with its parent, defaults to nullptr
+         */
+        explicit StellarSolver(ProcessType type, const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
+
+        //This deletes the StellarSolver
         ~StellarSolver();
 
-        //Methods to get default file paths on different operating systems and configurations
+        /**
+         * @brief loadNewImageBuffer loads a new image buffer for StellarSolver to process
+         * @param imagestats Information about the imagebuffer provided
+         * @param imageBuffer The imagebuffer to be processed
+         * @return whether or not it succesfully loaded a new image.  It will not be successful if you try to load a null image buffer or if a process is running.
+         */
+        bool loadNewImageBuffer(const FITSImage::Statistic &imagestats,  uint8_t const *imageBuffer);
+
+        /**
+         * @brief getLinuxDefaultPaths gets the default external program paths appropriate for a standard Linux installation
+         * @return The appropriate ExernalProgramPaths Object
+         */
         static ExternalProgramPaths getLinuxDefaultPaths();
+
+        /**
+         * @brief getLinuxInternalPaths gets the default external program paths appopriate to the KStars "internal" installation
+         * @return The appropriate ExernalProgramPaths Object
+         */
         static ExternalProgramPaths getLinuxInternalPaths();
+
+        /**
+         * @brief getMacHomebrewPaths gets the default external program paths appropriate for a MacOS System with the programs installed in Homebrew
+         * @return The appropriate ExernalProgramPaths Object
+         */
         static ExternalProgramPaths getMacHomebrewPaths();
+
+        /**
+         * @brief getMacHomebrewPaths gets the default external program paths appropriate for a Windows System using the ANSVR solver
+         * @return The appropriate ExernalProgramPaths Object
+         */
         static ExternalProgramPaths getWinANSVRPaths();
+
+        /**
+         * @brief getMacHomebrewPaths gets the default external program paths appropriate for a Windows System where the programs are installed in Cygwin
+         * @return The appropriate ExernalProgramPaths Object
+         */
         static ExternalProgramPaths getWinCygwinPaths();
 
 
+        // Notes for the function below:
         // Return the full path to index files to use when solving.
         // The input is a list of directory names, and index and healpix constraints.
         // If indexToUse and healpixToUse are -1, then return all the .fit or .fits
@@ -71,6 +123,14 @@ class StellarSolver : public QObject
         // further constrain the list to correct healpix. It is assumed the index
         // filename format is index-$INDEX.fit or .fits, or index-$INDEX-$HH.fit or
         // .fits where $HH is a 2-character healpix number, e.g. index-4205-03.fits.
+
+        /**
+         * @brief getIndexFiles This lets you get a list of paths to index files to pass to astrometry instead of letting it automatically search.
+         * @param directoryList This is the list of directory names to search for index files
+         * @param indexToUse If you know which index series should solve it, this lets you constrain the list to that index series.
+         * @param healpixToUse If you further know which healpix to use, this lets you constrain to just that index file
+         * @return The list of index files to use
+         */
         static QStringList getIndexFiles(const QStringList &directoryList, int indexToUse = -1, int healpixToUse = -1);
   
         /**
@@ -516,6 +576,8 @@ class StellarSolver : public QObject
         void finishParallelSolve(int success);
 
     private:
+
+        void registerMetaTypes();
         //Reports the index of this particular solver in the Parallel Solvers list
         int whichSolver(ExtractorSolver *solver);
         //Static Utility
@@ -637,13 +699,13 @@ class StellarSolver : public QObject
         void logOutput(QString logText);
 
         // Ready signal note: StellarSolver might not be shut down yet, especially if doing a parallel solve.
-        // You can certainly use the results, but do not delete a StellarSolver until the parallel threads are all finished.
+        // You can certainly use the results, but it is not recommended to delete a StellarSolver until the parallel threads are all finished.
         /**
          * @brief ready Extraction and/or solving complete, whether successful or not.  Warning, do not delete StellarSolver yet!
          */
         void ready();
 
-        // Finished Signal note: It is safe to delete StellarSolver at this time.
+        // Finished Signal note: It should be safe to delete StellarSolver at this time since no parallel threads are running.
         /**
          * @brief finished Extraction and/or solving complete, whether successful or not, and StellarSolver has shut down.
          */

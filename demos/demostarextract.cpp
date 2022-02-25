@@ -22,15 +22,15 @@ int main(int argc, char *argv[])
     FITSImage::Statistic stats = imageLoader.getStats();
     uint8_t *imageBuffer = imageLoader.getImageBuffer();
 
-    StellarSolver *stellarSolver = new StellarSolver(stats, imageBuffer, nullptr);
-    stellarSolver->setParameterProfile(SSolver::Parameters::ALL_STARS);
+    StellarSolver stellarSolver(stats, imageBuffer);
+    stellarSolver.setParameterProfile(SSolver::Parameters::ALL_STARS);
 
-    if(!stellarSolver->extract(false))
+    if(!stellarSolver.extract(false))
     {
         printf("Solver Failed");
         exit(0);
     }
-    QList<FITSImage::Star> starList = stellarSolver->getStarList();
+    QList<FITSImage::Star> starList = stellarSolver.getStarList();
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     printf("Stars found: %u\n", starList.count());
     for(int i=0; i < starList.count(); i++)

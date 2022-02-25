@@ -20,19 +20,19 @@ int main(int argc, char *argv[])
     FITSImage::Statistic stats = imageLoader.getStats();
     uint8_t *imageBuffer = imageLoader.getImageBuffer();
 
-    StellarSolver *stellarSolver = new StellarSolver(stats, imageBuffer, nullptr);
-    stellarSolver->setIndexFolderPaths(QStringList() << "astrometry");
+    StellarSolver stellarSolver(stats, imageBuffer);
+    stellarSolver.setIndexFolderPaths(QStringList() << "astrometry");
 
     printf("Starting to solve. . .\n");
     fflush( stdout );
 
-    if(!stellarSolver->solve())
+    if(!stellarSolver.solve())
     {
         printf("Solver Failed");
         exit(0);
     }
 
-    FITSImage::Solution solution = stellarSolver->getSolution();
+    FITSImage::Solution solution = stellarSolver.getSolution();
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     printf("Field center: (RA,Dec) = (%f, %f) deg.\n", solution.ra, solution.dec);
@@ -42,15 +42,15 @@ int main(int argc, char *argv[])
     printf("Field parity: %s\n", solution.parity.toUtf8().data());
     fflush( stdout );
 
-    stellarSolver->setParameterProfile(SSolver::Parameters::ALL_STARS);
+    stellarSolver.setParameterProfile(SSolver::Parameters::ALL_STARS);
 
-    if(!stellarSolver->extract(true))
+    if(!stellarSolver.extract(true))
     {
         printf("Solver Failed");
         exit(0);
     }
 
-    QList<FITSImage::Star> starList = stellarSolver->getStarList();
+    QList<FITSImage::Star> starList = stellarSolver.getStarList();
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
     printf("Stars found: %u\n", starList.count());
     for(int i=0; i < starList.count(); i++)

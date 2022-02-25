@@ -19,18 +19,18 @@ int main(int argc, char *argv[])
     FITSImage::Statistic stats = imageLoader.getStats();
     uint8_t *imageBuffer = imageLoader.getImageBuffer();
 
-    StellarSolver *stellarSolver = new StellarSolver(stats, imageBuffer, nullptr);
-    stellarSolver->setIndexFolderPaths(QStringList() << "astrometry");
+    StellarSolver stellarSolver(stats, imageBuffer);
+    stellarSolver.setIndexFolderPaths(QStringList() << "astrometry");
 
     printf("Starting to solve. . .\n");
     fflush( stdout );
-    if(!stellarSolver->solve())
+    if(!stellarSolver.solve())
     {
         printf("Solver Failed");
         exit(0);
     }
 
-    FITSImage::Solution solution = stellarSolver->getSolution();
+    FITSImage::Solution solution = stellarSolver.getSolution();
     printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
     printf("Field center: (RA,Dec) = (%f, %f) deg.\n", solution.ra, solution.dec);
