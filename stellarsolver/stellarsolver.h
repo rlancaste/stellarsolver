@@ -276,7 +276,7 @@ class StellarSolver : public QObject
          */
         void setIndexFilePaths(QStringList indexFilePaths)
         {
-            indexFiles = indexFilePaths;
+            m_IndexFilePaths = indexFilePaths;
         };
 
         /**
@@ -284,7 +284,7 @@ class StellarSolver : public QObject
          */
         void clearIndexFileAndFolderPaths()
         {
-            indexFiles.clear();
+            m_IndexFilePaths.clear();
             indexFolderPaths.clear();
         }
 
@@ -577,10 +577,116 @@ class StellarSolver : public QObject
 
     private:
 
+   // Useful state information for the StellarSolver
+        bool m_HasExtracted {false};        // This boolean is set when the sextraction is done
+        bool m_HasSolved {false};           // This boolean is set when the solving is done
+        bool m_HasFailed {false};           // This boolean is set when a process has failed
+        bool hasWCS {false};                // This boolean gets set if the StellarSolver has WCS data to retrieve
+        bool m_isRunning {false};           // Whether or not the StellarSolver is currently running
+
+   //StellarSolver Options
+
+        // Primary Options for StellarSolver
+        ProcessType m_ProcessType { EXTRACT };                  // This defines the type of process to perform.
+        ExtractorType m_ExtractorType { EXTRACTOR_INTERNAL };   // This is the type of star extractor to use.
+        SolverType m_SolverType {SOLVER_STELLARSOLVER};         // This is the type of solver to use.
+
+        // External Process Options
+        QString m_FileToProcess;                // The file that is being processed.
+        bool m_CleanupTemporaryFiles {true};    // Whether or not to delete the temp files when finished
+        bool m_AutoGenerateAstroConfig {true};  // Whether or not to generate the astrometry.cfg file. This is preferred so that it sends all the options requested.
+        bool m_OnlySendFITSFiles {true};        // This is sometimes needed if the external solvers can't handle other file types
+
+        // Index File Options
+        // This is the list of folder paths that the solver will use to search for index files
+        QStringList indexFolderPaths;
+        // This is an alternative to the indexFolderPaths variable.  We can just load individual index files instead of searching for them
+        QStringList m_IndexFilePaths;
+
+        // System File Paths to external programs and files
+        QString m_ASTAPBinaryPath;
+        QString m_WatneyBinaryPath;
+        QString m_SextractorBinaryPath;
+        QString m_ConfPath;
+        QString m_SolverPath;
+        QString m_WCSPath;
+
+        // Online Options
+        QString m_AstrometryAPIKey;
+        QString m_AstrometryAPIURL;
+
+        // HFR Options
+        bool m_CalculateHFR {false};          // Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
+
+        // Subframing Options
+        bool useSubframe {false};
+        QRect m_Subframe;
+
+        //The currently set parameters for StellarSolver
+        Parameters params;
+
+        //This is the Convolution Filter used by the Source Extractor
+        QVector<float> convFilter = {1, 2, 1,
+                                     2, 4, 2,
+                                     1, 2, 1
+                                    };
+
+        //Astrometry Scale Parameters, These are not saved parameters and change for each image, use the methods to set them
+        bool m_UseScale {false};                // Whether or not to use the image scale parameters
+        double m_ScaleLow {0};                  // Lower bound of image scale estimate
+        double m_ScaleHigh {0};                 // Upper bound of image scale estimate
+        ScaleUnits m_ScaleUnit {ARCMIN_WIDTH};  // In what units are the lower and upper bounds?
+
+        //Astrometry Position Parameters, These are not saved parameters and change for each image, use the methods to set them
+        bool m_UsePosition = false;             // Whether or not to use initial information about the position
+        double m_SearchRA = HUGE_VAL;           // RA of field center for search, format: decimal degrees
+        double m_SearchDE = HUGE_VAL;           // DEC of field center for search, format: decimal degrees
+
+    // StellarSolver Variables
+
+        FITSImage::Statistic m_Statistics;              // This is information about the image
+        const uint8_t *m_ImageBuffer { nullptr };       // The generic data buffer containing the image data
+        QList<ExtractorSolver*> parallelSolvers;        // This is the list of parallel ExtractorSolvers when solving in parallel
+        QPointer<ExtractorSolver> m_ExtractorSolver;    // This is the single ExtractorSolver used when not working in parallel
+        QPointer<ExtractorSolver> solverWithWCS;        // This is the ExtractorSolver with WCS information inside from the last solve.
+        int m_ParallelSolversFinishedCount {0};         // This is the number of parallel solvers that are done.
+
+    // StellarSolver Results Information
+
+        FITSImage::Background background;           // This is a report on the background levels found during star extraction
+        QList<FITSImage::Star> m_ExtractorStars;    // This is the list of stars that get extracted from the image
+        QList<FITSImage::Star> m_SolverStars;       // This is the list of stars that were extracted for the last successful solve
+        int numStars;                               // The number of stars found in the last operation
+        FITSImage::Solution solution;               // This is the solution that comes back from the Solver
+        short solutionIndexNumber = -1;             // This is the index number of the index used to solve the image.
+        short solutionHealpix = -1;                 // This is the healpix of the index used to solve the image.
+
+    // StellarSolver Private Methods
+        /**
+         * @brief registerMetaTypes registers the meta types so they can be used in functions
+         */
         void registerMetaTypes();
-        //Reports the index of this particular solver in the Parallel Solvers list
+
+        /**
+         * @brief parallelSolversAreRunning returns whether the parallel solvers are currently running
+         * @return true if they are running
+         */
+        bool parallelSolversAreRunning() const;
+
+        /**
+         * @brief whichSolver gets the index of this particular solver in the Parallel Solvers list
+         * @param solver is which solver to check the index of
+         * @return an int representing its position
+         */
         int whichSolver(ExtractorSolver *solver);
-        //Static Utility
+
+        /**
+         * @brief snr gets the signal to noise ratio for a star with the specified background
+         * @param background The specified background object which may have come from star extraction
+         * @param star The specified star
+         * @param gain The gain used in the calculation
+         * @return The snr as a double
+         */
         static double snr(const FITSImage::Background &background,
                           const FITSImage::Star &star, double gain = 0.5);
 
@@ -590,106 +696,43 @@ class StellarSolver : public QObject
         void parallelSolve();
 
         /**
-         * @brief releaseSextractorSolver is an experimental method to release the SextractorSolvers.
-         * @param solver The specified solver to release.
-         */
-        void releaseExtractorSolver(ExtractorSolver *solver);
-
-        /**
          * @brief updateConvolutionFilter This will update the convolution filter when the StellarSolver gets set up
          */
         void updateConvolutionFilter();
 
+        /**
+         * @brief appendStarsRAandDEC attaches the RA and DEC information to a star list
+         * @param stars is the star list to process
+         * @return true if it was successful
+         */
         bool appendStarsRAandDEC(QList<FITSImage::Star> &stars);
 
-        //This method checks the current Parameters before starting an operation to make sure they are sound.
+        /**
+         * @brief checkParameters checks the current Parameters before starting an operation to make sure they are sound.
+         * @return true if the parameters are good to continue.
+         */
         bool checkParameters();
-        //This is an internal StellarSolver method that creates the SextractorSolvers that will be used in the operation.
+
+        /**
+         * @brief createExtractorSolver is an internal StellarSolver method that creates the ExtractorSolvers that will be used in the operation.
+         * @return The newly created ExtractorSolver.
+         */
         ExtractorSolver* createExtractorSolver();
 
-        //This finds out the amount of available RAM on the system
+        /**
+         * @brief getAvailableRAM finds out the amount of available RAM on the system
+         * @param availableRAM is the variable that will be set to the available RAM found
+         * @param totalRAM is the variable that will be set to the total RAM on the system
+         * @return true if it is successful
+         */
         bool getAvailableRAM(double &availableRAM, double &totalRAM);
-        //This determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
+
+        /**
+         * @brief enoughRAMisAvailableFor determines if there is enough RAM for the selected index files so that we don't try to load indexes inParallel unless it can handle it.
+         * @param indexFolders is the list of index folders we will be searching for index files
+         * @return true if it is successful
+         */
         bool enoughRAMisAvailableFor(QStringList indexFolders);
-
-        //This defines the type of process to perform.
-        ProcessType m_ProcessType { EXTRACT };
-        ExtractorType m_ExtractorType { EXTRACTOR_INTERNAL };
-        SolverType m_SolverType {SOLVER_STELLARSOLVER};
-
-        //External Options
-        QString m_FileToProcess;
-        bool m_CleanupTemporaryFiles {true};
-        bool m_AutoGenerateAstroConfig {true};
-        bool m_OnlySendFITSFiles {true};
-
-        //System File Paths
-        QStringList m_IndexFilePaths;
-        QString m_ASTAPBinaryPath;
-        QString m_WatneyBinaryPath;
-        QString m_SextractorBinaryPath;
-        QString m_ConfPath;
-        QString m_SolverPath;
-        QString m_WCSPath;
-
-        //Online Options
-        QString m_AstrometryAPIKey;
-        QString m_AstrometryAPIURL;
-
-        bool useSubframe {false};
-        QRect m_Subframe;
-        bool m_isRunning {false};
-        QList<ExtractorSolver*> parallelSolvers;
-        QPointer<ExtractorSolver> m_ExtractorSolver;
-        QPointer<ExtractorSolver> solverWithWCS;
-        int m_ParallelSolversFinishedCount {0};
-        bool parallelSolversAreRunning() const;
-
-        //The currently set parameters for StellarSolver
-        Parameters params;
-        //This is the Convolution Filter used by the Source Extractor
-        QVector<float> convFilter = {1, 2, 1,
-                                     2, 4, 2,
-                                     1, 2, 1
-                                    };
-        //This is the list of folder paths that the solver will use to search for index files
-        QStringList indexFolderPaths;
-        //This is an alternative to the indexFolderPaths variable.  We can just load individual index files instead of searching for them
-        QStringList indexFiles;
-        //Astrometry Scale Parameters, These are not saved parameters and change for each image, use the methods to set them
-        bool m_UseScale {false};               //Whether or not to use the image scale parameters
-        double m_ScaleLow {0};                 //Lower bound of image scale estimate
-        double m_ScaleHigh {0};                //Upper bound of image scale estimate
-        ScaleUnits m_ScaleUnit {ARCMIN_WIDTH}; //In what units are the lower and upper bounds?
-
-        //Astrometry Position Parameters, These are not saved parameters and change for each image, use the methods to set them
-        bool m_UsePosition = false;          // Whether or not to use initial information about the position
-        double m_SearchRA = HUGE_VAL;        // RA of field center for search, format: decimal degrees
-        double m_SearchDE = HUGE_VAL;       // DEC of field center for search, format: decimal degrees
-
-        //StellarSolver Internal settings that are needed by ExternalSextractorSolver as well
-        bool m_CalculateHFR {false};          //Whether or not the HFR of the image should be calculated using sep_flux_radius.  Don't do it unless you need HFR
-        bool m_HasExtracted {false};         //This boolean is set when the sextraction is done
-        bool m_HasSolved {false};             //This boolean is set when the solving is done
-        bool m_HasFailed {false};
-        FITSImage::Statistic m_Statistics;                    //This is information about the image
-
-        const uint8_t *m_ImageBuffer { nullptr }; //The generic data buffer containing the image data
-
-        //The Results
-        FITSImage::Background background;      //This is a report on the background levels found during star extraction
-        //This is the list of stars that get extracted from the image, saved to the file, and then solved by astrometry.net
-        QList<FITSImage::Star> m_ExtractorStars;
-        //This is the list of stars that were extracted for the last successful solve
-        QList<FITSImage::Star> m_SolverStars;
-        //The number of stars found in the last operation
-        int numStars;
-        FITSImage::Solution solution;          //This is the solution that comes back from the Solver
-        short solutionIndexNumber = -1; // This is the index number of the index used to solve the image.
-        short solutionHealpix = -1; // This is the healpix of the index used to solve the image.
-        bool hasWCS {false};        //This boolean gets set if the StellarSolver has WCS data to retrieve
-
-        bool wasAborted {false};
 
     signals:
         /**

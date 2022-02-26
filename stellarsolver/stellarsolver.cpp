@@ -112,7 +112,7 @@ ExtractorSolver* StellarSolver::createExtractorSolver()
     solver->m_ActiveParameters = params;
     solver->convFilter = convFilter;
     solver->indexFolderPaths = indexFolderPaths;
-    solver->indexFiles = indexFiles;
+    solver->indexFiles = m_IndexFilePaths;
     if(m_UseScale)
         solver->setSearchScale(m_ScaleLow, m_ScaleHigh, m_ScaleUnit);
     if(m_UsePosition)
@@ -210,24 +210,6 @@ bool StellarSolver::solve()
     start();
     loop.exec(QEventLoop::ExcludeUserInputEvents);
     return m_HasSolved;
-}
-
-//This will allow the solver to gracefully disconnect, abort, finish, and get deleted
-//Right now the internal solvers are all deleted when StellarSolver is deleted
-//I might try experimenting with this.
-void StellarSolver::releaseExtractorSolver(ExtractorSolver *solver)
-{
-    if(solver != nullptr)
-    {
-        if(solver->isRunning())
-        {
-            connect(solver, &ExtractorSolver::finished, solver, &ExtractorSolver::deleteLater);
-            solver->disconnect(this);
-            solver->abort();
-        }
-        else
-            solver->deleteLater();
-    }
 }
 
 void StellarSolver::start()
@@ -602,7 +584,6 @@ void StellarSolver::abort()
         solver->abort();
     if(m_ExtractorSolver)
         m_ExtractorSolver->abort();
-    wasAborted = true;
 }
 
 //This method checks all the solvers and the internal running boolean to determine if anything is running.
