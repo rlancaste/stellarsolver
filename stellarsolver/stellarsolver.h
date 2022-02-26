@@ -212,7 +212,7 @@ class StellarSolver : public QObject
         SSolverLogLevel m_SSLogLevel {LOG_NORMAL};   //This is the level for the StellarSolver Logging
 
         //These are for creating temporary files
-        //This is the base name used for all temporary files.  It uses a random name based on the type of solver/sextractor.
+        //This is the base name used for all temporary files.  It uses a random name based on the type of solver/star extractor.
         QString m_BaseName;
         //This is the path used for saving any temporary files.  They are by default saved to the default temp directory, you can change it if you want to.
         QString m_BasePath {QDir::tempPath()};
@@ -473,7 +473,7 @@ class StellarSolver : public QObject
         };
 
         /**
-         * @brief getNumThreads gets the number of sextractor solvers used to plate solve the image
+         * @brief getNumThreads gets the number of ExtractorSolvers used to plate solve the image
          * @return the number of solvers
          */
         int getNumThreads() const

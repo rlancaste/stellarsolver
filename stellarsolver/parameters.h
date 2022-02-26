@@ -6,7 +6,7 @@
 namespace SSolver
 {
 
-//This is the shape used for source extration in sextractor
+//This is the shape used for source extraction in the star extractor
 enum Shape
 {
     SHAPE_AUTO,
@@ -84,7 +84,7 @@ static QString getConvFilterString(SSolver::ConvFilterType type)
 typedef struct
 {
     QString confPath;               //Path to the Astrometry Config File
-    QString sextractorBinaryPath;   //Path to the Sextractor Program binary
+    QString sextractorBinaryPath;   //Path to the SExtractor Program binary
     QString solverPath;             //Path to the Astrometry Solver binary
     QString astapBinaryPath;        //Path to the ASTAP Program binary
     QString watneyBinaryPath;        //Path to the Watney Program binary
@@ -129,8 +129,8 @@ typedef enum { EXTRACT,            //This just sextracts the sources
                SOLVE                //This solves the image
              } ProcessType;
 
-typedef enum { EXTRACTOR_INTERNAL, //This uses internal SEP to Sextract Sources
-               EXTRACTOR_EXTERNAL,  //This uses the external sextractor to Sextract Sources.
+typedef enum { EXTRACTOR_INTERNAL, //This uses internal SEP to Extract Sources
+               EXTRACTOR_EXTERNAL,  //This uses the external SExtractor to Extract Sources.
                EXTRACTOR_BUILTIN  //This uses whatever default sextraction method the selected solver uses
              } ExtractorType;
 
@@ -314,14 +314,14 @@ class Parameters
         // This is a description of the Profile, what it is intended for, anything that sets it apart
         QString description;
 
-        //Sextractor Photometry Parameters
+        //Star Extractor Photometry Parameters
         Shape apertureShape = SHAPE_CIRCLE; // Whether to use the SEP_SUM_ELLIPSE method or the SEP_SUM_CIRCLE method
         double kron_fact = 2.5;             // This sets the Kron Factor for use with the kron radius for flux calculations.
         int subpix = 5;                     // The subpix setting.  The instructions say to make it 5
         double r_min = 3.5;                 // The minimum radius for stars for flux calculations.
         short inflags = 0;                      // Note sure if we need them?
 
-        //Sextractor Extraction Parameters
+        //Star Extractor Extraction Parameters
         // This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.
         double magzero =  20;
         // This is the minimum area in pixels for a star detection, smaller stars are ignored.

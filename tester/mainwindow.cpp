@@ -196,7 +196,7 @@ MainWindow::MainWindow() :
     ui->vertSplitter->setSizes(QList<int>() << ui->vertSplitter->height() << 0 );
     ui->horSplitter->setSizes(QList<int>() << 100 << ui->horSplitter->width() / 2  << 0 );
 
-    //Settings for the External Sextractor and Solver
+    //Settings for the External SExtractor and Solver
     ui->configFilePath->setToolTip("The path to the Astrometry.cfg file used by astrometry.net for configuration.");
     ui->sextractorPath->setToolTip("The path to the external SExtractor executable");
     ui->solverPath->setToolTip("The path to the external Astrometry.net solve-field executable");

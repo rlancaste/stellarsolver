@@ -8,8 +8,6 @@ bool SSolver::Parameters::operator==(const Parameters& o)
             kron_fact == o.kron_fact &&
             subpix == o.subpix &&
             r_min == o.r_min &&
-            //skip inflags??  Not sure we even need them
-
             magzero == o.magzero &&
             minarea == o.minarea &&
             deblend_thresh == o.deblend_thresh &&
@@ -21,6 +19,7 @@ bool SSolver::Parameters::operator==(const Parameters& o)
             convFilterType == o.convFilterType &&
             fwhm == o.fwhm &&
 
+            //Option to partition star extraction in separate threads or not
             partition == o.partition &&
 
             threshold_offset == o.threshold_offset &&
@@ -82,6 +81,7 @@ QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
     settingsMap.insert("convFilterType", QVariant(params.convFilterType));
     settingsMap.insert("fwhm", QVariant(params.fwhm));
 
+    //Option to partition star extraction in separate threads or not
     settingsMap.insert("partition", QVariant(params.partition));
 
     settingsMap.insert("threshold_offset", QVariant(params.threshold_offset));
@@ -148,6 +148,7 @@ SSolver::Parameters SSolver::Parameters::convertFromMap(QMap<QString, QVariant> 
     params.fwhm = settingsMap.value("fwhm",params.fwhm).toDouble();
     params.convFilterType = (ConvFilterType)settingsMap.value("convFilterType",params.convFilterType).toInt();
 
+    //Option to partition star extraction in separate threads or not
     params.partition = settingsMap.value("partition", params.partition).toBool();
 
     //StellarSolver Star Filter Settings

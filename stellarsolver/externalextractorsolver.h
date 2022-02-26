@@ -1,4 +1,4 @@
-/*  ExternalSextractorSolver, StellarSolver Intenal Library developed by Robert Lancaster, 2020
+/*  ExternalExtractorSolver, StellarSolver Intenal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
@@ -44,7 +44,7 @@ class ExternalExtractorSolver : public InternalExtractorSolver
 
         //System File Paths
         QString confPath;               //Path to the Astrometry Config File
-        QString sextractorBinaryPath;   //Path to the Sextractor Program binary
+        QString sextractorBinaryPath;   //Path to the SExtractor Program binary
         QString solverPath;             //Path to the Astrometry Solver binary
         QString astapBinaryPath;        //Path to the ASTAP Program binary
         QString watneyBinaryPath;       //Path to the Watney Astrometry Solver Program binary
@@ -60,7 +60,7 @@ class ExternalExtractorSolver : public InternalExtractorSolver
         //Method to set file paths
         void setExternalFilePaths(ExternalProgramPaths paths);
 
-        // This is the xyls file path that sextractor will be saving for Astrometry.net
+        // This is the xyls file path that we will be saving for Astrometry.net
         // If it is not set, it will be set to a random temporary file
         QString starXYLSFilePath;
         bool starXYLSFilePathIsTempFile = false; //This will be set to true if it gets generated
@@ -92,7 +92,7 @@ class ExternalExtractorSolver : public InternalExtractorSolver
         };
         int m_nwcs = 0;
 
-        //These are used for reading and writing the sextractor file
+        //These are used for reading and writing the star extractor file
         char* xcol = strdup("X_IMAGE"); //This is the column for the x-coordinates
         char* ycol = strdup("Y_IMAGE"); //This is the column for the y-coordinates
         char* magcol = strdup("MAG_AUTO"); //This is the column for the magnitude
@@ -107,7 +107,7 @@ class ExternalExtractorSolver : public InternalExtractorSolver
         QPointer<QProcess> sextractorProcess;
 
         void run()
-        override; //This starts the ExternalSextractorSolver in a separate thread.  Note, ExternalSextractorSolver uses QProcess
+        override; //This starts the ExternalExtractorSolver in a separate thread.  Note, ExternalExtractorSolver uses QProcess
 
 
         int runExternalSolver();

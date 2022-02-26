@@ -209,13 +209,13 @@ public slots:
 
     void reloadConvTable();
 
-    //These functions handle the settings for the Sextractors and Solvers
+    //These functions handle the settings for the Star Extractors and Solvers
     SSolver::Parameters getSettingsFromUI();
     void sendSettingsToUI(SSolver::Parameters a);
     void setupExternalExtractorSolverIfNeeded();
     void setupStellarSolverParameters();
 
-    //These functions get called when the sextractor or solver finishes
+    //These functions get called when the star extractor or solver finishes
     bool extractorComplete();
     bool solverComplete();
 

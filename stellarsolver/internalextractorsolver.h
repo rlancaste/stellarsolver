@@ -10,7 +10,7 @@
 #include "extractorsolver.h"
 #include "astrometrylogger.h"
 
-//Sextractor Includes
+//SEP Includes
 #include "sep/sep.h"
 
 using namespace SSolver;
@@ -45,7 +45,7 @@ class InternalExtractorSolver: public ExtractorSolver
         } ImageParams;
 
     protected:
-        //This is the method that actually runs the internal sextractor
+        //This is the method that actually runs internal SEP
         int runSEPExtractor();
         //This applies the star filter to the stars list.
         void applyStarFilters(QList<FITSImage::Star> &starList);
@@ -68,10 +68,10 @@ class InternalExtractorSolver: public ExtractorSolver
 
         //These are the key internal methods for the internal StellarSolver solver
         void run()
-        override;        //This starts the StellarSolver in a separate thread.  Note, ExternalSextractorSolver uses QProcess
+        override;        //This starts the StellarSolver in a separate thread.  Note, ExternalExtractorSolver uses QProcess
         int runInternalSolver();    //This is the method that actually runs the internal solver
 
-        //This is used by the sextractor, it gets a new representation of the buffer that SEP can understand
+        //This is used by the star extractor, it gets a new representation of the buffer that SEP can understand
         template <typename T>
         void getFloatBuffer(float * buffer, int x, int y, int w, int h);
 

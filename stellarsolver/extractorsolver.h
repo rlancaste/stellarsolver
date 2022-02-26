@@ -163,11 +163,11 @@ class ExtractorSolver : public QThread
         virtual bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) = 0;
 
 
-    protected:  //Note: These items are not private because they are needed by ExternalSextractorSolver
+    protected:  //Note: These items are not private because they are needed by Child Classes
 
         bool m_UseSubframe = false;
         QRect m_SubFrameRect;
-        //StellarSolver Internal settings that are needed by ExternalSextractorSolver as well
+        //StellarSolver Internal settings that are needed by ExternalExtractorSolver as well
         //This boolean is set when the sextraction is done
         bool m_HasExtracted = false;
         //This boolean is set when the solving is done
@@ -188,7 +188,7 @@ class ExtractorSolver : public QThread
         short solutionIndexNumber = -1; // This is the index number of the index used to solve the image.
         short solutionHealpix = -1; // This is the healpix of the index used to solve the image.
 
-        bool runSEPSextractor();    //This is the method that actually runs the internal sextractor
+        bool runSEPExtractor();    //This is the method that actually runs the internal extractor
         bool m_HasWCS = false;        //This boolean gets set if the StellarSolver has WCS data to retrieve
         bool m_WasAborted = false;
         // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
