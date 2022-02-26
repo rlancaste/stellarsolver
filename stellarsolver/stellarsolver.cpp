@@ -45,8 +45,6 @@ StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &image
 StellarSolver::~StellarSolver()
 {
     abort();
-    while(isRunning())
-        qApp->processEvents();
 }
 
 void StellarSolver::registerMetaTypes()
@@ -361,7 +359,7 @@ bool StellarSolver::checkParameters()
         }
     }
 
-    return true; //For now
+    return true;
 }
 
 //This allows us to start multiple threads to search simulaneously in separate threads/cores

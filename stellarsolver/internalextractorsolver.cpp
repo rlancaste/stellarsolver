@@ -51,6 +51,7 @@ InternalExtractorSolver::~InternalExtractorSolver()
 void InternalExtractorSolver::abort()
 {
     thejob.bp.cancelled = TRUE;
+    quit();
 
     if(!isChildSolver)
         emit logOutput("Aborting...");

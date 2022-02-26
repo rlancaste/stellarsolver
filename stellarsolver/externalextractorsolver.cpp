@@ -366,6 +366,7 @@ void ExternalExtractorSolver::abort()
         sextractorProcess->kill();
     if(!isChildSolver)
         emit logOutput("Aborting ...");
+    quit();
     m_WasAborted = true;
 }
 

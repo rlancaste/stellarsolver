@@ -167,6 +167,7 @@ void OnlineSolver::abort()
     workflowStage  = NO_STAGE;
     emit logOutput("Online Solver aborted.");
     emit finished(-1);
+    quit();
     aborted = true;
 }
 
