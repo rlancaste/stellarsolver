@@ -372,7 +372,7 @@ void ExternalExtractorSolver::cleanupTempFiles()
         solvedFile.setPermissions(solvedFile.permissions() | QFileDevice::WriteOther);
         solvedFile.remove();
         QFile(solutionFile).remove();
-        QFile(cancelfn).remove();
+        //QFile(cancelfn).remove();
         if(starXYLSFilePathIsTempFile)
             QFile(starXYLSFilePath).remove();
         if(fileToProcessIsTempFile)
