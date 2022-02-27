@@ -29,12 +29,6 @@ class StellarSolver : public QObject
         Q_OBJECT
         Q_PROPERTY(QString BasePath MEMBER m_BasePath)
         Q_PROPERTY(QString FileToProcess MEMBER m_FileToProcess)
-        Q_PROPERTY(QString ASTAPBinaryPath MEMBER m_ASTAPBinaryPath)
-        Q_PROPERTY(QString WatneyBinaryPath MEMBER m_WatneyBinaryPath)
-        Q_PROPERTY(QString SextractorBinaryPath MEMBER m_SextractorBinaryPath)
-        Q_PROPERTY(QString ConfPath MEMBER m_ConfPath)
-        Q_PROPERTY(QString SolverPath MEMBER m_SolverPath)
-        Q_PROPERTY(QString WCSPath MEMBER m_WCSPath)
         Q_PROPERTY(QString AstrometryAPIKey MEMBER m_AstrometryAPIKey)
         Q_PROPERTY(QString AstrometryAPIURL MEMBER m_AstrometryAPIURL)
         Q_PROPERTY(QString LogFileName MEMBER m_LogFileName)
@@ -84,34 +78,11 @@ class StellarSolver : public QObject
         bool loadNewImageBuffer(const FITSImage::Statistic &imagestats,  uint8_t const *imageBuffer);
 
         /**
-         * @brief getLinuxDefaultPaths gets the default external program paths appropriate for a standard Linux installation
+         * @brief getDefaultExternalPaths gets the default external program paths appropriate for the selected Computer System
+         * @param system is the selected system setup
          * @return The appropriate ExernalProgramPaths Object
          */
-        static ExternalProgramPaths getLinuxDefaultPaths();
-
-        /**
-         * @brief getLinuxInternalPaths gets the default external program paths appopriate to the KStars "internal" installation
-         * @return The appropriate ExernalProgramPaths Object
-         */
-        static ExternalProgramPaths getLinuxInternalPaths();
-
-        /**
-         * @brief getMacHomebrewPaths gets the default external program paths appropriate for a MacOS System with the programs installed in Homebrew
-         * @return The appropriate ExernalProgramPaths Object
-         */
-        static ExternalProgramPaths getMacHomebrewPaths();
-
-        /**
-         * @brief getMacHomebrewPaths gets the default external program paths appropriate for a Windows System using the ANSVR solver
-         * @return The appropriate ExernalProgramPaths Object
-         */
-        static ExternalProgramPaths getWinANSVRPaths();
-
-        /**
-         * @brief getMacHomebrewPaths gets the default external program paths appropriate for a Windows System where the programs are installed in Cygwin
-         * @return The appropriate ExernalProgramPaths Object
-         */
-        static ExternalProgramPaths getWinCygwinPaths();
+        static ExternalProgramPaths getDefaultExternalPaths(ComputerSystemType system);
 
 
         // Notes for the function below:
@@ -260,6 +231,15 @@ class StellarSolver : public QObject
          * @param profile The selected built in profile
          */
         void setParameterProfile(SSolver::Parameters::ParametersProfile profile);
+
+        /**
+         * @brief setExternalFilePaths sets the external file paths for the external programs
+         * @param paths are the paths to set
+         */
+        void setExternalFilePaths(ExternalProgramPaths paths)
+        {
+            m_ExternalPaths = paths;
+        }
 
         /**
          * @brief setIndexFolderPaths Sets the IndexFolderPaths to automatically search for index files.
@@ -596,18 +576,11 @@ class StellarSolver : public QObject
         bool m_CleanupTemporaryFiles {true};    // Whether or not to delete the temp files when finished
         bool m_AutoGenerateAstroConfig {true};  // Whether or not to generate the astrometry.cfg file. This is preferred so that it sends all the options requested.
         bool m_OnlySendFITSFiles {true};        // This is sometimes needed if the external solvers can't handle other file types
+        ExternalProgramPaths m_ExternalPaths;   // System File Paths to external programs and files
 
         // Index File Options
         QStringList indexFolderPaths;           // This is the list of folder paths that the solver will use to search for index files
         QStringList m_IndexFilePaths;           // This is an alternative to the indexFolderPaths variable.  We can just load individual index files instead of searching for them
-
-        // System File Paths to external programs and files
-        QString m_ASTAPBinaryPath;
-        QString m_WatneyBinaryPath;
-        QString m_SextractorBinaryPath;
-        QString m_ConfPath;
-        QString m_SolverPath;
-        QString m_WCSPath;
 
         // Online Options
         QString m_AstrometryAPIKey;

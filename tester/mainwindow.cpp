@@ -222,29 +222,7 @@ MainWindow::MainWindow() :
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num)
     {
 
-        ExternalProgramPaths paths;
-        switch(num)
-        {
-            case 0:
-                paths = ExternalExtractorSolver::getLinuxDefaultPaths();
-                break;
-            case 1:
-                paths = ExternalExtractorSolver::getLinuxInternalPaths();
-                break;
-            case 2:
-                paths = ExternalExtractorSolver::getMacHomebrewPaths();
-                break;
-            case 3:
-                paths = ExternalExtractorSolver::getWinANSVRPaths();
-                break;
-            case 4:
-                paths = ExternalExtractorSolver::getWinCygwinPaths();
-                break;
-            default:
-                paths = ExternalExtractorSolver::getLinuxDefaultPaths();
-                break;
-        }
-
+        ExternalProgramPaths paths = ExternalExtractorSolver::getDefaultExternalPaths((SSolver::ComputerSystemType) num);
         ui->sextractorPath->setText(paths.sextractorBinaryPath);
         ui->configFilePath->setText(paths.confPath);
         ui->solverPath->setText(paths.solverPath);
@@ -501,12 +479,13 @@ MainWindow::MainWindow() :
     //This gets a temporary ExternalExtractorSolver to get the defaults
     //It tries to load from the saved settings if possible as well.
     ExternalExtractorSolver extTemp(processType, m_ExtractorType, solverType, stats, m_ImageBuffer, this);
-    ui->sextractorPath->setText(programSettings.value("sextractorBinaryPath", extTemp.sextractorBinaryPath).toString());
-    ui->configFilePath->setText(programSettings.value("confPath", extTemp.confPath).toString());
-    ui->solverPath->setText(programSettings.value("solverPath", extTemp.solverPath).toString());
-    ui->astapPath->setText(programSettings.value("astapBinaryPath", extTemp.astapBinaryPath).toString());
-    ui->watneyPath->setText(programSettings.value("watneyBinaryPath", extTemp.watneyBinaryPath).toString());
-    ui->wcsPath->setText(programSettings.value("wcsPath", extTemp.wcsPath).toString());
+    ExternalProgramPaths paths = extTemp.getDefaultExternalPaths();
+    ui->sextractorPath->setText(programSettings.value("sextractorBinaryPath", paths.sextractorBinaryPath).toString());
+    ui->configFilePath->setText(programSettings.value("confPath", paths.confPath).toString());
+    ui->solverPath->setText(programSettings.value("solverPath", paths.solverPath).toString());
+    ui->astapPath->setText(programSettings.value("astapBinaryPath", paths.astapBinaryPath).toString());
+    ui->watneyPath->setText(programSettings.value("watneyBinaryPath", paths.watneyBinaryPath).toString());
+    ui->wcsPath->setText(programSettings.value("wcsPath", paths.wcsPath).toString());
     ui->cleanupTemp->setChecked(programSettings.value("cleanupTemporaryFiles", extTemp.cleanupTemporaryFiles).toBool());
     ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig",
             extTemp.autoGenerateAstroConfig).toBool());
@@ -997,18 +976,22 @@ void MainWindow::solveImage()
 //This sets up the External SExtractor and Solver and sets settings specific to them
 void MainWindow::setupExternalExtractorSolverIfNeeded()
 {
-    //External options
+    // External options
     stellarSolver->setProperty("FileToProcess", fileToProcess);
     stellarSolver->setProperty("BasePath", ui->basePath->text());
-    stellarSolver->setProperty("SextractorBinaryPath", ui->sextractorPath->text());
-    stellarSolver->setProperty("ConfPath", ui->configFilePath->text());
-    stellarSolver->setProperty("SolverPath", ui->solverPath->text());
-    stellarSolver->setProperty("ASTAPBinaryPath", ui->astapPath->text());
-    stellarSolver->setProperty("WatneyBinaryPath", ui->watneyPath->text());
-    stellarSolver->setProperty("WCSPath", ui->wcsPath->text());
     stellarSolver->setProperty("CleanupTemporaryFiles", ui->cleanupTemp->isChecked());
     stellarSolver->setProperty("AutoGenerateAstroConfig", ui->generateAstrometryConfig->isChecked());
     stellarSolver->setProperty("OnlySendFITSFiles", ui->onlySendFITSFiles->isChecked());
+
+    // External File Paths
+    ExternalProgramPaths externalPaths;
+    externalPaths.sextractorBinaryPath = ui->sextractorPath->text();
+    externalPaths.confPath = ui->configFilePath->text();
+    externalPaths.solverPath = ui->solverPath->text();
+    externalPaths.astapBinaryPath = ui->astapPath->text();
+    externalPaths.watneyBinaryPath = ui->watneyPath->text();
+    externalPaths.wcsPath = ui->wcsPath->text();
+    stellarSolver->setExternalFilePaths(externalPaths);
 
     //Online Options
     stellarSolver->setProperty("BasePath",  ui->basePath->text());

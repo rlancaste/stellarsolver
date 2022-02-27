@@ -30,19 +30,9 @@ class ExternalExtractorSolver : public InternalExtractorSolver
         QString fileToProcess;                  // This is the file that will be processed by the external SExtractor or solver
         bool fileToProcessIsTempFile = false;   // This indicates that the file is a temp file that might need to be deleted
         QString solutionFile;                   // This is the path to the solution file after solving is done.
-
-        // This is the xyls file path that we will be saving for Astrometry.net
-        // If it is not set, it will be set to a random temporary file
-        QString starXYLSFilePath;                // This is the file path
-        bool starXYLSFilePathIsTempFile = false; // This will be set to true if it gets generated
-
-        // System File Paths
-        QString confPath;               // Path to the Astrometry Config File
-        QString sextractorBinaryPath;   // Path to the SExtractor Program binary
-        QString solverPath;             // Path to the Astrometry Solver binary
-        QString astapBinaryPath;        // Path to the ASTAP Program binary
-        QString watneyBinaryPath;       // Path to the Watney Astrometry Solver Program binary
-        QString wcsPath;                // Path to the WCSInfo binary
+        ExternalProgramPaths externalPaths;     // File Paths for the external solvers
+        QString starXYLSFilePath;               // This is the path to the generated XYLS file from SEP to solve with the local solver
+        bool starXYLSFilePathIsTempFile = false;// This will be set to true if the XYLS file gets generated
 
         // External Program Options
         bool cleanupTemporaryFiles = true;      // Whether or not to clean up the temporary files created
@@ -82,18 +72,27 @@ class ExternalExtractorSolver : public InternalExtractorSolver
          */
         ExtractorSolver * spawnChildSolver(int n) override;
 
-        //Methods to get default file paths
-        static ExternalProgramPaths getLinuxDefaultPaths();
-        static ExternalProgramPaths getLinuxInternalPaths();
-        static ExternalProgramPaths getMacHomebrewPaths();
-        static ExternalProgramPaths getWinANSVRPaths();
-        static ExternalProgramPaths getWinCygwinPaths();
+        /**
+         * @brief getDefaultExternalPaths gets the default external program paths appropriate for the selected Computer System
+         * @param system is the selected operating system and configuration
+         * @return The appropriate ExernalProgramPaths Object
+         */
+        static ExternalProgramPaths getDefaultExternalPaths(ComputerSystemType system);
+
+        /**
+         * @brief getDefaultExternalPaths gets the default external program paths for this operating system
+         * @return The appropriate ExernalProgramPaths Object (Note: may not be appropriate to this configuration
+         */
+        static ExternalProgramPaths getDefaultExternalPaths();
 
         /**
          * @brief setExternalFilePaths sets the external file paths for the external programs
          * @param paths are the paths to set
          */
-        void setExternalFilePaths(ExternalProgramPaths paths);
+        void setExternalFilePaths(ExternalProgramPaths paths)
+        {
+            externalPaths = paths;
+        }
 
         /**
          * @brief runExternalExtractor does the star extraction using the external SExtractor.

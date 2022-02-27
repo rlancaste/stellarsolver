@@ -77,7 +77,7 @@ ExtractorSolver* StellarSolver::createExtractorSolver()
         onlineSolver->fileToProcess = m_FileToProcess;
         onlineSolver->astrometryAPIKey = m_AstrometryAPIKey;
         onlineSolver->astrometryAPIURL = m_AstrometryAPIURL;
-        onlineSolver->sextractorBinaryPath = m_SextractorBinaryPath;
+        onlineSolver->externalPaths = m_ExternalPaths;
         solver = onlineSolver;
     }
     else if((m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER) || (m_ProcessType != SOLVE
@@ -88,12 +88,7 @@ ExtractorSolver* StellarSolver::createExtractorSolver()
         ExternalExtractorSolver *extSolver = new ExternalExtractorSolver(m_ProcessType, m_ExtractorType, m_SolverType,
                 m_Statistics, m_ImageBuffer, this);
         extSolver->fileToProcess = m_FileToProcess;
-        extSolver->sextractorBinaryPath = m_SextractorBinaryPath;
-        extSolver->confPath = m_ConfPath;
-        extSolver->solverPath = m_SolverPath;
-        extSolver->astapBinaryPath = m_ASTAPBinaryPath;
-        extSolver->watneyBinaryPath = m_WatneyBinaryPath;
-        extSolver->wcsPath = m_WCSPath;
+        extSolver->externalPaths = m_ExternalPaths;
         extSolver->cleanupTemporaryFiles = m_CleanupTemporaryFiles;
         extSolver->autoGenerateAstroConfig = m_AutoGenerateAstroConfig;
         extSolver->onlySendFITSFiles = m_OnlySendFITSFiles;
@@ -121,26 +116,9 @@ ExtractorSolver* StellarSolver::createExtractorSolver()
     return solver;
 }
 
-//Methods to get default file paths
-ExternalProgramPaths StellarSolver::getLinuxDefaultPaths()
+ExternalProgramPaths StellarSolver::getDefaultExternalPaths(ComputerSystemType system)
 {
-    return ExternalExtractorSolver::getLinuxDefaultPaths();
-};
-ExternalProgramPaths StellarSolver::getLinuxInternalPaths()
-{
-    return ExternalExtractorSolver::getLinuxInternalPaths();
-};
-ExternalProgramPaths StellarSolver::getMacHomebrewPaths()
-{
-    return ExternalExtractorSolver::getMacHomebrewPaths();
-};
-ExternalProgramPaths StellarSolver::getWinANSVRPaths()
-{
-    return ExternalExtractorSolver::getWinANSVRPaths();
-};
-ExternalProgramPaths StellarSolver::getWinCygwinPaths()
-{
-    return ExternalExtractorSolver::getLinuxDefaultPaths();
+    return ExternalExtractorSolver::getDefaultExternalPaths(system);
 };
 
 QStringList StellarSolver::getIndexFiles(const QStringList &directoryList, int indexToUse, int healpixToUse)

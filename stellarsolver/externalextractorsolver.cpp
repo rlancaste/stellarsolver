@@ -12,6 +12,7 @@
 #include <wcshdr.h>
 #include <wcsfix.h>
 
+// This needs to be static even if there are parallel StellarSolvers so that each solver and child solver gets a unique identifier
 static int solverNum = 1;
 
 ExternalExtractorSolver::ExternalExtractorSolver(ProcessType type, ExtractorType sexType, SolverType solType,
@@ -19,19 +20,11 @@ ExternalExtractorSolver::ExternalExtractorSolver(ProcessType type, ExtractorType
                     solType, imagestats, imageBuffer, parent)
 {
 
-    //This sets the base name used for the temp files.
+    // This sets the base name used for the temp files.
     m_BaseName = "externalExtractorSolver_" + QString::number(solverNum++);
 
-    //The code below sets default paths for these key external file settings.
-
-#if defined(Q_OS_OSX)
-    setExternalFilePaths(getMacHomebrewPaths());
-#elif defined(Q_OS_LINUX)
-    setExternalFilePaths(getLinuxDefaultPaths());
-#else //Windows
-    setExternalFilePaths(getWinANSVRPaths());
-#endif
-
+    // The code below sets default paths for these key external file settings to their operating system defaults.
+    setExternalFilePaths(getDefaultExternalPaths());
 }
 
 ExternalExtractorSolver::~ExternalExtractorSolver()
@@ -46,82 +39,67 @@ ExternalExtractorSolver::~ExternalExtractorSolver()
 
 //The following methods are available to get the default paths for different operating systems and configurations.
 
-ExternalProgramPaths ExternalExtractorSolver::getLinuxDefaultPaths()
+ExternalProgramPaths ExternalExtractorSolver::getDefaultExternalPaths(ComputerSystemType system)
 {
-    return ExternalProgramPaths
+    ExternalProgramPaths paths;
+    switch(system)
     {
-        "/etc/astrometry.cfg",              //confPath
-        "/usr/bin/sextractor",              //sextractorBinaryPath
-        "/usr/bin/solve-field",             //solverPath
+    case LINUX_DEFAULT:
+        paths.confPath = "/etc/astrometry.cfg";
+        paths.sextractorBinaryPath =  "/usr/bin/sextractor";
+        paths.solverPath = "/usr/bin/solve-field";
         (QFile("/bin/astap").exists()) ?
-        "/bin/astap" :                      //astapBinaryPath
-        "/opt/astap/astap",
-        "/bin/watney-solve",                //watneyBinaryPath
-        "/usr/bin/wcsinfo"                  //wcsPath
-    };
-}
-
-ExternalProgramPaths ExternalExtractorSolver::getLinuxInternalPaths()
-{
-    return ExternalProgramPaths
-    {
-        "$HOME/.local/share/kstars/astrometry/astrometry.cfg",  //confPath
-        "/usr/bin/sextractor",                                  //sextractorBinaryPath
-        "/usr/bin/solve-field",                                 //solverPath
+            paths.astapBinaryPath = "/bin/astap" :
+            paths.astapBinaryPath = "/opt/astap/astap";
+        paths.watneyBinaryPath = "/bin/watney-solve";
+        paths.wcsPath = "/usr/bin/wcsinfo";
+        break;
+    case LINUX_INTERNAL:
+        paths.confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
+        paths.sextractorBinaryPath = "/usr/bin/sextractor";
+        paths.solverPath = "/usr/bin/solve-field";
         (QFile("/bin/astap").exists()) ?
-        "/bin/astap" :                                          //astapBinaryPath
-        "/opt/astap/astap",
-        "/bin/watney-solve",                                    //watneyBinaryPath
-        "/usr/bin/wcsinfo"                                      //wcsPath
-    };
+            paths.astapBinaryPath = "/bin/astap" :
+            paths.astapBinaryPath = "/opt/astap/astap";
+        paths.watneyBinaryPath = "/bin/watney-solve";
+        paths.wcsPath = "/usr/bin/wcsinfo";
+        break;
+    case MAC_HOMEBREW:
+        paths.confPath = "/usr/local/etc/astrometry.cfg";
+        paths.sextractorBinaryPath = "/usr/local/bin/sex";
+        paths.solverPath = "/usr/local/bin/solve-field";
+        paths.astapBinaryPath = "/Applications/ASTAP.app/Contents/MacOS/astap";
+        paths.watneyBinaryPath = "/usr/local/bin/watney-solve";
+        paths.wcsPath = "/usr/local/bin/wcsinfo";
+        break;
+    case WIN_ANSVR:
+        paths.confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg";
+        paths.sextractorBinaryPath = ""; //Not on windows?
+        paths.solverPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe";
+        paths.astapBinaryPath = "C:/Program Files/astap/astap.exe";
+        paths.watneyBinaryPath = "C:/Program Files/watney-solve-win-x64-1/watney-solve.exe";
+        paths.wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
+        break;
+    case WIN_CYGWIN:
+        paths.confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
+        paths.sextractorBinaryPath = ""; //Not on windows?
+        paths.solverPath = "C:/cygwin64/bin/solve-field";
+        paths.astapBinaryPath = "C:/Program Files/astap/astap.exe";
+        paths.watneyBinaryPath = "C:/Program Files/watney-solve-win-x64-1/watney-solve.exe";
+        paths.wcsPath = "C:/cygwin64/bin/wcsinfo";
+        break;
+    }
+    return paths;
 }
-
-ExternalProgramPaths ExternalExtractorSolver::getMacHomebrewPaths()
+ExternalProgramPaths ExternalExtractorSolver::getDefaultExternalPaths()
 {
-    return ExternalProgramPaths
-    {
-        "/usr/local/etc/astrometry.cfg",                //confPath
-        "/usr/local/bin/sex",                           //sextractorBinaryPath
-        "/usr/local/bin/solve-field",                   //solverPath
-        "/Applications/ASTAP.app/Contents/MacOS/astap", //astapBinaryPath
-        "/usr/local/bin/watney-solve",                  //watneyBinaryPath
-        "/usr/local/bin/wcsinfo"                        //wcsPath
-    };
-}
-
-ExternalProgramPaths ExternalExtractorSolver::getWinANSVRPaths()
-{
-    return ExternalProgramPaths
-    {
-        QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg",    //confPath
-        "",                                                                             //sextractorBinaryPath
-        QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe",//solverPath
-        "C:/Program Files/astap/astap.exe",                                             //astapBinaryPath
-        "C:/Program Files/watney-solve-win-x64-1/watney-solve.exe",                     //watneyBinaryPath
-        QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe" //wcsPath
-    };
-}
-
-ExternalProgramPaths ExternalExtractorSolver::getWinCygwinPaths()
-{
-    return ExternalProgramPaths
-    {
-        "C:/cygwin64/usr/etc/astrometry.cfg",   //confPath
-        "",                                     //sextractorBinaryPath
-        "C:/cygwin64/bin/solve-field",          //solverPath
-        "C:/Program Files/astap/astap.exe",     //astapBinaryPath
-        "C:/Program Files/astap/astap.exe",     //watneyBinaryPath
-        "C:/cygwin64/bin/wcsinfo"               //wcsPath
-    };
-}
-
-void ExternalExtractorSolver::setExternalFilePaths(ExternalProgramPaths paths)
-{
-    confPath = paths.confPath;
-    sextractorBinaryPath = paths.sextractorBinaryPath;
-    solverPath = paths.solverPath;
-    astapBinaryPath = paths.astapBinaryPath;
-    wcsPath = paths.wcsPath;
+    #if defined(Q_OS_OSX)
+        return getDefaultExternalPaths(MAC_HOMEBREW);
+    #elif defined(Q_OS_LINUX)
+        return getDefaultExternalPaths(LINUX_DEFAULT);
+    #else //Windows
+        return getDefaultExternalPaths(WIN_ANSVR);
+    #endif
 }
 
 int ExternalExtractorSolver::extract()
@@ -132,9 +110,9 @@ int ExternalExtractorSolver::extract()
         emit logOutput("SExtractor is not easily installed on windows. Please select the Internal SEP and External Solver.");
 #endif
 
-        if(!QFileInfo::exists(sextractorBinaryPath))
+        if(!QFileInfo::exists(externalPaths.sextractorBinaryPath))
         {
-            emit logOutput("There is no sextractor at " + sextractorBinaryPath + ", Aborting");
+            emit logOutput("There is no sextractor at " + externalPaths.sextractorBinaryPath + ", Aborting");
             return -1;
         }
     }
@@ -189,9 +167,9 @@ void ExternalExtractorSolver::run()
     //These are the solvers that use External Astrometry.
     if(m_SolverType == SOLVER_LOCALASTROMETRY)
     {
-        if(!QFileInfo::exists(solverPath))
+        if(!QFileInfo::exists(externalPaths.solverPath))
         {
-            emit logOutput("There is no astrometry solver at " + solverPath + ", Aborting");
+            emit logOutput("There is no astrometry solver at " + externalPaths.solverPath + ", Aborting");
             emit finished(-1);
             return;
         }
@@ -205,9 +183,9 @@ void ExternalExtractorSolver::run()
     }
     else if(m_SolverType == SOLVER_ASTAP)
     {
-        if(!QFileInfo::exists(astapBinaryPath))
+        if(!QFileInfo::exists(externalPaths.astapBinaryPath))
         {
-            emit logOutput("There is no ASTAP solver at " + astapBinaryPath + ", Aborting");
+            emit logOutput("There is no ASTAP solver at " + externalPaths.astapBinaryPath + ", Aborting");
             emit finished(-1);
             return;
         }
@@ -318,11 +296,7 @@ ExtractorSolver* ExternalExtractorSolver::spawnChildSolver(int n)
     solver->starXYLSFilePath = starXYLSFilePath;
     solver->starXYLSFilePathIsTempFile = starXYLSFilePathIsTempFile;
     solver->fileToProcess = fileToProcess;
-    solver->sextractorBinaryPath = sextractorBinaryPath;
-    solver->confPath = confPath;
-    solver->solverPath = solverPath;
-    solver->astapBinaryPath = astapBinaryPath;
-    solver->wcsPath = wcsPath;
+    solver->externalPaths = externalPaths;
     solver->cleanupTemporaryFiles = cleanupTemporaryFiles;
     solver->autoGenerateAstroConfig = autoGenerateAstroConfig;
     solver->onlySendFITSFiles = onlySendFITSFiles;
@@ -534,9 +508,9 @@ int ExternalExtractorSolver::runExternalExtractor()
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Starting external sextractor with the " + m_ActiveParameters.listName + " profile...");
-    emit logOutput(sextractorBinaryPath + " " + sextractorArgs.join(' '));
+    emit logOutput(externalPaths.sextractorBinaryPath + " " + sextractorArgs.join(' '));
 
-    sextractorProcess->start(sextractorBinaryPath, sextractorArgs);
+    sextractorProcess->start(externalPaths.sextractorBinaryPath, sextractorArgs);
     sextractorProcess->waitForFinished(30000); //Will timeout after 30 seconds
     emit logOutput(sextractorProcess->readAllStandardError().trimmed());
 
@@ -651,10 +625,10 @@ int ExternalExtractorSolver::runExternalSolver()
     solver->setProcessEnvironment(env);
 #endif
 
-    solver->start(solverPath, solverArgs);
+    solver->start(externalPaths.solverPath, solverArgs);
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Starting external Astrometry.net solver with the " + m_ActiveParameters.listName + " profile...");
-    emit logOutput("Command: " + solverPath + " " + solverArgs.join(" "));
+    emit logOutput("Command: " + externalPaths.solverPath + " " + solverArgs.join(" "));
 
     solver->waitForFinished(m_ActiveParameters.solverTimeLimit * 1000 *
                             1.2); //Set to timeout in a little longer than the timeout
@@ -730,11 +704,11 @@ int ExternalExtractorSolver::runExternalASTAPSolver()
     if(m_AstrometryLogLevel != LOG_NONE)
         connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalExtractorSolver::logSolver);
 
-    solver->start(astapBinaryPath, solverArgs);
+    solver->start(externalPaths.astapBinaryPath, solverArgs);
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Starting external ASTAP Solver with the " + m_ActiveParameters.listName + " profile...");
-    emit logOutput("Command: " + astapBinaryPath + " " + solverArgs.join(" "));
+    emit logOutput("Command: " + externalPaths.astapBinaryPath + " " + solverArgs.join(" "));
 
     solver->waitForFinished(m_ActiveParameters.solverTimeLimit * 1000 *
                             1.2); //Set to timeout in a little longer than the timeout
@@ -869,11 +843,11 @@ int ExternalExtractorSolver::runExternalWatneySolver()
     if(m_AstrometryLogLevel != LOG_NONE)
         connect(solver, &QProcess::readyReadStandardOutput, this, &ExternalExtractorSolver::logSolver);
 
-    solver->start(watneyBinaryPath, solverArgs);
+    solver->start(externalPaths.watneyBinaryPath, solverArgs);
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Starting external Watney Solver with the " + m_ActiveParameters.listName + " profile...");
-    emit logOutput("Command: " + watneyBinaryPath + " " + solverArgs.join(" "));
+    emit logOutput("Command: " + externalPaths.watneyBinaryPath + " " + solverArgs.join(" "));
 
     solver->waitForFinished(m_ActiveParameters.solverTimeLimit * 1000 *
                             1.2); //Set to timeout in a little longer than the timeout
@@ -1002,12 +976,12 @@ QStringList ExternalExtractorSolver::getSolverArgsList()
     else if(m_AstrometryLogLevel == LOG_VERB || m_AstrometryLogLevel == LOG_ALL)
         solverArgs << "-vv";
 
-    if(autoGenerateAstroConfig || !QFile(confPath).exists())
+    if(autoGenerateAstroConfig || !QFile(externalPaths.confPath).exists())
         generateAstrometryConfigFile();
 
     //This sends the path to the config file.  Note that backend-config seems to be more universally recognized across
     //the different solvers than config
-    solverArgs << "--backend-config" << confPath;
+    solverArgs << "--backend-config" << externalPaths.confPath;
 
     //This sets the cancel filename for astrometry.net.  Astrometry will monitor for the creation of this file
     //In order to shut down and stop processing
@@ -1023,8 +997,8 @@ QStringList ExternalExtractorSolver::getSolverArgsList()
 //for the external solvers from inside the program.
 bool ExternalExtractorSolver::generateAstrometryConfigFile()
 {
-    confPath =  m_BasePath + "/" + m_BaseName + ".cfg";
-    QFile configFile(confPath);
+    externalPaths.confPath =  m_BasePath + "/" + m_BaseName + ".cfg";
+    QFile configFile(externalPaths.confPath);
     if (configFile.open(QIODevice::WriteOnly) == false)
     {
         QMessageBox::critical(nullptr, "Message", "Config file write error.");
@@ -1279,7 +1253,7 @@ bool ExternalExtractorSolver::getSolutionInformation()
     wcsProcess.setProcessEnvironment(env);
 #endif
 
-    wcsProcess.start(wcsPath, QStringList(solutionFile));
+    wcsProcess.start(externalPaths.wcsPath, QStringList(solutionFile));
     wcsProcess.waitForFinished(30000); //Will timeout after 30 seconds
     QString wcsinfo_stdout = wcsProcess.readAllStandardOutput();
 

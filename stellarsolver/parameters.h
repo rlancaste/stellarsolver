@@ -24,6 +24,16 @@ typedef enum
     CONV_RING
 } ConvFilterType;
 
+//This is the type of Computer system for the default system paths
+typedef enum
+{
+    LINUX_DEFAULT,
+    LINUX_INTERNAL,
+    MAC_HOMEBREW,
+    WIN_ANSVR,
+    WIN_CYGWIN
+} ComputerSystemType;
+
 //This gets a string for the Star Extractor setting for calculating Flux using ellipses or circles
 static QString getShapeString(SSolver::Shape shape)
 
@@ -87,7 +97,7 @@ typedef struct
     QString sextractorBinaryPath;   //Path to the SExtractor Program binary
     QString solverPath;             //Path to the Astrometry Solver binary
     QString astapBinaryPath;        //Path to the ASTAP Program binary
-    QString watneyBinaryPath;        //Path to the Watney Program binary
+    QString watneyBinaryPath;       //Path to the Watney Program binary
     QString wcsPath;                //Path to the WCSInfo binary
 } ExternalProgramPaths;
 
