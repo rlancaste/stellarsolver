@@ -9,32 +9,34 @@
 
 //system includes
 #include <stdint.h>
-#include <QString>
-#include <QVector>
 #include <math.h>
 
 namespace FITSImage
 {
 
-/// Stats struct to hold statisical data about the FITS data
-/// This is defined in both KStars and StellarSolver
+typedef enum
+{
+    POSITIVE,
+    NEGATIVE,
+    BOTH
+} Parity;
+
+// Stats struct to hold statisical data about the FITS data
 typedef struct Statistic
 {
-    double min[3] = {0}, max[3] = {0};
-    double mean[3] = {0};
-    double stddev[3] = {0};
-    double median[3] = {0};
-    double SNR { 0 };
-    /// FITS image data type (TBYTE, TUSHORT, TULONG, TFLOAT, TLONGLONG, TDOUBLE)
-    uint32_t dataType { 0 };
-    int bytesPerPixel { 1 };
-    int ndim { 2 };
-    int64_t size { 0 };
-    uint32_t samples_per_channel { 0 };
-    uint16_t width { 0 };
-    uint16_t height { 0 };
-    /// Number of channels
-    uint8_t channels { 1 };
+    double min[3] = {0}, max[3] = {0};  // Minimum and Maximum R, G, B pixel values in the image
+    double mean[3] = {0};               // Average R, G, B value of the pixels in the image
+    double stddev[3] = {0};             // Standard Deviation of the R, G, B pixel values in the image
+    double median[3] = {0};             // Median R, G, B pixel value in the image
+    double SNR { 0 };                   // Signal to noise ratio
+    uint32_t dataType { 0 };            // FITS image data type (TBYTE, TUSHORT, TULONG, TFLOAT, TLONGLONG, TDOUBLE)
+    int bytesPerPixel { 1 };            // Number of bytes used for each pixel, size of datatype above
+    int ndim { 2 };                     // Number of dimensions in a fits image
+    int64_t size { 0 };                 // Filesize in bytes
+    uint32_t samples_per_channel { 0 }; // area of the image in pixels
+    uint16_t width { 0 };               // width of the image in pixels
+    uint16_t height { 0 };              // height of the image in pixels
+    uint8_t channels { 1 };             // Mono Images have 1 channel, RGB has 3 channels
 } Statistic;
 
 // This structure holds data about sources that are found within
@@ -59,9 +61,9 @@ typedef struct Star
 // It is returned by source extraction
 typedef struct Background
 {
-    int bw, bh;        // single tile width, height
-    float global;      // global mean
-    float globalrms;   // global sigma
+    int bw, bh;             // single tile width, height
+    float global;           // global mean
+    float globalrms;        // global sigma
     int num_stars_detected; // Number of stars detected before any reduction.
 } Background;
 
@@ -75,13 +77,12 @@ typedef struct Solution
     double dec;         // The Declination of the center of the field in degrees
     double orientation; // The orientation angle of the image from North in degrees
     double pixscale;    // The pixel scale of the image in arcseconds per pixel
-    QString parity;     // The parity of the solved image. (Whether it has been flipped)  JPEG images tend to have negative parity while FITS files tend to have positive parity.
+    Parity parity;      // The parity of the solved image. (Whether it has been flipped)  JPEG images tend to have negative parity while FITS files tend to have positive parity.
     double raError;     // The error between the search_ra position and the solution ra position in arcseconds
     double decError;    // The error between the search_dec position and the solution dec position in arcseconds
 } Solution;
 
 // This is point in the World Coordinate System with both RA and DEC.
-// It is used to create an array of positions for the image pixels
 typedef struct wcs_point
 {
     float ra;           // The Right Ascension in degrees

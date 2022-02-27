@@ -1268,7 +1268,7 @@ bool ExternalExtractorSolver::getSolutionInformation()
     double fieldw = 0, fieldh = 0, pixscale = 0;
     QString fieldunits;
     QString rastr, decstr;
-    QString parity;
+    FITSImage::Parity parity = FITSImage::NEGATIVE;
 
     for (auto &key : wcskeys)
     {
@@ -1295,7 +1295,7 @@ bool ExternalExtractorSolver::getSolutionInformation()
             else if (key_value[0] == "pixscale")
                 pixscale = key_value[1].toDouble();
             else if (key_value[0] == "parity")
-                parity = (key_value[1].toInt() == -1) ? "pos" : "neg";
+                parity = (key_value[1].toInt() == -1) ? FITSImage::POSITIVE : FITSImage::NEGATIVE;
         }
     }
 
@@ -1331,7 +1331,8 @@ bool ExternalExtractorSolver::getSolutionInformation()
     emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw).arg(fieldh));
     emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale ));
     emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
-    emit logOutput(QString("Field parity: %1\n").arg( parity));
+    QString par = parity == FITSImage::NEGATIVE ? "negative" : "positive";
+    emit logOutput(QString("Field parity: %1\n").arg( par));
 
     return true;
 }
@@ -1377,7 +1378,7 @@ bool ExternalExtractorSolver::getASTAPSolutionInformation()
     double ra = 0, dec = 0, orient = 0;
     double fieldw = 0, fieldh = 0, pixscale = 0;
     char rastr[32], decstr[32];
-    QString parity = "";
+    FITSImage::Parity parity = FITSImage::NEGATIVE;
     double cd11 = 0;
     double cd22 = 0;
     double cd12 = 0;
@@ -1424,9 +1425,9 @@ bool ExternalExtractorSolver::getASTAPSolutionInformation()
             // Note, negative determinant = positive parity.
             double det = cd11 * cd22 - cd12 * cd21;
             if(det > 0)
-                parity = "neg";
+                parity = FITSImage::NEGATIVE;
             else
-                parity = "pos";
+                parity = FITSImage::POSITIVE;
         }
 
         double raErr = 0;
@@ -1449,7 +1450,8 @@ bool ExternalExtractorSolver::getASTAPSolutionInformation()
         emit logOutput(QString("Field size: %1 x %2 arcminutes").arg(fieldw).arg(fieldh));
         emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale ));
         emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
-        emit logOutput(QString("Field parity: %1\n").arg( parity));
+        QString par = parity == FITSImage::NEGATIVE ? "negative" : "positive";
+        emit logOutput(QString("Field parity: %1\n").arg( par));
 
         return true;
     }
@@ -1500,7 +1502,7 @@ bool ExternalExtractorSolver::getWatneySolutionInformation()
     double ra = 0, dec = 0, orient = 0;
     double fieldw = 0, fieldh = 0, pixscale = 0;
     char rastr[32], decstr[32];
-    QString parity = "";
+    FITSImage::Parity parity = FITSImage::NEGATIVE;
 
     if (jsonObj.contains("ra"))
         ra = jsonObj["ra"].toDouble();
@@ -1511,17 +1513,12 @@ bool ExternalExtractorSolver::getWatneySolutionInformation()
     if (jsonObj.contains("pixScale"))
         pixscale = jsonObj["pixScale"].toDouble();
     if (jsonObj.contains("parity"))
-        parity = jsonObj["parity"].toString();
+        parity = jsonObj["parity"].toString() == "flipped" ? FITSImage::NEGATIVE : FITSImage::POSITIVE;
 
     ra2hmsstring(ra, rastr);
     dec2dmsstring(dec, decstr);
     fieldw = m_Statistics.width * pixscale / 60;
     fieldh = m_Statistics.height * pixscale / 60;
-
-    if(parity == "flipped")
-        parity = "neg";
-    else
-        parity = "pos";
 
     double raErr = 0;
     double decErr = 0;
@@ -1540,7 +1537,8 @@ bool ExternalExtractorSolver::getWatneySolutionInformation()
     emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw).arg(fieldh));
     emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale ));
     emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
-    emit logOutput(QString("Field parity: %1\n").arg( parity));
+    QString par = parity == FITSImage::NEGATIVE ? "negative" : "positive";
+    emit logOutput(QString("Field parity: %1\n").arg( par));
 
     return true;
 

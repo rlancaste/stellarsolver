@@ -552,7 +552,7 @@ void OnlineSolver::onResult(QNetworkReply *reply)
                 raErr = (search_ra - ra) * 3600;
                 decErr = (search_dec - dec) * 3600;
             }
-            QString par = (parity > 0) ? "neg" : "pos";
+            FITSImage::Parity par = (parity > 0) ? FITSImage::NEGATIVE : FITSImage::POSITIVE;
             m_Solution = {fieldw, fieldh, ra, dec, orientation, pixscale, par, raErr, decErr};
             m_HasSolved = true;
 

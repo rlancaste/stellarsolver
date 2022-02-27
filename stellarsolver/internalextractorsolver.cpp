@@ -1141,7 +1141,7 @@ int InternalExtractorSolver::runInternalSolver()
         m_HasWCS = true;
         double ra, dec, fieldw, fieldh, pixscale;
         char rastr[32], decstr[32];
-        QString parity;
+        FITSImage::Parity parity;
         char* fieldunits;
 
         // print info about the field.
@@ -1154,7 +1154,7 @@ int InternalExtractorSolver::runInternalSolver()
 
         // Note, negative determinant = positive parity.
         double det = sip_det_cd(&wcs);
-        parity = (det < 0 ? "pos" : "neg");
+        parity = (det < 0 ? FITSImage::POSITIVE : FITSImage::NEGATIVE);
         if(usingDownsampledImage)
             pixscale = sip_pixel_scale(&wcs) / m_ActiveParameters.downsample;
         else
@@ -1190,7 +1190,8 @@ int InternalExtractorSolver::runInternalSolver()
         emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw).arg( fieldh));
         emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale));
         emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
-        emit logOutput(QString("Field parity: %1\n").arg( parity));
+        QString par = parity == FITSImage::NEGATIVE ? "negative" : "positive";
+        emit logOutput(QString("Field parity: %1\n").arg( par));
 
         m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
         solutionIndexNumber = match.indexid;
