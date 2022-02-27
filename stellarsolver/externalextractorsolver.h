@@ -27,9 +27,9 @@ class ExternalExtractorSolver : public InternalExtractorSolver
 
 
         // File Options
-        QString fileToProcess;
-        bool fileToProcessIsTempFile = false;
-        QString solutionFile;
+        QString fileToProcess;                  // This is the file that will be processed by the external SExtractor or solver
+        bool fileToProcessIsTempFile = false;   // This indicates that the file is a temp file that might need to be deleted
+        QString solutionFile;                   // This is the path to the solution file after solving is done.
 
         // This is the xyls file path that we will be saving for Astrometry.net
         // If it is not set, it will be set to a random temporary file
@@ -45,11 +45,11 @@ class ExternalExtractorSolver : public InternalExtractorSolver
         QString wcsPath;                // Path to the WCSInfo binary
 
         // External Program Options
-        bool cleanupTemporaryFiles = true;
-        bool autoGenerateAstroConfig = true;
-        bool onlySendFITSFiles = true;
+        bool cleanupTemporaryFiles = true;      // Whether or not to clean up the temporary files created
+        bool autoGenerateAstroConfig = true;    // Option to generate astrometry.cfg file to pass options to the solver
+        bool onlySendFITSFiles = true;          // Option to only send FITS files for compatibility
 
-        /// This is the WCS Struct that is created when the WCS information gets loaded.
+        // This is the WCS Struct that is created when the WCS information gets loaded.
         struct wcsprm *m_wcs
         {
             nullptr

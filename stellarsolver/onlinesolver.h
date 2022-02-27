@@ -33,13 +33,11 @@ class OnlineSolver : public ExternalExtractorSolver
         explicit OnlineSolver(ProcessType type, ExtractorType sexType, SolverType solType, FITSImage::Statistic imagestats,
                               uint8_t const *imageBuffer, QObject *parent);
 
-        QString astrometryAPIKey;
-        QString astrometryAPIURL;
-        QString fileToProcess;
+        QString astrometryAPIKey;   // The API key used by the online solver to identify the user solving the image
+        QString astrometryAPIURL;   // The URL of the online solver
+        QString fileToProcess;      // The file path of the image to solve
 
-        void execute() override;
-        void abort() override;
-
+        // An enum to keep track of which stage in the solving we are on
         typedef enum
         {
             NO_STAGE,
@@ -53,36 +51,100 @@ class OnlineSolver : public ExternalExtractorSolver
             WCS_LOADING_STAGE
         } WorkflowStage;
 
+        /**
+         * @brief execute is called to start up the online solver
+         */
+        void execute() override;
+
+        /**
+         * @brief abort will stop the extractorsolver by using the quit method and disconnecting from the server
+         */
+        void abort() override;
+
     public slots:
 
+        /**
+         * @brief onResult is the slot that gets called when the server replies to a request
+         * @param reply is the reply that was received
+         */
         void onResult(QNetworkReply *reply);
+
+        /**
+         * @brief checkJobs will check on the job status periodically while solving is happening
+         */
         void checkJobs();
 
     private:
 
-        void runOnlineSolver();
-        void run() override;
-        bool aborted = false;
-
-        void authenticate();        //Starts Stage 1
-        void uploadFile();          //Starts Stage 2
-        void waitForProcessing();   //Starts Stage 3
-        void getJobID();            //Starts Stage 4
-        void startMonitoring();     //Starts Stage 5
-        void checkJobCalibration(); //Starts Stage 6
-        void getJobLogFile();       //Starts Stage 7
-        void getJobWCSFile();       //Starts Stage 8
-
+        // This keeps track of which stage in the solve we are currently on
         WorkflowStage workflowStage { NO_STAGE };
+        // This is the network manager that handles all the online communication with the solver
         QNetworkAccessManager *networkManager { nullptr };
-        QString sessionKey;
-        int subID { 0 };
-        int jobID { 0 };
-        int job_retries { 0 };
-        QElapsedTimer solverTimer;
+        QString sessionKey;         // This is the session key reported by the online solver
+        int subID { 0 };            // This is the submission id reported by the online solver
+        int jobID { 0 };            // This is the job id issued by the online solver
+        int job_retries { 0 };      // Keeps track of how many times it retried to start the solving task
+        QElapsedTimer solverTimer;  // This logs how long the online solver has been running
+
+        /**
+         * @brief runOnlineSolver Starts up the other thread to run and monitor the online solver
+         */
+        void runOnlineSolver();
+
+        /**
+         * @brief run is the method running in a separate thread to monitor and respond to the online solver
+         */
+        void run() override;
+
+        /**
+         * @brief authenticate Starts Stage 1, authenticating with the online server
+         */
+        void authenticate();
+
+        /**
+         * @brief uploadFile Starts Stage 2, uploading the file to the online server
+         */
+        void uploadFile();
+
+        /**
+         * @brief waitForProcessing Starts Stage 3, waiting for the processing to start
+         */
+        void waitForProcessing();
+
+        /**
+         * @brief getJobID Starts Stage 4, getting the JobID from the online server
+         */
+        void getJobID();
+
+        /**
+         * @brief startMonitoring Starts Stage 5, monitoring for the results from the online server
+         */
+        void startMonitoring();
+
+        /**
+         * @brief checkJobCalibration Starts Stage 6, checking the job calibration
+         */
+        void checkJobCalibration();
+
+        /**
+         * @brief getJobLogFile Starts Stage 7, getting the log file from the online server
+         */
+        void getJobLogFile();
+
+        /**
+         * @brief getJobWCSFile Starts Stage 8, getting the WCS information file from the server
+         */
+        void getJobWCSFile();
 
     signals:
+        /**
+         * @brief timeToCheckJobs indicates that it is time to check on the jobs running on the server
+         */
         void timeToCheckJobs();
+
+        /**
+         * @brief startupOnlineSolver signals that it is time to start up the first stage
+         */
         void startupOnlineSolver();
 
 };

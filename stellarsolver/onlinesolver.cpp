@@ -71,6 +71,8 @@ void OnlineSolver::runOnlineSolver()
             QFile(m_LogFileName).remove();
     }
 
+    m_WasAborted = false;
+
     solverTimer.start();
 
     emit startupOnlineSolver(); //Go to FIRST STAGE
@@ -85,13 +87,13 @@ void OnlineSolver::run()
 {
     bool timedOut = false;
 
-    while(!m_HasSolved && !aborted && !timedOut && workflowStage != JOB_PROCESSING_STAGE)
+    while(!m_HasSolved && !m_WasAborted && !timedOut && workflowStage != JOB_PROCESSING_STAGE)
     {
         msleep(200);
         timedOut = solverTimer.elapsed() / 1000.0 > m_ActiveParameters.solverTimeLimit;
     }
 
-    while(!m_HasSolved && !aborted && !timedOut && (workflowStage == JOB_PROCESSING_STAGE || workflowStage == JOB_QUEUE_STAGE))
+    while(!m_HasSolved && !m_WasAborted && !timedOut && (workflowStage == JOB_PROCESSING_STAGE || workflowStage == JOB_QUEUE_STAGE))
     {
         msleep(JOB_RETRY_DURATION);
         if (job_retries++ > JOB_RETRY_ATTEMPTS)
@@ -106,21 +108,21 @@ void OnlineSolver::run()
         }
     }
 
-    if(!m_HasSolved && !aborted && !timedOut)
+    if(!m_HasSolved && !m_WasAborted && !timedOut)
     {
         emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         emit logOutput("Starting Online Solver with the " + m_ActiveParameters.listName + " profile . . .");
 
     }
 
-    while(!m_HasSolved && !aborted && !timedOut && workflowStage == JOB_MONITORING_STAGE)
+    while(!m_HasSolved && !m_WasAborted && !timedOut && workflowStage == JOB_MONITORING_STAGE)
     {
         msleep(STATUS_CHECK_INTERVAL);
         emit timeToCheckJobs();
         timedOut = solverTimer.elapsed() / 1000.0 > m_ActiveParameters.solverTimeLimit;
     }
 
-    if(aborted)
+    if(m_WasAborted)
         return;
 
     if(timedOut)
@@ -137,7 +139,7 @@ void OnlineSolver::run()
     bool starsAndWCSTimedOut = false;
     double starsAndWCSTimeLimit = 10.0;
 
-    if(!aborted && !m_HasWCS)
+    if(!m_WasAborted && !m_HasWCS)
     {
         emit logOutput("Waiting for Stars and WCS. . .");
         solverTimer.start();  //Restart the timer for the Stars and WCS download
@@ -145,7 +147,7 @@ void OnlineSolver::run()
 
     //This will wait for stars and WCS until the time limit is reached
     //If it does get the file, whether or not it can read it, the stage changes to NO_STAGE and this quits
-    while(!aborted && !starsAndWCSTimedOut && (workflowStage == LOG_LOADING_STAGE || workflowStage == WCS_LOADING_STAGE))
+    while(!m_WasAborted && !starsAndWCSTimedOut && (workflowStage == LOG_LOADING_STAGE || workflowStage == WCS_LOADING_STAGE))
     {
         msleep(STATUS_CHECK_INTERVAL);
         starsAndWCSTimedOut = solverTimer.elapsed() / 1000.0 > starsAndWCSTimeLimit; //Wait 10 seconds for STARS and WCS, NO LONGER!
@@ -168,7 +170,7 @@ void OnlineSolver::abort()
     emit logOutput("Online Solver aborted.");
     emit finished(-1);
     quit();
-    aborted = true;
+    m_WasAborted = true;
 }
 
 //This will start up the first stage, Authentication
