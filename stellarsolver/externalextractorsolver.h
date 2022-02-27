@@ -26,29 +26,61 @@ class ExternalExtractorSolver : public InternalExtractorSolver
         ~ExternalExtractorSolver();
 
 
-        int extract() override;
-        void abort() override;
-        ExtractorSolver * spawnChildSolver(int n) override;
-
-        QStringList getSolverArgsList();
-        bool generateAstrometryConfigFile();
-
+        // File Options
         QString fileToProcess;
         bool fileToProcessIsTempFile = false;
-        int selectedStar;
+        QString solutionFile;
 
-        //External Options
+        // This is the xyls file path that we will be saving for Astrometry.net
+        // If it is not set, it will be set to a random temporary file
+        QString starXYLSFilePath;                // This is the file path
+        bool starXYLSFilePathIsTempFile = false; // This will be set to true if it gets generated
+
+        // System File Paths
+        QString confPath;               // Path to the Astrometry Config File
+        QString sextractorBinaryPath;   // Path to the SExtractor Program binary
+        QString solverPath;             // Path to the Astrometry Solver binary
+        QString astapBinaryPath;        // Path to the ASTAP Program binary
+        QString watneyBinaryPath;       // Path to the Watney Astrometry Solver Program binary
+        QString wcsPath;                // Path to the WCSInfo binary
+
+        // External Program Options
         bool cleanupTemporaryFiles = true;
         bool autoGenerateAstroConfig = true;
         bool onlySendFITSFiles = true;
 
-        //System File Paths
-        QString confPath;               //Path to the Astrometry Config File
-        QString sextractorBinaryPath;   //Path to the SExtractor Program binary
-        QString solverPath;             //Path to the Astrometry Solver binary
-        QString astapBinaryPath;        //Path to the ASTAP Program binary
-        QString watneyBinaryPath;       //Path to the Watney Astrometry Solver Program binary
-        QString wcsPath;                //Path to the WCSInfo binary
+        /// This is the WCS Struct that is created when the WCS information gets loaded.
+        struct wcsprm *m_wcs
+        {
+            nullptr
+        };
+        int m_nwcs = 0;
+
+        //These are used for reading and writing the star extractor file
+        char* xcol = strdup("X_IMAGE");         // This is the column for the x-coordinates
+        char* ycol = strdup("Y_IMAGE");         // This is the column for the y-coordinates
+        char* magcol = strdup("MAG_AUTO");      // This is the column for the magnitude
+        char* colFormat = strdup("1E");         // This Format means a decimal number
+        char* colUnits = strdup("pixels");      // This is the unit for the xy columns in the file
+        char* magUnits = strdup("magnitude");   // This is the unit for the magnitude in the file
+
+        /**
+         * @brief extract is the method that does star extraction
+         * @return whether or not it was successful, 0 means success
+         */
+        int extract() override;
+
+        /**
+         * @brief abort will stop the external solver by issuing a kill command to the external process and using a cancel file
+         */
+        void abort() override;
+
+        /**
+         * @brief spawnChildSolver is a method used by StellarSolver to make the child solvers from this solver
+         * @param n is a number to identify this child solver for external solvers so they can have separate files with identifying numbers
+         * @return the spawned child solver
+         */
+        ExtractorSolver * spawnChildSolver(int n) override;
 
         //Methods to get default file paths
         static ExternalProgramPaths getLinuxDefaultPaths();
@@ -57,62 +89,138 @@ class ExternalExtractorSolver : public InternalExtractorSolver
         static ExternalProgramPaths getWinANSVRPaths();
         static ExternalProgramPaths getWinCygwinPaths();
 
-        //Method to set file paths
+        /**
+         * @brief setExternalFilePaths sets the external file paths for the external programs
+         * @param paths are the paths to set
+         */
         void setExternalFilePaths(ExternalProgramPaths paths);
 
-        // This is the xyls file path that we will be saving for Astrometry.net
-        // If it is not set, it will be set to a random temporary file
-        QString starXYLSFilePath;
-        bool starXYLSFilePathIsTempFile = false; //This will be set to true if it gets generated
-
-        QString solutionFile;
-
-        void logSolver();
-        void logSextractor();
-
-        int writeStarExtractorTable();
-        int getStarsFromXYLSFile();
-        bool getSolutionInformation();
-        bool getASTAPSolutionInformation();
-        bool getWatneySolutionInformation();
-        int saveAsFITS();
-        void cleanupTempFiles() override;
-
-        int loadWCS();
-        bool appendStarsRAandDEC(QList<FITSImage::Star> &stars) override;
-
-        bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) override;
-        bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) override;
-
-
-        /// WCS Struct
-        struct wcsprm *m_wcs
-        {
-            nullptr
-        };
-        int m_nwcs = 0;
-
-        //These are used for reading and writing the star extractor file
-        char* xcol = strdup("X_IMAGE"); //This is the column for the x-coordinates
-        char* ycol = strdup("Y_IMAGE"); //This is the column for the y-coordinates
-        char* magcol = strdup("MAG_AUTO"); //This is the column for the magnitude
-        char* colFormat = strdup("1E"); //This Format means a decimal number
-        char* colUnits = strdup("pixels"); //This is the unit for the xy columns in the file
-        char* magUnits = strdup("magnitude"); //This is the unit for the magnitude in the file
-
+        /**
+         * @brief runExternalExtractor does the star extraction using the external SExtractor.
+         * @return 0 if it succeeds
+         */
         int runExternalExtractor();
 
+        /**
+         * @brief appendStarsRAandDEC attaches the RA and DEC information to a star list
+         * @param stars is the star list to process
+         * @return true if it was successful
+         */
+        bool appendStarsRAandDEC(QList<FITSImage::Star> &stars) override;
+
+        /**
+         * @brief loadWCS will load the WCS Information from the WCS file
+         * @return 0 if it succeeds
+         */
+        int loadWCS();
+
+        /**
+         * @brief pixelToWCS converts the image X, Y Pixel coordinates to RA, DEC sky coordinates using the WCS data
+         * @param pixelPoint The X, Y coordinate in pixels
+         * @param skyPoint The RA, DEC coordinates
+         * @return A boolean to say whether it succeeded, true means it did
+         */
+        bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) override;
+
+        /**
+         * @brief wcsToPixel converts the RA, DEC sky coordinates to image X, Y Pixel coordinates using the WCS data
+         * @param skyPoint The RA, DEC coordinates
+         * @param pixelPoint The X, Y coordinate in pixels
+         * @return A boolean to say whether it succeeded, true means it did
+         */
+        bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) override;
+
+        /**
+         * @brief saveAsFITS will save the image buffer to a FITS file for solving by external solvers
+         * @return 0 if it succeeds
+         */
+        int saveAsFITS();
+
+        /**
+         * @brief cleanupTempFiles will clean up the temporary files
+         */
+        void cleanupTempFiles() override;
+
+        /**
+         * @brief writeStarExtractorTable will write the stars in the star list to an external xylist file for plate solving by other programs
+         * @return 0 if it succeeds
+         */
+        int writeStarExtractorTable();
+
+        /**
+         * @brief getStarsFromXYLSFile gets the star list from an xylist file
+         * @return 0 if it succeeds
+         */
+        int getStarsFromXYLSFile();
+
     private:
+        // These are the variables for the external processes
         QPointer<QProcess> solver;
         QPointer<QProcess> sextractorProcess;
 
-        void run()
-        override; //This starts the ExternalExtractorSolver in a separate thread.  Note, ExternalExtractorSolver uses QProcess
+        // Note: this method is needed so that the options selected in StellarSolver get passed to the solver
+        /**
+         * @brief generateAstrometryConfigFile creates the astrometry.cfg file for the local astrometry solver
+         * @return true means it was successful
+         */
+        bool generateAstrometryConfigFile();
 
+        /**
+         * @brief getSolverArgsList gets the list of arguments to pass to the local astrometry.net solver
+         * @return the QStringList full of arguments
+         */
+        QStringList getSolverArgsList();
 
+        /**
+         * @brief run starts the external solver or star extractor with QProcess.
+         */
+        void run() override;
+
+        /**
+         * @brief runExternalSolver runs the local astrometry.net solver
+         * @return 0 if it succeeeds
+         */
         int runExternalSolver();
+
+        /**
+         * @brief runExternalANSVRSolver runs the local ANSVR solver
+         * @return 0 if it succeeeds
+         */
         int runExternalASTAPSolver();
+
+        /**
+         * @brief runExternalWatneySolver runs the local Watney solver
+         * @return 0 if it succeeeds
+         */
         int runExternalWatneySolver();
+
+        /**
+         * @brief getSolutionInformation gets the Solution Info from the local astrometry.net solution file (WCS)
+         * @return
+         */
+        bool getSolutionInformation();
+
+        /**
+         * @brief getASTAPSolutionInformation gets the Solution Info from the local ASTAP solution file (INI)
+         * @return
+         */
+        bool getASTAPSolutionInformation();
+
+        /**
+         * @brief getSolutionInformation gets the Solution Info from the local Watney solution file (INI)
+         * @return
+         */
+        bool getWatneySolutionInformation();
+
+        /**
+         * @brief logSolver will log the output of the solver to a file or program output
+         */
+        void logSolver();
+
+        /**
+         * @brief logSolver will log the output of the external SExtrator to a file or program output
+         */
+        void logSextractor();
 
 };
 

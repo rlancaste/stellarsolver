@@ -598,10 +598,8 @@ class StellarSolver : public QObject
         bool m_OnlySendFITSFiles {true};        // This is sometimes needed if the external solvers can't handle other file types
 
         // Index File Options
-        // This is the list of folder paths that the solver will use to search for index files
-        QStringList indexFolderPaths;
-        // This is an alternative to the indexFolderPaths variable.  We can just load individual index files instead of searching for them
-        QStringList m_IndexFilePaths;
+        QStringList indexFolderPaths;           // This is the list of folder paths that the solver will use to search for index files
+        QStringList m_IndexFilePaths;           // This is an alternative to the indexFolderPaths variable.  We can just load individual index files instead of searching for them
 
         // System File Paths to external programs and files
         QString m_ASTAPBinaryPath;
@@ -622,22 +620,22 @@ class StellarSolver : public QObject
         bool useSubframe {false};
         QRect m_Subframe;
 
-        //The currently set parameters for StellarSolver
+        // The currently set parameters for StellarSolver
         Parameters params;
 
-        //This is the Convolution Filter used by the Source Extractor
+        // This is the Convolution Filter used by the Source Extractor
         QVector<float> convFilter = {1, 2, 1,
                                      2, 4, 2,
                                      1, 2, 1
                                     };
 
-        //Astrometry Scale Parameters, These are not saved parameters and change for each image, use the methods to set them
+        // Astrometry Scale Parameters, These are not saved parameters and change for each image, use the methods to set them
         bool m_UseScale {false};                // Whether or not to use the image scale parameters
         double m_ScaleLow {0};                  // Lower bound of image scale estimate
         double m_ScaleHigh {0};                 // Upper bound of image scale estimate
         ScaleUnits m_ScaleUnit {ARCMIN_WIDTH};  // In what units are the lower and upper bounds?
 
-        //Astrometry Position Parameters, These are not saved parameters and change for each image, use the methods to set them
+        // Astrometry Position Parameters, These are not saved parameters and change for each image, use the methods to set them
         bool m_UsePosition = false;             // Whether or not to use initial information about the position
         double m_SearchRA = HUGE_VAL;           // RA of field center for search, format: decimal degrees
         double m_SearchDE = HUGE_VAL;           // DEC of field center for search, format: decimal degrees
