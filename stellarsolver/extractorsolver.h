@@ -11,6 +11,7 @@
 #include <QThread>
 #include <QRect>
 #include <QDir>
+#include <QVector>
 #include "structuredefinitions.h"
 #include "parameters.h"
 
