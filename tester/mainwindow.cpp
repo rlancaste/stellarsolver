@@ -2094,8 +2094,7 @@ void MainWindow::addSolutionToTable(FITSImage::Solution solution)
     setItemInColumn(table, "Field Width \'", QString::number(solution.fieldWidth));
     setItemInColumn(table, "Field Height \'", QString::number(solution.fieldHeight));
     setItemInColumn(table, "PixScale \"", QString::number(solution.pixscale));
-    QString par =  solution.parity == FITSImage::NEGATIVE? "neg" : "pos";
-    setItemInColumn(table, "Parity", par);
+    setItemInColumn(table, "Parity", FITSImage::getShortParityText(solution.parity).toUtf8().data());
     setItemInColumn(table, "Field", ui->fileNameDisplay->text());
 }
 

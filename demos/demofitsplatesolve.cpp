@@ -50,6 +50,6 @@ int main(int argc, char *argv[])
     printf("Field size: %f x %f arcminutes\n", solution.fieldWidth, solution.fieldHeight);
     printf("Pixel Scale: %f\"\n", solution.pixscale);
     printf("Field rotation angle: up is %f degrees E of N\n", solution.orientation);
-    printf("Field parity: %s\n\n", solution.parity.toUtf8().data());
+    printf("Field parity: %s\n\n", FITSImage::getParityText(solution.parity).toUtf8().data());
     return 0;
 }

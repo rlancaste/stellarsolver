@@ -1190,8 +1190,7 @@ int InternalExtractorSolver::runInternalSolver()
         emit logOutput(QString("Field size: %1 x %2 arcminutes").arg( fieldw).arg( fieldh));
         emit logOutput(QString("Pixel Scale: %1\"").arg( pixscale));
         emit logOutput(QString("Field rotation angle: up is %1 degrees E of N").arg( orient));
-        QString par = parity == FITSImage::NEGATIVE ? "negative" : "positive";
-        emit logOutput(QString("Field parity: %1\n").arg( par));
+        emit logOutput(QString("Field parity: %1\n").arg(FITSImage::getParityText(parity).toUtf8().data()));
 
         m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
         solutionIndexNumber = match.indexid;

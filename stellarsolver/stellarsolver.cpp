@@ -171,20 +171,26 @@ bool StellarSolver::extract(bool calculateHFR, QRect frame)
     useSubframe = !frame.isNull() && frame.isValid();
     if (useSubframe)
         m_Subframe = frame;
+
+    // This loop will wait syncrounously for the finished signal that the star extraction is done
     QEventLoop loop;
     connect(this, &StellarSolver::finished, &loop, &QEventLoop::quit);
     start();
     loop.exec(QEventLoop::ExcludeUserInputEvents);
+
     return m_HasExtracted;
 }
 
 bool StellarSolver::solve()
 {
     m_ProcessType = SOLVE;
+
+    // This loop will wait syncrounously for the finished signal that the solving is done
     QEventLoop loop;
     connect(this, &StellarSolver::finished, &loop, &QEventLoop::quit);
     start();
     loop.exec(QEventLoop::ExcludeUserInputEvents);
+
     return m_HasSolved;
 }
 
@@ -473,7 +479,6 @@ int StellarSolver::whichSolver(ExtractorSolver *solver)
 }
 
 //This slot listens for signals from the child solvers that they are in fact done with the solve
-//If they
 void StellarSolver::finishParallelSolve(int success)
 {
     m_ParallelSolversFinishedCount++;
@@ -553,7 +558,7 @@ bool StellarSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &
     return false;
 }
 
-//This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
+//This is the abort method.  It works in different ways for the different solvers.
 void StellarSolver::abort()
 {
     for(auto &solver : parallelSolvers)

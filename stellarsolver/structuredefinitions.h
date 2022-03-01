@@ -10,6 +10,7 @@
 //system includes
 #include <stdint.h>
 #include <math.h>
+#include <QString>
 
 namespace FITSImage
 {
@@ -20,6 +21,14 @@ typedef enum
     NEGATIVE,
     BOTH
 } Parity;
+
+static const QString getParityText(Parity parity){
+    return parity == FITSImage::NEGATIVE ? "negative" : "positive";
+}
+
+static const QString getShortParityText(Parity parity){
+    return parity == FITSImage::NEGATIVE ? "neg" : "pos";
+}
 
 // Stats struct to hold statisical data about the FITS data
 typedef struct Statistic
