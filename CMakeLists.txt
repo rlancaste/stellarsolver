@@ -372,12 +372,13 @@ install(TARGETS StellarSolverTester
     RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
     )
 else(APPLE)
-    if(WIN32)
-    else(WIN32)
-        #installation for Linux
+        #installation for Linux and Windows
         install(TARGETS StellarSolverTester RUNTIME DESTINATION bin)
         install(DIRECTORY tester/icons
                 DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
+    if(WIN32)
+    else(WIN32)
+        #Desktop file for Linux
         install(FILES tester/com.github.rlancaste.stellarsolver.desktop
                 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
     endif(WIN32)
