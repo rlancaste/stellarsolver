@@ -1,0 +1,7 @@
+[Desktop Entry]
+Version=1.4
+Type=Application
+Name=StellarSolver
+Exec=StellarSolverTester
+Icon=StellarSolverIcon
+Categories=Science;Astronomy
