@@ -44,6 +44,10 @@ StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &image
 
 StellarSolver::~StellarSolver()
 {
+    if(m_ExtractorSolver)
+        m_ExtractorSolver->disconnect(this);
+    for(auto &solver : parallelSolvers)
+        solver->disconnect(this);
     abort();
 }
 
