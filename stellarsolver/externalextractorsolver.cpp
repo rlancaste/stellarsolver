@@ -51,7 +51,7 @@ ExternalProgramPaths ExternalExtractorSolver::getDefaultExternalPaths(ComputerSy
         (QFile("/bin/astap").exists()) ?
             paths.astapBinaryPath = "/bin/astap" :
             paths.astapBinaryPath = "/opt/astap/astap";
-        paths.watneyBinaryPath = "/bin/watney-solve";
+        paths.watneyBinaryPath = "/opt/watney/watney-solve";
         paths.wcsPath = "/usr/bin/wcsinfo";
         break;
     case LINUX_INTERNAL:
@@ -61,7 +61,7 @@ ExternalProgramPaths ExternalExtractorSolver::getDefaultExternalPaths(ComputerSy
         (QFile("/bin/astap").exists()) ?
             paths.astapBinaryPath = "/bin/astap" :
             paths.astapBinaryPath = "/opt/astap/astap";
-        paths.watneyBinaryPath = "/bin/watney-solve";
+        paths.watneyBinaryPath = "/opt/watney/watney-solve";
         paths.wcsPath = "/usr/bin/wcsinfo";
         break;
     case MAC_HOMEBREW:
@@ -77,7 +77,7 @@ ExternalProgramPaths ExternalExtractorSolver::getDefaultExternalPaths(ComputerSy
         paths.sextractorBinaryPath = ""; //Not on windows?
         paths.solverPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe";
         paths.astapBinaryPath = "C:/Program Files/astap/astap.exe";
-        paths.watneyBinaryPath = "C:/Program Files/watney-solve-win-x64-1/watney-solve.exe";
+        paths.watneyBinaryPath = "C:/watney/watney-solve.exe";
         paths.wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
         break;
     case WIN_CYGWIN:
@@ -85,7 +85,7 @@ ExternalProgramPaths ExternalExtractorSolver::getDefaultExternalPaths(ComputerSy
         paths.sextractorBinaryPath = ""; //Not on windows?
         paths.solverPath = "C:/cygwin64/bin/solve-field";
         paths.astapBinaryPath = "C:/Program Files/astap/astap.exe";
-        paths.watneyBinaryPath = "C:/Program Files/watney-solve-win-x64-1/watney-solve.exe";
+        paths.watneyBinaryPath = "C:/watney/watney-solve.exe";
         paths.wcsPath = "C:/cygwin64/bin/wcsinfo";
         break;
     }
