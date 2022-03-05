@@ -88,7 +88,7 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    std::unique_ptr<StellarSolver> stellarSolver;
+    StellarSolver stellarSolver;
     QString fileToProcess;
     QList<FITSImage::Star> stars;
     int selectedStar;
@@ -173,8 +173,6 @@ public slots:
     void solveButtonClicked();
     void sextractImage();
     void solveImage();
-
-    void resetStellarSolver();
 
     void abort();
 

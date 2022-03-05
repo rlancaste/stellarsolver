@@ -528,6 +528,9 @@ MainWindow::MainWindow() :
     ui->imageScrollArea->horizontalScrollBar()->setMaximum(5000);
     ui->imageScrollArea->verticalScrollBar()->setValue(2500);
     ui->imageScrollArea->horizontalScrollBar()->setValue(2500);
+
+
+    connect(&stellarSolver, &StellarSolver::logOutput, this, &MainWindow::logOutput);
 }
 
 void MainWindow::settingJustChanged()
@@ -732,23 +735,21 @@ bool MainWindow::prepareForProcesses()
         logOutput("Please Load an Image First");
         return false;
     }
-    if(stellarSolver != nullptr)
+
+    if(stellarSolver.isRunning())
     {
-        if(stellarSolver->isRunning())
+        const SSolver::ProcessType type = static_cast<SSolver::ProcessType>(stellarSolver.property("ProcessType").toInt());
+        if(type == SOLVE && !stellarSolver.solvingDone())
         {
-            const SSolver::ProcessType type = static_cast<SSolver::ProcessType>(stellarSolver->property("ProcessType").toInt());
-            if(type == SOLVE && !stellarSolver->solvingDone())
-            {
-                if(QMessageBox::question(this, "Abort?", "StellarSolver is solving now. Abort it?") == QMessageBox::No)
-                    return false;
-            }
-            else if((type == EXTRACT || type == EXTRACT_WITH_HFR) && !extractorComplete())
-            {
-                if(QMessageBox::question(this, "Abort?", "StellarSolver is extracting sources now. Abort it?") == QMessageBox::No)
-                    return false;
-            }
-            stellarSolver->abort();
+            if(QMessageBox::question(this, "Abort?", "StellarSolver is solving now. Abort it?") == QMessageBox::No)
+                return false;
         }
+        else if((type == EXTRACT || type == EXTRACT_WITH_HFR) && !extractorComplete())
+        {
+            if(QMessageBox::question(this, "Abort?", "StellarSolver is extracting sources now. Abort it?") == QMessageBox::No)
+                return false;
+        }
+        stellarSolver.abort();
     }
 
     numberOfTrials = ui->trials->value();
@@ -867,31 +868,11 @@ void MainWindow::solveButtonClicked()
     solveImage();
 }
 
-void MainWindow::resetStellarSolver()
-{
-    if(stellarSolver != nullptr)
-    {
-        auto *solver = stellarSolver.release();
-        solver->disconnect(this);
-        if(solver->isRunning())
-        {
-            connect(solver, &StellarSolver::finished, solver, &StellarSolver::deleteLater);
-            solver->abort();
-        }
-        else
-            solver->deleteLater();
-    }
-
-    stellarSolver.reset(new StellarSolver(stats, m_ImageBuffer, this));
-    connect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
-}
-
-
 void MainWindow::sextractImage()
 {
     //This makes sure the solver is done before starting another time
     //That way the timer is accurate.
-    while(stellarSolver->isRunning())
+    while(stellarSolver.isRunning())
         qApp->processEvents();
 
     currentTrial++;
@@ -900,28 +881,28 @@ void MainWindow::sextractImage()
     //Since this tester uses it many times, it doesn't *need* to replace the stellarsolver every time
     //resetStellarSolver();
 
-    stellarSolver->setProperty("ExtractorType", m_ExtractorType);
-    stellarSolver->setProperty("ProcessType", processType);
+    stellarSolver.setProperty("ExtractorType", m_ExtractorType);
+    stellarSolver.setProperty("ProcessType", processType);
 
     //These set the StellarSolver Parameters
     if(profileSelection == 0)
-        stellarSolver->setParameters(getSettingsFromUI());
+        stellarSolver.setParameters(getSettingsFromUI());
     else
-        stellarSolver->setParameters(optionsList.at(profileSelection - 1));
+        stellarSolver.setParameters(optionsList.at(profileSelection - 1));
 
 
     setupExternalExtractorSolverIfNeeded();
     setupStellarSolverParameters();
 
     if(useSubframe)
-        stellarSolver->setUseSubframe(subframe);
+        stellarSolver.setUseSubframe(subframe);
     else
-        stellarSolver->clearSubFrame();
+        stellarSolver.clearSubFrame();
 
-    connect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::extractorComplete);
+    connect(&stellarSolver, &StellarSolver::ready, this, &MainWindow::extractorComplete);
 
     startProcessMonitor();
-    stellarSolver->start();
+    stellarSolver.start();
 }
 
 //This method runs when the user clicks the Sextract and Solve buttton
@@ -929,7 +910,7 @@ void MainWindow::solveImage()
 {
     //This makes sure the solver is done before starting another time
     //That way the timer is accurate.
-    while(stellarSolver->isRunning())
+    while(stellarSolver.isRunning())
         qApp->processEvents();
 
     currentTrial++;
@@ -940,48 +921,48 @@ void MainWindow::solveImage()
     m_ExtractorType = (SSolver::ExtractorType) ui->extractorTypeForSolving->currentIndex();
     solverType = (SSolver::SolverType) ui->solverType->currentIndex();
 
-    stellarSolver->setProperty("ProcessType", processType);
-    stellarSolver->setProperty("ExtractorType", m_ExtractorType);
-    stellarSolver->setProperty("SolverType", solverType);
+    stellarSolver.setProperty("ProcessType", processType);
+    stellarSolver.setProperty("ExtractorType", m_ExtractorType);
+    stellarSolver.setProperty("SolverType", solverType);
 
     //These set the StellarSolver Parameters
     if(profileSelection == 0)
-        stellarSolver->setParameters(getSettingsFromUI());
+        stellarSolver.setParameters(getSettingsFromUI());
     else
-        stellarSolver->setParameters(optionsList.at(profileSelection - 1));
+        stellarSolver.setParameters(optionsList.at(profileSelection - 1));
 
     setupStellarSolverParameters();
     setupExternalExtractorSolverIfNeeded();
 
-    stellarSolver->clearSubFrame();
+    stellarSolver.clearSubFrame();
 
     //Setting the initial search scale settings
     if(ui->use_scale->isChecked())
-        stellarSolver->setSearchScale(ui->scale_low->text().toDouble(), ui->scale_high->text().toDouble(),
+        stellarSolver.setSearchScale(ui->scale_low->text().toDouble(), ui->scale_high->text().toDouble(),
                                       (SSolver::ScaleUnits)ui->units->currentIndex());
     else
-        stellarSolver->setProperty("UseScale", false);
+        stellarSolver.setProperty("UseScale", false);
     //Setting the initial search location settings
     if(ui->use_position->isChecked())
-        stellarSolver->setSearchPositionRaDec(ui->ra->text().toDouble(), ui->dec->text().toDouble());
+        stellarSolver.setSearchPositionRaDec(ui->ra->text().toDouble(), ui->dec->text().toDouble());
     else
-        stellarSolver->setProperty("UsePosition", false);
+        stellarSolver.setProperty("UsePosition", false);
 
-    connect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::solverComplete);
+    connect(&stellarSolver, &StellarSolver::ready, this, &MainWindow::solverComplete);
 
     startProcessMonitor();
-    stellarSolver->start();
+    stellarSolver.start();
 }
 
 //This sets up the External SExtractor and Solver and sets settings specific to them
 void MainWindow::setupExternalExtractorSolverIfNeeded()
 {
     // External options
-    stellarSolver->setProperty("FileToProcess", fileToProcess);
-    stellarSolver->setProperty("BasePath", ui->basePath->text());
-    stellarSolver->setProperty("CleanupTemporaryFiles", ui->cleanupTemp->isChecked());
-    stellarSolver->setProperty("AutoGenerateAstroConfig", ui->generateAstrometryConfig->isChecked());
-    stellarSolver->setProperty("OnlySendFITSFiles", ui->onlySendFITSFiles->isChecked());
+    stellarSolver.setProperty("FileToProcess", fileToProcess);
+    stellarSolver.setProperty("BasePath", ui->basePath->text());
+    stellarSolver.setProperty("CleanupTemporaryFiles", ui->cleanupTemp->isChecked());
+    stellarSolver.setProperty("AutoGenerateAstroConfig", ui->generateAstrometryConfig->isChecked());
+    stellarSolver.setProperty("OnlySendFITSFiles", ui->onlySendFITSFiles->isChecked());
 
     // External File Paths
     ExternalProgramPaths externalPaths;
@@ -991,17 +972,17 @@ void MainWindow::setupExternalExtractorSolverIfNeeded()
     externalPaths.astapBinaryPath = ui->astapPath->text();
     externalPaths.watneyBinaryPath = ui->watneyPath->text();
     externalPaths.wcsPath = ui->wcsPath->text();
-    stellarSolver->setExternalFilePaths(externalPaths);
+    stellarSolver.setExternalFilePaths(externalPaths);
 
     //Online Options
-    stellarSolver->setProperty("BasePath",  ui->basePath->text());
-    stellarSolver->setProperty("AstrometryAPIKey", ui->apiKey->text());
-    stellarSolver->setProperty("AstrometryAPIURL", ui->onlineServer->text());
+    stellarSolver.setProperty("BasePath",  ui->basePath->text());
+    stellarSolver.setProperty("AstrometryAPIKey", ui->apiKey->text());
+    stellarSolver.setProperty("AstrometryAPIURL", ui->onlineServer->text());
 }
 
 void MainWindow::setupStellarSolverParameters()
 {
-    stellarSolver->clearIndexFileAndFolderPaths();
+    stellarSolver.clearIndexFileAndFolderPaths();
     if(ui->useAllIndexes->currentIndex() == 0)
     {
         QStringList indexFolderPaths;
@@ -1009,20 +990,20 @@ void MainWindow::setupStellarSolverParameters()
         {
             indexFolderPaths << ui->indexFolderPaths->itemText(i);
         }
-        stellarSolver->setIndexFolderPaths(indexFolderPaths);
+        stellarSolver.setIndexFolderPaths(indexFolderPaths);
     }
     else
     {
-        stellarSolver->setIndexFilePaths(indexFileList);
+        stellarSolver.setIndexFilePaths(indexFileList);
     }
 
     //These setup Logging if desired
-    stellarSolver->setProperty("LogToFile", ui->logToFile->isChecked());
+    stellarSolver.setProperty("LogToFile", ui->logToFile->isChecked());
     QString filename = ui->logFileName->text();
     if(filename != "" && QFileInfo(filename).dir().exists() && !QFileInfo(filename).isDir())
-        stellarSolver->m_LogFileName=filename;
-    stellarSolver->setLogLevel((SSolver::logging_level)ui->logLevel->currentIndex());
-    stellarSolver->setSSLogLevel((SSolver::SSolverLogLevel)ui->stellarSolverLogLevel->currentIndex());
+        stellarSolver.m_LogFileName=filename;
+    stellarSolver.setLogLevel((SSolver::logging_level)ui->logLevel->currentIndex());
+    stellarSolver.setSSLogLevel((SSolver::SSolverLogLevel)ui->stellarSolverLogLevel->currentIndex());
 }
 
 //This sets all the settings for either internal SEP or external SExtractor
@@ -1146,17 +1127,17 @@ bool MainWindow::extractorComplete()
     elapsed = processTimer.elapsed() / 1000.0;
 
 
-    disconnect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::extractorComplete);
+    disconnect(&stellarSolver, &StellarSolver::ready, this, &MainWindow::extractorComplete);
 
-    if(!stellarSolver->failed() && stellarSolver->sextractionDone())
+    if(!stellarSolver.failed() && stellarSolver.sextractionDone())
     {
         totalTime += elapsed; //Only add to total time if it was successful
-        stars = stellarSolver->getStarList();
+        stars = stellarSolver.getStarList();
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        if(stellarSolver->isCalculatingHFR())
-            logOutput(QString(stellarSolver->getCommandString() + " with HFR success! Got %1 stars").arg(stars.size()));
+        if(stellarSolver.isCalculatingHFR())
+            logOutput(QString(stellarSolver.getCommandString() + " with HFR success! Got %1 stars").arg(stars.size()));
         else
-            logOutput(QString(stellarSolver->getCommandString() + " success! Got %1 stars").arg(stars.size()));
+            logOutput(QString(stellarSolver.getCommandString() + " success! Got %1 stars").arg(stars.size()));
         logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         if(currentTrial < numberOfTrials)
@@ -1165,12 +1146,12 @@ bool MainWindow::extractorComplete()
             return true;
         }
         stopProcessMonitor();
-        hasHFRData = stellarSolver->isCalculatingHFR();
+        hasHFRData = stellarSolver.isCalculatingHFR();
     }
     else
     {
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString(stellarSolver->getCommandString() + "failed after %1 second(s).").arg( elapsed));
+        logOutput(QString(stellarSolver.getCommandString() + "failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         stopProcessMonitor();
         if(currentTrial == 1)
@@ -1193,16 +1174,16 @@ bool MainWindow::solverComplete()
 {
     elapsed = processTimer.elapsed() / 1000.0;
 
-    disconnect(stellarSolver.get(), &StellarSolver::ready, this, &MainWindow::solverComplete);
+    disconnect(&stellarSolver, &StellarSolver::ready, this, &MainWindow::solverComplete);
 
-    if(!stellarSolver->failed() && stellarSolver->solvingDone())
+    if(!stellarSolver.failed() && stellarSolver.solvingDone())
     {
         totalTime += elapsed; //Only add to the total time if it was successful
         ui->progressBar->setRange(0, 10);
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString(stellarSolver->getCommandString() + " took a total of: %1 second(s).").arg( elapsed));
+        logOutput(QString(stellarSolver.getCommandString() + " took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        lastSolution = stellarSolver->getSolution();
+        lastSolution = stellarSolver.getSolution();
         if(currentTrial < numberOfTrials)
         {
             solveImage();
@@ -1213,7 +1194,7 @@ bool MainWindow::solverComplete()
     else
     {
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        logOutput(QString(stellarSolver->getCommandString() + "failed after %1 second(s).").arg( elapsed));
+        logOutput(QString(stellarSolver.getCommandString() + "failed after %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         stopProcessMonitor();
         if(currentTrial == 1)
@@ -1223,13 +1204,13 @@ bool MainWindow::solverComplete()
 
     ui->resultsTable->insertRow(ui->resultsTable->rowCount());
     addSextractionToTable();
-    if(stellarSolver->solvingDone())
-        addSolutionToTable(stellarSolver->getSolution());
+    if(stellarSolver.solvingDone())
+        addSolutionToTable(stellarSolver.getSolution());
     else
         addSolutionToTable(lastSolution);
-    short solutionIndexNumber =stellarSolver->getSolutionIndexNumber();
-    lastIndexNumber = QString::number(stellarSolver->getSolutionIndexNumber());
-    lastHealpix = QString::number(stellarSolver->getSolutionHealpix());
+    short solutionIndexNumber =stellarSolver.getSolutionIndexNumber();
+    lastIndexNumber = QString::number(stellarSolver.getSolutionIndexNumber());
+    lastHealpix = QString::number(stellarSolver.getSolutionHealpix());
     if(solutionIndexNumber != -1 && ui->useAllIndexes->currentIndex() == 2)
     {
         ui->singleIndexNum->setText(lastIndexNumber);
@@ -1238,7 +1219,7 @@ bool MainWindow::solverComplete()
     }
     if(ui->autoUpdateScaleAndPosition->isChecked())
     {
-        FITSImage::Solution s = stellarSolver->getSolution();
+        FITSImage::Solution s = stellarSolver.getSolution();
         ui->ra->setText(QString::number(s.ra / 15));
         ui->dec->setText(QString::number(s.dec));
         double scale_low;
@@ -1270,11 +1251,11 @@ bool MainWindow::solverComplete()
         ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());
     });
 
-    if(stellarSolver.get()->hasWCSData())
+    if(stellarSolver.hasWCSData())
     {
         hasWCSData = true;
-        stars = stellarSolver->getStarList();
-        hasHFRData = stellarSolver->isCalculatingHFR();
+        stars = stellarSolver.getStarList();
+        hasHFRData = stellarSolver.isCalculatingHFR();
         if(stars.count() > 0)
             emit readyForStarTable();
     }
@@ -1285,9 +1266,9 @@ bool MainWindow::solverComplete()
 void MainWindow::abort()
 {
     numberOfTrials = currentTrial;
-    if(stellarSolver != nullptr && stellarSolver->isRunning())
+    if(stellarSolver.isRunning())
     {
-        stellarSolver->abort();
+        stellarSolver.abort();
         logOutput("Aborting Process. . .");
     }
     else
@@ -1313,7 +1294,7 @@ void MainWindow::clearAstrometrySettings()
 //I wrote this method to select the file name for the image and call the load methods below to load it
 bool MainWindow::imageLoad()
 {
-    if(stellarSolver != nullptr && stellarSolver->isRunning())
+    if(stellarSolver.isRunning())
     {
         QMessageBox::critical(nullptr, "Message", "A Process is currently running on the image, please wait until it is completed");
         return false;
@@ -1330,8 +1311,6 @@ bool MainWindow::imageLoad()
     fileToProcess = fileURL;
 
     clearAstrometrySettings();
-    if(stellarSolver != nullptr)
-        disconnect(stellarSolver.get(), &StellarSolver::logOutput, this, &MainWindow::logOutput);
 
     fileio imageLoader;
     imageLoader.logToSignal = true;
@@ -1371,7 +1350,7 @@ bool MainWindow::imageLoad()
         ui->fileNameDisplay->setText("Image: " + fileURL);
         initDisplayImage();
         hasWCSData = false;
-        resetStellarSolver();
+        stellarSolver.loadNewImageBuffer(stats, m_ImageBuffer);
         return true;
     }
     return false;
@@ -1683,7 +1662,7 @@ void MainWindow::mouseMovedOverImage(QPoint location)
         {
             QPointF wcsPixelPoint(x, y);
             FITSImage::wcs_point wcsCoord;
-            if(stellarSolver.get()->pixelToWCS(wcsPixelPoint, wcsCoord))
+            if(stellarSolver.pixelToWCS(wcsPixelPoint, wcsCoord))
             {
                 mouseText = QString("RA: %1, DEC: %2").arg(StellarSolver::raString(wcsCoord.ra),
                                 StellarSolver::decString(wcsCoord.dec));
@@ -2016,19 +1995,19 @@ void MainWindow::setupResultsTable()
 void MainWindow::addSextractionToTable()
 {
     QTableWidget *table = ui->resultsTable;
-    SSolver::Parameters params = stellarSolver->getCurrentParameters();
+    SSolver::Parameters params = stellarSolver.getCurrentParameters();
 
     setItemInColumn(table, "Avg Time", QString::number(totalTime / currentTrial));
     setItemInColumn(table, "# Trials", QString::number(currentTrial));
-    if(stellarSolver->isCalculatingHFR())
-        setItemInColumn(table, "Command", stellarSolver->getCommandString() + " w/HFR");
+    if(stellarSolver.isCalculatingHFR())
+        setItemInColumn(table, "Command", stellarSolver.getCommandString() + " w/HFR");
     else
-        setItemInColumn(table, "Command", stellarSolver->getCommandString());
+        setItemInColumn(table, "Command", stellarSolver.getCommandString());
     setItemInColumn(table, "Profile", params.listName);
-    setItemInColumn(table, "Loglvl", stellarSolver->getLogLevelString());
-    setItemInColumn(table, "Stars", QString::number(stellarSolver->getNumStarsFound()));
+    setItemInColumn(table, "Loglvl", stellarSolver.getLogLevelString());
+    setItemInColumn(table, "Stars", QString::number(stellarSolver.getNumStarsFound()));
     //Star Extractor Parameters
-    setItemInColumn(table, "Shape", stellarSolver->getShapeString());
+    setItemInColumn(table, "Shape", stellarSolver.getShapeString());
     setItemInColumn(table, "Kron", QString::number(params.kron_fact));
     setItemInColumn(table, "Subpix", QString::number(params.subpix));
     setItemInColumn(table, "r_min", QString::number(params.r_min));
@@ -2039,7 +2018,7 @@ void MainWindow::addSextractionToTable()
     setItemInColumn(table, "d_cont", QString::number(params.deblend_contrast));
     setItemInColumn(table, "clean", QString::number(params.clean));
     setItemInColumn(table, "clean param", QString::number(params.clean_param));
-    setItemInColumn(table, "conv", stellarSolver->getConvFilterString());
+    setItemInColumn(table, "conv", stellarSolver.getConvFilterString());
     setItemInColumn(table, "fwhm", QString::number(params.fwhm));
     setItemInColumn(table, "part", QString::number(params.partition));
     setItemInColumn(table, "Field", ui->fileNameDisplay->text());
@@ -2061,22 +2040,22 @@ void MainWindow::addSextractionToTable()
 void MainWindow::addSolutionToTable(FITSImage::Solution solution)
 {
     QTableWidget *table = ui->resultsTable;
-    SSolver::Parameters params = stellarSolver->getCurrentParameters();
+    SSolver::Parameters params = stellarSolver.getCurrentParameters();
 
     setItemInColumn(table, "Avg Time", QString::number(totalTime / currentTrial));
     setItemInColumn(table, "# Trials", QString::number(currentTrial));
-    setItemInColumn(table, "Command", stellarSolver->getCommandString());
+    setItemInColumn(table, "Command", stellarSolver.getCommandString());
     setItemInColumn(table, "Profile", params.listName);
 
     //Astrometry Parameters
-    setItemInColumn(table, "Pos?", stellarSolver->property("UsePosition").toString());
-    setItemInColumn(table, "Scale?", stellarSolver->property("UseScale").toString());
+    setItemInColumn(table, "Pos?", stellarSolver.property("UsePosition").toString());
+    setItemInColumn(table, "Scale?", stellarSolver.property("UseScale").toString());
     setItemInColumn(table, "Resort?", QVariant(params.resort).toString());
     setItemInColumn(table, "AutoDown", QVariant(params.autoDownsample).toString());
     setItemInColumn(table, "Down", QVariant(params.downsample).toString());
     setItemInColumn(table, "in ||", QVariant(params.inParallel).toString());
-    setItemInColumn(table, "Multi", stellarSolver->getMultiAlgoString());
-    setItemInColumn(table, "# Thread", QVariant(stellarSolver->getNumThreads()).toString());
+    setItemInColumn(table, "Multi", stellarSolver.getMultiAlgoString());
+    setItemInColumn(table, "# Thread", QVariant(stellarSolver.getNumThreads()).toString());
 
 
     //Results

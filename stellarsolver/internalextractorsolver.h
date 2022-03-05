@@ -139,7 +139,7 @@ class InternalExtractorSolver: public ExtractorSolver
 
         // Logging related
         FILE *logFile = nullptr;        // This is the name of the log file used
-        AstrometryLogger *astroLogger;  // This is an object that lets C based astrometry report to C++ based code
+        AstrometryLogger astroLogger;  // This is an object that lets C based astrometry report to C++ based code
 
     // InternalExtractorSolver Methods
 

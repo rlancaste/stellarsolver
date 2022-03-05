@@ -67,6 +67,26 @@ bool StellarSolver::loadNewImageBuffer(const FITSImage::Statistic &imagestats, u
     m_ImageBuffer = imageBuffer;
     m_Statistics = imagestats;
     m_Subframe = QRect(0, 0, m_Statistics.width, m_Statistics.height);
+
+    //information that should be reset since it was about the last image
+    m_HasExtracted = false;
+    m_HasSolved = false;
+    m_HasFailed = false;
+    hasWCS = false;
+    m_isRunning = false;
+
+    parallelSolvers.clear();
+    m_ExtractorSolver.clear();
+    solverWithWCS.clear();
+    m_ParallelSolversFinishedCount = 0;
+    background = {};
+    m_ExtractorStars.clear();
+    m_SolverStars.clear();
+    numStars = 0;
+    solution = {};
+    solutionIndexNumber = -1;
+    solutionHealpix = -1;
+
     return true;
 }
 

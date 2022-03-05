@@ -995,9 +995,8 @@ int InternalExtractorSolver::runInternalSolver()
         {
             if(!this->isChildSolver)
             {
-                astroLogger = new AstrometryLogger();
-                connect(astroLogger, &AstrometryLogger::logOutput, this, &ExtractorSolver::logOutput);
-                setAstroLogger(astroLogger);
+                connect(&astroLogger, &AstrometryLogger::logOutput, this, &ExtractorSolver::logOutput);
+                setAstroLogger(&astroLogger);
             }
         }
         if(logFile)
@@ -1119,8 +1118,8 @@ int InternalExtractorSolver::runInternalSolver()
     //Needs to close the file after the logging is done
     if(m_AstrometryLogLevel != SSolver::LOG_NONE && logFile)
         fclose(logFile);
-    if(m_AstrometryLogLevel != SSolver::LOG_NONE && !this->isChildSolver && astroLogger)
-        disconnect(astroLogger, &AstrometryLogger::logOutput, this, &ExtractorSolver::logOutput);
+    if(m_AstrometryLogLevel != SSolver::LOG_NONE && !this->isChildSolver)
+        disconnect(&astroLogger, &AstrometryLogger::logOutput, this, &ExtractorSolver::logOutput);
 
     //This deletes or frees the items that are no longer needed.
     engine_free(engine);

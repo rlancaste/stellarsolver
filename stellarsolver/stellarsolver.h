@@ -627,7 +627,7 @@ class StellarSolver : public QObject
         FITSImage::Background background;           // This is a report on the background levels found during star extraction
         QList<FITSImage::Star> m_ExtractorStars;    // This is the list of stars that get extracted from the image
         QList<FITSImage::Star> m_SolverStars;       // This is the list of stars that were extracted for the last successful solve
-        int numStars;                               // The number of stars found in the last operation
+        int numStars = 0;                               // The number of stars found in the last operation
         FITSImage::Solution solution;               // This is the solution that comes back from the Solver
         short solutionIndexNumber = -1;             // This is the index number of the index used to solve the image.
         short solutionHealpix = -1;                 // This is the healpix of the index used to solve the image.
