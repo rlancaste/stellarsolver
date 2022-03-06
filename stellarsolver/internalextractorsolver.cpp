@@ -22,9 +22,10 @@
 #include "sep/extract.h"
 #include "qmath.h"
 
+//Astrometry.net includes
 extern "C" {
 #include "astrometry/log.h"
-
+#include "astrometry/sip-utils.h"
 }
 
 using namespace SSolver;

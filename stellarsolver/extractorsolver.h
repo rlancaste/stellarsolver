@@ -20,8 +20,7 @@
 
 //Astrometry.net includes
 extern "C" {
-#include "astrometry/engine.h"
-#include "astrometry/sip-utils.h"
+#include "astrometry/starutil.h"
 }
 
 using namespace SSolver;

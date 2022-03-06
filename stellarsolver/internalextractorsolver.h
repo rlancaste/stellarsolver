@@ -13,6 +13,11 @@
 //SEP Includes
 #include "sep/sep.h"
 
+//Astrometry.net includes
+extern "C" {
+#include "astrometry/engine.h"
+}
+
 using namespace SSolver;
 
 class InternalExtractorSolver: public ExtractorSolver
