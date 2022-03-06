@@ -473,7 +473,7 @@ void StellarSolver::processFinished(int code)
             }
             m_HasSolved = true;
         }
-        else if((m_ProcessType == EXTRACT || m_ProcessType == EXTRACT_WITH_HFR) && m_ExtractorSolver->sextractionDone())
+        else if((m_ProcessType == EXTRACT || m_ProcessType == EXTRACT_WITH_HFR) && m_ExtractorSolver->extractionDone())
         {
             m_ExtractorStars = m_ExtractorSolver->getStarList();
             background = m_ExtractorSolver->getBackground();

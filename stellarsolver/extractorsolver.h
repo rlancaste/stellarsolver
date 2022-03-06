@@ -29,7 +29,7 @@ class ExtractorSolver : public QThread
 {
         Q_OBJECT
     public:
-        ExtractorSolver(ProcessType type, ExtractorType sexType, SolverType solType, const FITSImage::Statistic &statistics,
+        ExtractorSolver(ProcessType type, ExtractorType exType, SolverType solType, const FITSImage::Statistic &statistics,
                          const uint8_t *imageBuffer, QObject *parent = nullptr);
         ~ExtractorSolver();
 
@@ -219,7 +219,7 @@ class ExtractorSolver : public QThread
         };
 
         /**
-         * @brief sextractionDone Whether or not plate solving has been completed
+         * @brief solvingDone Whether or not plate solving has been completed
          * @return true means the plate solving is done
          */
         bool solvingDone()
@@ -228,10 +228,10 @@ class ExtractorSolver : public QThread
         };
 
         /**
-         * @brief sextractionDone Whether or not star extraction has been completed
+         * @brief extractionDone Whether or not star extraction has been completed
          * @return true means the star extraction is done
          */
-        bool sextractionDone()
+        bool extractionDone()
         {
             return m_HasExtracted;
         };

@@ -92,7 +92,7 @@ MainWindow::MainWindow() :
     connect(s, &QShortcut::activated, this, &MainWindow::helpPopup);
 
     //The Options at the bottom of the Window
-    ui->trials->setToolTip("The number of times to Sextract or Solve to get an average time that it takes.");
+    ui->trials->setToolTip("The number of times to Star Extract or Solve to get an average time that it takes.");
     connect(ui->startExtraction, &QAbstractButton::clicked, this, &MainWindow::extractButtonClicked );
     connect(ui->startSolving, &QAbstractButton::clicked, this, &MainWindow::solveButtonClicked );
     connect(ui->editExtractorProfile, &QAbstractButton::clicked, this, [this]()
@@ -216,7 +216,7 @@ MainWindow::MainWindow() :
     });
     //StellarSolver Tester Options
     connect(ui->showStars, &QAbstractButton::clicked, this, &MainWindow::updateImage );
-    ui->setSubFrame->setToolTip("Sets or clears the Subframe for Sextraction if desired");
+    ui->setSubFrame->setToolTip("Sets or clears the Subframe for Star Extraction if desired");
     connect(ui->setSubFrame, &QAbstractButton::clicked, this, &MainWindow::setSubframe );
 
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num)
@@ -239,7 +239,7 @@ MainWindow::MainWindow() :
     ui->subpix->setToolTip("The subpix setting.  The instructions say to make it 5");
     ui->r_min->setToolTip("The minimum radius for stars for flux calculations.");
     //no inflags???;
-    ui->magzero->setToolTip("This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.");
+    ui->magzero->setToolTip("This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during star extraction.");
     ui->minarea->setToolTip("This is the minimum area in pixels for a star detection, smaller stars are ignored.");
     ui->thresh_multiple->setToolTip("Add the multiple times the rms background level to the detection threshold.");
     ui->thresh_offset->setToolTip("Add this offset to the detection threshold");
@@ -408,13 +408,13 @@ MainWindow::MainWindow() :
         showFluxInfo = ui->showFluxInfo->isChecked();
         updateHiddenStarTableColumns();
     });
-    ui->showFluxInfo->setToolTip("This toggles whether to show or hide the HFR, peak, Flux columns in the star table after Sextraction.");
+    ui->showFluxInfo->setToolTip("This toggles whether to show or hide the HFR, peak, Flux columns in the star table after star extraction.");
     connect(ui->showStarShapeInfo, &QCheckBox::stateChanged, this, [this]()
     {
         showStarShapeInfo = ui->showStarShapeInfo->isChecked();
         updateHiddenStarTableColumns();
     });
-    ui->showStarShapeInfo->setToolTip("This toggles whether to show or hide the information about each star's semi-major axis, semi-minor axis, and orientation in the star table after sextraction.");
+    ui->showStarShapeInfo->setToolTip("This toggles whether to show or hide the information about each star's semi-major axis, semi-minor axis, and orientation in the star table after star extraction.");
 
     //Behaviors for the Mouse over the Image to interact with the StartList and the UI
     connect(ui->Image, &ImageLabel::mouseMoved, this, &MainWindow::mouseMovedOverImage);
@@ -761,7 +761,7 @@ bool MainWindow::prepareForProcesses()
     return true;
 }
 
-//I wrote this method to display the table after sextraction has occured.
+//I wrote this method to display the table after star extraction has occured.
 void MainWindow::displayTable()
 {
     sortStars();
@@ -825,7 +825,7 @@ void MainWindow::loadIndexFilesToUse()
 //The following methods are meant for starting the star extractor and image solver.
 //The methods run when the buttons are clicked.  They call the methods inside StellarSolver and ExternalExtractorSovler
 
-//This method responds when the user clicks the Sextract Button
+//This method responds when the user clicks the Star Extraction Button
 void MainWindow::extractButtonClicked()
 {
     if(!prepareForProcesses())
@@ -853,10 +853,10 @@ void MainWindow::extractButtonClicked()
 
     }
     profileSelection = ui->extractionProfile->currentIndex();
-    sextractImage();
+    extractImage();
 }
 
-//This method responds when the user clicks the Sextract Button
+//This method responds when the user clicks the Star Extraction Button
 void MainWindow::solveButtonClicked()
 {
     if(!prepareForProcesses())
@@ -868,7 +868,7 @@ void MainWindow::solveButtonClicked()
     solveImage();
 }
 
-void MainWindow::sextractImage()
+void MainWindow::extractImage()
 {
     //This makes sure the solver is done before starting another time
     //That way the timer is accurate.
@@ -905,7 +905,7 @@ void MainWindow::sextractImage()
     stellarSolver.start();
 }
 
-//This method runs when the user clicks the Sextract and Solve buttton
+//This method runs when the user clicks the Solve buttton
 void MainWindow::solveImage()
 {
     //This makes sure the solver is done before starting another time
@@ -1001,7 +1001,7 @@ void MainWindow::setupStellarSolverParameters()
     stellarSolver.setProperty("LogToFile", ui->logToFile->isChecked());
     QString filename = ui->logFileName->text();
     if(filename != "" && QFileInfo(filename).dir().exists() && !QFileInfo(filename).isDir())
-        stellarSolver.m_LogFileName=filename;
+        stellarSolver.setProperty("LogFileName", filename);
     stellarSolver.setLogLevel((SSolver::logging_level)ui->logLevel->currentIndex());
     stellarSolver.setSSLogLevel((SSolver::SSolverLogLevel)ui->stellarSolverLogLevel->currentIndex());
 }
@@ -1121,7 +1121,7 @@ void MainWindow::sendSettingsToUI(SSolver::Parameters a)
 
 
 //This runs when the star extractor is complete.
-//It reports the time taken, prints a message, loads the sextraction stars to the startable, and adds the sextraction stats to the results table.
+//It reports the time taken, prints a message, loads the star extraction stars to the startable, and adds the star extraction stats to the results table.
 bool MainWindow::extractorComplete()
 {
     elapsed = processTimer.elapsed() / 1000.0;
@@ -1129,7 +1129,7 @@ bool MainWindow::extractorComplete()
 
     disconnect(&stellarSolver, &StellarSolver::ready, this, &MainWindow::extractorComplete);
 
-    if(!stellarSolver.failed() && stellarSolver.sextractionDone())
+    if(!stellarSolver.failed() && stellarSolver.extractionDone())
     {
         totalTime += elapsed; //Only add to total time if it was successful
         stars = stellarSolver.getStarList();
@@ -1138,11 +1138,11 @@ bool MainWindow::extractorComplete()
             logOutput(QString(stellarSolver.getCommandString() + " with HFR success! Got %1 stars").arg(stars.size()));
         else
             logOutput(QString(stellarSolver.getCommandString() + " success! Got %1 stars").arg(stars.size()));
-        logOutput(QString("Sextraction took a total of: %1 second(s).").arg( elapsed));
+        logOutput(QString("Star Extraction took a total of: %1 second(s).").arg( elapsed));
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         if(currentTrial < numberOfTrials)
         {
-            sextractImage();
+            extractImage();
             return true;
         }
         stopProcessMonitor();
@@ -1161,7 +1161,7 @@ bool MainWindow::extractorComplete()
 
     emit readyForStarTable();
     ui->resultsTable->insertRow(ui->resultsTable->rowCount());
-    addSextractionToTable();
+    addExtractionToTable();
     QTimer::singleShot(100, this, [this]()
     {
         ui->resultsTable->verticalScrollBar()->setValue(ui->resultsTable->verticalScrollBar()->maximum());
@@ -1203,7 +1203,7 @@ bool MainWindow::solverComplete()
     }
 
     ui->resultsTable->insertRow(ui->resultsTable->rowCount());
-    addSextractionToTable();
+    addExtractionToTable();
     if(stellarSolver.solvingDone())
         addSolutionToTable(stellarSolver.getSolution());
     else
@@ -1500,12 +1500,12 @@ QRect MainWindow::getStarSizeInImage(FITSImage::Star star, bool &accurate)
 
     switch(starOption)
     {
-        case 0: //Ellipse from Sextraction
+        case 0: //Ellipse from Star Extraction
             width = 2 * a ;
             height = 2 * b;
             break;
 
-        case 1: //Circle from Sextraction
+        case 1: //Circle from Star Extraction
         {
             double size = 2 * sqrt( pow(a, 2) + pow(b, 2) );
             width = size;
@@ -1992,7 +1992,7 @@ void MainWindow::setupResultsTable()
 
 //This adds a Sextraction to the Results Table
 //To add, remove, or change the way certain columns are filled when a sextraction is finished, edit them here.
-void MainWindow::addSextractionToTable()
+void MainWindow::addExtractionToTable()
 {
     QTableWidget *table = ui->resultsTable;
     SSolver::Parameters params = stellarSolver.getCurrentParameters();

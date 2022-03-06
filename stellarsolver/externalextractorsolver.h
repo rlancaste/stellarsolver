@@ -21,7 +21,7 @@ class ExternalExtractorSolver : public InternalExtractorSolver
 {
         Q_OBJECT
     public:
-        explicit ExternalExtractorSolver(ProcessType type, ExtractorType sexType, SolverType solType,
+        explicit ExternalExtractorSolver(ProcessType type, ExtractorType exType, SolverType solType,
                                           FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
         ~ExternalExtractorSolver();
 
@@ -155,7 +155,7 @@ class ExternalExtractorSolver : public InternalExtractorSolver
     private:
         // These are the variables for the external processes
         QPointer<QProcess> solver;
-        QPointer<QProcess> sextractorProcess;
+        QPointer<QProcess> extractorProcess;
 
         // Note: this method is needed so that the options selected in StellarSolver get passed to the solver
         /**

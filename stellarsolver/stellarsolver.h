@@ -176,18 +176,6 @@ class StellarSolver : public QObject
             return StellarSolver_VERSION;
         }
 
-        //Logging Settings for Astrometry
-        bool m_LogToFile {false};             //This determines whether or not to save the output from Astrometry.net to a file
-        QString m_LogFileName;                //This is the path to the log file that it will save.
-        logging_level m_AstrometryLogLevel {LOG_NONE};   //This is the level of astrometry logging.  Beware, setting this too high can severely affect performance
-        SSolverLogLevel m_SSLogLevel {LOG_NORMAL};   //This is the level for the StellarSolver Logging
-
-        //These are for creating temporary files
-        //This is the base name used for all temporary files.  It uses a random name based on the type of solver/star extractor.
-        QString m_BaseName;
-        //This is the path used for saving any temporary files.  They are by default saved to the default temp directory, you can change it if you want to.
-        QString m_BasePath {QDir::tempPath()};
-
         //STELLARSOLVER METHODS
         //The public methods here are for you to start, stop, setup, and get results from the StellarSolver
 
@@ -418,15 +406,15 @@ class StellarSolver : public QObject
         };
 
         /**
-         * @brief sextractionDone Whether or not star extraction has been completed
+         * @brief extractionDone Whether or not star extraction has been completed
          * @return true means the star extraction is done
          */
-        bool sextractionDone() const
+        bool extractionDone() const
         {
             return m_HasExtracted;
         }
         /**
-         * @brief sextractionDone Whether or not plate solving has been completed
+         * @brief solvingDone Whether or not plate solving has been completed
          * @return true means the plate solving is done
          */
         bool solvingDone() const
@@ -558,7 +546,7 @@ class StellarSolver : public QObject
     private:
 
    // Useful state information for the StellarSolver
-        bool m_HasExtracted {false};        // This boolean is set when the sextraction is done
+        bool m_HasExtracted {false};        // This boolean is set when the star extraction is done
         bool m_HasSolved {false};           // This boolean is set when the solving is done
         bool m_HasFailed {false};           // This boolean is set when a process has failed
         bool hasWCS {false};                // This boolean gets set if the StellarSolver has WCS data to retrieve
@@ -631,6 +619,18 @@ class StellarSolver : public QObject
         FITSImage::Solution solution;               // This is the solution that comes back from the Solver
         short solutionIndexNumber = -1;             // This is the index number of the index used to solve the image.
         short solutionHealpix = -1;                 // This is the healpix of the index used to solve the image.
+
+    // Logging Settings for Astrometry
+        bool m_LogToFile {false};             //This determines whether or not to save the output from Astrometry.net to a file
+        QString m_LogFileName;                //This is the path to the log file that it will save.
+        logging_level m_AstrometryLogLevel {LOG_NONE};   //This is the level of astrometry logging.  Beware, setting this too high can severely affect performance
+        SSolverLogLevel m_SSLogLevel {LOG_NORMAL};   //This is the level for the StellarSolver Logging
+
+    // These are for creating temporary files
+        //This is the base name used for all temporary files.  It uses a random name based on the type of solver/star extractor.
+        QString m_BaseName;
+        //This is the path used for saving any temporary files.  They are by default saved to the default temp directory, you can change it if you want to.
+        QString m_BasePath {QDir::tempPath()};
 
     // StellarSolver Private Methods
         /**

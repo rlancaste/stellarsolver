@@ -141,7 +141,7 @@ private:
 
     void setupResultsTable();
     void clearAstrometrySettings();
-    void addSextractionToTable();
+    void addExtractionToTable();
     FITSImage::Solution lastSolution;
     QStringList indexFileList;
     QString lastIndexNumber = "4";
@@ -171,7 +171,7 @@ public slots:
     //These are the functions that run when the bottom buttons are clicked
     void extractButtonClicked();
     void solveButtonClicked();
-    void sextractImage();
+    void extractImage();
     void solveImage();
 
     void abort();

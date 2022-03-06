@@ -15,8 +15,8 @@
 // This needs to be static even if there are parallel StellarSolvers so that each solver and child solver gets a unique identifier
 static int solverNum = 1;
 
-ExternalExtractorSolver::ExternalExtractorSolver(ProcessType type, ExtractorType sexType, SolverType solType,
-        FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalExtractorSolver(type, sexType,
+ExternalExtractorSolver::ExternalExtractorSolver(ProcessType type, ExtractorType exType, SolverType solType,
+        FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalExtractorSolver(type, exType,
                     solType, imagestats, imageBuffer, parent)
 {
 
@@ -106,13 +106,13 @@ int ExternalExtractorSolver::extract()
 {
     if(m_ExtractorType == EXTRACTOR_EXTERNAL)
     {
-#ifdef _WIN32  //Note that this is just a warning, if the user has Sextractor installed somehow on Windows, they could use it.
+#ifdef _WIN32  //Note that this is just a warning, if the user has SExtractor installed somehow on Windows, they could use it.
         emit logOutput("SExtractor is not easily installed on windows. Please select the Internal SEP and External Solver.");
 #endif
 
         if(!QFileInfo::exists(externalPaths.sextractorBinaryPath))
         {
-            emit logOutput("There is no sextractor at " + externalPaths.sextractorBinaryPath + ", Aborting");
+            emit logOutput("There is no SExtractor binary at " + externalPaths.sextractorBinaryPath + ", Aborting");
             return -1;
         }
     }
@@ -323,7 +323,7 @@ ExtractorSolver* ExternalExtractorSolver::spawnChildSolver(int n)
     return solver;
 }
 
-//This is the abort method.  For the external sextractor and solver, it uses the kill method to abort the processes
+//This is the abort method.  For the external SExtractor and solver, it uses the kill method to abort the processes
 void ExternalExtractorSolver::abort()
 {
     if(solver){
@@ -336,8 +336,8 @@ void ExternalExtractorSolver::abort()
             file.close();
         }
     }
-    if(sextractorProcess)
-        sextractorProcess->kill();
+    if(extractorProcess)
+        extractorProcess->kill();
     if(!isChildSolver)
         emit logOutput("Aborting ...");
     quit();
@@ -349,7 +349,7 @@ void ExternalExtractorSolver::cleanupTempFiles()
     if(cleanupTemporaryFiles)
     {
         QDir temp(m_BasePath);
-        //Sextractor Files
+        //SExtractor Files
         temp.remove(m_BaseName + ".param");
         temp.remove(m_BaseName + ".conv");
         temp.remove(m_BaseName + ".cfg");
@@ -403,7 +403,7 @@ int ExternalExtractorSolver::runExternalExtractor()
         fileToProcessIsTempFile = true;
     }
 
-    //Configuration arguments for sextractor
+    //Configuration arguments for SExtractor
     QStringList sextractorArgs;
     //This one is not really that necessary, it will use the defaults if it can't find it
     //We will set all of the things we need in the parameters below
@@ -412,14 +412,14 @@ int ExternalExtractorSolver::runExternalExtractor()
     sextractorArgs << "-CATALOG_NAME" << starXYLSFilePath;
     sextractorArgs << "-CATALOG_TYPE" << "FITS_1.0";
 
-    //sextractor needs a default.param file in the working directory
-    //This creates that file with the options we need for astrometry.net and sextractor
+    //SExtractor needs a default.param file in the working directory
+    //This creates that file with the options we need for astrometry.net and SExtractor
 
     QString paramPath =  m_BasePath + "/" + m_BaseName + ".param";
     QFile paramFile(paramPath);
     if (paramFile.open(QIODevice::WriteOnly) == false)
     {
-        QMessageBox::critical(nullptr, "Message", "Sextractor file write error.");
+        QMessageBox::critical(nullptr, "Message", "SExtractor file write error.");
         return -1;
     }
     else
@@ -440,14 +440,14 @@ int ExternalExtractorSolver::runExternalExtractor()
     sextractorArgs << "-PARAMETERS_NAME" << paramPath;
 
 
-    //sextractor needs a default.conv file in the working directory
+    //SExtractor needs a default.conv file in the working directory
     //This creates the default one
 
     QString convPath =  m_BasePath + "/" + m_BaseName + ".conv";
     QFile convFile(convPath);
     if (convFile.open(QIODevice::WriteOnly) == false)
     {
-        QMessageBox::critical(nullptr, "Message", "Sextractor CONV filter write error.");
+        QMessageBox::critical(nullptr, "Message", "SExtractor CONV filter write error.");
         return -1;
     }
     else
@@ -498,24 +498,24 @@ int ExternalExtractorSolver::runExternalExtractor()
 
     sextractorArgs <<  fileToProcess;
 
-    sextractorProcess.clear();
-    sextractorProcess = new QProcess();
+    extractorProcess.clear();
+    extractorProcess = new QProcess();
 
-    sextractorProcess->setWorkingDirectory(m_BasePath);
-    sextractorProcess->setProcessChannelMode(QProcess::MergedChannels);
+    extractorProcess->setWorkingDirectory(m_BasePath);
+    extractorProcess->setProcessChannelMode(QProcess::MergedChannels);
     if(m_SSLogLevel != LOG_OFF)
-        connect(sextractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalExtractorSolver::logSextractor);
+        connect(extractorProcess, &QProcess::readyReadStandardOutput, this, &ExternalExtractorSolver::logSextractor);
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    emit logOutput("Starting external sextractor with the " + m_ActiveParameters.listName + " profile...");
+    emit logOutput("Starting external SExtractor with the " + m_ActiveParameters.listName + " profile...");
     emit logOutput(externalPaths.sextractorBinaryPath + " " + sextractorArgs.join(' '));
 
-    sextractorProcess->start(externalPaths.sextractorBinaryPath, sextractorArgs);
-    sextractorProcess->waitForFinished(30000); //Will timeout after 30 seconds
-    emit logOutput(sextractorProcess->readAllStandardError().trimmed());
+    extractorProcess->start(externalPaths.sextractorBinaryPath, sextractorArgs);
+    extractorProcess->waitForFinished(30000); //Will timeout after 30 seconds
+    emit logOutput(extractorProcess->readAllStandardError().trimmed());
 
-    if(sextractorProcess->exitCode() != 0 || sextractorProcess->exitStatus() == QProcess::CrashExit)
-        return sextractorProcess->exitCode();
+    if(extractorProcess->exitCode() != 0 || extractorProcess->exitStatus() == QProcess::CrashExit)
+        return extractorProcess->exitCode();
 
     int exitCode = getStarsFromXYLSFile();
     if(exitCode != 0)
@@ -548,7 +548,7 @@ int ExternalExtractorSolver::runExternalSolver()
 {
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     if(m_ExtractorType == EXTRACTOR_BUILTIN)
-        emit logOutput("Configuring external Astrometry.net solver classically: using python and without Sextractor first");
+        emit logOutput("Configuring external Astrometry.net solver classically: using python and without SExtractor first");
     else
         emit logOutput("Configuring external Astrometry.net solver using an xylist input");
 
@@ -586,7 +586,7 @@ int ExternalExtractorSolver::runExternalSolver()
         QFileInfo sextractorFile(starXYLSFilePath);
         if(!sextractorFile.exists())
         {
-            emit logOutput("Please Sextract the image first");
+            emit logOutput("Please Star Extract the image first");
         }
         if(isChildSolver)
         {
@@ -776,7 +776,7 @@ int ExternalExtractorSolver::runExternalWatneySolver()
         QFileInfo sextractorFile(starXYLSFilePath);
         if(!sextractorFile.exists())
         {
-            emit logOutput("Please Sextract the image first");
+            emit logOutput("Please Star Extract the image first");
         }
         if(isChildSolver)
         {
@@ -1032,9 +1032,9 @@ bool ExternalExtractorSolver::generateAstrometryConfigFile()
 
 void ExternalExtractorSolver::logSextractor()
 {
-    if(sextractorProcess->canReadLine())
+    if(extractorProcess->canReadLine())
     {
-        QString rawText(sextractorProcess->readLine().trimmed());
+        QString rawText(extractorProcess->readLine().trimmed());
         QString cleanedString = rawText.remove("[1M>").remove("[1A");
         if(!cleanedString.isEmpty())
         {
@@ -1094,7 +1094,7 @@ int ExternalExtractorSolver::getStarsFromXYLSFile()
     QFile sextractorFile(starXYLSFilePath);
     if(!sextractorFile.exists())
     {
-        emit logOutput("Can't get sextractor file since it doesn't exist.");
+        emit logOutput("Can't get SExtractor file since it doesn't exist.");
         return -1;
     }
 
@@ -1605,7 +1605,7 @@ int ExternalExtractorSolver::writeStarExtractorTable()
     char* ttype[] = { xcol, ycol, magcol };
     char* tform[] = { colFormat, colFormat, colFormat };
     char* tunit[] = { colUnits, colUnits, magUnits };
-    const char* extfile = "Sextractor_File";
+    const char* extfile = "SExtractor_File";
 
     float *xArray = new float[m_ExtractedStars.size()];
     float *yArray = new float[m_ExtractedStars.size()];

@@ -4,7 +4,7 @@ libdir=@PKG_CONFIG_LIBDIR@
 includedir=@INCLUDE_INSTALL_DIR@
 
 Name: stellarsolver
-Description: StellarSolver Internal Sextraction and Plate Solving Library
+Description: StellarSolver Internal Star Extraction and Plate Solving Library
 URL: https://github.com/rlancaste/stellarsolver
 Version: @StellarSolver_VERSION@
 Libs: -L${libdir} -lstellarsolver
