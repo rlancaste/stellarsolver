@@ -1291,7 +1291,7 @@ void MainWindow::clearAstrometrySettings()
 
 //The following methods deal with the loading and displaying of the image
 
-//I wrote this method to select the file name for the image and call the load methods below to load it
+//I wrote this method to select the file name for the image and call the methods in the image loader to load it
 bool MainWindow::imageLoad()
 {
     if(stellarSolver.isRunning())
