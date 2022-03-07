@@ -178,6 +178,7 @@ public slots:
 
     //These functions are for loading and displaying the image
     bool imageLoad();
+    bool imageSave();
     void initDisplayImage();
     void doStretch(QImage *outputImage);
     void clearImageBuffers();

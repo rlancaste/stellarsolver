@@ -16,6 +16,7 @@
 #include "bayer.h"
 
 #include "parameters.h"
+#include "structuredefinitions.h"
 #include "stellarsolver/sep/sep.h"
 
 class fileio : public QObject
@@ -26,6 +27,7 @@ public:
     bool logToSignal = false;
     bool loadImage(QString fileName);
     bool loadFits(QString fileName);
+    bool saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint8_t *m_ImageBuffer, FITSImage::Solution solution, bool hasSolution);
     bool loadOtherFormat(QString fileName);
     bool checkDebayer();
     bool debayer();

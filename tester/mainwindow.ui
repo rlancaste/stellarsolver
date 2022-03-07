@@ -57,6 +57,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="ImageSave">
+        <property name="text">
+         <string>Save Image</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="zoomIn">
         <property name="text">
          <string>Zoom In</string>
@@ -1573,7 +1580,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>98</width>
+                 <width>86</width>
                  <height>70</height>
                 </rect>
                </property>

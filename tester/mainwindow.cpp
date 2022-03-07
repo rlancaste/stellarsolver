@@ -54,6 +54,8 @@ MainWindow::MainWindow() :
     //The Options at the top of the Window
     connect(ui->ImageLoad, &QAbstractButton::clicked, this, &MainWindow::imageLoad );
     ui->ImageLoad->setToolTip("Loads an Image into the Viewer");
+    connect(ui->ImageSave, &QAbstractButton::clicked, this, &MainWindow::imageSave );
+    ui->ImageSave->setToolTip("Saves the Image to a FITS file.  If the image has been solved, it saves that too.");
     connect(ui->zoomIn, &QAbstractButton::clicked, this, &MainWindow::zoomIn );
     ui->zoomIn->setToolTip("Zooms In on the Image");
     connect(ui->zoomOut, &QAbstractButton::clicked, this, &MainWindow::zoomOut );
@@ -1354,6 +1356,38 @@ bool MainWindow::imageLoad()
         return true;
     }
     return false;
+}
+
+bool MainWindow::imageSave()
+{
+    if(stellarSolver.isRunning())
+    {
+        QMessageBox::critical(nullptr, "Message", "A Process is currently running on the image, please wait until it is completed");
+        return false;
+    }
+    QString fileURL = QFileDialog::getSaveFileName(nullptr, "Save Image", dirPath,
+                      "Images (*.fit)");
+    if (fileURL.isEmpty())
+        return false;
+    QFileInfo fileInfo(fileURL);
+    if(fileInfo.exists())
+    {
+        QMessageBox::critical(nullptr, "Message", "Please select another name, the file exists");
+        return false;
+    }
+
+    QString savePath = fileInfo.absoluteFilePath();
+
+    fileio imageSaver;
+    imageSaver.logToSignal = true;
+    connect(&imageSaver, &fileio::logOutput, this, &MainWindow::logOutput);
+
+    if(hasWCSData)
+        imageSaver.saveAsFITS(savePath, stats, m_ImageBuffer, stellarSolver.getSolution(), true);
+    else
+        imageSaver.saveAsFITS(savePath, stats, m_ImageBuffer, stellarSolver.getSolution(), false);
+
+    return true;
 }
 
 //This method was copied and pasted from Fitsview in KStars

@@ -211,6 +211,7 @@ bool fileio::loadOtherFormat(QString fileName)
     stats.width = static_cast<uint16_t>(imageFromFile.width());
     stats.height = static_cast<uint16_t>(imageFromFile.height());
     stats.channels = 3;
+    stats.ndim = 3;
     stats.samples_per_channel = stats.width * stats.height;
     m_ImageBufferSize = stats.samples_per_channel * stats.channels * static_cast<uint16_t>(stats.bytesPerPixel);
     m_ImageBuffer = new uint8_t[m_ImageBufferSize];
@@ -635,6 +636,177 @@ bool fileio::getSolverOptionsFromFITS()
     scale_units = SSolver::ARCMIN_WIDTH;
 
     fits_close_file(fptr, &status);
+
+    return true;
+}
+
+//This was copied and pasted and modified from ImageToFITS and injectWCS in fitsdata in KStars
+bool fileio::saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint8_t *imageBuffer, FITSImage::Solution solution, bool hasSolution)
+{
+    int status = 0;
+    fitsfile * new_fptr;
+
+    //I am hoping that this is correct.
+    //I"m trying to set these two variables based on the ndim variable since this class doesn't have access to these variables.
+    long naxis;
+    int channels;
+    if (imageStats.ndim < 3)
+    {
+        channels = 1;
+        naxis = 2;
+    }
+    else
+    {
+        channels = 3;
+        naxis = 3;
+    }
+
+    long nelements, exposure;
+    long naxes[3] = { imageStats.width, imageStats.height, channels };
+    char error_status[512] = {0};
+
+    QFileInfo newFileInfo(fileName);
+    if(newFileInfo.exists())
+        QFile(fileName).remove();
+
+    nelements = imageStats.samples_per_channel * channels;
+
+    /* Create a new File, overwriting existing*/
+    if (fits_create_file(&new_fptr, fileName.toLocal8Bit(), &status))
+    {
+        fits_report_error(stderr, status);
+        return false;
+    }
+
+    int bitpix;
+    switch(imageStats.dataType)
+    {
+    case SEP_TBYTE:
+        bitpix = BYTE_IMG;
+        break;
+    case TSHORT:
+        bitpix = SHORT_IMG;
+        break;
+    case TUSHORT:
+        bitpix = USHORT_IMG;
+        break;
+    case TLONG:
+        bitpix = LONG_IMG;
+        break;
+    case TULONG:
+        bitpix = ULONG_IMG;
+        break;
+    case TFLOAT:
+        bitpix = FLOAT_IMG;
+        break;
+    case TDOUBLE:
+        bitpix = DOUBLE_IMG;
+        break;
+    default:
+        bitpix = BYTE_IMG;
+    }
+
+    fitsfile *fptr = new_fptr;
+    if (fits_create_img(fptr, bitpix, naxis, naxes, &status))
+    {
+        emit logOutput(QString("fits_create_img failed: %1").arg(error_status));
+        status = 0;
+        fits_flush_file(fptr, &status);
+        fits_close_file(fptr, &status);
+        return false;
+    }
+
+    /* Write Data */
+    if (fits_write_img(fptr, imageStats.dataType, 1, nelements, const_cast<void *>(reinterpret_cast<const void *>(imageBuffer)), &status))
+    {
+        fits_report_error(stderr, status);
+        return false;
+    }
+
+    /* Write keywords */
+
+    exposure = 1;
+    fits_update_key(fptr, TLONG, "EXPOSURE", &exposure, "Total Exposure Time", &status);
+
+    // NAXIS1
+    if (fits_update_key(fptr, TUSHORT, "NAXIS1", &(imageStats.width), "length of data axis 1", &status))
+    {
+        fits_report_error(stderr, status);
+        return false;
+    }
+
+    // NAXIS2
+    if (fits_update_key(fptr, TUSHORT, "NAXIS2", &(imageStats.height), "length of data axis 2", &status))
+    {
+        fits_report_error(stderr, status);
+        return false;
+    }
+
+    if(hasSolution)
+    {
+
+        fits_update_key(fptr, TDOUBLE, "OBJCTRA", &solution.ra, "Object RA", &status);
+        fits_update_key(fptr, TDOUBLE, "OBJCTDEC", &solution.dec, "Object DEC", &status);
+
+        int epoch = 2000;
+
+        fits_update_key(fptr, TINT, "EQUINOX", &epoch, "Equinox", &status);
+
+        fits_update_key(fptr, TDOUBLE, "CRVAL1", &solution.ra, "CRVAL1", &status);
+        fits_update_key(fptr, TDOUBLE, "CRVAL2", &solution.dec, "CRVAL1", &status);
+
+        char radecsys[8] = "FK5";
+        char ctype1[16]  = "RA---TAN";
+        char ctype2[16]  = "DEC--TAN";
+
+        fits_update_key(fptr, TSTRING, "RADECSYS", radecsys, "RADECSYS", &status);
+        fits_update_key(fptr, TSTRING, "CTYPE1", ctype1, "CTYPE1", &status);
+        fits_update_key(fptr, TSTRING, "CTYPE2", ctype2, "CTYPE2", &status);
+
+        double crpix1 = imageStats.width / 2.0;
+        double crpix2 = imageStats.height / 2.0;
+
+        fits_update_key(fptr, TDOUBLE, "CRPIX1", &crpix1, "CRPIX1", &status);
+        fits_update_key(fptr, TDOUBLE, "CRPIX2", &crpix2, "CRPIX2", &status);
+
+        // Arcsecs per Pixel
+        double secpix1 = solution.parity == FITSImage::NEGATIVE ? solution.pixscale : -solution.pixscale;
+        double secpix2 = solution.pixscale;
+
+        fits_update_key(fptr, TDOUBLE, "SECPIX1", &secpix1, "SECPIX1", &status);
+        fits_update_key(fptr, TDOUBLE, "SECPIX2", &secpix2, "SECPIX2", &status);
+
+        double degpix1 = secpix1 / 3600.0;
+        double degpix2 = secpix2 / 3600.0;
+
+        fits_update_key(fptr, TDOUBLE, "CDELT1", &degpix1, "CDELT1", &status);
+        fits_update_key(fptr, TDOUBLE, "CDELT2", &degpix2, "CDELT2", &status);
+
+        // Rotation is CW, we need to convert it to CCW per CROTA1 definition
+        double rotation = 360 - solution.orientation;
+        if (rotation > 360)
+            rotation -= 360;
+
+        fits_update_key(fptr, TDOUBLE, "CROTA1", &rotation, "CROTA1", &status);
+        fits_update_key(fptr, TDOUBLE, "CROTA2", &rotation, "CROTA2", &status);
+    }
+
+    // ISO Date
+    if (fits_write_date(fptr, &status))
+    {
+        fits_report_error(stderr, status);
+        return false;
+    }
+
+    fits_flush_file(fptr, &status);
+
+    if(fits_close_file(fptr, &status))
+    {
+        emit logOutput(QString("Error closing file."));
+        return false;
+    }
+
+    emit logOutput("Saved FITS file:" + fileName);
 
     return true;
 }
