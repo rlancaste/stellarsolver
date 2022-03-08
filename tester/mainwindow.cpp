@@ -1360,6 +1360,11 @@ bool MainWindow::imageLoad()
 
 bool MainWindow::imageSave()
 {
+    if(!imageLoaded)
+    {
+        QMessageBox::critical(nullptr, "Message", "Please load an image before trying to save one.");
+        return false;
+    }
     if(stellarSolver.isRunning())
     {
         QMessageBox::critical(nullptr, "Message", "A Process is currently running on the image, please wait until it is completed");

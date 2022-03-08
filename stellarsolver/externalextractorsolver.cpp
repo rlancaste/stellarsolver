@@ -803,6 +803,8 @@ int ExternalExtractorSolver::runExternalWatneySolver()
         solverArgs << "blind";
         solverArgs << "--min-radius" << QString::number(0.5);
         solverArgs << "--max-radius" << QString::number(m_ActiveParameters.search_radius);
+        solverArgs << "--lower-density-offset" << QString::number(2);
+        solverArgs << "--higher-density-offset" << QString::number(2);
     }
     if(m_UseScale)
     {
@@ -818,7 +820,12 @@ int ExternalExtractorSolver::runExternalWatneySolver()
         solverArgs << "--xyls-imagesize" << QString::number(m_Statistics.width) + "x" + QString::number(m_Statistics.height);
     }
     else
+    {
         solverArgs << "-i" << fileToProcess;
+        solverArgs << "--max-stars" << QString::number(m_ActiveParameters.keepNum);
+    }
+    if(m_ActiveParameters.multiAlgorithm != SSolver::NOT_MULTI)
+        solverArgs << "--use-parallelism";
     solverArgs << "-o" << watneySolutionFile;
     solverArgs << "-w" << solutionFile;
     /*

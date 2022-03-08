@@ -348,6 +348,12 @@ bool StellarSolver::checkParameters()
                 params.multiAlgorithm = MULTI_SCALES;
         }
 
+        if(m_ProcessType == SOLVE && m_SolverType == SOLVER_WATNEYASTROMETRY && params.keepNum < 300)
+        {
+            emit logOutput("The Watney Solver needs at least 300 stars. Adjusting keepNum to 300");
+            params.keepNum = 300;
+        }
+
         if(params.inParallel)
         {
             if(enoughRAMisAvailableFor(indexFolderPaths))
