@@ -51,6 +51,8 @@ ExternalProgramPaths ExternalExtractorSolver::getDefaultExternalPaths(ComputerSy
         (QFile("/bin/astap").exists()) ?
             paths.astapBinaryPath = "/bin/astap" :
             paths.astapBinaryPath = "/opt/astap/astap";
+        if(QFile("/usr/bin/astap").exists())
+            paths.astapBinaryPath = "/usr/bin/astap";
         paths.watneyBinaryPath = "/opt/watney/watney-solve";
         paths.wcsPath = "/usr/bin/wcsinfo";
         break;
