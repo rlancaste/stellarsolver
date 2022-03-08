@@ -13,6 +13,7 @@
 #include "stellarsolver.h"
 #include "externalextractorsolver.h"
 #include "onlinesolver.h"
+#include "testerutils/fileio.h"
 
 //system includes
 #include "math.h"
@@ -123,6 +124,7 @@ private:
     //Data about the image
     bool imageLoaded = false;
     FITSImage::Statistic stats;
+    QList<fileio::Record> m_HeaderRecords;
     fitsfile *fptr { nullptr };
     QImage rawImage;
     QImage scaledImage;

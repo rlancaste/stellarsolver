@@ -40,7 +40,6 @@
 #include <QToolTip>
 #include <QtGlobal>
 #include "version.h"
-#include "testerutils/fileio.h"
 
 MainWindow::MainWindow() :
     QMainWindow(),
@@ -1331,7 +1330,8 @@ bool MainWindow::imageLoad()
         }
         loadIndexFilesToUse();
         m_ImageBuffer = imageLoader.getImageBuffer();
-        stats=imageLoader.getStats();
+        stats = imageLoader.getStats();
+        m_HeaderRecords = imageLoader.getRecords();
         clearAstrometrySettings();
         if(imageLoader.position_given)
         {
@@ -1388,9 +1388,9 @@ bool MainWindow::imageSave()
     connect(&imageSaver, &fileio::logOutput, this, &MainWindow::logOutput);
 
     if(hasWCSData)
-        imageSaver.saveAsFITS(savePath, stats, m_ImageBuffer, stellarSolver.getSolution(), true);
+        imageSaver.saveAsFITS(savePath, stats, m_ImageBuffer, stellarSolver.getSolution(), m_HeaderRecords, true);
     else
-        imageSaver.saveAsFITS(savePath, stats, m_ImageBuffer, stellarSolver.getSolution(), false);
+        imageSaver.saveAsFITS(savePath, stats, m_ImageBuffer, stellarSolver.getSolution(), m_HeaderRecords, false);
 
     return true;
 }

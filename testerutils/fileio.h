@@ -23,11 +23,22 @@ class fileio : public QObject
 {
     Q_OBJECT
 public:
+
+    /** Structure to hold FITS Header records */
+    typedef struct
+    {
+        QString key;      /** FITS Header Key */
+        QVariant value;   /** FITS Header Value */
+        QString comment;  /** FITS Header Comment, if any */
+    } Record;
+
+
     fileio();
     bool logToSignal = false;
     bool loadImage(QString fileName);
     bool loadFits(QString fileName);
-    bool saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint8_t *m_ImageBuffer, FITSImage::Solution solution, bool hasSolution);
+    bool parseHeader();
+    bool saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint8_t *m_ImageBuffer, FITSImage::Solution solution, QList<Record> &records, bool hasSolution);
     bool loadOtherFormat(QString fileName);
     bool checkDebayer();
     bool debayer();
@@ -51,10 +62,22 @@ public:
     FITSImage::Statistic getStats(){
         return stats;
     }
+
+    const QList<Record> &getRecords() const
+    {
+        return m_HeaderRecords;
+    }
+
+    void setRecords(QList<Record> &records)
+    {
+        m_HeaderRecords = records;
+    }
+
 private:
     QString file;
     fitsfile *fptr { nullptr };
     FITSImage::Statistic stats;
+    QList<Record> m_HeaderRecords;
     /// Generic data image buffer
     uint8_t *m_ImageBuffer { nullptr };
     /// Above buffer size in bytes

@@ -136,6 +136,8 @@ bool fileio::loadFits(QString fileName)
 
     getSolverOptionsFromFITS();
 
+    parseHeader();
+
     fits_close_file(fptr, &status);
 
     return true;
@@ -639,9 +641,68 @@ bool fileio::getSolverOptionsFromFITS()
 
     return true;
 }
+// This method was copied from KStars Fitsdata to get the fits headers for saving.
+bool fileio::parseHeader()
+{
+    char * header = nullptr;
+    int status = 0, nkeys = 0;
+
+    if (fits_hdr2str(fptr, 0, nullptr, 0, &header, &nkeys, &status))
+    {
+        fits_report_error(stderr, status);
+        free(header);
+        return false;
+    }
+
+    m_HeaderRecords.clear();
+    QString recordList = QString(header);
+
+    for (int i = 0; i < nkeys; i++)
+    {
+        Record oneRecord;
+        // Quotes cause issues for simplified below so we're removing them.
+        QString record = recordList.mid(i * 80, 80).remove("'");
+        QStringList properties = record.split(QRegExp("[=/]"));
+        // If it is only a comment
+        if (properties.size() == 1)
+        {
+            oneRecord.key = properties[0].mid(0, 7);
+            oneRecord.comment = properties[0].mid(8).simplified();
+        }
+        else
+        {
+            oneRecord.key = properties[0].simplified();
+            oneRecord.value = properties[1].simplified();
+            if (properties.size() > 2)
+                oneRecord.comment = properties[2].simplified();
+
+            // Try to guess the value.
+            // Test for integer & double. If neither, then leave it as "string".
+            bool ok = false;
+
+            // Is it Integer?
+            oneRecord.value.toInt(&ok);
+            if (ok)
+                oneRecord.value.convert(QMetaType::Int);
+            else
+            {
+                // Is it double?
+                oneRecord.value.toDouble(&ok);
+                if (ok)
+                    oneRecord.value.convert(QMetaType::Double);
+            }
+        }
+
+        m_HeaderRecords.append(oneRecord);
+    }
+
+    free(header);
+
+    return true;
+}
 
 //This was copied and pasted and modified from ImageToFITS and injectWCS in fitsdata in KStars
-bool fileio::saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint8_t *imageBuffer, FITSImage::Solution solution, bool hasSolution)
+bool fileio::saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint8_t *imageBuffer, FITSImage::Solution solution, QList<Record> &records, bool hasSolution)
 {
     int status = 0;
     fitsfile * new_fptr;
@@ -721,6 +782,39 @@ bool fileio::saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint
     {
         fits_report_error(stderr, status);
         return false;
+    }
+
+    // Skip first 10 standard records and copy the rest.
+    for (int i = 10; i < records.count(); i++)
+    {
+        QString key = records[i].key;
+        const char *comment = records[i].comment.toLatin1().constBegin();
+        QVariant value = records[i].value;
+
+        switch (value.type())
+        {
+            case QVariant::Int:
+            {
+                int number = value.toInt();
+                fits_write_key(fptr, TINT, key.toLatin1().constData(), &number, comment, &status);
+            }
+            break;
+
+            case QVariant::Double:
+            {
+                double number = value.toDouble();
+                fits_write_key(fptr, TDOUBLE, key.toLatin1().constData(), &number, comment, &status);
+            }
+            break;
+
+            case QVariant::String:
+            default:
+            {
+                char valueBuffer[256] = {0};
+                strncpy(valueBuffer, value.toString().toLatin1().constData(), 256 - 1);
+                fits_write_key(fptr, TSTRING, key.toLatin1().constData(), valueBuffer, comment, &status);
+            }
+        }
     }
 
     /* Write keywords */
