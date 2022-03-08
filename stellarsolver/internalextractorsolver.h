@@ -18,6 +18,8 @@ extern "C" {
 #include "astrometry/engine.h"
 }
 
+#include <QtConcurrent>
+
 using namespace SSolver;
 
 class InternalExtractorSolver: public ExtractorSolver
@@ -145,6 +147,10 @@ class InternalExtractorSolver: public ExtractorSolver
         // Logging related
         FILE *logFile = nullptr;        // This is the name of the log file used
         AstrometryLogger astroLogger;  // This is an object that lets C based astrometry report to C++ based code
+
+        // This is for star extraction, these are the futures for separate threads
+        // We need to keep a variable for this avaiable so we can abort the process if needed.
+        QVector<QFuture<QList<FITSImage::Star>>> futures;
 
     // InternalExtractorSolver Methods
 

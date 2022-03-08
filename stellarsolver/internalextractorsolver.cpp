@@ -14,7 +14,6 @@
 #include <sys/stat.h>
 #endif
 
-#include <QtConcurrent>
 #include <memory>
 
 #include "internalextractorsolver.h"
@@ -53,6 +52,15 @@ void InternalExtractorSolver::abort()
 {
     thejob.bp.cancelled = TRUE;
     quit();
+
+    for (auto oneFuture : futures)
+    {
+        if(oneFuture.isRunning())
+        {
+             oneFuture.cancel();
+             oneFuture.waitForFinished();
+        }
+    }
 
     if(!isChildSolver)
         emit logOutput("Aborting...");
@@ -263,7 +271,7 @@ int InternalExtractorSolver::runSEPExtractor()
     };
 
     QList<float *> dataBuffers;
-    QVector<QFuture<QList<FITSImage::Star>>> futures;
+    futures.clear();
     QList<StartupOffset> startupOffsets;
     QList<FITSImage::Background> backgrounds;
 
@@ -367,10 +375,16 @@ int InternalExtractorSolver::runSEPExtractor()
         ImageParams parameters = {data, subWidth, subHeight, 0, 0, subWidth, subHeight, static_cast<uint32_t>(m_ActiveParameters.initialKeep), &backgrounds[backgrounds.size() - 1]};
         futures.append(QtConcurrent::run(this, &InternalExtractorSolver::extractPartition, parameters));
     }
+    bool isCancelled = false;
 
     for (auto oneFuture : futures)
     {
         oneFuture.waitForFinished();
+        if(oneFuture.isCanceled())
+        {
+            isCancelled = true;
+            continue;
+        }
         QList<FITSImage::Star> partitionStars = oneFuture.result();
         QList<FITSImage::Star> acceptedStars;
         if (!startupOffsets.empty())
@@ -393,6 +407,15 @@ int InternalExtractorSolver::runSEPExtractor()
         }
         m_ExtractedStars.append(acceptedStars);
     }
+    if(isCancelled)
+    {
+        for (auto * buffer : dataBuffers)
+            delete [] buffer;
+        dataBuffers.clear();
+        futures.clear();
+        m_HasExtracted = false;
+        return 1;
+    }
 
     double sumGlobal = 0, sumRmsSq = 0;
     for (const auto &bg : qAsConst(backgrounds))
@@ -414,6 +437,7 @@ int InternalExtractorSolver::runSEPExtractor()
     for (auto * buffer : dataBuffers)
         delete [] buffer;
     dataBuffers.clear();
+    futures.clear();
 
     m_HasExtracted = true;
 
