@@ -799,6 +799,14 @@ int ExternalExtractorSolver::runExternalWatneySolver()
         solverArgs << "-d" << QString::number(search_dec);
         solverArgs << "-s" << QString::number(m_ActiveParameters.search_radius);
         solverArgs << "-m"; //manual, don't look in fits headers for position info
+        if(m_UseScale) // Note: Watney can't use scale in a blind solve, so it is here
+        {
+            double scale = scalelo;
+            if(scaleunit == ARCSEC_PER_PIX)
+                scale = (scalehi + scalelo) / 2;
+            double degreesFOV = convertToDegreeHeight(scale);
+            solverArgs << "--field-radius" << QString::number(degreesFOV);
+        }
     }
     else
     {
@@ -806,14 +814,7 @@ int ExternalExtractorSolver::runExternalWatneySolver()
         solverArgs << "--min-radius" << QString::number(0.5);
         solverArgs << "--max-radius" << QString::number(m_ActiveParameters.search_radius);
     }
-    if(m_UseScale)
-    {
-        double scale = scalelo;
-        if(scaleunit == ARCSEC_PER_PIX)
-            scale = (scalehi + scalelo) / 2;
-        double degreesFOV = convertToDegreeHeight(scale);
-        solverArgs << "-f" << QString::number(degreesFOV);
-    }
+
     if(m_ExtractorType != EXTRACTOR_BUILTIN)
     {
         solverArgs << "--xyls" << starXYLSFilePath;
@@ -824,8 +825,10 @@ int ExternalExtractorSolver::runExternalWatneySolver()
         solverArgs << "-i" << fileToProcess;
         solverArgs << "--max-stars" << QString::number(m_ActiveParameters.keepNum);
     }
-    if(m_ActiveParameters.multiAlgorithm != SSolver::NOT_MULTI)
-        solverArgs << "--use-parallelism";
+    if(m_ActiveParameters.multiAlgorithm == SSolver::NOT_MULTI)
+        solverArgs << "--use-parallelism false";
+    else
+        solverArgs << "--use-parallelism true";
     solverArgs << "-o" << watneySolutionFile;
     solverArgs << "-w" << solutionFile;
     /*
