@@ -829,9 +829,9 @@ int ExternalExtractorSolver::runExternalWatneySolver()
         solverArgs << "--max-stars" << QString::number(m_ActiveParameters.keepNum);
     }
     if(m_ActiveParameters.multiAlgorithm == SSolver::NOT_MULTI)
-        solverArgs << "--use-parallelism false";
+        solverArgs << "--use-parallelism" << "false";
     else
-        solverArgs << "--use-parallelism true";
+        solverArgs << "--use-parallelism" << "true";
     solverArgs << "-o" << watneySolutionFile;
     solverArgs << "-w" << solutionFile;
     /*
