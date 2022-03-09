@@ -18,11 +18,6 @@
 //CFitsio Includes
 #include <fitsio.h>
 
-//Astrometry.net includes
-extern "C" {
-#include "astrometry/starutil.h"
-}
-
 using namespace SSolver;
 
 class ExtractorSolver : public QThread
@@ -313,27 +308,7 @@ class ExtractorSolver : public QThread
          * @param scale is the number for scale in the current scaleunit that needs to be converted
          * @return the converted degree height
          */
-        inline double convertToDegreeHeight(double scale)
-        {
-            switch(scaleunit)
-            {
-                case DEG_WIDTH:
-                    return scale;
-                    break;
-                case ARCMIN_WIDTH:
-                    return arcmin2deg(scale);
-                    break;
-                case ARCSEC_PER_PIX:
-                    return arcsec2deg(scale) * (double)m_Statistics.height;
-                    break;
-                case FOCAL_MM:
-                    return rad2deg(atan(36. / (2. * scale)));
-                    break;
-                default:
-                    return scale;
-                    break;
-            }
-        }
+        double convertToDegreeHeight(double scale);
 
     signals:
 

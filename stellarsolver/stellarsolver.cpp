@@ -568,6 +568,20 @@ void StellarSolver::finishParallelSolve(int success)
     }
 }
 
+QString StellarSolver::raString(double ra)
+{
+    char rastr[32];
+    ra2hmsstring(ra, rastr);
+    return rastr;
+}
+
+QString StellarSolver::decString(double dec)
+{
+    char decstr[32];
+    dec2dmsstring(dec, decstr);
+    return decstr;
+}
+
 bool StellarSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
 {
     if(hasWCS && solverWithWCS)

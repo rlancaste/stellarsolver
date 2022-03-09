@@ -7,6 +7,11 @@
 */
 #include "extractorsolver.h"
 
+//Astrometry.net includes
+extern "C" {
+#include "astrometry/starutil.h"
+}
+
 using namespace SSolver;
 
 ExtractorSolver::ExtractorSolver(ProcessType pType, ExtractorType eType, SolverType sType,
@@ -42,6 +47,28 @@ void ExtractorSolver::setSearchPositionInDegrees(double ra, double dec)
     search_ra = ra;
     //4
     search_dec = dec;
+}
+
+double ExtractorSolver::convertToDegreeHeight(double scale)
+{
+    switch(scaleunit)
+    {
+        case DEG_WIDTH:
+            return scale;
+            break;
+        case ARCMIN_WIDTH:
+            return arcmin2deg(scale);
+            break;
+        case ARCSEC_PER_PIX:
+            return arcsec2deg(scale) * (double) m_Statistics.height;
+            break;
+        case FOCAL_MM:
+            return rad2deg(atan(36. / (2. * scale)));
+            break;
+        default:
+            return scale;
+            break;
+    }
 }
 
 void ExtractorSolver::execute()

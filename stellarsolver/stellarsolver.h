@@ -494,24 +494,14 @@ class StellarSolver : public QObject
          * @param ra The ra in decimal hours
          * @return A QString for the Right Ascension
          */
-        inline static QString raString(double ra)
-        {
-            char rastr[32];
-            ra2hmsstring(ra, rastr);
-            return rastr;
-        }
+        static QString raString(double ra);
 
         /**
          * @brief decString will generate a nicely formatted QString for the Declination
          * @param dec The dec in decimal degrees
          * @return A QString for the Declination
          */
-        inline static QString decString(double dec)
-        {
-            char decstr[32];
-            dec2dmsstring(dec, decstr);
-            return decstr;
-        }
+        static QString decString(double dec);
 
         /**
          * @brief pixelToWCS converts the image X, Y Pixel coordinates to RA, DEC sky coordinates using the WCS data
