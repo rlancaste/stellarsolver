@@ -15,9 +15,6 @@
 #include "structuredefinitions.h"
 #include "parameters.h"
 
-//CFitsio Includes
-#include <fitsio.h>
-
 using namespace SSolver;
 
 class ExtractorSolver : public QThread

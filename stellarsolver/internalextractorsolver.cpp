@@ -21,6 +21,9 @@
 #include "sep/extract.h"
 #include "qmath.h"
 
+//CFitsio Includes
+#include <fitsio.h>
+
 //Astrometry.net includes
 extern "C" {
 #include "astrometry/log.h"

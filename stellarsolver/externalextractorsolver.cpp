@@ -12,6 +12,9 @@
 #include <wcshdr.h>
 #include <wcsfix.h>
 
+//CFitsio Includes
+#include <fitsio.h>
+
 // This needs to be static even if there are parallel StellarSolvers so that each solver and child solver gets a unique identifier
 static int solverNum = 1;
 
