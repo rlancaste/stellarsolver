@@ -805,8 +805,6 @@ int ExternalExtractorSolver::runExternalWatneySolver()
         solverArgs << "blind";
         solverArgs << "--min-radius" << QString::number(0.5);
         solverArgs << "--max-radius" << QString::number(m_ActiveParameters.search_radius);
-        solverArgs << "--lower-density-offset" << QString::number(2);
-        solverArgs << "--higher-density-offset" << QString::number(2);
     }
     if(m_UseScale)
     {
