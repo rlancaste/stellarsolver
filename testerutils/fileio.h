@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QImageReader>
 #include <QFile>
+#include <QVariant>
 
 //CFitsio Includes
 #include "longnam.h"
