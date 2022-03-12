@@ -294,6 +294,7 @@ ExtractorSolver* ExternalExtractorSolver::spawnChildSolver(int n)
 {
     ExternalExtractorSolver *solver = new ExternalExtractorSolver(m_ProcessType, m_ExtractorType, m_SolverType, m_Statistics,
             m_ImageBuffer, nullptr);
+    solver->setParent(this->parent());
     solver->m_ExtractedStars = m_ExtractedStars;
     solver->m_BasePath = m_BasePath;
     solver->m_BaseName = m_BaseName + "_" + QString::number(n);

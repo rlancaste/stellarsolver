@@ -329,22 +329,21 @@ class Parameters
         double kron_fact = 2.5;             // This sets the Kron Factor for use with the kron radius for flux calculations.
         int subpix = 5;                     // The subpix setting.  The instructions say to make it 5
         double r_min = 3.5;                 // The minimum radius for stars for flux calculations.
-        short inflags = 0;                      // Note sure if we need them?
+        short inflags = 0;                  // Note sure if we need them?
 
         //Star Extractor Extraction Parameters
-        // This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.
+            // This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.
         double magzero =  20;
-        // This is the minimum area in pixels for a star detection, smaller stars are ignored.
-        double minarea = 10;
-        int deblend_thresh = 32;            // The number of thresholds the intensity range is divided up into.
-        double deblend_contrast =
-            0.005;    // The percentage of flux a separate peak must # have to be considered a separate object.
-        int clean = 1;                      // Attempts to 'clean' the image to remove artifacts caused by bright objects
-        double clean_param = 1;             // The cleaning parameter, not sure what it does.
+
+        double minarea = 10;            // This is the minimum area in pixels for a star detection, smaller stars are ignored.
+        int deblend_thresh = 32;        // The number of thresholds the intensity range is divided up into.
+        double deblend_contrast = 0.005;// The percentage of flux a separate peak must # have to be considered a separate object.
+        int clean = 1;                  // Attempts to 'clean' the image to remove artifacts caused by bright objects
+        double clean_param = 1;         // The cleaning parameter, not sure what it does.
 
         // These are the variables used to generate the conv filter
-        ConvFilterType convFilterType = CONV_DEFAULT;
-        double fwhm = 2;
+        ConvFilterType convFilterType = CONV_DEFAULT;   //  This is the type of convolution filter to be used, it selects the formula used to make it.
+        double fwhm = 2;                                //  This is the size of the filter shape produced.
 
         // Automatically partition the image to several threads to speed it up.
         bool partition = true;
@@ -354,43 +353,40 @@ class Parameters
         double threshold_bg_multiple = 2.0;
   
         //Star Filter Parameters
-        double maxSize =
-            0;                 // The maximum size of stars to include in the final list in pixels based on semi-major and semi-minor axes
-        double minSize =
-            0;                 // The minimum size of stars to include in the final list in pixels based on semi-major and semi-minor axes
-        double maxEllipse =
-            0;              // The maximum ratio between the semi-major and semi-minor axes for stars to include (a/b)
-        int initialKeep = 1000000;          // Number of stars to keep in the list before HFR.  This is based on star size.  This is most useful for SEP operations involving HFR like Focusing images, Guiding, and monitoring image HFR over time.  It is important to reduce the number of stars prior to doing HFR calculations
-        int keepNum = 0;                    // The number of brightest stars to keep in the list.  This is based on magnitude.  This is most useful for Solving because limiting the number of stars to the brightest ones greatly speeds up the solver.
-        double removeBrightest = 0;         // The percentage of brightest stars to remove from the list
-        double removeDimmest = 0;           // The percentage of dimmest stars to remove from the list
-        double saturationLimit = 0;         // Remove all stars above a certain threshhold percentage of saturation
+            //Some of the following variables are based on semi-major (a) and semi-minor (b) axes as indicated.
+        double maxSize = 0;         // The maximum size of stars to include in the final list in pixels (a*b)
+        double minSize = 0;         // The minimum size of stars to include in the final list in pixels (a*b)
+        double maxEllipse = 0;      // The maximum ratio (a/b) for stars to include, this eliminates oblong stars
+        int initialKeep = 1000000;  // Number of stars to keep in the list before HFR.  This is based on star size.  This is most useful for SEP operations involving HFR like Focusing images, Guiding, and monitoring image HFR over time.  It is important to reduce the number of stars prior to doing HFR calculations
+        int keepNum = 0;            // The number of brightest stars to keep in the list.  This is based on magnitude.  This is most useful for Solving because limiting the number of stars to the brightest ones greatly speeds up the solver.
+        double removeBrightest = 0; // The percentage of brightest stars to remove from the list
+        double removeDimmest = 0;   // The percentage of dimmest stars to remove from the list
+        double saturationLimit = 0; // Remove all stars above a certain threshhold percentage of saturation
 
         //Astrometry Config/Engine Parameters
-        MultiAlgo multiAlgorithm = MULTI_AUTO;// Algorithm for running multiple threads on possibly multiple cores to solve faster
-        bool inParallel =
-            true;             // Check the indices in parallel? This loads them in memory at the same time. If the indices you are using take less than 2 GB of space, and you have at least as much physical memory as indices, you want this enabled,
-        int solverTimeLimit = 600;          // Give up solving after the specified number of seconds of CPU time
-        double minwidth =
-            0.1;              // If no scale estimate is given, this is the limit on the minimum field width in degrees.
-        double maxwidth =
-            180;              // If no scale estimate is given, this is the limit on the maximum field width in degrees.
+            // Algorithm for running multiple threads on possibly multiple cores to solve faster
+        MultiAlgo multiAlgorithm = MULTI_AUTO;
+            // Note: If the indices you are using take less than 2 GB of space, and you have at least as much physical memory as indices, you want inParallel enabled for sure.
+        bool inParallel = true;     // Check the indices in parallel? This loads them in memory at the same time.
+        int solverTimeLimit = 600;  // Give up solving after the specified number of seconds of CPU time
+        double minwidth = 0.1;      // If no scale estimate is given, this is the limit on the minimum field width in degrees.
+        double maxwidth = 180;      // If no scale estimate is given, this is the limit on the maximum field width in degrees.
+
 
         //Astrometry Basic Parameters
-        bool resort =
-            true;                 // Whether to resort the stars based on magnitude NOTE: This is REQUIRED to be true for the filters above
-        bool autoDownsample =       // Whether or not to automatically determine the downsample size based on the image size.
-            true;
-        int downsample =
-            1;                 // Factor to use for downsampling the image before SEP for plate solving.  Can speed it up.  This is not used for Source Extraction
-        int search_parity = 2;              // Only check for matches with positive/negative parity (default: try both)
-        double search_radius = 15;          // Only search in indexes within 'radius' of the field center given by RA and DEC
+            // Whether to resort the stars based on magnitude NOTE: This is REQUIRED to be true for the filters above
+        bool resort = true;
+            // Whether or not to automatically determine the downsample size based on the image size.
+        bool autoDownsample = true;
+            // Factor to use for downsampling the image before SEP for plate solving.  Can speed it up.  This is not used for Source Extraction
+        int downsample = 1;
+        int search_parity = 2;          // Only check for matches with positive/negative parity (default: try both)
+        double search_radius = 15;      // Only search in indexes within 'radius' of the field center given by RA and DEC
 
         //LogOdds Settings
         double logratio_tosolve = log(1e9); // Odds ratio at which to consider a field solved (default: 1e9)
         double logratio_tokeep  = log(1e9); // Odds ratio at which to keep a solution (default: 1e9)
-        double logratio_totune  = log(
-                                      1e6); // Odds ratio at which to try tuning up a match that isn't good enough to solve (default: 1e6)
+        double logratio_totune  = log(1e6); // Odds ratio at which to try tuning up a match that isn't good enough to solve (default: 1e6)
 
         bool operator==(const Parameters &o);
 

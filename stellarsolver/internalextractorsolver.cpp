@@ -77,6 +77,7 @@ ExtractorSolver* InternalExtractorSolver::spawnChildSolver(int n)
 
     InternalExtractorSolver *solver = new InternalExtractorSolver(m_ProcessType, m_ExtractorType, m_SolverType, m_Statistics,
             m_ImageBuffer, nullptr);
+    solver->setParent(this->parent());
     solver->m_ExtractedStars = m_ExtractedStars;
     solver->m_BasePath = m_BasePath;
     //They will all share the same basename
@@ -559,7 +560,8 @@ QList<FITSImage::Star> InternalExtractorSolver::extractPartition(const ImagePara
         const double ovalSizeSq = catalog->a[i] * catalog->a[i] + catalog->b[i] * catalog->b[i];
         ovals.push_back(std::pair<int, double>(i, ovalSizeSq));
     }
-    std::sort(ovals.begin(), ovals.end(), [](const std::pair<int, double> &o1, const std::pair<int, double> &o2) -> bool { return o1.second > o2.second;});
+    if(catalog->nobj > 0)
+        std::sort(ovals.begin(), ovals.end(), [](const std::pair<int, double> &o1, const std::pair<int, double> &o2) -> bool { return o1.second > o2.second;});
 
     numToProcess = std::min(static_cast<uint32_t>(catalog->nobj), parameters.keep);
     for (int index = 0; index < numToProcess; index++)
@@ -592,7 +594,7 @@ QList<FITSImage::Star> InternalExtractorSolver::extractPartition(const ImagePara
         //Variables that will be obtained through methods
         double kronrad;
         short kron_flag;
-        double sum;
+        double sum = 0;
         double sumerr;
         double kron_area;
 

@@ -114,6 +114,8 @@ bool fileio::loadFits(QString fileName)
     stats.samples_per_channel = stats.width * stats.height;
 
     m_ImageBufferSize = stats.samples_per_channel * stats.channels * static_cast<uint16_t>(stats.bytesPerPixel);
+    if(m_ImageBuffer)
+        delete[] m_ImageBuffer;
     m_ImageBuffer = new uint8_t[m_ImageBufferSize];
     if (m_ImageBuffer == nullptr)
     {
@@ -216,6 +218,8 @@ bool fileio::loadOtherFormat(QString fileName)
     stats.ndim = 3;
     stats.samples_per_channel = stats.width * stats.height;
     m_ImageBufferSize = stats.samples_per_channel * stats.channels * static_cast<uint16_t>(stats.bytesPerPixel);
+    if(m_ImageBuffer)
+        delete[] m_ImageBuffer;
     m_ImageBuffer = new uint8_t[m_ImageBufferSize];
     if (m_ImageBuffer == nullptr)
     {

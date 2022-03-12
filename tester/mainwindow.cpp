@@ -1758,8 +1758,8 @@ QString MainWindow::getValue(int x, int y, int channel)
         return "";
 
     int index = y * stats.width + x + channel * stats.width * stats.height;
-    QString stringValue;
 
+    QString stringValue = "";
     switch (stats.dataType)
     {
         case TBYTE:
