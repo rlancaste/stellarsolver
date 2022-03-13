@@ -1263,5 +1263,5 @@ int InternalExtractorSolver::runInternalSolver()
 
 WCSData *InternalExtractorSolver::getWCSData()
 {
-    return new WCSData(wcs);
+    return new WCSData(wcs, m_ActiveParameters.downsample);
 }

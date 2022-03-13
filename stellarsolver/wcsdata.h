@@ -15,8 +15,8 @@ class WCSData: public QObject
 public:
     struct wcsprm *m_wcs; // This is a struct used by wcslib for wcs info loaded from a file
 
-    WCSData(sip_t internal_wcs);
-    WCSData(int nwcs, wcsprm *wcs);
+    WCSData(sip_t internal_wcs, int downsample);
+    WCSData(int nwcs, wcsprm *wcs, int downsample);
 
     /**
      * @brief pixelToWCS converts the image X, Y Pixel coordinates to RA, DEC sky coordinates using the WCS data
@@ -42,6 +42,8 @@ public:
     bool appendStarsRAandDEC(QList<FITSImage::Star> &stars);
 
 private:
+
+    int d = 1;  // This is to correct for any downsampling that took place in the solution.
 
     bool internalWCS = true; // This determines which type of WCS Data we have
 

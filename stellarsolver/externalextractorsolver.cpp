@@ -1929,5 +1929,5 @@ int ExternalExtractorSolver::loadWCS()
 
 WCSData * ExternalExtractorSolver::getWCSData()
 {
-    return new WCSData(m_nwcs, m_wcs);
+    return new WCSData(m_nwcs, m_wcs, m_ActiveParameters.downsample);
 }

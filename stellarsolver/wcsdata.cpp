@@ -7,24 +7,25 @@ extern "C" {
 #include "astrometry/starutil.h"
 }
 
-WCSData::WCSData(sip_t internal_wcs)
+WCSData::WCSData(sip_t internal_wcs, int downsample)
 {
     internalWCS = true;
     wcs = internal_wcs;
+    d = downsample;
 }
 
-WCSData::WCSData(int nwcs, wcsprm *wcs)
+WCSData::WCSData(int nwcs, wcsprm *wcs, int downsample)
 {
     internalWCS = false;
     m_nwcs = nwcs;
     m_wcs = wcs;
+    d = downsample;
 }
 
 bool WCSData::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
 {
     if(internalWCS)
     {
-        int d = 1;//m_ActiveParameters.downsample;
         double ra;
         double dec;
         sip_pixelxy2radec(&wcs, pixelPoint.x() / d, pixelPoint.y() / d, &ra, &dec);
@@ -91,7 +92,6 @@ bool WCSData::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 {
     if(internalWCS)
     {
-        int d = 1; // m_ActiveParameters.downsample;
         for(auto &oneStar : stars)
         {
             double ra = HUGE_VAL;
