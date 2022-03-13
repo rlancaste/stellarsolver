@@ -8,9 +8,16 @@
 DemoTwoStellarSolvers::DemoTwoStellarSolvers()
 {
     //Setting up simultaneous solvers.  Not usually recommended, but it does work.
-    solversRunning = 2;
+    solversRunning = 4;
     setupStellarSolver("randomsky.fits");
     setupStellarSolver("pleiades.jpg");
+    setupStellarSolver("randomsky.fits");
+    setupStellarSolver("pleiades.jpg");
+    extractorsRunning = 4;
+    setupStellarStarExtraction("randomsky.fits");
+    setupStellarStarExtraction("pleiades.jpg");
+    setupStellarStarExtraction("randomsky.fits");
+    setupStellarStarExtraction("pleiades.jpg");
 }
 
 void DemoTwoStellarSolvers::setupStellarSolver(QString fileName)
@@ -50,6 +57,30 @@ void DemoTwoStellarSolvers::setupStellarSolver(QString fileName)
 
 }
 
+void DemoTwoStellarSolvers::setupStellarStarExtraction(QString fileName)
+{
+    fileio imageLoader;
+    if(!imageLoader.loadImage(fileName))
+    {
+        printf("Error in loading file");
+        exit(1);
+    }
+    FITSImage::Statistic stats = imageLoader.getStats();
+    uint8_t *imageBuffer = imageLoader.getImageBuffer();
+
+    StellarSolver *stellarSolver = new StellarSolver(stats, imageBuffer, nullptr);
+    stellarSolver->setProperty("ExtractorType", SSolver::EXTRACTOR_INTERNAL);
+    stellarSolver->setProperty("ProcessType", SSolver::EXTRACT_WITH_HFR);
+
+    printf("Starting to extract. . .\n");
+    fflush( stdout );
+
+    connect(stellarSolver, &StellarSolver::finished, this, &DemoTwoStellarSolvers::stellarExtractorFinished);
+    connect(stellarSolver, &StellarSolver::logOutput, this, &DemoTwoStellarSolvers::logOutput);
+    stellarSolver->start();
+
+}
+
 void DemoTwoStellarSolvers::stellarSolverFinished()
 {
     solversRunning --;
@@ -63,7 +94,24 @@ void DemoTwoStellarSolvers::stellarSolverFinished()
     printf("Field rotation angle: up is %f degrees E of N\n", solution.orientation);
     printf("Field parity: %s\n", FITSImage::getParityText(solution.parity).toUtf8().data());
     fflush( stdout );
-    if(solversRunning == 0)
+    if(solversRunning == 0  && extractorsRunning == 0)
+        exit(0);
+}
+
+void DemoTwoStellarSolvers::stellarExtractorFinished()
+{
+    extractorsRunning --;
+    StellarSolver *reportingSolver = qobject_cast<StellarSolver*>(sender());
+    QList<FITSImage::Star> starList = reportingSolver->getStarList();
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+    printf("Stars found: %u\n", starList.count());
+    for(int i=0; i < starList.count(); i++)
+    {
+        FITSImage::Star star = starList.at(i);
+        printf("Star #%u: (%f x, %f y), mag: %f, peak: %f, hfr: %f \n", i, star.x, star.y, star.mag, star.peak, star.HFR);
+    }
+
+    if(solversRunning == 0  && extractorsRunning == 0)
         exit(0);
 }
 
