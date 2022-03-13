@@ -101,33 +101,16 @@ class ExternalExtractorSolver : public InternalExtractorSolver
         int runExternalExtractor();
 
         /**
-         * @brief appendStarsRAandDEC attaches the RA and DEC information to a star list
-         * @param stars is the star list to process
-         * @return true if it was successful
-         */
-        bool appendStarsRAandDEC(QList<FITSImage::Star> &stars) override;
-
-        /**
          * @brief loadWCS will load the WCS Information from the WCS file
          * @return 0 if it succeeds
          */
         int loadWCS();
 
         /**
-         * @brief pixelToWCS converts the image X, Y Pixel coordinates to RA, DEC sky coordinates using the WCS data
-         * @param pixelPoint The X, Y coordinate in pixels
-         * @param skyPoint The RA, DEC coordinates
-         * @return A boolean to say whether it succeeded, true means it did
+         * @brief getWCSData gets the WCSData Object from the last plate solve
+         * @return A WCS Data Object
          */
-        bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) override;
-
-        /**
-         * @brief wcsToPixel converts the RA, DEC sky coordinates to image X, Y Pixel coordinates using the WCS data
-         * @param skyPoint The RA, DEC coordinates
-         * @param pixelPoint The X, Y coordinate in pixels
-         * @return A boolean to say whether it succeeded, true means it did
-         */
-        bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) override;
+        WCSData *getWCSData() override;
 
         /**
          * @brief saveAsFITS will save the image buffer to a FITS file for solving by external solvers

@@ -14,6 +14,7 @@
 #include <QVector>
 #include "structuredefinitions.h"
 #include "parameters.h"
+#include "wcsdata.h"
 
 using namespace SSolver;
 
@@ -100,13 +101,6 @@ class ExtractorSolver : public QThread
         virtual void cleanupTempFiles() = 0;
 
         /**
-         * @brief appendStarsRAandDEC attaches the RA and DEC information to a star list
-         * @param stars is the star list to process
-         * @return true if it was successful
-         */
-        virtual bool appendStarsRAandDEC(QList<FITSImage::Star> &stars) = 0;
-
-        /**
          * @brief getScaleUnitString gets a string for the scale units used in the scale for plate solving
          * @return The string for the scale units used.
          */
@@ -184,6 +178,12 @@ class ExtractorSolver : public QThread
         };
 
         /**
+         * @brief getWCSData gets the WCSData Object from the last plate solve
+         * @return A WCS Data Object
+         */
+        virtual WCSData *getWCSData() = 0;
+
+        /**
          * @brief getSolutionIndexNumber gets the astrometry index file number used to solve the latest plate solve
          * @return The index number
          */
@@ -246,23 +246,6 @@ class ExtractorSolver : public QThread
             m_UseSubframe = true;
             m_SubFrameRect = frame;
         };
-
-        /**
-         * @brief pixelToWCS converts the image X, Y Pixel coordinates to RA, DEC sky coordinates using the WCS data
-         * @param pixelPoint The X, Y coordinate in pixels
-         * @param skyPoint The RA, DEC coordinates
-         * @return A boolean to say whether it succeeded, true means it did
-         */
-        virtual bool pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint) = 0;
-
-        /**
-         * @brief wcsToPixel converts the RA, DEC sky coordinates to image X, Y Pixel coordinates using the WCS data
-         * @param skyPoint The RA, DEC coordinates
-         * @param pixelPoint The X, Y coordinate in pixels
-         * @return A boolean to say whether it succeeded, true means it did
-         */
-        virtual bool wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint) = 0;
-
 
     protected:  //Note: These items are not private because they are needed by Child Classes
 

@@ -38,6 +38,13 @@ ExternalExtractorSolver::~ExternalExtractorSolver()
     free(colFormat);
     free(colUnits);
     free(magUnits);
+
+    if(isRunning())
+    {
+        quit();
+        requestInterruption();
+        wait();
+    }
 }
 
 //The following methods are available to get the default paths for different operating systems and configurations.
@@ -294,7 +301,7 @@ ExtractorSolver* ExternalExtractorSolver::spawnChildSolver(int n)
 {
     ExternalExtractorSolver *solver = new ExternalExtractorSolver(m_ProcessType, m_ExtractorType, m_SolverType, m_Statistics,
             m_ImageBuffer, nullptr);
-    solver->setParent(this->parent());
+    solver->setParent(this->parent()); //This makes the parent the StellarSolver
     solver->m_ExtractedStars = m_ExtractedStars;
     solver->m_BasePath = m_BasePath;
     solver->m_BaseName = m_BaseName + "_" + QString::number(n);
@@ -329,17 +336,20 @@ ExtractorSolver* ExternalExtractorSolver::spawnChildSolver(int n)
     return solver;
 }
 
-//This is the abort method.  For the external SExtractor and solver, it uses the kill method to abort the processes
+//This is the abort method.  For the external SExtractor and solver, it uses the kill method to abort the processes and writes a cancel file for astrometry-engine to stop.
 void ExternalExtractorSolver::abort()
 {
     if(solver){
         solver->kill();
-        QFile file(cancelfn);
-        if(QFileInfo(file).dir().exists())
+        if(m_SolverType == SSolver::SOLVER_LOCALASTROMETRY)
         {
-            file.open(QIODevice::WriteOnly);
-            file.write("Cancel");
-            file.close();
+            QFile file(cancelfn);
+            if(QFileInfo(file).dir().exists())
+            {
+                file.open(QIODevice::WriteOnly);
+                file.write("Cancel");
+                file.close();
+            }
         }
     }
     if(extractorProcess)
@@ -1917,88 +1927,7 @@ int ExternalExtractorSolver::loadWCS()
     return 0;
 }
 
-bool ExternalExtractorSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
+WCSData * ExternalExtractorSolver::getWCSData()
 {
-    if(!hasWCSData())
-    {
-        emit logOutput("There is no WCS Data.");
-        return false;
-    }
-    double imgcrd[2], phi, pixcrd[2], theta, world[2];
-    int stat[2];
-    pixcrd[0] = pixelPoint.x();
-    pixcrd[1] = pixelPoint.y();
-
-    int status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0]);
-    if(status != 0)
-    {
-        emit logOutput(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
-        return false;
-    }
-    else
-    {
-        skyPoint.ra = world[0];
-        skyPoint.dec = world[1];
-    }
-    return true;
-}
-
-bool ExternalExtractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
-{
-    if(!hasWCSData())
-    {
-        emit logOutput("There is no WCS Data.");
-        return false;
-    }
-    double imgcrd[2], worldcrd[2], pixcrd[2], phi[2], theta[2];
-    int stat[2];
-    worldcrd[0] = skyPoint.ra;
-    worldcrd[1] = skyPoint.dec;
-
-    int status = wcss2p(m_wcs, 1, 2, &worldcrd[0], &phi[0], &theta[0], &imgcrd[0], &pixcrd[0], &stat[0]);
-    if(status != 0)
-    {
-        emit logOutput(QString("wcss2p error %1: %2.").arg(status).arg(wcs_errmsg[status]));
-        return false;
-    }
-    pixelPoint.setX(pixcrd[0]);
-    pixelPoint.setY(pixcrd[1]);
-    return true;
-}
-
-bool ExternalExtractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
-{
-    if(!m_HasWCS)
-    {
-        emit logOutput("There is no WCS Data.  Did you solve the image first?");
-        return false;
-    }
-
-    double imgcrd[2], phi = 0, pixcrd[2], theta = 0, world[2];
-    int stat[2];
-
-    for(auto &oneStar : stars)
-    {
-        int status = 0;
-        double ra = HUGE_VAL;
-        double dec = HUGE_VAL;
-        pixcrd[0] = oneStar.x;
-        pixcrd[1] = oneStar.y;
-
-        if ((status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0])) != 0)
-        {
-            emit logOutput(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
-            return false;
-        }
-        else
-        {
-            ra  = world[0];
-            dec = world[1];
-        }
-
-        oneStar.ra = ra;
-        oneStar.dec = dec;
-    }
-
-    return true;
+    return new WCSData(m_nwcs, m_wcs);
 }

@@ -9,6 +9,7 @@
 
 //Includes for this project
 #include "structuredefinitions.h"
+#include "wcsdata.h"
 #include "extractorsolver.h"
 #include "parameters.h"
 #include "version.h"
@@ -593,19 +594,19 @@ class StellarSolver : public QObject
 
     // StellarSolver Variables
 
-        FITSImage::Statistic m_Statistics;              // This is information about the image
-        const uint8_t *m_ImageBuffer { nullptr };       // The generic data buffer containing the image data
-        QList<ExtractorSolver*> parallelSolvers;        // This is the list of parallel ExtractorSolvers when solving in parallel
-        QPointer<ExtractorSolver> m_ExtractorSolver;    // This is the single ExtractorSolver used when not working in parallel
-        QPointer<ExtractorSolver> solverWithWCS;        // This is the ExtractorSolver with WCS information inside from the last solve.
-        int m_ParallelSolversFinishedCount {0};         // This is the number of parallel solvers that are done.
+        FITSImage::Statistic m_Statistics;                  // This is information about the image
+        const uint8_t *m_ImageBuffer { nullptr };           // The generic data buffer containing the image data
+        QList<ExtractorSolver*> parallelSolvers;            // This is the list of parallel ExtractorSolvers when solving in parallel
+        QScopedPointer<ExtractorSolver> m_ExtractorSolver;  // This is the single ExtractorSolver used when not working in parallel
+        QScopedPointer<WCSData> wcsData;                    // This is the WCS information from the last solve.
+        int m_ParallelSolversFinishedCount {0};             // This is the number of parallel solvers that are done.
 
     // StellarSolver Results Information
 
         FITSImage::Background background;           // This is a report on the background levels found during star extraction
         QList<FITSImage::Star> m_ExtractorStars;    // This is the list of stars that get extracted from the image
         QList<FITSImage::Star> m_SolverStars;       // This is the list of stars that were extracted for the last successful solve
-        int numStars = 0;                               // The number of stars found in the last operation
+        int numStars = 0;                           // The number of stars found in the last operation
         FITSImage::Solution solution;               // This is the solution that comes back from the Solver
         short solutionIndexNumber = -1;             // This is the index number of the index used to solve the image.
         short solutionHealpix = -1;                 // This is the healpix of the index used to solve the image.

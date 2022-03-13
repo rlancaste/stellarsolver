@@ -44,11 +44,7 @@ StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &image
 
 StellarSolver::~StellarSolver()
 {
-    if(m_ExtractorSolver)
-        m_ExtractorSolver->disconnect(this);
-    for(auto &solver : parallelSolvers)
-        solver->disconnect(this);
-    abort();
+
 }
 
 void StellarSolver::registerMetaTypes()
@@ -74,10 +70,10 @@ bool StellarSolver::loadNewImageBuffer(const FITSImage::Statistic &imagestats, u
     m_HasFailed = false;
     hasWCS = false;
     m_isRunning = false;
-
+    qDeleteAll(parallelSolvers);
     parallelSolvers.clear();
-    m_ExtractorSolver.clear();
-    solverWithWCS.clear();
+    m_ExtractorSolver.reset();
+    wcsData.reset();
     m_ParallelSolversFinishedCount = 0;
     background = {};
     m_ExtractorStars.clear();
@@ -233,7 +229,7 @@ void StellarSolver::start()
     //This is necessary before starting up so that the correct convolution filter gets passed to the ExtractorSolver
     updateConvolutionFilter();
 
-    m_ExtractorSolver = createExtractorSolver();
+    m_ExtractorSolver.reset(createExtractorSolver());
 
     m_isRunning = true;
     m_HasFailed = false;
@@ -270,7 +266,7 @@ void StellarSolver::start()
         //Note that converting the image to a FITS file if desired, doesn't need to be repeated in all the threads, but also CFITSIO fails when accessed by multiple parallel threads.
         if(m_SolverType == SOLVER_LOCALASTROMETRY && m_ExtractorType == EXTRACTOR_BUILTIN && m_OnlySendFITSFiles)
         {
-            QPointer<ExternalExtractorSolver> extSolver = (ExternalExtractorSolver*) (ExtractorSolver*) m_ExtractorSolver;
+            ExternalExtractorSolver *extSolver = static_cast<ExternalExtractorSolver*> (m_ExtractorSolver.get());
             QFileInfo file(extSolver->fileToProcess);
             if(file.suffix() != "fits" && file.suffix() != "fit")
             {
@@ -286,12 +282,12 @@ void StellarSolver::start()
     }
     else if(m_SolverType == SOLVER_ONLINEASTROMETRY)
     {
-        connect(m_ExtractorSolver, &ExtractorSolver::finished, this, &StellarSolver::processFinished);
+        connect(m_ExtractorSolver.get(), &ExtractorSolver::finished, this, &StellarSolver::processFinished);
         m_ExtractorSolver->execute();
     }
     else
     {
-        connect(m_ExtractorSolver, &ExtractorSolver::finished, this, &StellarSolver::processFinished);
+        connect(m_ExtractorSolver.get(), &ExtractorSolver::finished, this, &StellarSolver::processFinished);
         m_ExtractorSolver->start();
     }
 
@@ -382,6 +378,7 @@ void StellarSolver::parallelSolve()
 {
     if(params.multiAlgorithm == NOT_MULTI || !(m_SolverType == SOLVER_STELLARSOLVER || m_SolverType == SOLVER_LOCALASTROMETRY))
         return;
+    qDeleteAll(parallelSolvers);
     parallelSolvers.clear();
     m_ParallelSolversFinishedCount = 0;
     int threads = QThread::idealThreadCount();
@@ -473,9 +470,10 @@ void StellarSolver::processFinished(int code)
             if(m_ExtractorSolver->hasWCSData())
             {
                 hasWCS = true;
-                solverWithWCS = m_ExtractorSolver;
+                wcsData.reset(m_ExtractorSolver->getWCSData());
+                wcsData.reset(m_ExtractorSolver->getWCSData());
                 if(m_ExtractorStars.count() > 0)
-                    solverWithWCS->appendStarsRAandDEC(m_ExtractorStars);
+                    wcsData->appendStarsRAandDEC(m_ExtractorStars);
             }
             m_HasSolved = true;
         }
@@ -484,8 +482,8 @@ void StellarSolver::processFinished(int code)
             m_ExtractorStars = m_ExtractorSolver->getStarList();
             background = m_ExtractorSolver->getBackground();
             m_CalculateHFR = m_ExtractorSolver->isCalculatingHFR();
-            if(solverWithWCS)
-                solverWithWCS->appendStarsRAandDEC(m_ExtractorStars);
+            if(wcsData)
+                wcsData->appendStarsRAandDEC(m_ExtractorStars);
             m_HasExtracted = true;
         }
     }
@@ -538,11 +536,10 @@ void StellarSolver::finishParallelSolve(int success)
 
         if(reportingSolver->hasWCSData())
         {
-            solverWithWCS = reportingSolver;
+            wcsData.reset(reportingSolver->getWCSData());
             hasWCS = true;
-            disconnect(solverWithWCS, &ExtractorSolver::finished, this, &StellarSolver::finishParallelSolve);
             if(m_ExtractorStars.count() > 0)
-                solverWithWCS->appendStarsRAandDEC(m_ExtractorStars);
+                wcsData->appendStarsRAandDEC(m_ExtractorStars);
             m_isRunning = false;
         }
         if(m_ExtractorType !=
@@ -564,6 +561,8 @@ void StellarSolver::finishParallelSolve(int success)
             m_HasFailed = true;
             emit ready(); //Since this was emitted earlier if it had solved
         }
+        qDeleteAll(parallelSolvers);
+        parallelSolvers.clear();
         emit finished();
     }
 }
@@ -584,9 +583,9 @@ QString StellarSolver::decString(double dec)
 
 bool StellarSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
 {
-    if(hasWCS && solverWithWCS)
+    if(hasWCS && wcsData)
     {
-        solverWithWCS->wcsToPixel(skyPoint, pixelPoint);
+        wcsData->wcsToPixel(skyPoint, pixelPoint);
         return true;
     }
     return false;
@@ -594,9 +593,9 @@ bool StellarSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pi
 
 bool StellarSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
 {
-    if(hasWCS && solverWithWCS)
+    if(hasWCS && wcsData)
     {
-        solverWithWCS->pixelToWCS(pixelPoint, skyPoint);
+        wcsData->pixelToWCS(pixelPoint, skyPoint);
         return true;
     }
     return false;
@@ -938,8 +937,8 @@ QStringList StellarSolver::getDefaultIndexFolderPaths()
 
 bool StellarSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 {
-    if(solverWithWCS)
-        return solverWithWCS->appendStarsRAandDEC(stars);
+    if(hasWCS && wcsData)
+        return wcsData->appendStarsRAandDEC(stars);
     return false;
 }
 

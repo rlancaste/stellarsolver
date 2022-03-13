@@ -46,17 +46,32 @@ InternalExtractorSolver::InternalExtractorSolver(ProcessType pType, ExtractorTyp
 
 InternalExtractorSolver::~InternalExtractorSolver()
 {
+    cancelSEP(); // Just in case it has not shut down
     if(downSampledBuffer)
         delete [] downSampledBuffer;
+    if(isRunning())
+    {
+        quit();
+        requestInterruption();
+        wait();
+    }
 }
 
-//This is the abort method.  The way that it works is that it creates a file.  Astrometry.net is monitoring for this file's creation in order to abort.
+//This is the abort method.  For the internal solver it sets a cancel variable. It quits the thread.  And it cancels any SEP threads that are in progress.
 void InternalExtractorSolver::abort()
 {
-    thejob.bp.cancelled = TRUE;
+    cancelSEP();
     quit();
 
-    for (auto oneFuture : futures)
+    thejob.bp.cancelled = TRUE;
+    if(!isChildSolver)
+        emit logOutput("Aborting...");
+    m_WasAborted = true;
+}
+
+void InternalExtractorSolver::cancelSEP()
+{
+    for (auto &oneFuture : futures)
     {
         if(oneFuture.isRunning())
         {
@@ -64,10 +79,6 @@ void InternalExtractorSolver::abort()
              oneFuture.waitForFinished();
         }
     }
-
-    if(!isChildSolver)
-        emit logOutput("Aborting...");
-    m_WasAborted = true;
 }
 
 //This method generates child solvers with the options of the current solver
@@ -77,7 +88,7 @@ ExtractorSolver* InternalExtractorSolver::spawnChildSolver(int n)
 
     InternalExtractorSolver *solver = new InternalExtractorSolver(m_ProcessType, m_ExtractorType, m_SolverType, m_Statistics,
             m_ImageBuffer, nullptr);
-    solver->setParent(this->parent());
+    solver->setParent(this->parent());  //This makes the parent the StellarSolver
     solver->m_ExtractedStars = m_ExtractedStars;
     solver->m_BasePath = m_BasePath;
     //They will all share the same basename
@@ -1250,58 +1261,7 @@ int InternalExtractorSolver::runInternalSolver()
     return returnCode;
 }
 
-bool InternalExtractorSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
+WCSData *InternalExtractorSolver::getWCSData()
 {
-    if(!hasWCSData())
-    {
-        emit logOutput("There is no WCS Data.");
-        return false;
-    }
-    int d = m_ActiveParameters.downsample;
-    double ra;
-    double dec;
-    sip_pixelxy2radec(&wcs, pixelPoint.x() / d, pixelPoint.y() / d, &ra, &dec);
-    skyPoint.ra = ra;
-    skyPoint.dec = dec;
-    return true;
-}
-
-bool InternalExtractorSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
-{
-    if(!hasWCSData())
-    {
-        emit logOutput("There is no WCS Data.");
-        return false;
-    }
-    double x;
-    double y;
-    anbool error = sip_radec2pixelxy(&wcs, skyPoint.ra, skyPoint.dec, &x, &y);
-    if(error != 0)
-        return false;
-    pixelPoint.setX(x);
-    pixelPoint.setY(y);
-    return true;
-}
-
-bool InternalExtractorSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
-{
-    if(!m_HasWCS)
-    {
-        emit logOutput("There is no WCS Data");
-        return false;
-    }
-
-    int d = m_ActiveParameters.downsample;
-    for(auto &oneStar : stars)
-    {
-        double ra = HUGE_VAL;
-        double dec = HUGE_VAL;
-        sip_pixelxy2radec(&wcs, oneStar.x / d, oneStar.y / d, &ra, &dec);
-        char rastr[32], decstr[32];
-        ra2hmsstring(ra, rastr);
-        dec2dmsstring(dec, decstr);
-        oneStar.ra = ra;
-        oneStar.dec = dec;
-    }
-    return true;
+    return new WCSData(wcs);
 }

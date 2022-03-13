@@ -125,7 +125,6 @@ private:
     bool imageLoaded = false;
     FITSImage::Statistic stats;
     QList<fileio::Record> m_HeaderRecords;
-    fitsfile *fptr { nullptr };
     QImage rawImage;
     QImage scaledImage;
     int currentWidth;

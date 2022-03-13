@@ -169,7 +169,6 @@ set(anutils_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/sip-utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/fit-wcs.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/sip.c
-
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/gslutils.c
 
     #These get added if QFITS is to be included
@@ -219,6 +218,7 @@ set(StellarSolver_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/onlinesolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/stellarsolver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometrylogger.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/wcsdata.cpp
    )
 
 set(ALL_SRCS
