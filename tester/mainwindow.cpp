@@ -610,6 +610,8 @@ void MainWindow::loadOptionsProfile()
 MainWindow::~MainWindow()
 {
     delete ui;
+    if(m_ImageBuffer)
+        delete[] m_ImageBuffer;
 }
 
 //This method clears the stars and star displays
