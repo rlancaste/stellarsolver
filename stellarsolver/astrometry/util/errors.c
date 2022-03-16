@@ -2,7 +2,9 @@
  # This file is part of the Astrometry.net suite.
  # Licensed under a 3-clause BSD style license - see LICENSE
  */
-
+#ifdef __GNUC__ //# Modified by Robert Lancaster for the StellarSolver Internal Library
+#define __STDC_WANT_LIB_EXT2__ 1
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
