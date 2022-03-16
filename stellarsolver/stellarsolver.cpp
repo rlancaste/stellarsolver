@@ -266,7 +266,7 @@ void StellarSolver::start()
         //Note that converting the image to a FITS file if desired, doesn't need to be repeated in all the threads, but also CFITSIO fails when accessed by multiple parallel threads.
         if(m_SolverType == SOLVER_LOCALASTROMETRY && m_ExtractorType == EXTRACTOR_BUILTIN && m_OnlySendFITSFiles)
         {
-            ExternalExtractorSolver *extSolver = static_cast<ExternalExtractorSolver*> (m_ExtractorSolver.get());
+            ExternalExtractorSolver *extSolver = static_cast<ExternalExtractorSolver*> (m_ExtractorSolver.data());
             QFileInfo file(extSolver->fileToProcess);
             if(file.suffix() != "fits" && file.suffix() != "fit")
             {
@@ -282,12 +282,12 @@ void StellarSolver::start()
     }
     else if(m_SolverType == SOLVER_ONLINEASTROMETRY)
     {
-        connect(m_ExtractorSolver.get(), &ExtractorSolver::finished, this, &StellarSolver::processFinished);
+        connect(m_ExtractorSolver.data(), &ExtractorSolver::finished, this, &StellarSolver::processFinished);
         m_ExtractorSolver->execute();
     }
     else
     {
-        connect(m_ExtractorSolver.get(), &ExtractorSolver::finished, this, &StellarSolver::processFinished);
+        connect(m_ExtractorSolver.data(), &ExtractorSolver::finished, this, &StellarSolver::processFinished);
         m_ExtractorSolver->start();
     }
 
