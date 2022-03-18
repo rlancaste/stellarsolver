@@ -240,7 +240,7 @@ int fit_sip_wcs(const double* starxyz,
         double weight = 1.0;
         double u;
         double v;
-        Unused anbool ok;
+        VarUnused anbool ok; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 
         u = fieldxy[2*i + 0] - tanin->crpix[0];
         v = fieldxy[2*i + 1] - tanin->crpix[1];
@@ -735,7 +735,7 @@ int fit_tan_wcs_solve(const double* starxyz,
         // Use original WCS to set the center of projection to the new crpix.
         tan_pixelxy2xyzarr(tanin, crpix[0], crpix[1], crxyz);
         for (i=0; i<N; i++) {
-            Unused anbool ok;
+            VarUnused anbool ok; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
             // -project the stars around crval
             ok = star_coords(starxyz + i*3, crxyz, TRUE, p + 2*i, p + 2*i + 1);
             assert(ok);
@@ -751,7 +751,7 @@ int fit_tan_wcs_solve(const double* starxyz,
         normalize_3(star_cm);
         // -project the stars around their center of mass
         for (i=0; i<N; i++) {
-            Unused anbool ok;
+            VarUnused anbool ok; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
             ok = star_coords(starxyz + i*3, star_cm, TRUE, p + 2*i, p + 2*i + 1);
             assert(ok);
         }

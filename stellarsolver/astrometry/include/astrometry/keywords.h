@@ -63,8 +63,9 @@
 # define Noreturn         __attribute__ ((noreturn))
 # define Malloc           __attribute__ ((malloc))
 # define Used             __attribute__ ((used))
-# define Unused           __attribute__ ((unused))
+//# define Unused           __attribute__ ((unused)) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 # define VarUnused        __attribute__ ((unused))
+# define MethodUnused        __attribute__ ((unused)) //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 # define Packed           __attribute__ ((packed))
 # define likely(x)        __builtin_expect (!!(x), 1)
 # define unlikely(x)      __builtin_expect (!!(x), 0)

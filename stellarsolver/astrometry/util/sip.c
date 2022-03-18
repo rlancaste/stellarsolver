@@ -126,7 +126,7 @@ void   tan_pixelxy2radecarr(const tan_t* wcs_tan, double px, double py, double *
 void tan_iwc2pixelxy(const tan_t* tan, double x, double y,
                      double *px, double* py) {
     double U,V;
-    Unused int r;
+    VarUnused int r; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
     double cdi[2][2];
 
     // Invert CD

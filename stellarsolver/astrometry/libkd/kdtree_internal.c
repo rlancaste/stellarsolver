@@ -555,7 +555,7 @@ static anbool ttype_query(const kdtree_t* kd, const etype* query, ttype* tquery)
 }
 
 double MANGLE(kdtree_get_splitval)(const kdtree_t* kd, int nodeid) {
-    Unused int dim;
+    VarUnused int dim; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
     ttype split = *KD_SPLIT(kd, nodeid);
     if (EQUAL_ET) {
         return split;
@@ -1066,7 +1066,7 @@ kdtree_qres_t* MANGLE(kdtree_rangesearch_options)
     anbool do_l1precheck = FALSE;
 
     anbool use_bboxes = FALSE;
-    Unused anbool use_splits = FALSE;
+    VarUnused anbool use_splits = FALSE; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 
     double dtl1=0.0, dtl2=0.0, dtlinf=0.0;
 
@@ -1451,7 +1451,7 @@ static void* get_data(const kdtree_t* kd, int i) {
 
 static void copy_data_double(const kdtree_t* kd, int start, int N,
                              double* dest) {
-    Unused int i, j, d;
+    VarUnused int i, j, d; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
     int D;
 
     D = kd->ndim;
@@ -1863,7 +1863,7 @@ static int kdtree_check_node(const kdtree_t* kd, int nodeid) {
             for (i=L; i<=R; i++) {
                 dtype* dat = KD_DATA(kd, D, i);
                 for (d=0; d<D; d++) {
-                    Unused etype e = POINT_DE(kd, d, dat[d]);
+                    VarUnused etype e = POINT_DE(kd, d, dat[d]); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
                     assert(e >= kd->minval[d]);
                     assert(e <= kd->maxval[d]);
                 }
@@ -1891,7 +1891,7 @@ static int kdtree_check_node(const kdtree_t* kd, int nodeid) {
         for (i=L; i<=R; i++) {
             dtype* dat = KD_DATA(kd, D, i);
             for (d=0; d<D; d++) {
-                Unused ttype t = POINT_DT(kd, d, dat[d], KD_ROUND);
+                VarUnused ttype t = POINT_DT(kd, d, dat[d], KD_ROUND); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
                 assert(plo[d] <= t);
                 assert(t <= phi[d]);
                 if (plo[d] > t || t > phi[d]) {
@@ -1982,7 +1982,7 @@ static int kdtree_check_node(const kdtree_t* kd, int nodeid) {
             cL = kdtree_left (kd, KD_CHILD_LEFT(nodeid));
             cR = kdtree_right(kd, KD_CHILD_LEFT(nodeid));
             for (i=cL; i<=cR; i++) {
-                Unused dtype* dat = KD_DATA(kd, D, i);
+                VarUnused dtype* dat = KD_DATA(kd, D, i); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
                 assert(dat[dim] <= dsplit);
                 if (dat[dim] > dsplit) {
                     ERROR("kdtree_check: split-plane failure (1)");
@@ -1994,7 +1994,7 @@ static int kdtree_check_node(const kdtree_t* kd, int nodeid) {
             cL = kdtree_left (kd, KD_CHILD_RIGHT(nodeid));
             cR = kdtree_right(kd, KD_CHILD_RIGHT(nodeid));
             for (i=cL; i<=cR; i++) {
-                Unused dtype* dat = KD_DATA(kd, D, i);
+                VarUnused dtype* dat = KD_DATA(kd, D, i); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
                 assert(dat[dim] >= dsplit);
                 if (dat[dim] < dsplit) {
                     ERROR("kdtree_check: split-plane failure (2)");

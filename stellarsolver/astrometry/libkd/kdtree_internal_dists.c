@@ -37,7 +37,7 @@ static anbool DIST_FUNC_MANGLE(bb_point_mindist2_exceeds, FUNC_SUFFIX)
     return FALSE;
 }
 
-Unused // don't warn if unused.
+MethodUnused // don't warn if unused. //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 static void DIST_FUNC_MANGLE(bb_point_mindist2_bailout, FUNC_SUFFIX)
      (const PTYPE* lo, const PTYPE* hi, const PTYPE* point, int dim, DISTTYPE maxd2,
       anbool* bailedout, DISTTYPE* p_d2)

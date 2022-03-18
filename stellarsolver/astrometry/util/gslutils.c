@@ -102,7 +102,7 @@ int gslutils_solve_leastsquares(gsl_matrix* A, gsl_vector** B,
                                 int NB) {
     int i;
     gsl_vector *tau, *resid = NULL;
-    Unused int ret;
+    VarUnused int ret; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
     int M, N;
 
     M = A->size1;

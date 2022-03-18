@@ -1118,7 +1118,7 @@ static void fixup_theta(int* theta, double* allodds, int ibailed, int istopped, 
 
     if (DEBUGVERIFY) {
         for (i=0; i<v->NT; i++) {
-            Unused int ri;
+            VarUnused int ri; //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
             if (i == besti)
                 debug2("* ");
             debug2("Theta[%i] = %i", i, theta[i]);
