@@ -116,6 +116,7 @@
 # define Used
 # define Unused
 # define VarUnused
+# define MethodUnused
 # define Packed
 # define likely(x)	(x)
 # define unlikely(x)	(x)
