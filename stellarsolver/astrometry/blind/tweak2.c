@@ -255,7 +255,7 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
 
     logverb("Tweak2: starting from WCS:\n");
     if (log_get_level() >= LOG_VERB)
-        sip_print_to(sipout, stdout);
+        sip_print_to(sipout); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 
     for (order=startorder; order <= sip_order; order++) {
         int step;
@@ -289,7 +289,7 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
 			
             debug("Using input WCS:\n");
             if (log_get_level() > LOG_VERB)
-                sip_print_to(sipout, stdout);
+                sip_print_to(sipout); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 
             // Project reference sources into pixel space; keep the ones inside image bounds.
             Nin = 0;
@@ -475,7 +475,7 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
 
             debug("Got SIP:\n");
             if (log_get_level() > LOG_VERB)
-                sip_print_to(sipout, stdout);
+                sip_print_to(sipout); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
             sipout->wcstan.imagew = W;
             sipout->wcstan.imageh = H;
             if(testperm){
@@ -582,7 +582,7 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
 
     logverb("Tweak2: final WCS:\n");
     if (log_get_level() >= LOG_VERB)
-        sip_print_to(sipout, stdout);
+        sip_print_to(sipout); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 
     if (p_logodds)
         *p_logodds = logodds;

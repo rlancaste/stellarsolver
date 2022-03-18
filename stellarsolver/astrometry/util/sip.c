@@ -443,7 +443,7 @@ double sip_pixel_scale(const sip_t* sip) {
 }
 
 //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging, all these were changed to debug
-static void print_to(const tan_t* tan, FILE* f, char* type) {
+static void print_to(const tan_t* tan, char* type) { //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
     debug("%s Structure:\n", type);
     debug("  crval=(%g, %g)\n", tan->crval[0], tan->crval[1]);
     debug("  crpix=(%g, %g)\n", tan->crpix[0], tan->crpix[1]);
@@ -452,25 +452,25 @@ static void print_to(const tan_t* tan, FILE* f, char* type) {
     debug("  image size = (%g x %g)\n", tan->imagew, tan->imageh);
 }
 
-void tan_print_to(const tan_t* tan, FILE* f) {
+void tan_print_to(const tan_t* tan) { //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
     if (tan->sin) {
-        print_to(tan, f, "SIN");
+        print_to(tan, "SIN"); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
     } else {
-        print_to(tan, f, "TAN");
+        print_to(tan, "TAN"); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
     }
 }
 
 void tan_print(const tan_t* tan) {
-    tan_print_to(tan, stderr);
+    tan_print_to(tan); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 }
 
-void sip_print_to(const sip_t* sip, FILE* f) {
+void sip_print_to(const sip_t* sip) { //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
     double det,pixsc;
 
     if (sip->wcstan.sin) {
-        print_to(&(sip->wcstan), f, "SIN-SIP");
+        print_to(&(sip->wcstan), "SIN-SIP"); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
     } else {
-        print_to(&(sip->wcstan), f, "TAN-SIP");
+        print_to(&(sip->wcstan), "TAN-SIP"); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
     }
 
     debug("  SIP order: A=%i, B=%i, AP=%i, BP=%i\n",
@@ -530,7 +530,7 @@ void sip_print_to(const sip_t* sip, FILE* f) {
 }
 
 void sip_print(const sip_t* sip) {
-    sip_print_to(sip, stderr);
+    sip_print_to(sip); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 }
 
 double sip_get_orientation(const sip_t* sip) {

@@ -6,7 +6,7 @@
 #ifndef ANSIP_H
 #define ANSIP_H
 
-#include <stdio.h>
+//#include <stdio.h> //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 #include "astrometry/an-bool.h"
 #include "astrometry/keywords.h"
 
@@ -225,10 +225,10 @@ void sip_iwc2pixelxy(const sip_t* sip, double iwcx, double iwcy,
 void sip_iwc2radec(const sip_t* sip, double x, double y, double *p_ra, double *p_dec);
 
 void   sip_print(const sip_t*);
-void   sip_print_to(const sip_t*, FILE* fid);
+void   sip_print_to(const sip_t*); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 
 void tan_print(const tan_t* tan);
-void tan_print_to(const tan_t* tan, FILE* f);
+void tan_print_to(const tan_t* tan); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 
 // for python
 void sip_get_crval(const sip_t* sip, double* ra, double* dec);
