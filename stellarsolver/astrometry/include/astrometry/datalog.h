@@ -6,6 +6,7 @@
 #define DATA_LOG_H
 
 #include <stdio.h>
+#include <stdint.h>
 #include "astrometry/an-bool.h"
 #include "astrometry/keywords.h"
 
