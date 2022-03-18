@@ -6,7 +6,7 @@
 #ifndef AN_BOOL_H
 #define AN_BOOL_H
 
-#include <stdint.h>
+//#include <stdint.h> //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 
 #ifndef TRUE
 #define TRUE 1
