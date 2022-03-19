@@ -114,7 +114,7 @@
 # define Must_check
 # define Deprecated
 # define Used
-# define Unused
+//# define Unused //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 # define VarUnused
 # define MethodUnused
 # define Packed
