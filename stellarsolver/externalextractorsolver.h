@@ -110,7 +110,7 @@ class ExternalExtractorSolver : public InternalExtractorSolver
          * @brief getWCSData gets the WCSData Object from the last plate solve
          * @return A WCS Data Object
          */
-        WCSData *getWCSData() override;
+        WCSData getWCSData() override;
 
         /**
          * @brief saveAsFITS will save the image buffer to a FITS file for solving by external solvers

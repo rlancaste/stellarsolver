@@ -12,10 +12,14 @@ fileio::fileio()
 bool fileio::loadImage(QString fileName)
 {
     QFileInfo newFileInfo(fileName);
+    bool success = false;
     if(newFileInfo.suffix() == "fits" || newFileInfo.suffix() == "fit")
-        return loadFits(fileName);
+        success = loadFits(fileName);
     else
-        return loadOtherFormat(fileName);
+        success = loadOtherFormat(fileName);
+    if(success)
+        generateQImage();
+    return success;
 }
 
 //This method was copied and pasted and modified from the method privateLoad in fitsdata in KStars
@@ -823,8 +827,8 @@ bool fileio::saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint
 
     /* Write keywords */
 
-    exposure = 1;
-    fits_update_key(fptr, TLONG, "EXPOSURE", &exposure, "Total Exposure Time", &status);
+    //exposure = 1;
+    //fits_update_key(fptr, TLONG, "EXPOSURE", &exposure, "Total Exposure Time", &status);
 
     // NAXIS1
     if (fits_update_key(fptr, TUSHORT, "NAXIS1", &(imageStats.width), "length of data axis 1", &status))
@@ -907,6 +911,41 @@ bool fileio::saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint
     emit logOutput("Saved FITS file:" + fileName);
 
     return true;
+}
+
+//This method was copied and pasted from Fitsview in KStars
+//It sets up the image that will be displayed on the screen
+void fileio::generateQImage()
+{
+    int sampling = 2;
+    // Account for leftover when sampling. Thus a 5-wide image sampled by 2
+    // would result in a width of 3 (samples 0, 2 and 4).
+
+    int w = (stats.width + sampling - 1) / sampling;
+    int h = (stats.height + sampling - 1) / sampling;
+
+    if (stats.channels == 1)
+    {
+        rawImage = QImage(w, h, QImage::Format_Indexed8);
+
+        rawImage.setColorCount(256);
+        for (int i = 0; i < 256; i++)
+            rawImage.setColor(i, qRgb(i, i, i));
+    }
+    else
+    {
+        rawImage = QImage(w, h, QImage::Format_RGB32);
+    }
+
+    Stretch stretch(static_cast<int>(stats.width),
+                    static_cast<int>(stats.height),
+                    stats.channels, static_cast<uint16_t>(stats.dataType));
+
+    // Compute new auto-stretch params.
+    StretchParams stretchParams = stretch.computeParams(m_ImageBuffer);
+
+    stretch.setParams(stretchParams);
+    stretch.run(m_ImageBuffer, &rawImage, sampling);
 }
 
 void fileio::logIssue(QString message){

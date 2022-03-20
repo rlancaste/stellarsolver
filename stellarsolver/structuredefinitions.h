@@ -88,7 +88,7 @@ typedef struct Solution
     double decError;    // The error between the search_dec position and the solution dec position in arcseconds
 } Solution;
 
-// This is point in the World Coordinate System with both RA and DEC.
+// This is a point in the World Coordinate System with both RA and DEC.
 typedef struct wcs_point
 {
     float ra;           // The Right Ascension in degrees

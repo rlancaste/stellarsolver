@@ -441,6 +441,11 @@ class StellarSolver : public QObject
             return hasWCS;
         };
 
+        WCSData getWCSData()
+        {
+            return wcsData;
+        }
+
         /**
          * @brief getNumThreads gets the number of ExtractorSolvers used to plate solve the image
          * @return the number of solvers
@@ -598,7 +603,7 @@ class StellarSolver : public QObject
         const uint8_t *m_ImageBuffer { nullptr };           // The generic data buffer containing the image data
         QList<ExtractorSolver*> parallelSolvers;            // This is the list of parallel ExtractorSolvers when solving in parallel
         QScopedPointer<ExtractorSolver> m_ExtractorSolver;  // This is the single ExtractorSolver used when not working in parallel
-        QScopedPointer<WCSData> wcsData;                    // This is the WCS information from the last solve.
+        WCSData wcsData;                    // This is the WCS information from the last solve.
         int m_ParallelSolversFinishedCount {0};             // This is the number of parallel solvers that are done.
 
     // StellarSolver Results Information

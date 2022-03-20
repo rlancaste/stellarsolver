@@ -301,6 +301,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc DESTINATION ${PKGCONF
 if(BUILD_TESTER OR BUILD_DEMOS)
     set(TesterUtilsLib_SRCS
         ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/fileio.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/imagelabel.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/stretch.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/bayer.c
         ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/dms.cpp
@@ -325,7 +326,6 @@ if(BUILD_TESTER)
 set(StellarSolverTester_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/mainwindow.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tester/imagelabel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/resources.qrc
     )
 
@@ -425,6 +425,13 @@ if(BUILD_DEMOS)
     target_link_libraries(DemoDeleteSolver StellarSolverDemosLib)
     add_executable(DemoMultipleSolves ${CMAKE_CURRENT_SOURCE_DIR}/demos/demomultiplesolves.cpp)
     target_link_libraries(DemoMultipleSolves StellarSolverDemosLib)
+
+    qt5_wrap_ui(DemoBatchSolveui_SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/demos/demobatchsolve.ui
+        )
+    add_executable(DemoBatchSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demobatchsolve.cpp ${DemoBatchSolveui_SRCS})
+    target_link_libraries(DemoBatchSolve StellarSolverDemosLib)
+
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/pleiades.jpg" DESTINATION "${CMAKE_BINARY_DIR}/")
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/randomsky.fits" DESTINATION "${CMAKE_BINARY_DIR}/")
     # Note: These are the index files that solve the above images best.

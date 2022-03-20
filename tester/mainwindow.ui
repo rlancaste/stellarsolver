@@ -1580,7 +1580,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>86</width>
+                 <width>98</width>
                  <height>70</height>
                 </rect>
                </property>
@@ -2548,7 +2548,7 @@
   <customwidget>
    <class>ImageLabel</class>
    <extends>QLabel</extends>
-   <header>imagelabel.h</header>
+   <header location="global">testerutils/imagelabel.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

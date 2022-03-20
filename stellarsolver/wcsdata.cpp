@@ -7,9 +7,15 @@ extern "C" {
 #include "astrometry/starutil.h"
 }
 
+WCSData::WCSData()
+{
+    hasWCS = false;
+}
+
 WCSData::WCSData(sip_t internal_wcs, int downsample)
 {
     internalWCS = true;
+    hasWCS = true;
     wcs = internal_wcs;
     d = downsample;
 }
@@ -17,6 +23,7 @@ WCSData::WCSData(sip_t internal_wcs, int downsample)
 WCSData::WCSData(int nwcs, wcsprm *wcs, int downsample)
 {
     internalWCS = false;
+    hasWCS = true;
     m_nwcs = nwcs;
     m_wcs = wcs;
     d = downsample;
@@ -24,6 +31,8 @@ WCSData::WCSData(int nwcs, wcsprm *wcs, int downsample)
 
 bool WCSData::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
 {
+    if(!hasWCS)
+        return false;
     if(internalWCS)
     {
         double ra;
@@ -43,7 +52,7 @@ bool WCSData::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoi
         int status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0]);
         if(status != 0)
         {
-            emit logOutput(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+            //emit logOutput(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
             return false;
         }
         else
@@ -58,6 +67,8 @@ bool WCSData::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoi
 
 bool WCSData::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
 {
+    if(!hasWCS)
+        return false;
     if(internalWCS)
     {
         double x;
@@ -79,7 +90,7 @@ bool WCSData::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoi
         int status = wcss2p(m_wcs, 1, 2, &worldcrd[0], &phi[0], &theta[0], &imgcrd[0], &pixcrd[0], &stat[0]);
         if(status != 0)
         {
-            emit logOutput(QString("wcss2p error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+            //emit logOutput(QString("wcss2p error %1: %2.").arg(status).arg(wcs_errmsg[status]));
             return false;
         }
         pixelPoint.setX(pixcrd[0]);
@@ -90,6 +101,8 @@ bool WCSData::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoi
 
 bool WCSData::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 {
+    if(!hasWCS)
+        return false;
     if(internalWCS)
     {
         for(auto &oneStar : stars)
@@ -120,7 +133,7 @@ bool WCSData::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 
             if ((status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0])) != 0)
             {
-                emit logOutput(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+                //emit logOutput(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
                 return false;
             }
             else

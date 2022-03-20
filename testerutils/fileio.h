@@ -74,6 +74,11 @@ public:
         m_HeaderRecords = records;
     }
 
+    QImage getRawQImage()
+    {
+        return rawImage;
+    }
+
 private:
     QString file;
     fitsfile *fptr { nullptr };
@@ -86,6 +91,9 @@ private:
     StretchParams stretchParams;
     BayerParams debayerParams;
     void logIssue(QString messsage);
+
+    QImage rawImage;
+    void generateQImage();
 
 signals:
     void logOutput(QString logText);

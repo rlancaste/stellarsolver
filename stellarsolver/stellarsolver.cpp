@@ -73,7 +73,6 @@ bool StellarSolver::loadNewImageBuffer(const FITSImage::Statistic &imagestats, u
     qDeleteAll(parallelSolvers);
     parallelSolvers.clear();
     m_ExtractorSolver.reset();
-    wcsData.reset();
     m_ParallelSolversFinishedCount = 0;
     background = {};
     m_ExtractorStars.clear();
@@ -470,10 +469,10 @@ void StellarSolver::processFinished(int code)
             if(m_ExtractorSolver->hasWCSData())
             {
                 hasWCS = true;
-                wcsData.reset(m_ExtractorSolver->getWCSData());
-                wcsData.reset(m_ExtractorSolver->getWCSData());
+                wcsData = m_ExtractorSolver->getWCSData();
+                wcsData = m_ExtractorSolver->getWCSData();
                 if(m_ExtractorStars.count() > 0)
-                    wcsData->appendStarsRAandDEC(m_ExtractorStars);
+                    wcsData.appendStarsRAandDEC(m_ExtractorStars);
             }
             m_HasSolved = true;
         }
@@ -482,8 +481,8 @@ void StellarSolver::processFinished(int code)
             m_ExtractorStars = m_ExtractorSolver->getStarList();
             background = m_ExtractorSolver->getBackground();
             m_CalculateHFR = m_ExtractorSolver->isCalculatingHFR();
-            if(wcsData)
-                wcsData->appendStarsRAandDEC(m_ExtractorStars);
+            if(hasWCS)
+                wcsData.appendStarsRAandDEC(m_ExtractorStars);
             m_HasExtracted = true;
         }
     }
@@ -536,10 +535,10 @@ void StellarSolver::finishParallelSolve(int success)
 
         if(reportingSolver->hasWCSData())
         {
-            wcsData.reset(reportingSolver->getWCSData());
+            wcsData = reportingSolver->getWCSData();
             hasWCS = true;
             if(m_ExtractorStars.count() > 0)
-                wcsData->appendStarsRAandDEC(m_ExtractorStars);
+                wcsData.appendStarsRAandDEC(m_ExtractorStars);
             m_isRunning = false;
         }
         if(m_ExtractorType !=
@@ -583,9 +582,9 @@ QString StellarSolver::decString(double dec)
 
 bool StellarSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoint)
 {
-    if(hasWCS && wcsData)
+    if(hasWCS)
     {
-        wcsData->wcsToPixel(skyPoint, pixelPoint);
+        wcsData.wcsToPixel(skyPoint, pixelPoint);
         return true;
     }
     return false;
@@ -593,9 +592,9 @@ bool StellarSolver::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pi
 
 bool StellarSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoint)
 {
-    if(hasWCS && wcsData)
+    if(hasWCS)
     {
-        wcsData->pixelToWCS(pixelPoint, skyPoint);
+        wcsData.pixelToWCS(pixelPoint, skyPoint);
         return true;
     }
     return false;
@@ -937,8 +936,8 @@ QStringList StellarSolver::getDefaultIndexFolderPaths()
 
 bool StellarSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 {
-    if(hasWCS && wcsData)
-        return wcsData->appendStarsRAandDEC(stars);
+    if(hasWCS)
+        return wcsData.appendStarsRAandDEC(stars);
     return false;
 }
 
