@@ -176,7 +176,10 @@ void DemoBatchSolve::displayImage()
 
 void DemoBatchSolve::addIndexDirectory()
 {
-    QString fileURL = QFileDialog::getExistingDirectory(nullptr, "Select Index Directory", indexFileDirectories.at(0));
+    QString dir = "";
+    if(indexFileDirectories.count() > 0)
+        dir = indexFileDirectories.at(0);
+    QString fileURL = QFileDialog::getExistingDirectory(nullptr, "Select Index Directory", dir);
     if (fileURL.isEmpty())
         return;
     indexFileDirectories.append(fileURL);
