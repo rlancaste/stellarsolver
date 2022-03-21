@@ -59,12 +59,14 @@ public slots:
     void addIndexDirectory();
     void selectOutputDirectory();
     void logOutput(QString text);
-    void displayImage(int num);
+    void displayImage();
+    void clearLog();
 
     void startProcessing();
     void abortProcessing();
     void pauseProcessing();
 
+    void clearCurrentImageAndBuffer();
     void processImage(int num);
     void solveImage();
     void solverComplete();
@@ -80,6 +82,7 @@ private:
     Ui::DemoBatchSolve *ui;
     StellarSolver stellarSolver;
     QList<Image> images;
+    int currentRow = -1;
 
     QStringList indexFileDirectories = StellarSolver::getDefaultIndexFolderPaths();
     QString outputDirectory;
@@ -90,6 +93,7 @@ private:
     Image *currentImage = nullptr;
     int currentImageNum = -1;
     int currentProgress = 0;
+    bool solvingBlind = false;
 
 
 signals:

@@ -32,6 +32,9 @@
           </property>
           <item>
            <widget class="QPushButton" name="loadB">
+            <property name="toolTip">
+             <string>Loads Selected Images into the Image List</string>
+            </property>
             <property name="text">
              <string>Load</string>
             </property>
@@ -39,6 +42,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="clearImagesB">
+            <property name="toolTip">
+             <string>Clears all the images in the image list and deletes all the data associated with them.</string>
+            </property>
             <property name="text">
              <string>Clear All</string>
             </property>
@@ -46,6 +52,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="deleteImageB">
+            <property name="toolTip">
+             <string>Removes the selected image in the image list and deletes all the data associated with it.</string>
+            </property>
             <property name="text">
              <string>Remove</string>
             </property>
@@ -56,21 +65,73 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
-           <widget class="QListWidget" name="imagesList">
-            <property name="selectionMode">
-             <enum>QAbstractItemView::ExtendedSelection</enum>
+           <widget class="QTableWidget" name="imagesList">
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QPushButton" name="selectIndexes">
+            <property name="toolTip">
+             <string>Adds any other index file directories you may select on your computer</string>
+            </property>
             <property name="text">
              <string>Add Index File Directory</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QListWidget" name="indexDirectories"/>
+           <widget class="QListWidget" name="indexDirectories">
+            <property name="toolTip">
+             <string>The list of file directories to search for index files.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Solve Profile</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="solveProfile">
+              <property name="toolTip">
+               <string>The StellarSolver Profile to be used for Solving</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Extract Profile</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="extractProfile">
+              <property name="toolTip">
+               <string>The StellarSolver profile to be used for the Star Extraction</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="getHFR">
+              <property name="toolTip">
+               <string>Whether to solve with HFR, which takes significantly longer to extract.</string>
+              </property>
+              <property name="text">
+               <string>HFR</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -79,16 +140,26 @@
             </property>
             <item>
              <widget class="QCheckBox" name="saveImages">
+              <property name="toolTip">
+               <string>Whether to attempt to save the solved images and extracted star lists to the output directory</string>
+              </property>
               <property name="text">
                <string>Save Results to:</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="outputDirectory"/>
+             <widget class="QLineEdit" name="outputDirectory">
+              <property name="toolTip">
+               <string>The Output file directory path</string>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="selectOutputDir">
+              <property name="toolTip">
+               <string>Selects the folder to ouput files to.</string>
+              </property>
               <property name="text">
                <string>Select</string>
               </property>
@@ -113,7 +184,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>336</width>
+           <width>362</width>
            <height>68</height>
           </rect>
          </property>
@@ -149,6 +220,9 @@
            </property>
            <item>
             <widget class="QPushButton" name="solveB">
+             <property name="toolTip">
+              <string>Starts the Image processing loop including Solving and star extraction of all items in the imageList.</string>
+             </property>
              <property name="text">
               <string>Solve Images</string>
              </property>
@@ -156,6 +230,9 @@
            </item>
            <item>
             <widget class="QPushButton" name="pauseB">
+             <property name="toolTip">
+              <string>Pauses the solving loop, aborting the current action and waiting until you click solve images again to pick up where it left off.</string>
+             </property>
              <property name="text">
               <string>Pause</string>
              </property>
@@ -163,8 +240,21 @@
            </item>
            <item>
             <widget class="QPushButton" name="abortB">
+             <property name="toolTip">
+              <string>Aborts the whole solve impages loop.  Next time you click solve images, it will start over again.</string>
+             </property>
              <property name="text">
               <string>Abort</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="solveB_2">
+             <property name="toolTip">
+              <string>Clears the log</string>
+             </property>
+             <property name="text">
+              <string>Clear</string>
              </property>
             </widget>
            </item>

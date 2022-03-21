@@ -730,7 +730,7 @@ bool fileio::saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint
         naxis = 3;
     }
 
-    long nelements, exposure;
+    long nelements;
     long naxes[3] = { imageStats.width, imageStats.height, channels };
     char error_status[512] = {0};
 

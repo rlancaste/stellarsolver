@@ -288,6 +288,22 @@ class StellarSolver : public QObject
         void setSearchPositionInDegrees(double ra, double dec);
 
         /**
+         * @brief clearSearchPosition turns off the usage of the Search Position if it was set previously
+         */
+        void clearSearchPosition()
+        {
+            m_UsePosition = false;
+        }
+
+        /**
+         * @brief clearSearchScale turns off the usage of the Search Scale if it was set previously
+         */
+        void clearSearchScale()
+        {
+            m_UseScale = false;
+        }
+
+        /**
          * @brief setLogLevel sets the astrometry logging level
          * @param level The level of logging
          */
