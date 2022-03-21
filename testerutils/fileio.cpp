@@ -159,7 +159,7 @@ bool fileio::loadOtherFormat(QString fileName)
 
     if (QImageReader::supportedImageFormats().contains(fileReader.format()) == false)
     {
-        logIssue("Failed to convert" + file + "to FITS since format, " + fileReader.format() +
+        logIssue("Failed to convert " + file + " to FITS since format, " + fileReader.format() +
                   ", is not supported in Qt");
         return false;
     }

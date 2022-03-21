@@ -36,6 +36,7 @@ typedef struct Image
     QImage rawImage;
     bool hasWCSData = false;
     WCSData wcsData;
+
     uint8_t *m_ImageBuffer { nullptr };
     FITSImage::wcs_point *searchPosition { nullptr };
     ImageScale *searchScale{ nullptr };
@@ -55,6 +56,7 @@ public slots:
     void removeSelectedImage();
     void removeImage(int index);
     void removeAllImages();
+    void resetImages();
 
     void addIndexDirectory();
     void selectOutputDirectory();
@@ -64,7 +66,6 @@ public slots:
 
     void startProcessing();
     void abortProcessing();
-    void pauseProcessing();
 
     void clearCurrentImageAndBuffer();
     void processImage(int num);
@@ -88,8 +89,7 @@ private:
     QString outputDirectory;
     QString dirPath = QDir::homePath();
 
-    bool paused = false;
-    bool stoppedBeforeFinished = false;
+    bool aborted = false;
     Image *currentImage = nullptr;
     int currentImageNum = -1;
     int currentProgress = 0;

@@ -60,6 +60,16 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QPushButton" name="resetB">
+            <property name="toolTip">
+             <string>Clears the solution information and star extractions for the whole list of images</string>
+            </property>
+            <property name="text">
+             <string>Reset</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
         <item>
@@ -141,7 +151,7 @@
             <item>
              <widget class="QCheckBox" name="saveImages">
               <property name="toolTip">
-               <string>Whether to attempt to save the solved images and extracted star lists to the output directory</string>
+               <string>Whether to attempt to save the solved images and extracted star lists to the output directory.  Note that if you have already done the processing, and just want to save it now, you can click &quot;Process Images&quot; and it won't do the processing again, but it will save the images to your selected folder.</string>
               </property>
               <property name="text">
                <string>Save Results to:</string>
@@ -184,7 +194,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>362</width>
+           <width>319</width>
            <height>68</height>
           </rect>
          </property>
@@ -219,29 +229,19 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QPushButton" name="solveB">
+            <widget class="QPushButton" name="processB">
              <property name="toolTip">
-              <string>Starts the Image processing loop including Solving and star extraction of all items in the imageList.</string>
+              <string>Starts the Image processing loop including Solving and star extraction of all items in the imageList.  Note that it will skip star extraction and solving for any images that it has already been done for.  If you have selected to save the results, it will do that for all the images, even the ones that have already been processed.</string>
              </property>
              <property name="text">
-              <string>Solve Images</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pauseB">
-             <property name="toolTip">
-              <string>Pauses the solving loop, aborting the current action and waiting until you click solve images again to pick up where it left off.</string>
-             </property>
-             <property name="text">
-              <string>Pause</string>
+              <string>Process Images</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="abortB">
              <property name="toolTip">
-              <string>Aborts the whole solve impages loop.  Next time you click solve images, it will start over again.</string>
+              <string>Aborts the whole solve images loop.  If you click &quot;Process Images&quot; again, it will pick up where you left off.  If you want to start all over and do them all again, click &quot;Reset&quot;</string>
              </property>
              <property name="text">
               <string>Abort</string>
@@ -249,7 +249,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="solveB_2">
+            <widget class="QPushButton" name="clearB">
              <property name="toolTip">
               <string>Clears the log</string>
              </property>

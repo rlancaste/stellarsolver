@@ -11,11 +11,12 @@ DemoBatchSolve::DemoBatchSolve():
     connect(ui->loadB, &QPushButton::clicked, this, &DemoBatchSolve::addImages);
     connect(ui->clearImagesB, &QPushButton::clicked, this, &DemoBatchSolve::removeAllImages);
     connect(ui->deleteImageB, &QPushButton::clicked, this, &DemoBatchSolve::removeSelectedImage);
+    connect(ui->resetB, &QPushButton::clicked, this, &DemoBatchSolve::resetImages);
     connect(ui->selectIndexes, &QPushButton::clicked, this, &DemoBatchSolve::addIndexDirectory);
     connect(ui->selectOutputDir, &QPushButton::clicked, this, &DemoBatchSolve::selectOutputDirectory);
-    connect(ui->solveB, &QPushButton::clicked, this, &DemoBatchSolve::startProcessing);
-    connect(ui->pauseB, &QPushButton::clicked, this, &DemoBatchSolve::pauseProcessing);
+    connect(ui->processB, &QPushButton::clicked, this, &DemoBatchSolve::startProcessing);
     connect(ui->abortB, &QPushButton::clicked, this, &DemoBatchSolve::abortProcessing);
+    connect(ui->clearB, &QPushButton::clicked, this, &DemoBatchSolve::clearLog);
     connect(&stellarSolver, &StellarSolver::logOutput, this, &DemoBatchSolve::logOutput);
     connect(ui->imagesList,&QTableWidget::itemSelectionChanged, this, &DemoBatchSolve::displayImage);
 
@@ -64,7 +65,7 @@ int main(int argc, char *argv[])
 void DemoBatchSolve::addImages()
 {
     QStringList fileURLs = QFileDialog::getOpenFileNames(nullptr, "Load Image", dirPath,
-                      "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.tif *.tiff)");
+                      "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.png *.tif *.tiff)");
     if (fileURLs.isEmpty())
         return;
     for(int i = 0; i< fileURLs.count(); i++)
@@ -84,6 +85,25 @@ void DemoBatchSolve::addImages()
     }
     if(ui->imagesList->selectedItems().count() == 0)
         ui->imagesList->setCurrentCell(0,0);
+}
+
+void DemoBatchSolve::resetImages()
+{
+    for(int i = 0; i < images.count(); i++)
+    {
+        Image image = images.at(i);
+        image.hasExtracted = false;
+        image.hasSolved = false;
+        image.hasWCSData = false;
+    }
+    for(int row = 0; row< ui->imagesList->rowCount(); row++)
+    {
+        ui->imagesList->setItem(row, 1, new QTableWidgetItem(""));
+        ui->imagesList->setItem(row, 2, new QTableWidgetItem(""));
+        ui->imagesList->setItem(row, 3, new QTableWidgetItem(""));
+        for(int col = 0; col< ui->imagesList->columnCount(); col++)
+            ui->imagesList->item(row,col)->setForeground(QBrush());
+    }
 }
 
 void DemoBatchSolve::removeAllImages()
@@ -120,7 +140,7 @@ void DemoBatchSolve::loadImage(int num)
     currentImage = &images[currentImageNum];
     if(!imageLoader.loadImage(currentImage->fileName))
     {
-        logOutput("Error in loading FITS file");
+        logOutput("Error in loading image file");
         return;
     }
     currentImage->stats = imageLoader.getStats();
@@ -211,32 +231,18 @@ void DemoBatchSolve::startProcessing()
         logOutput("No images to process");
         return;
     }
-    stoppedBeforeFinished = false;
-    if(!paused)
-    {
-        for(int row = 0; row< ui->imagesList->rowCount(); row++)
-            for(int col = 0; col< ui->imagesList->columnCount(); col++)
-                ui->imagesList->item(row,col)->setForeground(QBrush());
-        currentImageNum = 0;
-        currentProgress = 0;
-    }
+    aborted = false;
+    currentImageNum = 0;
+    currentProgress = 0;
 
     ui->processProgress->setValue(currentProgress);
     ui->processProgress->setMaximum(images.count() * 2);
     processImage(currentImageNum);
 }
 
-void DemoBatchSolve::pauseProcessing()
-{
-    paused = true;
-    stoppedBeforeFinished = true;
-    stellarSolver.abort();
-}
-
 void DemoBatchSolve::abortProcessing()
 {
-    paused = false;
-    stoppedBeforeFinished = true;
+    aborted = true;
     stellarSolver.abort();
     ui->processProgress->setValue(0);
 }
@@ -269,6 +275,13 @@ void DemoBatchSolve::solveImage()
     {
         return;
     }
+    if(currentImage->hasSolved)
+    {
+        currentProgress++;
+        ui->processProgress->setValue(currentProgress);
+        extractImage();
+        return;
+    }
     stellarSolver.setProperty("ProcessType", SSolver::SOLVE);
     stellarSolver.setParameterProfile((SSolver::Parameters::ParametersProfile) ui->solveProfile->currentIndex());
     stellarSolver.setIndexFolderPaths(indexFileDirectories);
@@ -296,8 +309,10 @@ void DemoBatchSolve::solverComplete()
         return;
     }
     disconnect(&stellarSolver, &StellarSolver::finished, this, &DemoBatchSolve::solverComplete);
-    if(stoppedBeforeFinished)
+    if(aborted)
     {
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        logOutput("Solving was Aborted");
         clearCurrentImageAndBuffer();
         return;
     }
@@ -311,21 +326,22 @@ void DemoBatchSolve::solverComplete()
         }
         currentImage->hasSolved = true;
         for(int col = 0; col< ui->imagesList->columnCount(); col++)
-            ui->imagesList->item(currentImageNum,col)->setForeground(QBrush(Qt::green));
+            ui->imagesList->item(currentImageNum,col)->setForeground(QBrush(Qt::darkGreen));
         ui->imagesList->item(currentImageNum,1)->setText(StellarSolver::raString(currentImage->solution.ra));
         ui->imagesList->item(currentImageNum,2)->setText(StellarSolver::decString(currentImage->solution.dec));
         solvingBlind = false;
     }
     else
     {
-        if(!solvingBlind)
+        if(!solvingBlind && ( currentImage->searchScale || currentImage->searchPosition))
         {
+            logOutput("Solving failed with position/scale, trying again with a blind solve.");
             solvingBlind = true;
             solveImage();
             return;
         }
         for(int col = 0; col< ui->imagesList->columnCount(); col++)
-            ui->imagesList->item(currentImageNum,col)->setForeground(QBrush(Qt::red));
+            ui->imagesList->item(currentImageNum,col)->setForeground(QBrush(Qt::darkRed));
     }
     currentProgress++;
     ui->processProgress->setValue(currentProgress);
@@ -337,6 +353,13 @@ void DemoBatchSolve::extractImage()
 {
     if(!currentImage || !currentImage->m_ImageBuffer)
     {
+        return;
+    }
+    if(currentImage->hasExtracted)
+    {
+        currentProgress++;
+        ui->processProgress->setValue(currentProgress);
+        finishProcessing();
         return;
     }
     if(ui->getHFR->isChecked())
@@ -355,8 +378,10 @@ void DemoBatchSolve::extractorComplete()
         return;
     }
     disconnect(&stellarSolver, &StellarSolver::finished, this, &DemoBatchSolve::extractorComplete);
-    if(stoppedBeforeFinished)
+    if(aborted)
     {
+        logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        logOutput("Extraction was Aborted");
         clearCurrentImageAndBuffer();
         return;
     }
