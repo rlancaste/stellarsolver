@@ -1,6 +1,7 @@
 #include "demobatchsolve.h"
 #include "ui_demobatchsolve.h"
 #include <QFileDialog>
+#include <QTextStream>
 
 DemoBatchSolve::DemoBatchSolve():
     QMainWindow(),
@@ -178,6 +179,7 @@ void DemoBatchSolve::addIndexDirectory()
     QString fileURL = QFileDialog::getExistingDirectory(nullptr, "Select Index Directory", indexFileDirectories.at(0));
     if (fileURL.isEmpty())
         return;
+    indexFileDirectories.append(fileURL);
     ui->indexDirectories->addItem(fileURL);
 }
 
