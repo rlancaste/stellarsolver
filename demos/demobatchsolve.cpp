@@ -418,6 +418,7 @@ void DemoBatchSolve::saveImage()
     if(outputDirInfo.exists())
     {
         QString savePath = outputDirInfo.absoluteFilePath() + QDir::separator() + QFileInfo(currentImage->fileName).baseName() + "_solved.fits";
+        logOutput("Saving solved image to: " + savePath);
         fileio imageSaver;
         imageSaver.logToSignal = false;
         //connect(&imageSaver, &fileio::logOutput, this, &DemoBatchSolve::logOutput);
@@ -438,6 +439,7 @@ void DemoBatchSolve::saveStarList()
     if(outputDirInfo.exists())
     {
         QString savePath = outputDirInfo.absoluteFilePath() + QDir::separator() + QFileInfo(currentImage->fileName).baseName() + "_extracted.csv";
+        logOutput("Saving starList to: " + savePath);
         fileio imageSaver;
         imageSaver.logToSignal = true;
         connect(&imageSaver, &fileio::logOutput, this, &DemoBatchSolve::logOutput);
