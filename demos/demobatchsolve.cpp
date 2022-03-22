@@ -76,7 +76,7 @@ void DemoBatchSolve::addImages()
         loadImage(i);
         clearCurrentImageAndBuffer();
         int row = ui->imagesList->rowCount();
-        QString name = QFileInfo(newImage.fileName).baseName();
+        QString name = QFileInfo(newImage.fileName).fileName();
         ui->imagesList->insertRow(row);
         ui->imagesList->setItem(row, 0, new QTableWidgetItem(name));
         ui->imagesList->setItem(row, 1, new QTableWidgetItem(""));
