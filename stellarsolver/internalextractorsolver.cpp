@@ -298,8 +298,8 @@ int InternalExtractorSolver::runSEPExtractor()
     // on the edge of a partition. If the max-star size is given very large, we limit the size of the margin
     // used to 50 (e.g. corresponding to a 100-pixel-wide star).
     int DEFAULT_MARGIN = m_ActiveParameters.maxSize / 2;
-    if (DEFAULT_MARGIN <= 0)
-      DEFAULT_MARGIN = 10;
+    if (DEFAULT_MARGIN <= 20)
+      DEFAULT_MARGIN = 20;
     else if (DEFAULT_MARGIN > 50)
       DEFAULT_MARGIN = 50;
 
