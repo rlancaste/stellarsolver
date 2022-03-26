@@ -734,7 +734,9 @@ bool fileio::parseHeader()
         m_HeaderRecords.append(oneRecord);
     }
 
+#ifndef _WIN32 //This prevents a crash on windows. This should be fixed since the header should be freed!
     free(header);
+#endif
 
     return true;
 }
