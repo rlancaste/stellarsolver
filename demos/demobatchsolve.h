@@ -67,7 +67,7 @@ public slots:
     void startProcessing();
     void abortProcessing();
 
-    void clearCurrentImageAndBuffer();
+    void clearCurrentImageBuffer();
     void processImage(int num);
     void solveImage();
     void solverComplete();

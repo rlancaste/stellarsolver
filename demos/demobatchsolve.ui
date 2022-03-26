@@ -194,7 +194,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>319</width>
+           <width>336</width>
            <height>68</height>
           </rect>
          </property>
@@ -234,7 +234,7 @@
               <string>Starts the Image processing loop including Solving and star extraction of all items in the imageList.  Note that it will skip star extraction and solving for any images that it has already been done for.  If you have selected to save the results, it will do that for all the images, even the ones that have already been processed.</string>
              </property>
              <property name="text">
-              <string>Process Images</string>
+              <string>Process Unsolved Images</string>
              </property>
             </widget>
            </item>

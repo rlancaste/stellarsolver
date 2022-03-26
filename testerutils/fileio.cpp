@@ -9,8 +9,24 @@ fileio::fileio()
     debayerParams.offsetX = debayerParams.offsetY = 0;
 }
 
+fileio::~fileio()
+{
+    if(m_ImageBuffer && !imageBufferTaken)
+        deleteImageBuffer();
+}
+
+void fileio::deleteImageBuffer()
+{
+    if(m_ImageBuffer)
+    {
+        delete[] m_ImageBuffer;
+        m_ImageBuffer = nullptr;
+    }
+}
+
 bool fileio::loadImage(QString fileName)
 {
+    justLoadBuffer = false;
     QFileInfo newFileInfo(fileName);
     bool success = false;
     if(newFileInfo.suffix() == "fits" || newFileInfo.suffix() == "fit")
@@ -19,6 +35,19 @@ bool fileio::loadImage(QString fileName)
         success = loadOtherFormat(fileName);
     if(success)
         generateQImage();
+    return success;
+}
+
+bool fileio::loadImageBufferOnly(QString fileName)
+{
+    justLoadBuffer = true;
+    QFileInfo newFileInfo(fileName);
+    bool success = false;
+    if(newFileInfo.suffix() == "fits" || newFileInfo.suffix() == "fit")
+        success = loadFits(fileName);
+    else
+        success = loadOtherFormat(fileName);
+
     return success;
 }
 
@@ -118,8 +147,7 @@ bool fileio::loadFits(QString fileName)
     stats.samples_per_channel = stats.width * stats.height;
 
     m_ImageBufferSize = stats.samples_per_channel * stats.channels * static_cast<uint16_t>(stats.bytesPerPixel);
-    if(m_ImageBuffer)
-        delete[] m_ImageBuffer;
+    deleteImageBuffer();
     m_ImageBuffer = new uint8_t[m_ImageBufferSize];
     if (m_ImageBuffer == nullptr)
     {
@@ -137,12 +165,15 @@ bool fileio::loadFits(QString fileName)
         return false;
     }
 
-    if(checkDebayer())
-        debayer();
+    if( !justLoadBuffer )
+    {
+        if(checkDebayer())
+            debayer();
 
-    getSolverOptionsFromFITS();
+        getSolverOptionsFromFITS();
 
-    parseHeader();
+        parseHeader();
+    }
 
     fits_close_file(fptr, &status);
 
@@ -222,8 +253,7 @@ bool fileio::loadOtherFormat(QString fileName)
     stats.ndim = 3;
     stats.samples_per_channel = stats.width * stats.height;
     m_ImageBufferSize = stats.samples_per_channel * stats.channels * static_cast<uint16_t>(stats.bytesPerPixel);
-    if(m_ImageBuffer)
-        delete[] m_ImageBuffer;
+    deleteImageBuffer();
     m_ImageBuffer = new uint8_t[m_ImageBufferSize];
     if (m_ImageBuffer == nullptr)
     {
@@ -572,8 +602,8 @@ bool fileio::getSolverOptionsFromFITS()
     // instead of calculating it from FOCAL length and other information
     if (fits_read_key(fptr, TDOUBLE, "SCALE", &pixelScale, comment, &status) == 0)
     {
-        double fov_low  = 0.9 * pixelScale;
-        double fov_high = 1.1 * pixelScale;
+        double fov_low  = 0.8 * pixelScale;
+        double fov_high = 1.2 * pixelScale;
 
         scale_given = true;
         scale_low = fov_low;
@@ -955,4 +985,11 @@ void fileio::logIssue(QString message){
     else
         printf("%s", message.toUtf8().data());
 }
+
+uint8_t *fileio::getImageBuffer()
+{
+    imageBufferTaken = true;
+    return m_ImageBuffer;
+}
+
 

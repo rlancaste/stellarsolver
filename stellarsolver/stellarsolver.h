@@ -633,10 +633,10 @@ class StellarSolver : public QObject
         short solutionHealpix = -1;                 // This is the healpix of the index used to solve the image.
 
     // Logging Settings for Astrometry
-        bool m_LogToFile {false};             //This determines whether or not to save the output from Astrometry.net to a file
-        QString m_LogFileName;                //This is the path to the log file that it will save.
-        logging_level m_AstrometryLogLevel {LOG_NONE};   //This is the level of astrometry logging.  Beware, setting this too high can severely affect performance
-        SSolverLogLevel m_SSLogLevel {LOG_NORMAL};   //This is the level for the StellarSolver Logging
+        bool m_LogToFile {false};                       //This determines whether or not to save the output from Astrometry.net to a file
+        QString m_LogFileName;                          //This is the path to the log file that it will save.
+        logging_level m_AstrometryLogLevel {LOG_NONE};  //This is the level of astrometry logging.  Beware, setting this too high can severely affect performance
+        SSolverLogLevel m_SSLogLevel {LOG_NORMAL};      //This is the level for the StellarSolver Logging
 
     // These are for creating temporary files
         //This is the base name used for all temporary files.  It uses a random name based on the type of solver/star extractor.

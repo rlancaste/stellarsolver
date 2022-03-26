@@ -74,7 +74,6 @@ void DemoBatchSolve::addImages()
         newImage.fileName=fileURLs.at(i);
         images.append(newImage);
         loadImage(i);
-        clearCurrentImageAndBuffer();
         int row = ui->imagesList->rowCount();
         QString name = QFileInfo(newImage.fileName).fileName();
         ui->imagesList->insertRow(row);
@@ -91,7 +90,7 @@ void DemoBatchSolve::resetImages()
 {
     for(int i = 0; i < images.count(); i++)
     {
-        Image image = images.at(i);
+        Image &image = images[i];
         image.hasExtracted = false;
         image.hasSolved = false;
         image.hasWCSData = false;
@@ -110,6 +109,7 @@ void DemoBatchSolve::removeAllImages()
 {
     while(images.count() > 0)
         removeImage(0);
+    ui->imageDisplay->clear();
 }
 
 void DemoBatchSolve::removeSelectedImage()
@@ -119,7 +119,7 @@ void DemoBatchSolve::removeSelectedImage()
 
 void DemoBatchSolve::removeImage(int index)
 {
-    Image image = images.at(index);
+    Image &image = images[index];
     if(image.m_ImageBuffer)
         delete[] image.m_ImageBuffer;
     if(image.searchPosition)
@@ -132,26 +132,24 @@ void DemoBatchSolve::removeImage(int index)
 
 void DemoBatchSolve::loadImage(int num)
 {
-    clearCurrentImageAndBuffer();
     fileio imageLoader;
     imageLoader.logToSignal = true;
     connect(&imageLoader, &fileio::logOutput, this, &DemoBatchSolve::logOutput);
-    currentImageNum = num;
-    currentImage = &images[currentImageNum];
-    if(!imageLoader.loadImage(currentImage->fileName))
+    Image &image = images[num];
+    if(!imageLoader.loadImage(image.fileName))
     {
         logOutput("Error in loading image file");
         return;
     }
-    currentImage->stats = imageLoader.getStats();
-    currentImage->m_ImageBuffer = imageLoader.getImageBuffer();
-    currentImage->rawImage = imageLoader.getRawQImage();
+    image.stats = imageLoader.getStats();
+    //No need to get the imageBuffer now.
+    image.rawImage = imageLoader.getRawQImage();
     if(imageLoader.position_given)
     {
         FITSImage::wcs_point *position = new FITSImage::wcs_point;
         position->ra = imageLoader.ra;
         position->dec = imageLoader.dec;
-        currentImage->searchPosition = position;
+        image.searchPosition = position;
     }
     if(imageLoader.scale_given)
     {
@@ -159,14 +157,18 @@ void DemoBatchSolve::loadImage(int num)
         scale->scale_low = imageLoader.scale_low;
         scale->scale_high = imageLoader.scale_high;
         scale->scale_units = imageLoader.scale_units;
-        currentImage->searchScale = scale;
+        image.searchScale = scale;
     }
-    currentImage->m_HeaderRecords = imageLoader.getRecords();
-
+    image.m_HeaderRecords = imageLoader.getRecords();
 }
 
 void DemoBatchSolve::displayImage()
 {
+    if(images.count() == 0)
+    {
+         ui->imageDisplay->clear();
+         return;
+    }
     int num = ui->imagesList->currentRow();
     if(currentRow == num)
         return;
@@ -247,22 +249,37 @@ void DemoBatchSolve::abortProcessing()
     ui->processProgress->setValue(0);
 }
 
-void DemoBatchSolve::clearCurrentImageAndBuffer()
+void DemoBatchSolve::clearCurrentImageBuffer()
 {
     if(currentImage && currentImage->m_ImageBuffer)
     {
         delete[] currentImage->m_ImageBuffer;
         currentImage->m_ImageBuffer = nullptr;
-        currentImage = nullptr;
     }
 }
 
 void DemoBatchSolve::processImage(int num)
 {
-    clearCurrentImageAndBuffer();
     currentImageNum = num;
     currentImage = &images[currentImageNum];
-    loadImage(num);
+    if(currentImage->hasSolved && currentImage->hasExtracted)
+    {
+        currentProgress += 2;
+        ui->processProgress->setValue(currentProgress);
+        finishProcessing();
+        return;
+    }
+    clearCurrentImageBuffer();
+    fileio imageLoader;
+    imageLoader.logToSignal = true;
+    connect(&imageLoader, &fileio::logOutput, this, &DemoBatchSolve::logOutput);
+
+    if(!imageLoader.loadImageBufferOnly(currentImage->fileName))
+    {
+        logOutput("Error in loading image file");
+        return;
+    }
+    currentImage->m_ImageBuffer = imageLoader.getImageBuffer();
     stellarSolver.loadNewImageBuffer(currentImage->stats, currentImage->m_ImageBuffer);
 
     solvingBlind = false;
@@ -272,16 +289,8 @@ void DemoBatchSolve::processImage(int num)
 void DemoBatchSolve::solveImage()
 {
     if(!currentImage || !currentImage->m_ImageBuffer)
-    {
         return;
-    }
-    if(currentImage->hasSolved)
-    {
-        currentProgress++;
-        ui->processProgress->setValue(currentProgress);
-        extractImage();
-        return;
-    }
+
     stellarSolver.setProperty("ProcessType", SSolver::SOLVE);
     stellarSolver.setParameterProfile((SSolver::Parameters::ParametersProfile) ui->solveProfile->currentIndex());
     stellarSolver.setIndexFolderPaths(indexFileDirectories);
@@ -305,15 +314,14 @@ void DemoBatchSolve::solveImage()
 void DemoBatchSolve::solverComplete()
 {
     if(!currentImage || !currentImage->m_ImageBuffer)
-    {
         return;
-    }
     disconnect(&stellarSolver, &StellarSolver::finished, this, &DemoBatchSolve::solverComplete);
     if(aborted)
     {
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput("Solving was Aborted");
-        clearCurrentImageAndBuffer();
+        clearCurrentImageBuffer();
+        currentImage = nullptr;
         return;
     }
     if(stellarSolver.solvingDone())
@@ -329,13 +337,14 @@ void DemoBatchSolve::solverComplete()
             ui->imagesList->item(currentImageNum,col)->setForeground(QBrush(Qt::darkGreen));
         ui->imagesList->item(currentImageNum,1)->setText(StellarSolver::raString(currentImage->solution.ra));
         ui->imagesList->item(currentImageNum,2)->setText(StellarSolver::decString(currentImage->solution.dec));
-        solvingBlind = false;
     }
     else
     {
         if(!solvingBlind && ( currentImage->searchScale || currentImage->searchPosition))
         {
+            logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
             logOutput("Solving failed with position/scale, trying again with a blind solve.");
+            logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
             solvingBlind = true;
             solveImage();
             return;
@@ -345,23 +354,14 @@ void DemoBatchSolve::solverComplete()
     }
     currentProgress++;
     ui->processProgress->setValue(currentProgress);
-
+    solvingBlind = false;
     extractImage();
 }
 
 void DemoBatchSolve::extractImage()
 {
     if(!currentImage || !currentImage->m_ImageBuffer)
-    {
         return;
-    }
-    if(currentImage->hasExtracted)
-    {
-        currentProgress++;
-        ui->processProgress->setValue(currentProgress);
-        finishProcessing();
-        return;
-    }
     if(ui->getHFR->isChecked())
         stellarSolver.setProperty("ProcessType", SSolver::EXTRACT_WITH_HFR);
     else
@@ -374,15 +374,14 @@ void DemoBatchSolve::extractImage()
 void DemoBatchSolve::extractorComplete()
 {
     if(!currentImage || !currentImage->m_ImageBuffer)
-    {
         return;
-    }
     disconnect(&stellarSolver, &StellarSolver::finished, this, &DemoBatchSolve::extractorComplete);
     if(aborted)
     {
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
         logOutput("Extraction was Aborted");
-        clearCurrentImageAndBuffer();
+        clearCurrentImageBuffer();
+        currentImage = nullptr;
         return;
     }
     if(stellarSolver.extractionDone())
@@ -403,16 +402,15 @@ void DemoBatchSolve::finishProcessing()
         saveImage();
     if(ui->saveImages->isChecked() && currentImage->hasExtracted)
         saveStarList();
-    clearCurrentImageAndBuffer();
+    clearCurrentImageBuffer();
+    currentImage = nullptr;
     processNextImage();
 }
 
 void DemoBatchSolve::saveImage()
 {
     if(!currentImage || !currentImage->m_ImageBuffer)
-    {
         return;
-    }
     QString outputDirectory = ui->outputDirectory->text();
     QFileInfo outputDirInfo = QFileInfo(outputDirectory);
     if(outputDirInfo.exists())

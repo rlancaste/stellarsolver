@@ -70,6 +70,12 @@ bool StellarSolver::loadNewImageBuffer(const FITSImage::Statistic &imagestats, u
     m_HasFailed = false;
     hasWCS = false;
     m_isRunning = false;
+    m_UsePosition = false;
+    m_SearchRA = HUGE_VAL;
+    m_SearchDE = HUGE_VAL;
+    m_UseScale = false;
+    m_ScaleHigh = 0;
+    m_ScaleLow = 0;
     qDeleteAll(parallelSolvers);
     parallelSolvers.clear();
     m_ExtractorSolver.reset();

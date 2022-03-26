@@ -35,8 +35,11 @@ public:
 
 
     fileio();
+    ~fileio();
+    void deleteImageBuffer();
     bool logToSignal = false;
     bool loadImage(QString fileName);
+    bool loadImageBufferOnly(QString fileName);
     bool loadFits(QString fileName);
     bool parseHeader();
     bool saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint8_t *m_ImageBuffer, FITSImage::Solution solution, QList<Record> &records, bool hasSolution);
@@ -56,9 +59,8 @@ public:
     double scale_high;
     SSolver::ScaleUnits scale_units;
 
-    uint8_t *getImageBuffer(){
-        return m_ImageBuffer;
-    }
+    bool imageBufferTaken = false;
+    uint8_t *getImageBuffer();
 
     FITSImage::Statistic getStats(){
         return stats;
@@ -88,6 +90,7 @@ private:
     uint8_t *m_ImageBuffer { nullptr };
     /// Above buffer size in bytes
     uint32_t m_ImageBufferSize { 0 };
+    bool justLoadBuffer = false;
     StretchParams stretchParams;
     BayerParams debayerParams;
     void logIssue(QString messsage);
