@@ -93,6 +93,18 @@
           </item>
           <item>
            <widget class="QListWidget" name="indexDirectories">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>50</height>
+             </size>
+            </property>
             <property name="toolTip">
              <string>The list of file directories to search for index files.</string>
             </property>
@@ -194,7 +206,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>336</width>
+           <width>355</width>
            <height>68</height>
           </rect>
          </property>

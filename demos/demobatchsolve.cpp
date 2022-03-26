@@ -78,9 +78,12 @@ void DemoBatchSolve::addImages()
         QString name = QFileInfo(newImage.fileName).fileName();
         ui->imagesList->insertRow(row);
         ui->imagesList->setItem(row, 0, new QTableWidgetItem(name));
-        ui->imagesList->setItem(row, 1, new QTableWidgetItem(""));
-        ui->imagesList->setItem(row, 2, new QTableWidgetItem(""));
-        ui->imagesList->setItem(row, 3, new QTableWidgetItem(""));
+        ui->imagesList->item(row, 0)->setToolTip(newImage.fileName);
+        for(int col = 1; col < 4; col++)
+        {
+            ui->imagesList->setItem(row, col, new QTableWidgetItem(""));
+            ui->imagesList->item(row, col)->setToolTip(newImage.fileName);
+        }
     }
     if(ui->imagesList->selectedItems().count() == 0)
         ui->imagesList->setCurrentCell(0,0);
@@ -97,9 +100,9 @@ void DemoBatchSolve::resetImages()
     }
     for(int row = 0; row< ui->imagesList->rowCount(); row++)
     {
-        ui->imagesList->setItem(row, 1, new QTableWidgetItem(""));
-        ui->imagesList->setItem(row, 2, new QTableWidgetItem(""));
-        ui->imagesList->setItem(row, 3, new QTableWidgetItem(""));
+        ui->imagesList->item(row, 1)->setText("");
+        ui->imagesList->item(row, 2)->setText("");
+        ui->imagesList->item(row, 3)->setText("");
         for(int col = 0; col< ui->imagesList->columnCount(); col++)
             ui->imagesList->item(row,col)->setForeground(QBrush());
     }
