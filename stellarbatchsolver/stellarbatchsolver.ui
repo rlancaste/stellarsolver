@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DemoBatchSolve</class>
- <widget class="QMainWindow" name="DemoBatchSolve">
+ <class>StellarBatchSolver</class>
+ <widget class="QMainWindow" name="StellarBatchSolver">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -298,12 +298,12 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuDemoBatchSolve">
+   <widget class="QMenu" name="menuStellarBatchSolver">
     <property name="title">
-     <string>DemoBatchSolve</string>
+     <string>StellarBatchSolver</string>
     </property>
    </widget>
-   <addaction name="menuDemoBatchSolve"/>
+   <addaction name="menuStellarBatchSolver"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>

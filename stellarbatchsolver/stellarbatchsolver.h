@@ -1,5 +1,5 @@
-#ifndef DEMOBATCHSOLVE_H
-#define DEMOBATCHSOLVE_H
+#ifndef STELLARBATCHSOLVER_H
+#define STELLARBATCHSOLVER_H
 
 #include <QMainWindow>
 #include <QApplication>
@@ -11,7 +11,7 @@
 
 namespace Ui {
 
-class DemoBatchSolve;
+class StellarBatchSolver;
 }
 
 // This is a struct with the estimated Image Scales
@@ -43,11 +43,11 @@ typedef struct Image
 
 }Image;
 
-class DemoBatchSolve : public QMainWindow
+class StellarBatchSolver : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit DemoBatchSolve();
+    explicit StellarBatchSolver();
 
 public slots:
 
@@ -80,7 +80,7 @@ public slots:
 
 
 private:
-    Ui::DemoBatchSolve *ui;
+    Ui::StellarBatchSolver *ui;
     StellarSolver stellarSolver;
     QList<Image> images;
     int currentRow = -1;
@@ -100,4 +100,4 @@ signals:
 
 };
 
-#endif // DEMOBATCHSOLVE_H
+#endif // STELLARBATCHSOLVER_H

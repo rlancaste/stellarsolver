@@ -1,0 +1,7 @@
+[Desktop Entry]
+Version=2.2
+Type=Application
+Name=StellarBatchSolver
+Exec=StellarBatchSolver
+Icon=StellarBatchSolverIcon
+Categories=Science;Astronomy

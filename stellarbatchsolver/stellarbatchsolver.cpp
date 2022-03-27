@@ -1,24 +1,24 @@
-#include "demobatchsolve.h"
-#include "ui_demobatchsolve.h"
+#include "stellarbatchsolver.h"
+#include "ui_stellarbatchsolver.h"
 #include <QFileDialog>
 #include <QTextStream>
 
-DemoBatchSolve::DemoBatchSolve():
+StellarBatchSolver::StellarBatchSolver():
     QMainWindow(),
-    ui(new Ui::DemoBatchSolve)
+    ui(new Ui::StellarBatchSolver)
 {
     ui->setupUi(this);
-    connect(ui->loadB, &QPushButton::clicked, this, &DemoBatchSolve::addImages);
-    connect(ui->clearImagesB, &QPushButton::clicked, this, &DemoBatchSolve::removeAllImages);
-    connect(ui->deleteImageB, &QPushButton::clicked, this, &DemoBatchSolve::removeSelectedImage);
-    connect(ui->resetB, &QPushButton::clicked, this, &DemoBatchSolve::resetImages);
-    connect(ui->selectIndexes, &QPushButton::clicked, this, &DemoBatchSolve::addIndexDirectory);
-    connect(ui->selectOutputDir, &QPushButton::clicked, this, &DemoBatchSolve::selectOutputDirectory);
-    connect(ui->processB, &QPushButton::clicked, this, &DemoBatchSolve::startProcessing);
-    connect(ui->abortB, &QPushButton::clicked, this, &DemoBatchSolve::abortProcessing);
-    connect(ui->clearB, &QPushButton::clicked, this, &DemoBatchSolve::clearLog);
-    connect(&stellarSolver, &StellarSolver::logOutput, this, &DemoBatchSolve::logOutput);
-    connect(ui->imagesList,&QTableWidget::itemSelectionChanged, this, &DemoBatchSolve::displayImage);
+    connect(ui->loadB, &QPushButton::clicked, this, &StellarBatchSolver::addImages);
+    connect(ui->clearImagesB, &QPushButton::clicked, this, &StellarBatchSolver::removeAllImages);
+    connect(ui->deleteImageB, &QPushButton::clicked, this, &StellarBatchSolver::removeSelectedImage);
+    connect(ui->resetB, &QPushButton::clicked, this, &StellarBatchSolver::resetImages);
+    connect(ui->selectIndexes, &QPushButton::clicked, this, &StellarBatchSolver::addIndexDirectory);
+    connect(ui->selectOutputDir, &QPushButton::clicked, this, &StellarBatchSolver::selectOutputDirectory);
+    connect(ui->processB, &QPushButton::clicked, this, &StellarBatchSolver::startProcessing);
+    connect(ui->abortB, &QPushButton::clicked, this, &StellarBatchSolver::abortProcessing);
+    connect(ui->clearB, &QPushButton::clicked, this, &StellarBatchSolver::clearLog);
+    connect(&stellarSolver, &StellarSolver::logOutput, this, &StellarBatchSolver::logOutput);
+    connect(ui->imagesList,&QTableWidget::itemSelectionChanged, this, &StellarBatchSolver::displayImage);
 
     ui->indexDirectories->addItems(indexFileDirectories);
 
@@ -39,7 +39,7 @@ DemoBatchSolve::DemoBatchSolve():
     ui->solveProfile->setCurrentIndex(3);
     ui->extractProfile->setCurrentIndex(4);
 
-    this->setWindowTitle("StellarSolver Batch Solver Demo");
+    this->setWindowTitle("StellarSolver Batch Solver Program");
     this->show();
     ui->horSplitter->setSizes(QList<int>() << 100 << ui->horSplitter->width() / 2  << 0 );
     ui->verSplitter->setSizes(QList<int>() << ui->verSplitter->height() / 2  << ui->verSplitter->height() / 2 );
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 #if defined(__linux__)
     setlocale(LC_NUMERIC, "C");
 #endif
-    DemoBatchSolve *win = new DemoBatchSolve();
+    StellarBatchSolver *win = new StellarBatchSolver();
     app.exec();
 
     delete win;
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void DemoBatchSolve::addImages()
+void StellarBatchSolver::addImages()
 {
     QStringList fileURLs = QFileDialog::getOpenFileNames(nullptr, "Load Image", dirPath,
                       "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.png *.tif *.tiff)");
@@ -89,7 +89,7 @@ void DemoBatchSolve::addImages()
         ui->imagesList->setCurrentCell(0,0);
 }
 
-void DemoBatchSolve::resetImages()
+void StellarBatchSolver::resetImages()
 {
     for(int i = 0; i < images.count(); i++)
     {
@@ -108,19 +108,19 @@ void DemoBatchSolve::resetImages()
     }
 }
 
-void DemoBatchSolve::removeAllImages()
+void StellarBatchSolver::removeAllImages()
 {
     while(images.count() > 0)
         removeImage(0);
     ui->imageDisplay->clear();
 }
 
-void DemoBatchSolve::removeSelectedImage()
+void StellarBatchSolver::removeSelectedImage()
 {
     removeImage(ui->imagesList->currentRow());
 }
 
-void DemoBatchSolve::removeImage(int index)
+void StellarBatchSolver::removeImage(int index)
 {
     Image &image = images[index];
     if(image.m_ImageBuffer)
@@ -133,11 +133,11 @@ void DemoBatchSolve::removeImage(int index)
     ui->imagesList->removeRow(index);
 }
 
-void DemoBatchSolve::loadImage(int num)
+void StellarBatchSolver::loadImage(int num)
 {
     fileio imageLoader;
     imageLoader.logToSignal = true;
-    connect(&imageLoader, &fileio::logOutput, this, &DemoBatchSolve::logOutput);
+    connect(&imageLoader, &fileio::logOutput, this, &StellarBatchSolver::logOutput);
     Image &image = images[num];
     if(!imageLoader.loadImage(image.fileName))
     {
@@ -165,7 +165,7 @@ void DemoBatchSolve::loadImage(int num)
     image.m_HeaderRecords = imageLoader.getRecords();
 }
 
-void DemoBatchSolve::displayImage()
+void StellarBatchSolver::displayImage()
 {
     if(images.count() == 0)
     {
@@ -199,7 +199,7 @@ void DemoBatchSolve::displayImage()
     ui->imageDisplay->setFixedSize(renderedImage.size());
 }
 
-void DemoBatchSolve::addIndexDirectory()
+void StellarBatchSolver::addIndexDirectory()
 {
     QString dir = "";
     if(indexFileDirectories.count() > 0)
@@ -211,7 +211,7 @@ void DemoBatchSolve::addIndexDirectory()
     ui->indexDirectories->addItem(fileURL);
 }
 
-void DemoBatchSolve::selectOutputDirectory()
+void StellarBatchSolver::selectOutputDirectory()
 {
     QString fileURL = QFileDialog::getExistingDirectory(nullptr, "Select Output Directory", outputDirectory);
     if (fileURL.isEmpty())
@@ -219,17 +219,17 @@ void DemoBatchSolve::selectOutputDirectory()
     ui->outputDirectory->setText(fileURL);
 }
 
-void DemoBatchSolve::logOutput(QString text)
+void StellarBatchSolver::logOutput(QString text)
 {
     ui->logDisplay->appendPlainText(text);
 }
 
-void DemoBatchSolve::clearLog()
+void StellarBatchSolver::clearLog()
 {
     ui->logDisplay->clear();
 }
 
-void DemoBatchSolve::startProcessing()
+void StellarBatchSolver::startProcessing()
 {
     if(images.count() == 0)
     {
@@ -245,14 +245,14 @@ void DemoBatchSolve::startProcessing()
     processImage(currentImageNum);
 }
 
-void DemoBatchSolve::abortProcessing()
+void StellarBatchSolver::abortProcessing()
 {
     aborted = true;
     stellarSolver.abort();
     ui->processProgress->setValue(0);
 }
 
-void DemoBatchSolve::clearCurrentImageBuffer()
+void StellarBatchSolver::clearCurrentImageBuffer()
 {
     if(currentImage && currentImage->m_ImageBuffer)
     {
@@ -261,7 +261,7 @@ void DemoBatchSolve::clearCurrentImageBuffer()
     }
 }
 
-void DemoBatchSolve::processImage(int num)
+void StellarBatchSolver::processImage(int num)
 {
     currentImageNum = num;
     currentImage = &images[currentImageNum];
@@ -275,7 +275,7 @@ void DemoBatchSolve::processImage(int num)
     clearCurrentImageBuffer();
     fileio imageLoader;
     imageLoader.logToSignal = true;
-    connect(&imageLoader, &fileio::logOutput, this, &DemoBatchSolve::logOutput);
+    connect(&imageLoader, &fileio::logOutput, this, &StellarBatchSolver::logOutput);
 
     if(!imageLoader.loadImageBufferOnly(currentImage->fileName))
     {
@@ -289,7 +289,7 @@ void DemoBatchSolve::processImage(int num)
     solveImage();
 }
 
-void DemoBatchSolve::solveImage()
+void StellarBatchSolver::solveImage()
 {
     if(!currentImage || !currentImage->m_ImageBuffer)
         return;
@@ -310,15 +310,15 @@ void DemoBatchSolve::solveImage()
         if(currentImage->searchScale)
             stellarSolver.setSearchScale(currentImage->searchScale->scale_low, currentImage->searchScale->scale_high, currentImage->searchScale->scale_units);
     }
-    connect(&stellarSolver, &StellarSolver::finished, this, &DemoBatchSolve::solverComplete);
+    connect(&stellarSolver, &StellarSolver::finished, this, &StellarBatchSolver::solverComplete);
     stellarSolver.start();
 }
 
-void DemoBatchSolve::solverComplete()
+void StellarBatchSolver::solverComplete()
 {
     if(!currentImage || !currentImage->m_ImageBuffer)
         return;
-    disconnect(&stellarSolver, &StellarSolver::finished, this, &DemoBatchSolve::solverComplete);
+    disconnect(&stellarSolver, &StellarSolver::finished, this, &StellarBatchSolver::solverComplete);
     if(aborted)
     {
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -361,7 +361,7 @@ void DemoBatchSolve::solverComplete()
     extractImage();
 }
 
-void DemoBatchSolve::extractImage()
+void StellarBatchSolver::extractImage()
 {
     if(!currentImage || !currentImage->m_ImageBuffer)
         return;
@@ -370,15 +370,15 @@ void DemoBatchSolve::extractImage()
     else
         stellarSolver.setProperty("ProcessType", SSolver::EXTRACT);
     stellarSolver.setParameterProfile((SSolver::Parameters::ParametersProfile) ui->extractProfile->currentIndex());
-    connect(&stellarSolver, &StellarSolver::finished, this, &DemoBatchSolve::extractorComplete);
+    connect(&stellarSolver, &StellarSolver::finished, this, &StellarBatchSolver::extractorComplete);
     stellarSolver.start();
 }
 
-void DemoBatchSolve::extractorComplete()
+void StellarBatchSolver::extractorComplete()
 {
     if(!currentImage || !currentImage->m_ImageBuffer)
         return;
-    disconnect(&stellarSolver, &StellarSolver::finished, this, &DemoBatchSolve::extractorComplete);
+    disconnect(&stellarSolver, &StellarSolver::finished, this, &StellarBatchSolver::extractorComplete);
     if(aborted)
     {
         logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -399,7 +399,7 @@ void DemoBatchSolve::extractorComplete()
     finishProcessing();
 }
 
-void DemoBatchSolve::finishProcessing()
+void StellarBatchSolver::finishProcessing()
 {
     if(ui->saveImages->isChecked() && currentImage->hasSolved)
         saveImage();
@@ -410,7 +410,7 @@ void DemoBatchSolve::finishProcessing()
     processNextImage();
 }
 
-void DemoBatchSolve::saveImage()
+void StellarBatchSolver::saveImage()
 {
     if(!currentImage || !currentImage->m_ImageBuffer)
         return;
@@ -422,7 +422,7 @@ void DemoBatchSolve::saveImage()
         logOutput("Saving solved image to: " + savePath);
         fileio imageSaver;
         imageSaver.logToSignal = false;
-        //connect(&imageSaver, &fileio::logOutput, this, &DemoBatchSolve::logOutput);
+        //connect(&imageSaver, &fileio::logOutput, this, &StellarBatchSolver::logOutput);
         if(currentImage->hasWCSData)
             imageSaver.saveAsFITS(savePath, currentImage->stats, currentImage->m_ImageBuffer, stellarSolver.getSolution(), currentImage->m_HeaderRecords, true);
         else
@@ -433,7 +433,7 @@ void DemoBatchSolve::saveImage()
         logOutput("File output directory does not exist, output files were not written.");
 }
 
-void DemoBatchSolve::saveStarList()
+void StellarBatchSolver::saveStarList()
 {
     QString outputDirectory = ui->outputDirectory->text();
     QFileInfo outputDirInfo = QFileInfo(outputDirectory);
@@ -443,7 +443,7 @@ void DemoBatchSolve::saveStarList()
         logOutput("Saving starList to: " + savePath);
         fileio imageSaver;
         imageSaver.logToSignal = true;
-        connect(&imageSaver, &fileio::logOutput, this, &DemoBatchSolve::logOutput);
+        connect(&imageSaver, &fileio::logOutput, this, &StellarBatchSolver::logOutput);
 
         QFile file;
         file.setFileName(savePath);
@@ -501,7 +501,7 @@ void DemoBatchSolve::saveStarList()
     }
 }
 
-void DemoBatchSolve::processNextImage()
+void StellarBatchSolver::processNextImage()
 {
     if(currentImageNum < images.count() - 1)
         processImage(currentImageNum + 1);

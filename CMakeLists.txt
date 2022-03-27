@@ -89,6 +89,7 @@ file(APPEND "${config_FN}" "#define HAVE_NETPBM 0")
 
 option(BUILD_TESTER "Build stellarsolver tester program, instead of just the library" Off)
 option(BUILD_DEMOS "Build stellarsolver basic demonstration programs, instead of just the library" Off)
+option(BUILD_BATCH_SOLVER "Build stellarsolver batch solver program, instead of just the library" Off)
 
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
@@ -398,7 +399,6 @@ if(BUILD_DEMOS)
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
-        #Qt5::Gui
         Qt5::Widgets
         Qt5::Core
         Qt5::Network
@@ -426,12 +426,6 @@ if(BUILD_DEMOS)
     add_executable(DemoMultipleSolves ${CMAKE_CURRENT_SOURCE_DIR}/demos/demomultiplesolves.cpp)
     target_link_libraries(DemoMultipleSolves StellarSolverDemosLib)
 
-    qt5_wrap_ui(DemoBatchSolveui_SRCS
-        ${CMAKE_CURRENT_SOURCE_DIR}/demos/demobatchsolve.ui
-        )
-    add_executable(DemoBatchSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demobatchsolve.cpp ${DemoBatchSolveui_SRCS})
-    target_link_libraries(DemoBatchSolve StellarSolverDemosLib)
-
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/pleiades.jpg" DESTINATION "${CMAKE_BINARY_DIR}/")
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/randomsky.fits" DESTINATION "${CMAKE_BINARY_DIR}/")
     # Note: These are the index files that solve the above images best.
@@ -443,7 +437,63 @@ if(BUILD_DEMOS)
     endif(NOT EXISTS "${CMAKE_BINARY_DIR}/astrometry/")
 
 endif(BUILD_DEMOS)
+#########################################################################################
+## Stellar Solver Batch Solver Program
+#########################################################################################
+if(BUILD_BATCH_SOLVER)
+    set(StellarBatchSolver_SRCS
+         ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/stellarbatchsolver.cpp
+         ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/resources.qrc
+        )
 
+    qt5_wrap_ui(StellarBatchSolverui_SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/stellarbatchsolver.ui
+        )
+
+    if(APPLE)
+    set(MACOSX_BUNDLE_ICON_FILE StellarBatchSolverIcon.icns)
+    set(StellarBatchSolver_ICON ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/StellarBatchSolverIcon.icns)
+    set_source_files_properties(${StellarBatchSolver_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    endif(APPLE)
+
+    if(WIN32)
+    set(StellarBatchSolver_ICON ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/windowsicon.rc)
+    endif(WIN32)
+    add_executable(StellarBatchSolver ${StellarBatchSolver_SRCS} ${StellarBatchSolverui_SRCS})
+    target_link_libraries(StellarBatchSolver
+        stellarsolver
+        TesterUtilsLib
+        ${CFITSIO_LIBRARIES}
+        ${GSL_LIBRARIES}
+        ${WCSLIB_LIBRARIES}
+        Qt5::Widgets
+        Qt5::Core
+        Qt5::Network
+        Qt5::Concurrent
+        )
+
+    if(WIN32)
+        target_link_libraries(StellarBatchSolver wsock32 ${Boost_LIBRARIES})
+    endif(WIN32)
+
+    if(APPLE)
+    install(TARGETS StellarBatchSolver
+        BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
+        )
+    else(APPLE)
+            #installation for Linux and Windows
+            install(TARGETS StellarBatchSolver RUNTIME DESTINATION bin)
+            install(DIRECTORY stellarbatchsolver/icons
+                    DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
+        if(WIN32)
+        else(WIN32)
+            #Desktop file for Linux
+            install(FILES stellarbatchsolver/com.github.rlancaste.stellarbatchsolver.desktop
+                    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+        endif(WIN32)
+    endif(APPLE)
+endif(BUILD_BATCH_SOLVER)
 #########################################################################################
 # Generate Package Config Files
 #########################################################################################
