@@ -13,7 +13,7 @@
 #include "stellarsolver.h"
 #include "externalextractorsolver.h"
 #include "onlinesolver.h"
-#include "testerutils/fileio.h"
+#include "ssolverutils/fileio.h"
 
 //system includes
 #include "math.h"
@@ -44,10 +44,10 @@
 #include "fitsio.h"
 
 //KStars related includes
-#include "testerutils/stretch.h"
+#include "ssolverutils/stretch.h"
 #include "math.h"
-#include "testerutils/dms.h"
-#include "testerutils/bayer.h"
+#include "ssolverutils/dms.h"
+#include "ssolverutils/bayer.h"
 
 //Astrometry.net includes
 extern "C"{

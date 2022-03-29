@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QApplication>
 #include "structuredefinitions.h"
-#include "testerutils/fileio.h"
+#include "ssolverutils/fileio.h"
 #include "stellarsolver.h"
 #include "wcsdata.h"
 #include <QDir>

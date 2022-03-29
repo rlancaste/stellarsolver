@@ -300,15 +300,15 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver.pc.cmake ${CMAKE_CURREN
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc DESTINATION ${PKGCONFIG_INSTALL_PREFIX})
 
 if(BUILD_TESTER OR BUILD_DEMOS)
-    set(TesterUtilsLib_SRCS
-        ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/fileio.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/imagelabel.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/stretch.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/bayer.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/testerutils/dms.cpp
+    set(SSolverUtilsLib_SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/ssolverutils/fileio.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ssolverutils/imagelabel.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ssolverutils/stretch.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ssolverutils/bayer.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/ssolverutils/dms.cpp
         )
-    add_library(TesterUtilsLib STATIC ${TesterUtilsLib_SRCS})
-    target_link_libraries(TesterUtilsLib
+    add_library(SSolverUtilsLib STATIC ${SSolverUtilsLib_SRCS})
+    target_link_libraries(SSolverUtilsLib
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
@@ -353,7 +353,7 @@ endif(APPLE)
 
 target_link_libraries(StellarSolverTester
     stellarsolver
-    TesterUtilsLib
+    SSolverUtilsLib
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
     ${WCSLIB_LIBRARIES}
@@ -387,6 +387,69 @@ else(APPLE)
 endif(APPLE)
 
 endif(BUILD_TESTER)
+#########################################################################################
+## Stellar Solver Batch Solver Program
+#########################################################################################
+if(BUILD_BATCH_SOLVER)
+    set(StellarBatchSolver_SRCS
+         ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/stellarbatchsolver.cpp
+         ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/resources.qrc
+        )
+
+    qt5_wrap_ui(StellarBatchSolverui_SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/stellarbatchsolver.ui
+        )
+
+    if(APPLE)
+    set(MACOSX_BUNDLE_ICON_FILE StellarBatchSolverIcon.icns)
+    set(StellarBatchSolver_ICON ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/StellarBatchSolverIcon.icns)
+    set_source_files_properties(${StellarBatchSolver_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    endif(APPLE)
+
+    if(WIN32)
+    set(StellarBatchSolver_ICON ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/windowsicon.rc)
+    endif(WIN32)
+
+    add_executable(StellarBatchSolver ${StellarBatchSolver_SRCS} ${StellarBatchSolverui_SRCS} ${StellarBatchSolver_ICON})
+
+    if(APPLE)
+        SET_TARGET_PROPERTIES(StellarBatchSolver PROPERTIES MACOSX_BUNDLE TRUE)
+    endif(APPLE)
+
+    target_link_libraries(StellarBatchSolver
+        stellarsolver
+        SSolverUtilsLib
+        ${CFITSIO_LIBRARIES}
+        ${GSL_LIBRARIES}
+        ${WCSLIB_LIBRARIES}
+        Qt5::Widgets
+        Qt5::Core
+        Qt5::Network
+        Qt5::Concurrent
+        )
+
+    if(WIN32)
+        target_link_libraries(StellarBatchSolver wsock32 ${Boost_LIBRARIES})
+    endif(WIN32)
+
+    if(APPLE)
+    install(TARGETS StellarBatchSolver
+        BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
+        )
+    else(APPLE)
+            #installation for Linux and Windows
+            install(TARGETS StellarBatchSolver RUNTIME DESTINATION bin)
+            install(DIRECTORY stellarbatchsolver/icons
+                    DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
+        if(WIN32)
+        else(WIN32)
+            #Desktop file for Linux
+            install(FILES stellarbatchsolver/com.github.rlancaste.stellarbatchsolver.desktop
+                    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+        endif(WIN32)
+    endif(APPLE)
+endif(BUILD_BATCH_SOLVER)
 
 #########################################################################################
 ## Stellar Solver Basic Demonstration Programs
@@ -395,7 +458,7 @@ if(BUILD_DEMOS)
     add_library(StellarSolverDemosLib STATIC)
     target_link_libraries(StellarSolverDemosLib
         stellarsolver
-        TesterUtilsLib
+        SSolverUtilsLib
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
@@ -437,63 +500,7 @@ if(BUILD_DEMOS)
     endif(NOT EXISTS "${CMAKE_BINARY_DIR}/astrometry/")
 
 endif(BUILD_DEMOS)
-#########################################################################################
-## Stellar Solver Batch Solver Program
-#########################################################################################
-if(BUILD_BATCH_SOLVER)
-    set(StellarBatchSolver_SRCS
-         ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/stellarbatchsolver.cpp
-         ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/resources.qrc
-        )
 
-    qt5_wrap_ui(StellarBatchSolverui_SRCS
-        ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/stellarbatchsolver.ui
-        )
-
-    if(APPLE)
-    set(MACOSX_BUNDLE_ICON_FILE StellarBatchSolverIcon.icns)
-    set(StellarBatchSolver_ICON ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/StellarBatchSolverIcon.icns)
-    set_source_files_properties(${StellarBatchSolver_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-    endif(APPLE)
-
-    if(WIN32)
-    set(StellarBatchSolver_ICON ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/windowsicon.rc)
-    endif(WIN32)
-    add_executable(StellarBatchSolver ${StellarBatchSolver_SRCS} ${StellarBatchSolverui_SRCS})
-    target_link_libraries(StellarBatchSolver
-        stellarsolver
-        TesterUtilsLib
-        ${CFITSIO_LIBRARIES}
-        ${GSL_LIBRARIES}
-        ${WCSLIB_LIBRARIES}
-        Qt5::Widgets
-        Qt5::Core
-        Qt5::Network
-        Qt5::Concurrent
-        )
-
-    if(WIN32)
-        target_link_libraries(StellarBatchSolver wsock32 ${Boost_LIBRARIES})
-    endif(WIN32)
-
-    if(APPLE)
-    install(TARGETS StellarBatchSolver
-        BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
-        )
-    else(APPLE)
-            #installation for Linux and Windows
-            install(TARGETS StellarBatchSolver RUNTIME DESTINATION bin)
-            install(DIRECTORY stellarbatchsolver/icons
-                    DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
-        if(WIN32)
-        else(WIN32)
-            #Desktop file for Linux
-            install(FILES stellarbatchsolver/com.github.rlancaste.stellarbatchsolver.desktop
-                    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
-        endif(WIN32)
-    endif(APPLE)
-endif(BUILD_BATCH_SOLVER)
 #########################################################################################
 # Generate Package Config Files
 #########################################################################################

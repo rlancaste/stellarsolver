@@ -3,7 +3,7 @@
 //Includes for this project
 #include "structuredefinitions.h"
 #include "stellarsolver.h"
-#include "testerutils/fileio.h"
+#include "ssolverutils/fileio.h"
 
 
 int main(int argc, char *argv[])
