@@ -457,6 +457,10 @@ class StellarSolver : public QObject
             return hasWCS;
         };
 
+        /**
+         * @brief getWCSData returns a copy of the WCS Data Object that contains either internal or external WCS data and can perform WCS calculations on Stars and Images
+         * @return the WCSData Object
+         */
         WCSData getWCSData()
         {
             return wcsData;

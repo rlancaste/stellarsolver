@@ -48,18 +48,10 @@ bool WCSData::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &skyPoi
         int stat[2];
         pixcrd[0] = pixelPoint.x();
         pixcrd[1] = pixelPoint.y();
-
-        int status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0]);
-        if(status != 0)
-        {
-            //emit logOutput(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+        if(wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0]) != 0)
             return false;
-        }
-        else
-        {
-            skyPoint.ra = world[0];
-            skyPoint.dec = world[1];
-        }
+        skyPoint.ra = world[0];
+        skyPoint.dec = world[1];
         return true;
     }
 }
@@ -73,8 +65,7 @@ bool WCSData::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoi
     {
         double x;
         double y;
-        anbool error = sip_radec2pixelxy(&wcs, skyPoint.ra, skyPoint.dec, &x, &y);
-        if(error != 0)
+        if(sip_radec2pixelxy(&wcs, skyPoint.ra, skyPoint.dec, &x, &y) != TRUE)
             return false;
         pixelPoint.setX(x);
         pixelPoint.setY(y);
@@ -86,13 +77,8 @@ bool WCSData::wcsToPixel(const FITSImage::wcs_point &skyPoint, QPointF &pixelPoi
         int stat[2];
         worldcrd[0] = skyPoint.ra;
         worldcrd[1] = skyPoint.dec;
-
-        int status = wcss2p(m_wcs, 1, 2, &worldcrd[0], &phi[0], &theta[0], &imgcrd[0], &pixcrd[0], &stat[0]);
-        if(status != 0)
-        {
-            //emit logOutput(QString("wcss2p error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+        if(wcss2p(m_wcs, 1, 2, &worldcrd[0], &phi[0], &theta[0], &imgcrd[0], &pixcrd[0], &stat[0]) != 0)
             return false;
-        }
         pixelPoint.setX(pixcrd[0]);
         pixelPoint.setY(pixcrd[1]);
         return true;
@@ -125,25 +111,12 @@ bool WCSData::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 
         for(auto &oneStar : stars)
         {
-            int status = 0;
-            double ra = HUGE_VAL;
-            double dec = HUGE_VAL;
             pixcrd[0] = oneStar.x;
             pixcrd[1] = oneStar.y;
-
-            if ((status = wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0])) != 0)
-            {
-                //emit logOutput(QString("wcsp2s error %1: %2.").arg(status).arg(wcs_errmsg[status]));
+            if ((wcsp2s(m_wcs, 1, 2, &pixcrd[0], &imgcrd[0], &phi, &theta, &world[0], &stat[0])) != 0)
                 return false;
-            }
-            else
-            {
-                ra  = world[0];
-                dec = world[1];
-            }
-
-            oneStar.ra = ra;
-            oneStar.dec = dec;
+            oneStar.ra = world[0];
+            oneStar.dec = world[1];
         }
 
         return true;
