@@ -299,7 +299,7 @@ install(DIRECTORY
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc DESTINATION ${PKGCONFIG_INSTALL_PREFIX})
 
-if(BUILD_TESTER OR BUILD_DEMOS)
+if(BUILD_TESTER OR BUILD_DEMOS OR BUILD_BATCH_SOLVER)
     set(SSolverUtilsLib_SRCS
         ${CMAKE_CURRENT_SOURCE_DIR}/ssolverutils/fileio.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ssolverutils/imagelabel.cpp
@@ -318,7 +318,7 @@ if(BUILD_TESTER OR BUILD_DEMOS)
         Qt5::Network
         Qt5::Concurrent
         )
-endif(BUILD_TESTER OR BUILD_DEMOS)
+endif(BUILD_TESTER OR BUILD_DEMOS OR BUILD_BATCH_SOLVER)
 #########################################################################################
 ## Stellar Solver Tester
 #########################################################################################
