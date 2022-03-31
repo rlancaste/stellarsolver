@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>StellarBatchSolver</class>
+ <widget class="QMainWindow" name="StellarBatchSolver">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="0">
+     <widget class="QSplitter" name="horSplitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="loadB">
+            <property name="toolTip">
+             <string>Loads Selected Images into the Image List</string>
+            </property>
+            <property name="text">
+             <string>Load</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="clearImagesB">
+            <property name="toolTip">
+             <string>Clears all the images in the image list and deletes all the data associated with them.</string>
+            </property>
+            <property name="text">
+             <string>Clear All</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="deleteImageB">
+            <property name="toolTip">
+             <string>Removes the selected image in the image list and deletes all the data associated with it.</string>
+            </property>
+            <property name="text">
+             <string>Remove</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="resetB">
+            <property name="toolTip">
+             <string>Clears the solution information and star extractions for the whole list of images</string>
+            </property>
+            <property name="text">
+             <string>Reset</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QTableWidget" name="imagesList">
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="selectIndexes">
+            <property name="toolTip">
+             <string>Adds any other index file directories you may select on your computer</string>
+            </property>
+            <property name="text">
+             <string>Add Index File Directory</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="indexDirectories">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>The list of file directories to search for index files.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Solve Profile</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="solveProfile">
+              <property name="toolTip">
+               <string>The StellarSolver Profile to be used for Solving</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Extract Profile</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="extractProfile">
+              <property name="toolTip">
+               <string>The StellarSolver profile to be used for the Star Extraction</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="getHFR">
+              <property name="toolTip">
+               <string>Whether to solve with HFR, which takes significantly longer to extract.</string>
+              </property>
+              <property name="text">
+               <string>HFR</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QCheckBox" name="saveImages">
+              <property name="toolTip">
+               <string>Whether to attempt to save the solved images and extracted star lists to the output directory.  Note that if you have already done the processing, and just want to save it now, you can click &quot;Process Images&quot; and it won't do the processing again, but it will save the images to your selected folder.</string>
+              </property>
+              <property name="text">
+               <string>Save Results to:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="outputDirectory">
+              <property name="toolTip">
+               <string>The Output file directory path</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="selectOutputDir">
+              <property name="toolTip">
+               <string>Selects the folder to ouput files to.</string>
+              </property>
+              <property name="text">
+               <string>Select</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QSplitter" name="verSplitter">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <widget class="QScrollArea" name="scrollArea">
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="scrollAreaWidgetContents">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>355</width>
+           <height>68</height>
+          </rect>
+         </property>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <widget class="ImageLabel" name="imageDisplay">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="verticalLayoutWidget_4">
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="processB">
+             <property name="toolTip">
+              <string>Starts the Image processing loop including Solving and star extraction of all items in the imageList.  Note that it will skip star extraction and solving for any images that it has already been done for.  If you have selected to save the results, it will do that for all the images, even the ones that have already been processed.</string>
+             </property>
+             <property name="text">
+              <string>Process Unsolved Images</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="abortB">
+             <property name="toolTip">
+              <string>Aborts the whole solve images loop.  If you click &quot;Process Images&quot; again, it will pick up where you left off.  If you want to start all over and do them all again, click &quot;Reset&quot;</string>
+             </property>
+             <property name="text">
+              <string>Abort</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="clearB">
+             <property name="toolTip">
+              <string>Clears the log</string>
+             </property>
+             <property name="text">
+              <string>Clear</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QPlainTextEdit" name="logDisplay"/>
+         </item>
+         <item>
+          <widget class="QProgressBar" name="processProgress">
+           <property name="value">
+            <number>0</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuStellarBatchSolver">
+    <property name="title">
+     <string>StellarBatchSolver</string>
+    </property>
+   </widget>
+   <addaction name="menuStellarBatchSolver"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ImageLabel</class>
+   <extends>QLabel</extends>
+   <header location="global">ssolverutils/imagelabel.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

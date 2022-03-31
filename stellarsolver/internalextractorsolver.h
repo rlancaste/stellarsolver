@@ -70,7 +70,7 @@ class InternalExtractorSolver: public ExtractorSolver
          * @brief getWCSData gets the WCSData Object from the last plate solve
          * @return A WCS Data Object
          */
-        WCSData *getWCSData() override;
+        WCSData getWCSData() override;
 
 
 

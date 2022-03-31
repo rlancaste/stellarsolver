@@ -1261,7 +1261,7 @@ int InternalExtractorSolver::runInternalSolver()
     return returnCode;
 }
 
-WCSData *InternalExtractorSolver::getWCSData()
+WCSData InternalExtractorSolver::getWCSData()
 {
-    return new WCSData(wcs, m_ActiveParameters.downsample);
+    return WCSData(wcs, m_ActiveParameters.downsample);
 }

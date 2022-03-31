@@ -288,6 +288,22 @@ class StellarSolver : public QObject
         void setSearchPositionInDegrees(double ra, double dec);
 
         /**
+         * @brief clearSearchPosition turns off the usage of the Search Position if it was set previously
+         */
+        void clearSearchPosition()
+        {
+            m_UsePosition = false;
+        }
+
+        /**
+         * @brief clearSearchScale turns off the usage of the Search Scale if it was set previously
+         */
+        void clearSearchScale()
+        {
+            m_UseScale = false;
+        }
+
+        /**
          * @brief setLogLevel sets the astrometry logging level
          * @param level The level of logging
          */
@@ -440,6 +456,15 @@ class StellarSolver : public QObject
         {
             return hasWCS;
         };
+
+        /**
+         * @brief getWCSData returns a copy of the WCS Data Object that contains either internal or external WCS data and can perform WCS calculations on Stars and Images
+         * @return the WCSData Object
+         */
+        WCSData getWCSData()
+        {
+            return wcsData;
+        }
 
         /**
          * @brief getNumThreads gets the number of ExtractorSolvers used to plate solve the image
@@ -598,7 +623,7 @@ class StellarSolver : public QObject
         const uint8_t *m_ImageBuffer { nullptr };           // The generic data buffer containing the image data
         QList<ExtractorSolver*> parallelSolvers;            // This is the list of parallel ExtractorSolvers when solving in parallel
         QScopedPointer<ExtractorSolver> m_ExtractorSolver;  // This is the single ExtractorSolver used when not working in parallel
-        QScopedPointer<WCSData> wcsData;                    // This is the WCS information from the last solve.
+        WCSData wcsData;                    // This is the WCS information from the last solve.
         int m_ParallelSolversFinishedCount {0};             // This is the number of parallel solvers that are done.
 
     // StellarSolver Results Information
@@ -612,10 +637,10 @@ class StellarSolver : public QObject
         short solutionHealpix = -1;                 // This is the healpix of the index used to solve the image.
 
     // Logging Settings for Astrometry
-        bool m_LogToFile {false};             //This determines whether or not to save the output from Astrometry.net to a file
-        QString m_LogFileName;                //This is the path to the log file that it will save.
-        logging_level m_AstrometryLogLevel {LOG_NONE};   //This is the level of astrometry logging.  Beware, setting this too high can severely affect performance
-        SSolverLogLevel m_SSLogLevel {LOG_NORMAL};   //This is the level for the StellarSolver Logging
+        bool m_LogToFile {false};                       //This determines whether or not to save the output from Astrometry.net to a file
+        QString m_LogFileName;                          //This is the path to the log file that it will save.
+        logging_level m_AstrometryLogLevel {LOG_NONE};  //This is the level of astrometry logging.  Beware, setting this too high can severely affect performance
+        SSolverLogLevel m_SSLogLevel {LOG_NORMAL};      //This is the level for the StellarSolver Logging
 
     // These are for creating temporary files
         //This is the base name used for all temporary files.  It uses a random name based on the type of solver/star extractor.

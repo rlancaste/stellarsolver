@@ -2548,7 +2548,7 @@
   <customwidget>
    <class>ImageLabel</class>
    <extends>QLabel</extends>
-   <header>imagelabel.h</header>
+   <header location="global">ssolverutils/imagelabel.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

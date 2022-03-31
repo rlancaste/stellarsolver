@@ -181,7 +181,7 @@ class ExtractorSolver : public QThread
          * @brief getWCSData gets the WCSData Object from the last plate solve
          * @return A WCS Data Object
          */
-        virtual WCSData *getWCSData() = 0;
+        virtual WCSData getWCSData() = 0;
 
         /**
          * @brief getSolutionIndexNumber gets the astrometry index file number used to solve the latest plate solve

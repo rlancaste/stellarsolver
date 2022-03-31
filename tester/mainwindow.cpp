@@ -1303,7 +1303,7 @@ bool MainWindow::imageLoad()
         return false;
     }
     QString fileURL = QFileDialog::getOpenFileName(nullptr, "Load Image", dirPath,
-                      "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.tif *.tiff)");
+                      "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.png *.tif *.tiff)");
     if (fileURL.isEmpty())
         return false;
     QFileInfo fileInfo(fileURL);
@@ -1352,7 +1352,8 @@ bool MainWindow::imageLoad()
         clearStars();
         ui->horSplitter->setSizes(QList<int>() << ui->optionsBox->width() << ui->horSplitter->width() << 0 );
         ui->fileNameDisplay->setText("Image: " + fileURL);
-        initDisplayImage();
+        rawImage = imageLoader.getRawQImage();
+        autoScale();
         hasWCSData = false;
         stellarSolver.loadNewImageBuffer(stats, m_ImageBuffer);
         return true;
@@ -1395,33 +1396,6 @@ bool MainWindow::imageSave()
         imageSaver.saveAsFITS(savePath, stats, m_ImageBuffer, stellarSolver.getSolution(), m_HeaderRecords, false);
 
     return true;
-}
-
-//This method was copied and pasted from Fitsview in KStars
-//It sets up the image that will be displayed on the screen
-void MainWindow::initDisplayImage()
-{
-    // Account for leftover when sampling. Thus a 5-wide image sampled by 2
-    // would result in a width of 3 (samples 0, 2 and 4).
-
-    int w = (stats.width + sampling - 1) / sampling;
-    int h = (stats.height + sampling - 1) / sampling;
-
-    if (stats.channels == 1)
-    {
-        rawImage = QImage(w, h, QImage::Format_Indexed8);
-
-        rawImage.setColorCount(256);
-        for (int i = 0; i < 256; i++)
-            rawImage.setColor(i, qRgb(i, i, i));
-    }
-    else
-    {
-        rawImage = QImage(w, h, QImage::Format_RGB32);
-    }
-    doStretch(&rawImage);
-    autoScale();
-
 }
 
 void adjustScrollBar(QScrollBar *scrollBar, double factor)
@@ -1642,23 +1616,6 @@ void MainWindow::updateImage()
 
     ui->Image->setPixmap(renderedImage);
     ui->Image->setFixedSize(renderedImage.size());
-}
-
-//This code is copied and pasted from FITSView in KStars
-//It handles the stretch of the image
-void MainWindow::doStretch(QImage *outputImage)
-{
-    if (outputImage->isNull())
-        return;
-    Stretch stretch(static_cast<int>(stats.width),
-                    static_cast<int>(stats.height),
-                    stats.channels, static_cast<uint16_t>(stats.dataType));
-
-    // Compute new auto-stretch params.
-    StretchParams stretchParams = stretch.computeParams(m_ImageBuffer);
-
-    stretch.setParams(stretchParams);
-    stretch.run(m_ImageBuffer, outputImage, sampling);
 }
 
 //This method was copied and pasted from Fitsdata in KStars

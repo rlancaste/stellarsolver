@@ -3,18 +3,18 @@
 
 #include "structuredefinitions.h"
 #include <QPointF>
-#include <QObject>
+#include <QList>
 
 extern "C" {
 #include "astrometry/sip.h"
 }
 
-class WCSData: public QObject
+class WCSData
 {
-    Q_OBJECT
 public:
     struct wcsprm *m_wcs; // This is a struct used by wcslib for wcs info loaded from a file
 
+    WCSData();
     WCSData(sip_t internal_wcs, int downsample);
     WCSData(int nwcs, wcsprm *wcs, int downsample);
 
@@ -43,6 +43,7 @@ public:
 
 private:
 
+    bool hasWCS = false;
     int d = 1;  // This is to correct for any downsampling that took place in the solution.
 
     bool internalWCS = true; // This determines which type of WCS Data we have
@@ -53,13 +54,6 @@ private:
     int m_nwcs = 0;                  // This is a number associated with wcsinfo
    // wcsprm *m_wcs {nullptr};    // This is a struct used by wcslib for wcs info loaded from a file
 
-signals:
-
-    /**
-     * @brief logOutput signals that there is infomation that should be printed to a log file or log window
-     * @param logText is the QString that should be logged
-     */
-    void logOutput(QString logText);
 };
 
 #endif // WCSDATA_H
