@@ -882,11 +882,13 @@ bool fileio::saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint
                     {
                         fits_write_history(fptr, comment.toLatin1().constData(), &status);
                     }
+                    else if(key.simplified() == "END")
+                    {
+                        // Don't write the end or the solution won't get written!
+                    }
                     else
                     {
-                        char valueBuffer[256] = {0};
-                        strncpy(valueBuffer, value.toString().toLatin1().constData(), 256 - 1);
-                        fits_write_key(fptr, TSTRING, key.toLatin1().constData(), valueBuffer, comment.toLatin1().constData(), &status);
+                        fits_write_key(fptr, TSTRING, key.toLatin1().constData(), value.toString().toLatin1().data(), comment.toLatin1().constData(), &status);
                     }
                 }
             }
