@@ -711,8 +711,14 @@ bool fileio::parseHeader()
         {
             oneRecord.key = properties[0].simplified();
             oneRecord.value = properties[1].simplified();
-            if (properties.size() > 2)
-                oneRecord.comment = properties[2].simplified();
+
+            // Just in case the comment had / or = in it.
+            for(int prop = 2; prop<properties.size(); prop++)
+            {
+                oneRecord.comment += properties[prop].simplified();
+                if(prop < properties.size() - 1)
+                    oneRecord.comment += " ";
+            }
 
             // Try to guess the value.
             // Test for integer & double. If neither, then leave it as "string".
@@ -824,35 +830,65 @@ bool fileio::saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint
         return false;
     }
 
-    // Skip first 10 standard records and copy the rest.
-    for (int i = 10; i < records.count(); i++)
+    // Copies all the headers except the first few, which CFITSIO writes automatically
+    for (int i = 0; i < records.count(); i++)
     {
         QString key = records[i].key;
-        const char *comment = records[i].comment.toLatin1().constBegin();
         QVariant value = records[i].value;
+        QString comment = records[i].comment;
+
+        // This should skip the first few headers, which CFITSIO will write anyway.
+        // So it avoids duplicating these headers.
+        // Note: the two standard COMMENT fields CFITSIO writes are handled below in the case-switch
+        if(key == "SIMPLE" ||
+                key == "BITPIX" ||
+                key.startsWith("NAXIS") ||
+                key == "EXTEND" ||
+                key == "BZERO" ||
+                key == "BSCALE")
+            continue;
 
         switch (value.type())
         {
             case QVariant::Int:
             {
                 int number = value.toInt();
-                fits_write_key(fptr, TINT, key.toLatin1().constData(), &number, comment, &status);
+                fits_write_key(fptr, TINT, key.toLatin1().constData(), &number, comment.toLatin1().constData(), &status);
             }
             break;
 
             case QVariant::Double:
             {
                 double number = value.toDouble();
-                fits_write_key(fptr, TDOUBLE, key.toLatin1().constData(), &number, comment, &status);
+                fits_write_key(fptr, TDOUBLE, key.toLatin1().constData(), &number, comment.toLatin1().constData(), &status);
             }
             break;
 
             case QVariant::String:
             default:
             {
-                char valueBuffer[256] = {0};
-                strncpy(valueBuffer, value.toString().toLatin1().constData(), 256 - 1);
-                fits_write_key(fptr, TSTRING, key.toLatin1().constData(), valueBuffer, comment, &status);
+                if(key == "COMMENT" && (value.toString().contains("FITS (Flexible Image Transport System) format") ||
+                   value.toString().contains("volume 376")))
+                {
+                    // Don't duplicate the two standard comment fields CFITSIO writes to the file
+                }
+                else
+                {
+                    if(key == "COMMENT")
+                    {
+                        fits_write_comment(fptr, comment.toLatin1().constData(), &status);
+                    }
+                    else if(key == "HISTORY")
+                    {
+                        fits_write_history(fptr, comment.toLatin1().constData(), &status);
+                    }
+                    else
+                    {
+                        char valueBuffer[256] = {0};
+                        strncpy(valueBuffer, value.toString().toLatin1().constData(), 256 - 1);
+                        fits_write_key(fptr, TSTRING, key.toLatin1().constData(), valueBuffer, comment.toLatin1().constData(), &status);
+                    }
+                }
             }
         }
     }
