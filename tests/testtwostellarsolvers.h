@@ -1,15 +1,15 @@
-#ifndef DEMOTWOSTELLARSOLVERS_H
-#define DEMOTWOSTELLARSOLVERS_H
+#ifndef TESTTWOSTELLARSOLVERS_H
+#define TESTTWOSTELLARSOLVERS_H
 
 #include <stdio.h>
 #include <QApplication>
 #include <QObject>
 
-class DemoTwoStellarSolvers : public QObject
+class TestTwoStellarSolvers : public QObject
 {
     Q_OBJECT
 public:
-    DemoTwoStellarSolvers();
+    TestTwoStellarSolvers();
     void setupStellarSolver(QString fileName);
     void setupStellarStarExtraction(QString fileName);
 public slots:
@@ -21,4 +21,4 @@ private:
     int extractorsRunning;
 };
 
-#endif // DEMOTWOSTELLARSOLVERS_H
+#endif // TESTTWOSTELLARSOLVERS_H

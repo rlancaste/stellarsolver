@@ -1,11 +1,11 @@
-#include "demotwostellarsolvers.h"
+#include "testtwostellarsolvers.h"
 
 //Includes for this project
 #include "structuredefinitions.h"
 #include "stellarsolver.h"
 #include "ssolverutils/fileio.h"
 
-DemoTwoStellarSolvers::DemoTwoStellarSolvers()
+TestTwoStellarSolvers::TestTwoStellarSolvers()
 {
     //Setting up simultaneous solvers.  Not usually recommended, but it does work.
     solversRunning = 4;
@@ -20,7 +20,7 @@ DemoTwoStellarSolvers::DemoTwoStellarSolvers()
     setupStellarStarExtraction("pleiades.jpg");
 }
 
-void DemoTwoStellarSolvers::setupStellarSolver(QString fileName)
+void TestTwoStellarSolvers::setupStellarSolver(QString fileName)
 {
     fileio imageLoader;
     if(!imageLoader.loadImage(fileName))
@@ -51,13 +51,13 @@ void DemoTwoStellarSolvers::setupStellarSolver(QString fileName)
     printf("Starting to solve. . .\n");
     fflush( stdout );
 
-    connect(stellarSolver, &StellarSolver::finished, this, &DemoTwoStellarSolvers::stellarSolverFinished);
-    connect(stellarSolver, &StellarSolver::logOutput, this, &DemoTwoStellarSolvers::logOutput);
+    connect(stellarSolver, &StellarSolver::finished, this, &TestTwoStellarSolvers::stellarSolverFinished);
+    connect(stellarSolver, &StellarSolver::logOutput, this, &TestTwoStellarSolvers::logOutput);
     stellarSolver->start();
 
 }
 
-void DemoTwoStellarSolvers::setupStellarStarExtraction(QString fileName)
+void TestTwoStellarSolvers::setupStellarStarExtraction(QString fileName)
 {
     fileio imageLoader;
     if(!imageLoader.loadImage(fileName))
@@ -75,13 +75,13 @@ void DemoTwoStellarSolvers::setupStellarStarExtraction(QString fileName)
     printf("Starting to extract. . .\n");
     fflush( stdout );
 
-    connect(stellarSolver, &StellarSolver::finished, this, &DemoTwoStellarSolvers::stellarExtractorFinished);
-    connect(stellarSolver, &StellarSolver::logOutput, this, &DemoTwoStellarSolvers::logOutput);
+    connect(stellarSolver, &StellarSolver::finished, this, &TestTwoStellarSolvers::stellarExtractorFinished);
+    connect(stellarSolver, &StellarSolver::logOutput, this, &TestTwoStellarSolvers::logOutput);
     stellarSolver->start();
 
 }
 
-void DemoTwoStellarSolvers::stellarSolverFinished()
+void TestTwoStellarSolvers::stellarSolverFinished()
 {
     solversRunning --;
     StellarSolver *reportingSolver = qobject_cast<StellarSolver*>(sender());
@@ -98,7 +98,7 @@ void DemoTwoStellarSolvers::stellarSolverFinished()
         exit(0);
 }
 
-void DemoTwoStellarSolvers::stellarExtractorFinished()
+void TestTwoStellarSolvers::stellarExtractorFinished()
 {
     extractorsRunning --;
     StellarSolver *reportingSolver = qobject_cast<StellarSolver*>(sender());
@@ -115,7 +115,7 @@ void DemoTwoStellarSolvers::stellarExtractorFinished()
         exit(0);
 }
 
-void DemoTwoStellarSolvers::logOutput(QString text)
+void TestTwoStellarSolvers::logOutput(QString text)
 {
     printf("%s \n", text.toUtf8().data());
 }
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 #if defined(__linux__)
     setlocale(LC_NUMERIC, "C");
 #endif
-    DemoTwoStellarSolvers *demo = new DemoTwoStellarSolvers();
+    TestTwoStellarSolvers *demo = new TestTwoStellarSolvers();
     app.exec();
 
     delete demo;

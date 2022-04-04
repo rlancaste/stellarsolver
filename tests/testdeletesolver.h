@@ -1,16 +1,16 @@
-#ifndef DEMODELETESOLVER_H
-#define DEMODELETESOLVER_H
+#ifndef TESTDELETESOLVER_H
+#define TESTDELETESOLVER_H
 
 #include <stdio.h>
 #include <QApplication>
 #include <QObject>
 
-class DemoDeleteSolver : public QObject
+class TestDeleteSolver : public QObject
 {
 public:
-    DemoDeleteSolver();
+    TestDeleteSolver();
     void runCrashTest(QString fileName);
     void runCrashTestStarExtract(QString fileName);
 };
 
-#endif // DEMODELETESOLVER_H
+#endif // TESTDELETESOLVER_H

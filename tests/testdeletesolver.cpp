@@ -1,11 +1,11 @@
-#include "demodeletesolver.h"
+#include "testdeletesolver.h"
 
 //Includes for this project
 #include "structuredefinitions.h"
 #include "stellarsolver.h"
 #include "ssolverutils/fileio.h"
 
-DemoDeleteSolver::DemoDeleteSolver()
+TestDeleteSolver::TestDeleteSolver()
 {
     runCrashTest("pleiades.jpg");
     printf("No Crash test 1!\n");
@@ -22,7 +22,7 @@ DemoDeleteSolver::DemoDeleteSolver()
     exit(0);
 }
 
-void DemoDeleteSolver::runCrashTest(QString fileName)
+void TestDeleteSolver::runCrashTest(QString fileName)
 {
     fileio imageLoader;
     if(!imageLoader.loadImage(fileName))
@@ -43,7 +43,7 @@ void DemoDeleteSolver::runCrashTest(QString fileName)
     //Note: This could cause a crash because it will delete StellarSolver while the threads are running.
 }
 
-void DemoDeleteSolver::runCrashTestStarExtract(QString fileName)
+void TestDeleteSolver::runCrashTestStarExtract(QString fileName)
 {
     fileio imageLoader;
     if(!imageLoader.loadImage(fileName))
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 #if defined(__linux__)
     setlocale(LC_NUMERIC, "C");
 #endif
-    DemoDeleteSolver *demo = new DemoDeleteSolver();
+    TestDeleteSolver *demo = new TestDeleteSolver();
     app.exec();
 
     delete demo;
