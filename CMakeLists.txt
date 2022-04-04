@@ -88,8 +88,9 @@ endif(WIN32)
 file(APPEND "${config_FN}" "#define HAVE_NETPBM 0")
 
 option(BUILD_TESTER "Build stellarsolver tester program, instead of just the library" Off)
-option(BUILD_DEMOS "Build stellarsolver basic demonstration programs, instead of just the library" Off)
 option(BUILD_BATCH_SOLVER "Build stellarsolver batch solver program, instead of just the library" Off)
+option(BUILD_DEMOS "Build stellarsolver basic demonstration programs, instead of just the library" Off)
+option(BUILD_TESTS "Build stellarsolver tests, instead of just the library" Off)
 
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
@@ -299,7 +300,7 @@ install(DIRECTORY
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc DESTINATION ${PKGCONFIG_INSTALL_PREFIX})
 
-if(BUILD_TESTER OR BUILD_DEMOS OR BUILD_BATCH_SOLVER)
+if(BUILD_TESTER OR BUILD_BATCH_SOLVER OR BUILD_DEMOS OR BUILD_TESTS)
     set(SSolverUtilsLib_SRCS
         ${CMAKE_CURRENT_SOURCE_DIR}/ssolverutils/fileio.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ssolverutils/imagelabel.cpp
@@ -318,7 +319,8 @@ if(BUILD_TESTER OR BUILD_DEMOS OR BUILD_BATCH_SOLVER)
         Qt5::Network
         Qt5::Concurrent
         )
-endif(BUILD_TESTER OR BUILD_DEMOS OR BUILD_BATCH_SOLVER)
+endif(BUILD_TESTER OR BUILD_BATCH_SOLVER OR BUILD_DEMOS OR BUILD_TESTS)
+
 #########################################################################################
 ## Stellar Solver Tester
 #########################################################################################
@@ -387,6 +389,7 @@ else(APPLE)
 endif(APPLE)
 
 endif(BUILD_TESTER)
+
 #########################################################################################
 ## Stellar Solver Batch Solver Program
 #########################################################################################
@@ -480,12 +483,8 @@ if(BUILD_DEMOS)
     target_link_libraries(DemoFITSPlateSolve StellarSolverDemosLib)
     add_executable(DemoFITSExtractSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demofitsextractsolve.cpp)
     target_link_libraries(DemoFITSExtractSolve StellarSolverDemosLib)
-    add_executable(DemoTwoStellarSolvers ${CMAKE_CURRENT_SOURCE_DIR}/demos/demotwostellarsolvers.cpp)
-    target_link_libraries(DemoTwoStellarSolvers StellarSolverDemosLib)
     add_executable(DemoSignalsSlots ${CMAKE_CURRENT_SOURCE_DIR}/demos/demosignalsslots.cpp)
     target_link_libraries(DemoSignalsSlots StellarSolverDemosLib)
-    add_executable(DemoDeleteSolver ${CMAKE_CURRENT_SOURCE_DIR}/demos/demodeletesolver.cpp)
-    target_link_libraries(DemoDeleteSolver StellarSolverDemosLib)
     add_executable(DemoMultipleSolves ${CMAKE_CURRENT_SOURCE_DIR}/demos/demomultiplesolves.cpp)
     target_link_libraries(DemoMultipleSolves StellarSolverDemosLib)
 
@@ -500,6 +499,40 @@ if(BUILD_DEMOS)
     endif(NOT EXISTS "${CMAKE_BINARY_DIR}/astrometry/")
 
 endif(BUILD_DEMOS)
+
+#########################################################################################
+## Stellar Solver Testing
+#########################################################################################
+if(BUILD_TESTS)
+    add_library(StellarSolverTestsLib STATIC)
+    target_link_libraries(StellarSolverTestsLib
+        stellarsolver
+        SSolverUtilsLib
+        ${CFITSIO_LIBRARIES}
+        ${GSL_LIBRARIES}
+        ${WCSLIB_LIBRARIES}
+        Qt5::Widgets
+        Qt5::Core
+        Qt5::Network
+        Qt5::Concurrent
+        )
+
+    add_executable(TestTwoStellarSolvers ${CMAKE_CURRENT_SOURCE_DIR}/tests/testtwostellarsolvers.cpp)
+    target_link_libraries(TestTwoStellarSolvers StellarSolverTestsLib)
+    add_executable(TestDeleteSolver ${CMAKE_CURRENT_SOURCE_DIR}/tests/testdeletesolver.cpp)
+    target_link_libraries(TestDeleteSolver StellarSolverTestsLib)
+
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/pleiades.jpg" DESTINATION "${CMAKE_BINARY_DIR}/")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/randomsky.fits" DESTINATION "${CMAKE_BINARY_DIR}/")
+    # Note: These are the index files that solve the above images best.
+    if(NOT EXISTS "${CMAKE_BINARY_DIR}/astrometry/")
+        message(STATUS "Downloading two index files for solving demos/tests. . .")
+        make_directory("${CMAKE_BINARY_DIR}/astrometry/")
+        file(DOWNLOAD "http://data.astrometry.net/4100/index-4107.fits" "${CMAKE_BINARY_DIR}/astrometry/index-4107.fits")
+        file(DOWNLOAD "http://data.astrometry.net/4100/index-4110.fits" "${CMAKE_BINARY_DIR}/astrometry/index-4110.fits")
+    endif(NOT EXISTS "${CMAKE_BINARY_DIR}/astrometry/")
+
+endif(BUILD_TESTS)
 
 #########################################################################################
 # Generate Package Config Files
