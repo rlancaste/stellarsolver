@@ -609,10 +609,14 @@ bool StellarSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &
 //This is the abort method.  It works in different ways for the different solvers.
 void StellarSolver::abort()
 {
-    for(auto &solver : parallelSolvers)
-        solver->abort();
-    if(m_ExtractorSolver)
-        m_ExtractorSolver->abort();
+  for(auto &solver : parallelSolvers) {
+      solver->abort();
+      solver->wait();
+  }
+  if(m_ExtractorSolver) {
+      m_ExtractorSolver->abort();
+      m_ExtractorSolver->wait();
+  }
 }
 
 //This method checks all the solvers and the internal running boolean to determine if anything is running.

@@ -147,6 +147,7 @@ int Lutz::lutz(pliststruct *plistin,
 
     /*------Allocate memory to store object data */
     free(objlist->obj);
+    objlist->obj = 0;  //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
 
     if (!(obj = objlist->obj = (objstruct *)malloc(nobjm * sizeof(objstruct))))
     {
@@ -157,6 +158,8 @@ int Lutz::lutz(pliststruct *plistin,
 
     /*------Allocate memory for the pixel list */
     free(objlist->plist);
+    objlist->plist = 0;  //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
+
     if (!(objlist->plist
             = (pliststruct *)malloc((eny - sty) * (enx - stx) * plistsize)))
     {

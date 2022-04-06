@@ -48,7 +48,10 @@ InternalExtractorSolver::~InternalExtractorSolver()
 {
     cancelSEP(); // Just in case it has not shut down
     if(downSampledBuffer)
+    {
         delete [] downSampledBuffer;
+        downSampledBuffer = 0;
+    }
     if(isRunning())
     {
         quit();
@@ -202,6 +205,7 @@ void InternalExtractorSolver::allocateDataBuffer(float *data, uint32_t x, uint32
             break;
         default:
             delete [] data;
+            data = 0;
     }
 }
 
@@ -473,11 +477,17 @@ QList<FITSImage::Star> InternalExtractorSolver::extractPartition(const ImagePara
     auto cleanup = [ & ]()
     {
         sep_bkg_free(bkg);
+        bkg = nullptr;
         Extract::sep_catalog_free(catalog);
+        catalog = nullptr;
         free(imback);
+        imback = nullptr;
         free(fluxerr);
+        fluxerr = nullptr;
         free(area);
+        area = nullptr;
         free(flag);
+        flag = nullptr;
 
         if (status != 0)
         {
@@ -1067,6 +1077,7 @@ int InternalExtractorSolver::runInternalSolver()
                                "---------------------------------------------------------------------\n"
                                "\n"));
         engine_free(engine);
+        engine = nullptr;
         return -1;
     }
 
@@ -1164,11 +1175,17 @@ int InternalExtractorSolver::runInternalSolver()
 
     //This deletes or frees the items that are no longer needed.
     engine_free(engine);
+    engine = nullptr;
     bl_free(job->scales);
+    job->scales = nullptr;
     dl_free(job->depths);
+    job->depths = nullptr;
     free(fieldToSolve);
+    fieldToSolve = nullptr;
     delete[] xArray;
+    xArray = 0;
     delete[] yArray;
+    yArray = 0;
 
     //Note: I can only get these items after the solve because I made a couple of small changes to the Astrometry.net Code.
     //I made it return in solve_fields in blind.c before it ran "cleanup".  I also had it wait to clean up solutions, blind and solver in engine.c.  We will do that after we get the solution information.
@@ -1250,13 +1267,13 @@ int InternalExtractorSolver::runInternalSolver()
     for (size_t i = 0; i < bl_size(bp->solutions); i++)
     {
         MatchObj* mo = (MatchObj*)bl_access(bp->solutions, i);
-        verify_free_matchobj(mo);
+        //verify_free_matchobj(mo); // redundent with below
         blind_free_matchobj(mo);
     }
-    bl_remove_all(bp->solutions);
-    blind_clear_solutions(bp);
+    //bl_remove_all(bp->solutions); // redundent with below
+    //blind_clear_solutions(bp); // calls bl_remove_all(bp->solutions), redundent
     solver_cleanup(&bp->solver);
-    blind_cleanup(bp);
+    blind_cleanup(bp);// calls bl_free(bp->solutions) which calls bl_remove_all(solutions)
 
     return returnCode;
 }

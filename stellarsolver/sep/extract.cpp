@@ -718,35 +718,56 @@ exit:
     {
         if(finalobjlist->obj)
             free(finalobjlist->obj);
+        finalobjlist->obj = 0;   //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
         if(finalobjlist->plist)
             free(finalobjlist->plist);
+        finalobjlist->plist = 0; //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
         free(finalobjlist);
+        finalobjlist = 0;        //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     }
     free(pixel);
+    pixel = 0;                   //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(info);
+    info = 0;                    //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(store);
+    store = 0;                   //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(marker);
-    free(dummyscan);
+    marker = 0;                  //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(psstack);
+    psstack = 0;                 //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(start);
+    start = 0;                   //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(end);
+    end = 0;                     //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(survives);
+    survives = 0;                //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     arraybuffer_free(&dbuf);
     if (image->noise)
         arraybuffer_free(&nbuf);
     if (image->mask)
         arraybuffer_free(&mbuf);
-    if (conv)
+    if (conv){
         free(convnorm);
+        convnorm = 0;            //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
+    }
     if (filter_type == SEP_FILTER_MATCHED)
     {
         free(sigscan);
+        sigscan = 0;             //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
         free(workscan);
+        workscan = 0;            //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     }
 
     /* free cdscan if we didn't do it on the last `yl` line */
     if (conv && (cdscan != dummyscan))
+    {
         free(cdscan);
+        cdscan = 0;              //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
+    }
+
+    //# Modified by Hy Murveit for the StellarSolver Internal Library, possible bug. Moved free(dummyscan) to here from earlier since it was referenced in the if above.
+    free(dummyscan);
+    dummyscan = 0;
 
     if (status != RETURN_OK)
     {
@@ -820,7 +841,9 @@ int Extract::sortit(infostruct *info, objliststruct *objlist, int minarea, objli
 
 exit:
     free(objlistout.plist);
+    objlistout.plist = 0;  //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(objlistout.obj);
+    objlistout.obj = 0;    //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     return status;
 }
 

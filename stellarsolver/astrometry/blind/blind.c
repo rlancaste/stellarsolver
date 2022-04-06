@@ -706,26 +706,46 @@ void blind_log_run_parameters(blind_t* bp) {
 
 void blind_cleanup(blind_t* bp) {
     il_free(bp->fieldlist);
+    bp->fieldlist = 0;       //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     bl_free(bp->solutions);
+    bp->solutions = 0;       //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     sl_free2(bp->indexnames);
+    bp->indexnames = 0;      //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     pl_free(bp->indexes);
+    bp->indexes = 0;         //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     sl_free2(bp->verify_wcsfiles);
+    bp->verify_wcsfiles = 0; //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     bl_free(bp->verify_wcs_list);
+    bp->verify_wcs_list = 0; //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     sl_free2(bp->rdls_tagalong);
+    bp->rdls_tagalong = 0;   //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
 
     free(bp->cancelfname);
+    bp->cancelfname = 0;     //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(bp->fieldfname);
+    bp->fieldfname = 0;      //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(bp->fieldid_key);
+    bp->fieldid_key = 0;     //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(bp->indexrdlsfname);
+    bp->indexrdlsfname = 0;  //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(bp->scamp_fname);
+    bp->scamp_fname = 0;     //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(bp->corr_fname);
+    bp->corr_fname = 0;      //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(bp->matchfname);
+    bp->matchfname = 0;      //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(bp->solvedserver);
+    bp->solvedserver = 0;    //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(bp->solved_in);
+    bp->solved_in = 0;       //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(bp->solved_out);
+    bp->solved_out = 0;      //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(bp->wcs_template);
+    bp->wcs_template = 0;    //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(bp->xcolname);
+    bp->xcolname = 0;        //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(bp->ycolname);
+    bp->ycolname = 0;        //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     //free(bp->sort_rdls); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 }
 
