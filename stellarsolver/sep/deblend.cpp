@@ -195,16 +195,22 @@ exit:
     free(submap);
     submap = nullptr;
     free(debobjlist2.obj);
+    debobjlist2.obj = 0;       //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(debobjlist2.plist);
+    debobjlist2.plist = 0;     //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
 
     for (k = 0; k < xn; k++)
     {
         free(objlist[k].obj);
+        objlist[k].obj = 0;    //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
         free(objlist[k].plist);
+        objlist[k].plist = 0;  //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     }
 
     free(debobjlist.obj);
+    debobjlist.obj = 0;        //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(debobjlist.plist);
+    debobjlist.plist = 0;      //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
 
     return status;
 }
