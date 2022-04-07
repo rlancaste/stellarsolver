@@ -235,15 +235,22 @@ int sep_background(sep_image* image, int bw, int bh, int fw, int fh,
     /* If we encountered a problem, clean up any allocated memory */
 exit:
     free(buf);
+    buf = 0;                //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     free(mbuf);
+    mbuf = 0;               //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     if (backmesh)
     {
         bm = backmesh;
         for (m = 0; m < nx; m++, bm++)
+        {
             free(bm->histo);
+            bm->histo = 0;  //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
+        }
     }
     free(backmesh);
+    backmesh = 0;           //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     sep_bkg_free(bkgout);
+    bkgout = 0;             //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     *bkg = NULL;
     return status;
 }
@@ -1124,9 +1131,13 @@ void sep_bkg_free(sep_bkg *bkg)
     if (bkg)
     {
         free(bkg->back);
+        bkg->back = 0;      //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
         free(bkg->dback);
+        bkg->dback = 0;     //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
         free(bkg->sigma);
+        bkg->sigma = 0;     //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
         free(bkg->dsigma);
+        bkg->dsigma = 0;    //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     }
     free(bkg);
 

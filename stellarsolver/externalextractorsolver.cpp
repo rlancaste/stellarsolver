@@ -1833,7 +1833,7 @@ int ExternalExtractorSolver::loadWCS()
 
     int status = 0;
     char * header { nullptr };
-    int nkeyrec, nreject, nwcs;
+    int nkeyrec, nreject;
 
     fitsfile *fptr { nullptr };
 
@@ -1853,7 +1853,7 @@ int ExternalExtractorSolver::loadWCS()
         return status;
     }
 
-    if ((status = wcspih(header, nkeyrec, WCSHDR_all, -3, &nreject, &nwcs, &m_wcs)) != 0)
+    if ((status = wcspih(header, nkeyrec, WCSHDR_all, 0, &nreject, &m_nwcs, &m_wcs)) != 0)
     {
         free(header);
         wcsvfree(&m_nwcs, &m_wcs);
@@ -1891,6 +1891,7 @@ int ExternalExtractorSolver::loadWCS()
     }
 
 #ifndef _WIN32 //For some very strange reason, this causes a crash on Windows??
+    // @ROB: I changed the wcspih 4th arg above from -3 to 0. Reasonable chance that stops the crash, but can't test.
     free(header);
 #endif
 
