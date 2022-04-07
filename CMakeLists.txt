@@ -521,6 +521,8 @@ if(BUILD_TESTS)
     target_link_libraries(TestTwoStellarSolvers StellarSolverTestsLib)
     add_executable(TestDeleteSolver ${CMAKE_CURRENT_SOURCE_DIR}/tests/testdeletesolver.cpp)
     target_link_libraries(TestDeleteSolver StellarSolverTestsLib)
+    add_executable(TestMultipleSyncSolvers ${CMAKE_CURRENT_SOURCE_DIR}/tests/testmultiplesyncsolvers.cpp)
+    target_link_libraries(TestMultipleSyncSolvers StellarSolverTestsLib)
 
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/pleiades.jpg" DESTINATION "${CMAKE_BINARY_DIR}/")
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/randomsky.fits" DESTINATION "${CMAKE_BINARY_DIR}/")
