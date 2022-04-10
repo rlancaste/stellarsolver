@@ -1,4 +1,4 @@
-/*  OnlineSovler, StellarSolver Intenal Library developed by Robert Lancaster, 2020
+/*  OnlineSolver, StellarSolver Intenal Library developed by Robert Lancaster, 2020
 
     This application is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public
@@ -30,7 +30,7 @@ class OnlineSolver : public ExternalExtractorSolver
 {
         Q_OBJECT
     public:
-        explicit OnlineSolver(ProcessType type, ExtractorType sexType, SolverType solType, FITSImage::Statistic imagestats,
+        explicit OnlineSolver(ProcessType type, ExtractorType sexType, SolverType solType, const FITSImage::Statistic &imagestats,
                               uint8_t const *imageBuffer, QObject *parent);
 
         QString astrometryAPIKey;   // The API key used by the online solver to identify the user solving the image

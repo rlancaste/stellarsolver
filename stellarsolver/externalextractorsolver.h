@@ -22,7 +22,7 @@ class ExternalExtractorSolver : public InternalExtractorSolver
         Q_OBJECT
     public:
         explicit ExternalExtractorSolver(ProcessType type, ExtractorType exType, SolverType solType,
-                                          FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
+                                          const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer, QObject *parent = nullptr);
         ~ExternalExtractorSolver();
 
 

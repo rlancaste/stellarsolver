@@ -26,7 +26,7 @@ class InternalExtractorSolver: public ExtractorSolver
 {
     public:
         explicit InternalExtractorSolver(ProcessType pType, ExtractorType eType, SolverType sType,
-                                          FITSImage::Statistic imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
+                                         const FITSImage::Statistic &imagestats,  uint8_t const *imageBuffer, QObject *parent = nullptr);
         ~InternalExtractorSolver();
 
         // This struct contains information about the image used by SEP

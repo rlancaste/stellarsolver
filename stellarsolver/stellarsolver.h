@@ -210,7 +210,7 @@ class StellarSolver : public QObject
          * @brief setParameters sets the Parameters for the StellarSolver based on a Parameters object you set up.
          * @param parameters The Parameters object
          */
-        void setParameters(Parameters parameters)
+        void setParameters(const Parameters &parameters)
         {
             params = parameters;
         };
@@ -225,7 +225,7 @@ class StellarSolver : public QObject
          * @brief setExternalFilePaths sets the external file paths for the external programs
          * @param paths are the paths to set
          */
-        void setExternalFilePaths(ExternalProgramPaths paths)
+        void setExternalFilePaths(const ExternalProgramPaths &paths)
         {
             m_ExternalPaths = paths;
         }
@@ -234,7 +234,7 @@ class StellarSolver : public QObject
          * @brief setIndexFolderPaths Sets the IndexFolderPaths to automatically search for index files.
          * @param indexPaths A QStringList containing the list of folders to search.
          */
-        void setIndexFolderPaths(QStringList indexPaths)
+        void setIndexFolderPaths(const QStringList &indexPaths)
         {
             indexFolderPaths = indexPaths;
         };
@@ -325,7 +325,7 @@ class StellarSolver : public QObject
          * @brief setConvolutionFilter lets you set up your own custom QVector convolution filter
          * @param filter the QVector of float values that is the convolution filter
          */
-        void setConvolutionFilter(QVector<float> filter)
+        void setConvolutionFilter(const QVector<float> &filter)
         {
             params.convFilterType = SSolver::CONV_CUSTOM;
             convFilter = filter;
@@ -350,7 +350,7 @@ class StellarSolver : public QObject
          * @param savedOptionsProfiles The file path where the profiles are saved
          * @return The QList full of Parameter Options Profiles
          */
-        static QList<SSolver::Parameters> loadSavedOptionsProfiles(QString savedOptionsProfiles);
+        static QList<SSolver::Parameters> loadSavedOptionsProfiles(const QString &savedOptionsProfiles);
 
         /**
          * @brief getDefaultIndexFolderPaths gets the default astrometry Index folder paths for the Operating System
@@ -719,7 +719,7 @@ class StellarSolver : public QObject
          * @param indexFolders is the list of index folders we will be searching for index files
          * @return true if it is successful
          */
-        bool enoughRAMisAvailableFor(QStringList indexFolders);
+        bool enoughRAMisAvailableFor(const QStringList &indexFolders);
 
     signals:
         /**

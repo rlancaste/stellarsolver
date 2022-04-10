@@ -19,7 +19,7 @@
 static int solverNum = 1;
 
 ExternalExtractorSolver::ExternalExtractorSolver(ProcessType type, ExtractorType exType, SolverType solType,
-        FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalExtractorSolver(type, exType,
+        const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalExtractorSolver(type, exType,
                     solType, imagestats, imageBuffer, parent)
 {
 

@@ -36,7 +36,7 @@ using namespace SEP;
 static int solverNum = 1;
 
 InternalExtractorSolver::InternalExtractorSolver(ProcessType pType, ExtractorType eType, SolverType sType,
-        FITSImage::Statistic imagestats, uint8_t const *imageBuffer, QObject *parent) : ExtractorSolver(pType, eType, sType,
+        const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer, QObject *parent) : ExtractorSolver(pType, eType, sType,
                     imagestats, imageBuffer, parent)
 {
     //This sets the base name used for the temp files.
@@ -396,7 +396,7 @@ int InternalExtractorSolver::runSEPExtractor()
     }
     bool isCancelled = false;
 
-    for (auto oneFuture : futures)
+    for (auto &oneFuture : futures)
     {
         oneFuture.waitForFinished();
         if(oneFuture.isCanceled())
@@ -1053,12 +1053,12 @@ int InternalExtractorSolver::runInternalSolver()
         if(logFile)
             log_to(logFile);
     }
-    for(auto &onePath : indexFiles)
+    for(const auto &onePath : indexFiles)
     {
         engine_add_index(engine, onePath.toUtf8().data());
     }
     //These set the folders in which Astrometry.net will look for index files, based on the folers set before the solver was started.
-    for(auto &onePath : indexFolderPaths)
+    for(const auto &onePath : indexFolderPaths)
     {
         engine_add_search_path(engine, onePath.toLatin1().constData());
     }
@@ -1090,7 +1090,7 @@ int InternalExtractorSolver::runInternalSolver()
     double *yArray = new double[m_ExtractedStars.size()];
 
     int i = 0;
-    for(auto &oneStar : m_ExtractedStars)
+    for(const auto &oneStar : m_ExtractedStars)
     {
         xArray[i] = oneStar.x;
         yArray[i] = oneStar.y;

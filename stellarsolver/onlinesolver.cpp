@@ -9,7 +9,7 @@
 #include <QTimer>
 #include <QEventLoop>
 
-OnlineSolver::OnlineSolver(ProcessType type, ExtractorType exType, SolverType solType, FITSImage::Statistic imagestats,
+OnlineSolver::OnlineSolver(ProcessType type, ExtractorType exType, SolverType solType, const FITSImage::Statistic &imagestats,
                            uint8_t const *imageBuffer, QObject *parent) : ExternalExtractorSolver(type, exType, solType, imagestats, imageBuffer,
                                        parent)
 {
