@@ -45,7 +45,7 @@ signals:
      * @brief logOutput signals that there is infomation that should be printed to a log file or log window
      * @param logText the text to be logged
      */
-    void logOutput(QString logText);
+    void logOutput(const QString &logText);
 };
 
 #else

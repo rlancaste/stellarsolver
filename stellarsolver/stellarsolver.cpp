@@ -456,7 +456,7 @@ void StellarSolver::parallelSolve()
 
 bool StellarSolver::parallelSolversAreRunning() const
 {
-    for(auto solver : parallelSolvers)
+    for(const auto &solver : parallelSolvers)
         if(solver->isRunning())
             return true;
     return false;
@@ -813,7 +813,7 @@ QList<Parameters> StellarSolver::getBuiltInProfiles()
     return profileList;
 }
 
-QList<SSolver::Parameters> StellarSolver::loadSavedOptionsProfiles(QString savedOptionsProfiles)
+QList<SSolver::Parameters> StellarSolver::loadSavedOptionsProfiles(const QString &savedOptionsProfiles)
 {
     QList<SSolver::Parameters> optionsList;
     if(!QFileInfo::exists(savedOptionsProfiles))
@@ -822,12 +822,12 @@ QList<SSolver::Parameters> StellarSolver::loadSavedOptionsProfiles(QString saved
     }
     QSettings settings(savedOptionsProfiles, QSettings::IniFormat);
     QStringList groups = settings.childGroups();
-    foreach(QString group, groups)
+    foreach(const QString &group, groups)
     {
         settings.beginGroup(group);
         QStringList keys = settings.childKeys();
         QMap<QString, QVariant> map;
-        foreach(QString key, keys)
+        foreach(const QString &key, keys)
             map.insert(key, settings.value(key));
         SSolver::Parameters newParams = SSolver::Parameters::convertFromMap(map);
         settings.endGroup();
@@ -995,18 +995,18 @@ bool StellarSolver::getAvailableRAM(double &availableRAM, double &totalRAM)
 }
 
 //This should determine if enough RAM is available to load all the index files in parallel
-bool StellarSolver::enoughRAMisAvailableFor(QStringList indexFolders)
+bool StellarSolver::enoughRAMisAvailableFor(const QStringList &indexFolders)
 {
     double totalSize = 0;
 
-    foreach(QString folder, indexFolders)
+    foreach(const QString &folder, indexFolders)
     {
         QDir dir(folder);
         if(dir.exists())
         {
             dir.setNameFilters(QStringList() << "*.fits" << "*.fit");
             QFileInfoList indexInfoList = dir.entryInfoList();
-            foreach(QFileInfo indexInfo, indexInfoList)
+            foreach(const QFileInfo &indexInfo, indexInfoList)
                 totalSize += indexInfo.size();
         }
 

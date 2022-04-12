@@ -390,8 +390,8 @@ class Parameters
 
         bool operator==(const Parameters &o);
 
-        static QMap<QString, QVariant> convertToMap(Parameters params);
-        static Parameters convertFromMap(QMap<QString, QVariant> settingsMap);
+        static QMap<QString, QVariant> convertToMap(const Parameters &params);
+        static Parameters convertFromMap(const QMap<QString, QVariant> &settingsMap);
 
     signals:
 

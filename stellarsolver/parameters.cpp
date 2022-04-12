@@ -58,7 +58,7 @@ bool SSolver::Parameters::operator==(const Parameters& o)
             QString::number(logratio_totune) == QString::number(o.logratio_totune);
 }
 
-QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
+QMap<QString, QVariant> SSolver::Parameters::convertToMap(const Parameters &params)
 {
     QMap<QString, QVariant> settingsMap;
     settingsMap.insert("listName", QVariant(params.listName));
@@ -121,7 +121,7 @@ QMap<QString, QVariant> SSolver::Parameters::convertToMap(Parameters params)
 
 }
 
-SSolver::Parameters SSolver::Parameters::convertFromMap(QMap<QString, QVariant> settingsMap)
+SSolver::Parameters SSolver::Parameters::convertFromMap(const QMap<QString, QVariant> &settingsMap)
 {
     Parameters params;
     params.listName = settingsMap.value("listName", params.listName).toString();
