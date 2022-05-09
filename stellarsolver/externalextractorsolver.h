@@ -37,7 +37,6 @@ class ExternalExtractorSolver : public InternalExtractorSolver
         // External Program Options
         bool cleanupTemporaryFiles = true;      // Whether or not to clean up the temporary files created
         bool autoGenerateAstroConfig = true;    // Option to generate astrometry.cfg file to pass options to the solver
-        bool onlySendFITSFiles = true;          // Option to only send FITS files for compatibility
 
         // This is the WCS Struct that is created when the WCS information gets loaded.
         struct wcsprm *m_wcs
@@ -162,7 +161,7 @@ class ExternalExtractorSolver : public InternalExtractorSolver
          * @brief runExternalSolver runs the local astrometry.net solver
          * @return 0 if it succeeeds
          */
-        int runExternalSolver();
+        int runExternalAstrometrySolver();
 
         /**
          * @brief runExternalANSVRSolver runs the local ANSVR solver

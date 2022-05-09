@@ -116,12 +116,12 @@ ExtractorSolver* StellarSolver::createExtractorSolver()
         extSolver->externalPaths = m_ExternalPaths;
         extSolver->cleanupTemporaryFiles = m_CleanupTemporaryFiles;
         extSolver->autoGenerateAstroConfig = m_AutoGenerateAstroConfig;
-        extSolver->onlySendFITSFiles = m_OnlySendFITSFiles;
         solver = extSolver;
     }
 
     if(useSubframe)
         solver->setUseSubframe(m_Subframe);
+    solver->m_ColorChannel = m_ColorChannel;
     solver->m_LogToFile = m_LogToFile;
     solver->m_LogFileName = m_LogFileName;
     solver->m_AstrometryLogLevel = m_AstrometryLogLevel;
@@ -269,18 +269,15 @@ void StellarSolver::start()
             }
         }
         //Note that converting the image to a FITS file if desired, doesn't need to be repeated in all the threads, but also CFITSIO fails when accessed by multiple parallel threads.
-        if(m_SolverType == SOLVER_LOCALASTROMETRY && m_ExtractorType == EXTRACTOR_BUILTIN && m_OnlySendFITSFiles)
+        if(m_SolverType == SOLVER_LOCALASTROMETRY && m_ExtractorType == EXTRACTOR_BUILTIN)
         {
             ExternalExtractorSolver *extSolver = static_cast<ExternalExtractorSolver*> (m_ExtractorSolver.data());
             QFileInfo file(extSolver->fileToProcess);
-            if(file.suffix() != "fits" && file.suffix() != "fit")
+            int ret = extSolver->saveAsFITS();
+            if(ret != 0)
             {
-                int ret = extSolver->saveAsFITS();
-                if(ret != 0)
-                {
-                    emit logOutput("Failed to save FITS File.");
-                    return;
-                }
+                emit logOutput("Failed to save FITS File.");
+                return;
             }
         }
         parallelSolve();

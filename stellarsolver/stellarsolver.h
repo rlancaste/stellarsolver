@@ -160,6 +160,15 @@ class StellarSolver : public QObject
         }
 
         /**
+         * @brief getColorChannel Returns which color channel is being used for Star Extraction and Solving in an RGB image
+         * @return The Color Channel in use
+         */
+        FITSImage::ColorChannel getColorChannel()
+        {
+            return (FITSImage::ColorChannel) m_ColorChannel;
+        }
+
+        /**
          * @brief getVersion gets the StellarSolver Version String
          * @return The version string
          */
@@ -510,6 +519,24 @@ class StellarSolver : public QObject
         };
 
         /**
+         * @brief setColorChannel allows you to choose which color channel to use for Star Extraction and Solving in an RGB Image
+         * @param channel The ColorChannel to use
+         */
+        void setColorChannel(FITSImage::ColorChannel channel)
+        {
+            m_ColorChannel = channel;
+        };
+
+        /**
+         * @brief setColorChannel allows you to choose which color channel to use for Star Extraction and Solving in an RGB Image
+         * @param channel The int of the ColorChannel to use
+         */
+        void setColorChannel(int channel)
+        {
+            m_ColorChannel = (FITSImage::ColorChannel) channel;
+        };
+
+        /**
          * @brief isRunning returns whether or not a process is currently running
          * @return true means it is running
          */
@@ -596,6 +623,10 @@ class StellarSolver : public QObject
         // Subframing Options
         bool useSubframe {false};
         QRect m_Subframe;
+
+        // This determines which color channel in an RGB image should be used for SEP
+        // By Default we should use green since most telescopes are best color corrected for Green
+        int m_ColorChannel = FITSImage::GREEN;
 
         // The currently set parameters for StellarSolver
         Parameters params;

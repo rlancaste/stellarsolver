@@ -112,6 +112,7 @@ ExtractorSolver* InternalExtractorSolver::spawnChildSolver(int n)
     if(m_AstrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
         connect(solver, &ExtractorSolver::logOutput, this,  &ExtractorSolver::logOutput);
     solver->usingDownsampledImage = usingDownsampledImage;
+    solver->m_ColorChannel = m_ColorChannel;
     return solver;
 }
 
@@ -799,7 +800,8 @@ void InternalExtractorSolver::applyStarFilters(QList<FITSImage::Star> &starList)
 template <typename T>
 void InternalExtractorSolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
 {
-    auto * rawBuffer = reinterpret_cast<T const *>(m_ImageBuffer);
+    int channelShift = (m_Statistics.channels < 3 || usingDownsampledImage) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
+    auto * rawBuffer = reinterpret_cast<T const *>(m_ImageBuffer + channelShift);
     float * floatPtr = buffer;
 
     int x2 = x + w;
@@ -851,20 +853,15 @@ void InternalExtractorSolver::downSampleImageType(int d)
 {
     int w = m_Statistics.width;
     int h = m_Statistics.height;
-    const uint8_t channels = m_Statistics.channels;
-    int oldBufferSize = m_Statistics.samples_per_channel * channels * m_Statistics.bytesPerPixel;
+    int oldBufferSize = m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel;
     //It is d times smaller in width and height
     int newBufferSize = oldBufferSize / (d * d);
     if(downSampledBuffer)
         delete [] downSampledBuffer;
     downSampledBuffer = new uint8_t[newBufferSize];
-    auto * sourceBuffer = reinterpret_cast<T const *>(m_ImageBuffer);
+    int channelShift = ( m_Statistics.channels < 3 ) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
+    auto * sourceBuffer = reinterpret_cast<T const *>(m_ImageBuffer + channelShift);
     auto * destinationBuffer = reinterpret_cast<T *>(downSampledBuffer);
-
-    //The G pixels are after all the R pixels, Same for the B pixels
-    auto * rSource = sourceBuffer;
-    auto * gSource = sourceBuffer + (w * h);
-    auto * bSource = sourceBuffer + (w * h * 2);
 
     for(int y = 0; y < h - d; y += d)
     {
@@ -878,30 +875,19 @@ void InternalExtractorSolver::downSampleImageType(int d)
                 //The offset for the current line of the sample to take, since we have to sample different rows
                 int currentLine = w * y2;
 
-                //Shifting the R, G, and B Pointers to the sample location
-                auto *rSample = rSource + currentLine + x;
-                auto *gSample = gSource + currentLine + x;
-                auto *bSample = bSource + currentLine + x;
+                auto *sample = sourceBuffer + currentLine + x;
                 for(int x2 = 0; x2 < d; x2++)
                 {
                     //This iterates the sample x2 spots to the right,
-                    total += *rSample++;
-                    //This only samples frome the G and B spots if it is an RGB image
-                    if(channels == 3)
-                    {
-                        total += *gSample++;
-                        total += *bSample++;
-                    }
+                    total += *sample++;
                 }
             }
             //This calculates the average pixel value and puts it in the new downsampled image.
             int pixel = (x / d) + (y / d) * (w / d);
-            destinationBuffer[pixel] = total / (d * d) / channels;
+            destinationBuffer[pixel] = total / (d * d);
         }
         //Shifts each pointer by a whole line, d times
-        rSource += w * d;
-        gSource += w * d;
-        bSource += w * d;
+        sourceBuffer += w * d;
     }
 
     m_ImageBuffer = downSampledBuffer;
