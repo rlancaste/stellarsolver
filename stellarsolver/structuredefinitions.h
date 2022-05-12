@@ -23,7 +23,9 @@ typedef enum
 {
     RED,
     GREEN,
-    BLUE
+    BLUE,
+    AVERAGE_RGB,
+    INTEGRATED_RGB
 } ColorChannel;
 
 static const QString getParityText(Parity parity){

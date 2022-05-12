@@ -52,6 +52,11 @@ InternalExtractorSolver::~InternalExtractorSolver()
         delete [] downSampledBuffer;
         downSampledBuffer = 0;
     }
+    if(mergedChannelBuffer)
+    {
+        delete [] mergedChannelBuffer;
+        mergedChannelBuffer = 0;
+    }
     if(isRunning())
     {
         quit();
@@ -257,11 +262,12 @@ int InternalExtractorSolver::runSEPExtractor()
     }
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Starting Internal StellarSolver Star Extractor with the " + m_ActiveParameters.listName + " profile . . .");
-
+    //Only merge image channels if it is an RGB image and we are either averaging or integrating the channels
+    if(m_Statistics.channels == 3 && (m_ColorChannel == FITSImage::AVERAGE_RGB || m_ColorChannel == FITSImage::INTEGRATED_RGB))
+        mergeImageChannels();
     //Only downsample images before SEP if the Sextraction is being used for plate solving
     if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && m_ActiveParameters.downsample != 1)
         downsampleImage(m_ActiveParameters.downsample);
-    //saveAsFITS();  //You can uncomment this to test out the downsampling
     uint32_t x = 0, y = 0;
     uint32_t w = m_Statistics.width, h = m_Statistics.height;
     uint32_t raw_w = m_Statistics.width, raw_h = m_Statistics.height;
@@ -800,7 +806,7 @@ void InternalExtractorSolver::applyStarFilters(QList<FITSImage::Star> &starList)
 template <typename T>
 void InternalExtractorSolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
 {
-    int channelShift = (m_Statistics.channels < 3 || usingDownsampledImage) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
+    int channelShift = (m_Statistics.channels < 3 || usingDownsampledImage || usingMergedChannelImage) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
     auto * rawBuffer = reinterpret_cast<T const *>(m_ImageBuffer + channelShift);
     float * floatPtr = buffer;
 
@@ -859,7 +865,7 @@ void InternalExtractorSolver::downSampleImageType(int d)
     if(downSampledBuffer)
         delete [] downSampledBuffer;
     downSampledBuffer = new uint8_t[newBufferSize];
-    int channelShift = ( m_Statistics.channels < 3 ) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
+    int channelShift = ( m_Statistics.channels < 3 || usingMergedChannelImage) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
     auto * sourceBuffer = reinterpret_cast<T const *>(m_ImageBuffer + channelShift);
     auto * destinationBuffer = reinterpret_cast<T *>(downSampledBuffer);
 
@@ -886,7 +892,7 @@ void InternalExtractorSolver::downSampleImageType(int d)
             int pixel = (x / d) + (y / d) * (w / d);
             destinationBuffer[pixel] = total / (d * d);
         }
-        //Shifts each pointer by a whole line, d times
+        //Shifts the pointer by a whole line, d times
         sourceBuffer += w * d;
     }
 
@@ -900,6 +906,70 @@ void InternalExtractorSolver::downSampleImageType(int d)
         scalehi *= d;
     }
     usingDownsampledImage = true;
+}
+
+void InternalExtractorSolver::mergeImageChannels()
+{
+    switch (m_Statistics.dataType)
+    {
+        case SEP_TBYTE:
+            mergeImageChannelsType<uint8_t>();
+            break;
+        case TSHORT:
+            mergeImageChannelsType<int16_t>();
+            break;
+        case TUSHORT:
+            mergeImageChannelsType<uint16_t>();
+            break;
+        case TLONG:
+            mergeImageChannelsType<int32_t>();
+            break;
+        case TULONG:
+            mergeImageChannelsType<uint32_t>();
+            break;
+        case TFLOAT:
+            mergeImageChannelsType<float>();
+            break;
+        case TDOUBLE:
+            mergeImageChannelsType<double>();
+            break;
+        default:
+            return;
+    }
+
+}
+
+template <typename T>
+void InternalExtractorSolver::mergeImageChannelsType()
+{
+    if(m_ColorChannel != FITSImage::INTEGRATED_RGB && m_ColorChannel != FITSImage::AVERAGE_RGB)
+        return;
+    int w = m_Statistics.width;
+    int h = m_Statistics.height;
+    int channelSize = m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel;
+    if(mergedChannelBuffer)
+        delete [] mergedChannelBuffer;
+    mergedChannelBuffer = new uint8_t[channelSize];
+    auto * source = reinterpret_cast<T const *>(m_ImageBuffer);
+    auto * dest = reinterpret_cast<T *>(mergedChannelBuffer);
+
+    for(int y = 0; y < h; y++)
+    {
+        for (int x = 0; x < w; x++)
+        {
+            double total  = 0;
+            int r = x + y * w;
+            int g = x + y * w + channelSize;
+            int b = x + y * w + channelSize * 2;
+            if(m_ColorChannel == FITSImage::INTEGRATED_RGB)
+                total = source[r] + source[g] + source[b];
+            if(m_ColorChannel == FITSImage::AVERAGE_RGB)
+                total = (source[r] + source[g] + source[b]) / 3.0;
+            dest[ x + y * w ] = (T) total;
+        }
+    }
+    m_ImageBuffer = mergedChannelBuffer;
+    usingMergedChannelImage = true;
 }
 
 //This method prepares the job file.  It is based upon the methods parse_job_from_qfits_header and engine_read_job_file in engine.c of astrometry.net

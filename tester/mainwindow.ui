@@ -1570,7 +1570,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>86</width>
+                 <width>98</width>
                  <height>70</height>
                 </rect>
                </property>
@@ -2023,6 +2023,16 @@
                 <item>
                  <property name="text">
                   <string>Blue</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Average RGB</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Integrated RGB</string>
                  </property>
                 </item>
                </widget>

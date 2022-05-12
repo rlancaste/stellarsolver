@@ -1664,6 +1664,10 @@ int ExternalExtractorSolver::writeStarExtractorTable()
 //This was copied and pasted and modified from ImageToFITS in fitsdata in KStars
 int ExternalExtractorSolver::saveAsFITS()
 {
+    //Only merge image channels if it is an RGB image and we are either averaging or integrating the channels
+    if(m_Statistics.channels == 3 && (m_ColorChannel == FITSImage::AVERAGE_RGB || m_ColorChannel == FITSImage::INTEGRATED_RGB))
+        mergeImageChannels();
+
     QString newFilename = m_BasePath + "/" + m_BaseName + ".fit";
 
     int status = 0;
@@ -1672,7 +1676,7 @@ int ExternalExtractorSolver::saveAsFITS()
     // We are only going to export a monochromatic image because SExtractor and most solvers don't use all three channels
     // We will export the selected channel if it is an RGB image
     long naxis = 2;
-    long channelShift = (m_Statistics.channels == 3) ? m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel : 0;
+    long channelShift = (m_Statistics.channels < 3 || usingMergedChannelImage) ? 0 : m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel;
     long nelements, exposure;
     long naxes[3] = { m_Statistics.width, m_Statistics.height, 1 };
     char error_status[512] = {0};

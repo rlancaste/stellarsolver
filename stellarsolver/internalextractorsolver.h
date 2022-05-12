@@ -79,6 +79,9 @@ class InternalExtractorSolver: public ExtractorSolver
         //This boolean gets set internally if we are using a downsampled image buffer for SEP
         bool usingDownsampledImage = false;
 
+        //This boolean gets set internally if we are using a Merged Channel image buffer
+        bool usingMergedChannelImage = false;
+
         /**
          * @brief runSEPExtractor is the method that actually runs internal SEP
          * @return
@@ -108,11 +111,24 @@ class InternalExtractorSolver: public ExtractorSolver
          */
         void allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
 
+        /**
+         * @brief mergeImageChannels merges the R, G, and B channels of a 3 channel image
+         * to make one enhanced channel for star extraction or solving
+         */
+        void mergeImageChannels();
+
+        /**
+         * @brief mergeImageChannelsType allows the mergeImageChannels method to handle different data types
+         */
+        template <typename T> void mergeImageChannelsType();
 
     private:
 
-        // The generic data buffer containing the image data
+        // The generic data buffer containing the downsampled image data
         uint8_t *downSampledBuffer { nullptr };
+
+        // The generic data buffer containing an RGB image's merged channels data
+        uint8_t *mergedChannelBuffer { nullptr };
 
         // This is the number of threads used for star extraction with SEP
         uint32_t m_PartitionThreads = {16};
