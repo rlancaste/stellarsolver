@@ -280,6 +280,12 @@ void StellarSolver::start()
                 return;
             }
         }
+        // There is no reason to generate a bunch of copies of the config file, just one will do for all the parallel threads.
+        if(m_SolverType == SOLVER_LOCALASTROMETRY)
+        {
+            ExternalExtractorSolver *extSolver = static_cast<ExternalExtractorSolver*> (m_ExtractorSolver.data());
+            extSolver->generateAstrometryConfigFile();
+        }
         parallelSolve();
     }
     else if(m_SolverType == SOLVER_ONLINEASTROMETRY)

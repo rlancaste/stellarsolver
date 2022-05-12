@@ -134,17 +134,17 @@ class ExternalExtractorSolver : public InternalExtractorSolver
          */
         int getStarsFromXYLSFile();
 
-    private:
-        // These are the variables for the external processes
-        QPointer<QProcess> solver;
-        QPointer<QProcess> extractorProcess;
-
         // Note: this method is needed so that the options selected in StellarSolver get passed to the solver
         /**
          * @brief generateAstrometryConfigFile creates the astrometry.cfg file for the local astrometry solver
          * @return true means it was successful
          */
         bool generateAstrometryConfigFile();
+
+    private:
+        // These are the variables for the external processes
+        QPointer<QProcess> solver;
+        QPointer<QProcess> extractorProcess;
 
         /**
          * @brief getSolverArgsList gets the list of arguments to pass to the local astrometry.net solver

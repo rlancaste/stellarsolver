@@ -598,6 +598,9 @@ int ExternalExtractorSolver::runExternalAstrometrySolver()
 
     QStringList solverArgs = getSolverArgsList();
 
+    if(!isChildSolver)
+        generateAstrometryConfigFile();
+
     if(m_ExtractorType == EXTRACTOR_BUILTIN)
     {
         solverArgs << "--keep-xylist" << starXYLSFilePath;
@@ -1001,9 +1004,6 @@ QStringList ExternalExtractorSolver::getSolverArgsList()
     else if(m_AstrometryLogLevel == LOG_VERB || m_AstrometryLogLevel == LOG_ALL)
         solverArgs << "-vv";
 
-    if(autoGenerateAstroConfig || !QFile(externalPaths.confPath).exists())
-        generateAstrometryConfigFile();
-
     //This sends the path to the config file.  Note that backend-config seems to be more universally recognized across
     //the different solvers than config
     solverArgs << "--backend-config" << externalPaths.confPath;
@@ -1022,6 +1022,9 @@ QStringList ExternalExtractorSolver::getSolverArgsList()
 //for the external solvers from inside the program.
 bool ExternalExtractorSolver::generateAstrometryConfigFile()
 {
+    // We want to generate the config file if either the user wants to auto generate it, or if they don't but the config file they chose doesn't exist.
+    if(!autoGenerateAstroConfig && QFile(externalPaths.confPath).exists())
+        return false;
     externalPaths.confPath =  m_BasePath + "/" + m_BaseName + ".cfg";
     QFile configFile(externalPaths.confPath);
     if (configFile.open(QIODevice::WriteOnly) == false)
