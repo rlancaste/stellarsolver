@@ -290,6 +290,13 @@ void StellarSolver::start()
     }
     else if(m_SolverType == SOLVER_ONLINEASTROMETRY)
     {
+        OnlineSolver *onSolver = static_cast<OnlineSolver*> (m_ExtractorSolver.data());
+        int ret = onSolver->saveAsFITS();
+        if(ret != 0)
+        {
+            emit logOutput("Failed to save FITS File.");
+            return;
+        }
         connect(m_ExtractorSolver.data(), &ExtractorSolver::finished, this, &StellarSolver::processFinished);
         m_ExtractorSolver->execute();
     }
