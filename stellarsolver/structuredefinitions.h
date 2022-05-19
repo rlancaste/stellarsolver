@@ -45,6 +45,10 @@ static const QString getColorChannelText(ColorChannel channel){
             return "green";
         case BLUE:
             return "blue";
+        case AVERAGE_RGB:
+            return "RGB";
+        case INTEGRATED_RGB:
+            return "Σ RGB";
         default:
             return "red";
     }

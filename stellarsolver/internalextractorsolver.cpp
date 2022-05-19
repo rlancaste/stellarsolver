@@ -942,10 +942,13 @@ void InternalExtractorSolver::mergeImageChannels()
 template <typename T>
 void InternalExtractorSolver::mergeImageChannelsType()
 {
+    if(m_Statistics.channels != 3)
+        return;
     if(m_ColorChannel != FITSImage::INTEGRATED_RGB && m_ColorChannel != FITSImage::AVERAGE_RGB)
         return;
     int w = m_Statistics.width;
     int h = m_Statistics.height;
+    int nextChannel = m_Statistics.samples_per_channel;
     int channelSize = m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel;
     if(mergedChannelBuffer)
         delete [] mergedChannelBuffer;
@@ -959,8 +962,8 @@ void InternalExtractorSolver::mergeImageChannelsType()
         {
             double total  = 0;
             int r = x + y * w;
-            int g = x + y * w + channelSize;
-            int b = x + y * w + channelSize * 2;
+            int g = x + y * w + nextChannel;
+            int b = x + y * w + nextChannel * 2;
             if(m_ColorChannel == FITSImage::INTEGRATED_RGB)
                 total = source[r] + source[g] + source[b];
             if(m_ColorChannel == FITSImage::AVERAGE_RGB)

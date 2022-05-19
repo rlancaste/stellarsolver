@@ -328,10 +328,16 @@ ExtractorSolver* ExternalExtractorSolver::spawnChildSolver(int n)
         solver->setSearchPositionInDegrees(search_ra, search_dec);
     if(m_AstrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
         connect(solver, &ExtractorSolver::logOutput, this, &ExtractorSolver::logOutput);
+
     //This way they all share a solved and cancel fn
+    if(cancelfn == "")
+        cancelfn = m_BasePath + "/" + m_BaseName + ".cancel";
+    if(solvedfn == "")
+        solvedfn = m_BasePath + "/" + m_BaseName + ".solved";
+    solver->cancelfn = cancelfn;
+    solver->solvedfn = solvedfn;
     solver->solutionFile = solutionFile;
-    //solver->cancelfn = cancelfn;
-    //solver->solvedfn = basePath + "/" + baseName + ".solved";
+
     solver->m_ColorChannel = m_ColorChannel;
     return solver;
 }
@@ -596,10 +602,10 @@ int ExternalExtractorSolver::runExternalAstrometrySolver()
         }
     }
 
-    QStringList solverArgs = getSolverArgsList();
-
     if(!isChildSolver)
         generateAstrometryConfigFile();
+
+    QStringList solverArgs = getSolverArgsList();
 
     if(m_ExtractorType == EXTRACTOR_BUILTIN)
     {
@@ -1012,6 +1018,11 @@ QStringList ExternalExtractorSolver::getSolverArgsList()
     //In order to shut down and stop processing
     solverArgs << "--cancel" << cancelfn;
 
+    solverArgs << "--solved" << solvedfn;
+
+    if(m_ExtractorType == EXTRACTOR_BUILTIN && m_SolverType == SOLVER_LOCALASTROMETRY)
+        solverArgs << "--axy" << m_BasePath + "/" + m_BaseName + ".axy";
+
     //This sets the wcs file for astrometry.net.  This file will be very important for reading in WCS info later on
     solverArgs << "-W" << solutionFile;
 
@@ -1022,9 +1033,13 @@ QStringList ExternalExtractorSolver::getSolverArgsList()
 //for the external solvers from inside the program.
 bool ExternalExtractorSolver::generateAstrometryConfigFile()
 {
-    // We want to generate the config file if either the user wants to auto generate it, or if they don't but the config file they chose doesn't exist.
-    if(!autoGenerateAstroConfig && QFile(externalPaths.confPath).exists())
-        return false;
+    // If the user didn't want to autogenerate the config file and the file does exist, then use it
+    // If they wanted to autogenerate the config file or if the file doesn't exist, we need to autogenerate it.
+    if(!autoGenerateAstroConfig)
+    {
+        if(QFile(externalPaths.confPath).exists())
+            return false;
+    }
     externalPaths.confPath =  m_BasePath + "/" + m_BaseName + ".cfg";
     QFile configFile(externalPaths.confPath);
     if (configFile.open(QIODevice::WriteOnly) == false)
@@ -1260,8 +1275,6 @@ int ExternalExtractorSolver::getStarsFromXYLSFile()
 //It reads the information from the Solution file from Astrometry.net and puts it into the solution
 bool ExternalExtractorSolver::getSolutionInformation()
 {
-    if(solutionFile == "")
-        solutionFile = m_BasePath + "/" + m_BaseName + ".wcs";
     QFileInfo solutionInfo(solutionFile);
     if(!solutionInfo.exists())
     {
