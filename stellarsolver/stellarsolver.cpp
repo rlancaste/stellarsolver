@@ -557,10 +557,8 @@ void StellarSolver::finishParallelSolve(int success)
                 wcsData.appendStarsRAandDEC(m_ExtractorStars);
             m_isRunning = false;
         }
-        if(m_ExtractorType !=
-                EXTRACTOR_BUILTIN) //Note this is just cleaning up the files from the star extraction done prior to the parallel solve.  So for built in, it doesn't even do it, so no files to clean up
-            m_ExtractorSolver->cleanupTempFiles();
         m_HasSolved = true;
+        m_ExtractorSolver->cleanupTempFiles();
         emit ready();
     }
     else
@@ -578,6 +576,7 @@ void StellarSolver::finishParallelSolve(int success)
         }
         qDeleteAll(parallelSolvers);
         parallelSolvers.clear();
+        m_ExtractorSolver->cleanupTempFiles();
         emit finished();
     }
 }

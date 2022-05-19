@@ -371,6 +371,11 @@ void ExternalExtractorSolver::cleanupTempFiles()
     if(cleanupTemporaryFiles)
     {
         QDir temp(m_BasePath);
+
+        //Fits files to solve
+        temp.remove(m_BaseName + ".fit");
+        temp.remove(m_BaseName + ".fits");
+
         //SExtractor Files
         temp.remove(m_BaseName + ".param");
         temp.remove(m_BaseName + ".conv");
@@ -389,12 +394,16 @@ void ExternalExtractorSolver::cleanupTempFiles()
         temp.remove(m_BaseName + "-indx.xyls");
         temp.remove(m_BaseName + ".solved");
 
-        //Other Files
+        //Other Files (Necessary because they have different names than the above if shared)
         QFile solvedFile(solvedfn);
         solvedFile.setPermissions(solvedFile.permissions() | QFileDevice::WriteOther);
         solvedFile.remove();
+        if(autoGenerateAstroConfig)
+            QFile(externalPaths.confPath).remove();
         QFile(solutionFile).remove();
-        //QFile(cancelfn).remove();
+        //I wish we could remove the cancel file, but if we do this in a parallel solve, the other solvers might not stop.
+        //if(!isChildSolver)
+        //    QFile(cancelfn).remove();
         if(starXYLSFilePathIsTempFile)
             QFile(starXYLSFilePath).remove();
         if(fileToProcessIsTempFile)
