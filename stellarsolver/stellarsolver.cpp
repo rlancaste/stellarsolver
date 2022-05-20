@@ -315,6 +315,13 @@ bool StellarSolver::checkParameters()
         emit logOutput("The image buffer is not loaded, please load an image before processing it");
         return false;
     }
+
+    if(m_ProcessType == SOLVE && m_SolverType == SOLVER_WATNEYASTROMETRY && (m_Statistics.dataType == SEP_TFLOAT || m_Statistics.dataType == SEP_TDOUBLE))
+    {
+        emit logOutput("The Watney Solver cannot solve floating point images.");
+        return false;
+    }
+
     if(m_SolverType == SOLVER_ASTAP && m_ExtractorType != EXTRACTOR_BUILTIN)
     {
         if(m_SSLogLevel != LOG_OFF)
