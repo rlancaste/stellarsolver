@@ -224,7 +224,7 @@ void ExternalExtractorSolver::run()
         {
             if(m_ExtractorType == EXTRACTOR_BUILTIN && m_SolverType == SOLVER_LOCALASTROMETRY)
             {
-                int result = runExternalSolver();
+                int result = runExternalAstrometrySolver();
                 cleanupTempFiles();
                 emit finished(result);
             }
@@ -276,7 +276,7 @@ void ExternalExtractorSolver::run()
                     }
                     else
                     {
-                        int result = runExternalSolver();
+                        int result = runExternalAstrometrySolver();
                         cleanupTempFiles();
                         emit finished(result);
                     }
@@ -312,7 +312,6 @@ ExtractorSolver* ExternalExtractorSolver::spawnChildSolver(int n)
     solver->externalPaths = externalPaths;
     solver->cleanupTemporaryFiles = cleanupTemporaryFiles;
     solver->autoGenerateAstroConfig = autoGenerateAstroConfig;
-    solver->onlySendFITSFiles = onlySendFITSFiles;
 
     solver->isChildSolver = true;
     solver->m_ActiveParameters = m_ActiveParameters;
@@ -329,10 +328,17 @@ ExtractorSolver* ExternalExtractorSolver::spawnChildSolver(int n)
         solver->setSearchPositionInDegrees(search_ra, search_dec);
     if(m_AstrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
         connect(solver, &ExtractorSolver::logOutput, this, &ExtractorSolver::logOutput);
+
     //This way they all share a solved and cancel fn
+    if(cancelfn == "")
+        cancelfn = m_BasePath + "/" + m_BaseName + ".cancel";
+    if(solvedfn == "")
+        solvedfn = m_BasePath + "/" + m_BaseName + ".solved";
+    solver->cancelfn = cancelfn;
+    solver->solvedfn = solvedfn;
     solver->solutionFile = solutionFile;
-    //solver->cancelfn = cancelfn;
-    //solver->solvedfn = basePath + "/" + baseName + ".solved";
+
+    solver->m_ColorChannel = m_ColorChannel;
     return solver;
 }
 
@@ -365,6 +371,11 @@ void ExternalExtractorSolver::cleanupTempFiles()
     if(cleanupTemporaryFiles)
     {
         QDir temp(m_BasePath);
+
+        //Fits files to solve
+        temp.remove(m_BaseName + ".fit");
+        temp.remove(m_BaseName + ".fits");
+
         //SExtractor Files
         temp.remove(m_BaseName + ".param");
         temp.remove(m_BaseName + ".conv");
@@ -383,12 +394,16 @@ void ExternalExtractorSolver::cleanupTempFiles()
         temp.remove(m_BaseName + "-indx.xyls");
         temp.remove(m_BaseName + ".solved");
 
-        //Other Files
+        //Other Files (Necessary because they have different names than the above if shared)
         QFile solvedFile(solvedfn);
         solvedFile.setPermissions(solvedFile.permissions() | QFileDevice::WriteOther);
         solvedFile.remove();
+        if(autoGenerateAstroConfig)
+            QFile(externalPaths.confPath).remove();
         QFile(solutionFile).remove();
-        //QFile(cancelfn).remove();
+        //I wish we could remove the cancel file, but if we do this in a parallel solve, the other solvers might not stop.
+        //if(!isChildSolver)
+        //    QFile(cancelfn).remove();
         if(starXYLSFilePathIsTempFile)
             QFile(starXYLSFilePath).remove();
         if(fileToProcessIsTempFile)
@@ -405,19 +420,9 @@ int ExternalExtractorSolver::runExternalExtractor()
     QFileInfo file(fileToProcess);
     if(!file.exists())
         return -1;
-    if(file.suffix() != "fits" && file.suffix() != "fit")
-    {
-        int ret = saveAsFITS();
-        if(ret != 0)
-            return ret;
-    }
-    else
-    {
-        QString newFileURL = m_BasePath + "/" + m_BaseName + "." + file.suffix();
-        QFile::copy(fileToProcess, newFileURL);
-        fileToProcess = newFileURL;
-        fileToProcessIsTempFile = true;
-    }
+    int ret = saveAsFITS();
+    if(ret != 0)
+        return ret;
 
     //Configuration arguments for SExtractor
     QStringList sextractorArgs;
@@ -560,7 +565,7 @@ int ExternalExtractorSolver::runExternalExtractor()
 
 //The code for this method is copied and pasted and modified from OfflineAstrometryParser in KStars
 //It runs the astrometry.net external program using the options selected.
-int ExternalExtractorSolver::runExternalSolver()
+int ExternalExtractorSolver::runExternalAstrometrySolver()
 {
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     if(m_ExtractorType == EXTRACTOR_BUILTIN)
@@ -577,7 +582,10 @@ int ExternalExtractorSolver::runExternalSolver()
             return -1;
         }
 
-        if( !isChildSolver && onlySendFITSFiles && file.suffix() != "fits" && file.suffix() != "fit")
+        // Making a copy of the file and putting it in the temp directory
+        // So that we can find all the temporary files and delete them later
+        // That way we don't pollute the directory the original image is located in
+        if( !isChildSolver)
         {
             int ret = saveAsFITS();
             if(ret != 0)
@@ -585,16 +593,6 @@ int ExternalExtractorSolver::runExternalSolver()
                 emit logOutput("Failed to Save the image as a FITS File.");
                 return ret;
             }
-        }
-        else
-        {
-            //Making a copy of the file and putting it in the temp directory
-            //So that we can find all the temporary files and delete them later
-            //That way we don't pollute the directory the original image is located in
-            QString newFileURL = m_BasePath + "/" + m_BaseName + "." + file.suffix();
-            QFile::copy(fileToProcess, newFileURL);
-            fileToProcess = newFileURL;
-            fileToProcessIsTempFile = true;
         }
     }
     else
@@ -612,6 +610,9 @@ int ExternalExtractorSolver::runExternalSolver()
             starXYLSFilePathIsTempFile = true;
         }
     }
+
+    if(!isChildSolver)
+        generateAstrometryConfigFile();
 
     QStringList solverArgs = getSolverArgsList();
 
@@ -646,8 +647,10 @@ int ExternalExtractorSolver::runExternalSolver()
     emit logOutput("Starting external Astrometry.net solver with the " + m_ActiveParameters.listName + " profile...");
     emit logOutput("Command: " + externalPaths.solverPath + " " + solverArgs.join(" "));
 
-    solver->waitForFinished(m_ActiveParameters.solverTimeLimit * 1000 *
-                            1.2); //Set to timeout in a little longer than the timeout
+    //Set to timeout in a little longer than the timeout
+    solver->waitForFinished(m_ActiveParameters.solverTimeLimit * 1000 * 1.2);
+    if(m_WasAborted)
+        return -1;
     if(solver->error() == QProcess::Timedout)
     {
         emit logOutput("Solver timed out, aborting");
@@ -655,13 +658,20 @@ int ExternalExtractorSolver::runExternalSolver()
         return solver->exitCode();
     }
     if(solver->exitCode() != 0)
+    {
+        emit logOutput(QString("Solver failed with exit code: %1").arg(solver->exitCode()));
         return solver->exitCode();
+    }
     if(solver->exitStatus() == QProcess::CrashExit)
+    {
+        emit logOutput("Solver crashed");
         return -1;
-    if(m_WasAborted)
-        return -1;
+    }
     if(!getSolutionInformation())
+    {
+        emit logOutput("Solver failed to get solution information");
         return -1;
+    }
     loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
     m_HasSolved = true;
     return 0;
@@ -673,16 +683,11 @@ int ExternalExtractorSolver::runExternalASTAPSolver()
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Configuring external ASTAP solver");
 
-    if(m_ExtractorType != EXTRACTOR_BUILTIN)
+    int ret = saveAsFITS();
+    if(ret != 0)
     {
-        QFileInfo file(fileToProcess);
-        if(!file.exists())
-            return -1;
-
-        QString newFileURL = m_BasePath + "/" + m_BaseName + "." + file.suffix();
-        QFile::copy(fileToProcess, newFileURL);
-        fileToProcess = newFileURL;
-        fileToProcessIsTempFile = true;
+        emit logOutput("Failed to Save the image as a FITS File.");
+        return ret;
     }
 
     QStringList solverArgs;
@@ -754,6 +759,8 @@ int ExternalExtractorSolver::runExternalASTAPSolver()
             emit logOutput("ASTAP log file " + logFile.fileName() + " does not exist.");
     }
 
+    if(m_WasAborted)
+        return -1;
     if(solver->error() == QProcess::Timedout)
     {
         emit logOutput("Solver timed out, aborting");
@@ -761,9 +768,15 @@ int ExternalExtractorSolver::runExternalASTAPSolver()
         return solver->exitCode();
     }
     if(solver->exitCode() != 0)
+    {
+        emit logOutput(QString("Solver failed with exit code: %1").arg(solver->exitCode()));
         return solver->exitCode();
+    }
     if(solver->exitStatus() == QProcess::CrashExit)
+    {
+        emit logOutput("Solver crashed");
         return -1;
+    }
     if(!getASTAPSolutionInformation())
         return -1;
     loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
@@ -778,14 +791,12 @@ int ExternalExtractorSolver::runExternalWatneySolver()
 
     if(m_ExtractorType == EXTRACTOR_BUILTIN)
     {
-        QFileInfo file(fileToProcess);
-        if(!file.exists())
-            return -1;
-
-        QString newFileURL = m_BasePath + "/" + m_BaseName + "." + file.suffix();
-        QFile::copy(fileToProcess, newFileURL);
-        fileToProcess = newFileURL;
-        fileToProcessIsTempFile = true;
+        int ret = saveAsFITS();
+        if(ret != 0)
+        {
+            emit logOutput("Failed to Save the image as a FITS File.");
+            return ret;
+        }
     }
     else
     {
@@ -901,6 +912,8 @@ int ExternalExtractorSolver::runExternalWatneySolver()
             emit logOutput("Watney log file " + logFile.fileName() + " does not exist.");
     }
 
+    if(m_WasAborted)
+        return -1;
     if(solver->error() == QProcess::Timedout)
     {
         emit logOutput("Solver timed out, aborting");
@@ -908,9 +921,15 @@ int ExternalExtractorSolver::runExternalWatneySolver()
         return solver->exitCode();
     }
     if(solver->exitCode() != 0)
+    {
+        emit logOutput(QString("Solver failed with exit code: %1").arg(solver->exitCode()));
         return solver->exitCode();
+    }
     if(solver->exitStatus() == QProcess::CrashExit)
+    {
+        emit logOutput("Solver crashed");
         return -1;
+    }
     if(!getWatneySolutionInformation())
         return -1;
     loadWCS(); //Attempt to Load WCS, but don't totally fail if you don't find it.
@@ -991,7 +1010,7 @@ QStringList ExternalExtractorSolver::getSolverArgsList()
     //This should avoid those problems as long as you send a FITS file or a xy list to astrometry.
     solverArgs << "--no-remove-lines";
     solverArgs << "--uniformize" << "0";
-    if(onlySendFITSFiles && m_ExtractorType == EXTRACTOR_BUILTIN)
+    if(m_ExtractorType == EXTRACTOR_BUILTIN)
         solverArgs << "--fits-image";
 
     //Don't need any argument for default level
@@ -1000,9 +1019,6 @@ QStringList ExternalExtractorSolver::getSolverArgsList()
     else if(m_AstrometryLogLevel == LOG_VERB || m_AstrometryLogLevel == LOG_ALL)
         solverArgs << "-vv";
 
-    if(autoGenerateAstroConfig || !QFile(externalPaths.confPath).exists())
-        generateAstrometryConfigFile();
-
     //This sends the path to the config file.  Note that backend-config seems to be more universally recognized across
     //the different solvers than config
     solverArgs << "--backend-config" << externalPaths.confPath;
@@ -1010,6 +1026,11 @@ QStringList ExternalExtractorSolver::getSolverArgsList()
     //This sets the cancel filename for astrometry.net.  Astrometry will monitor for the creation of this file
     //In order to shut down and stop processing
     solverArgs << "--cancel" << cancelfn;
+
+    solverArgs << "--solved" << solvedfn;
+
+    if(m_ExtractorType == EXTRACTOR_BUILTIN && m_SolverType == SOLVER_LOCALASTROMETRY)
+        solverArgs << "--axy" << m_BasePath + "/" + m_BaseName + ".axy";
 
     //This sets the wcs file for astrometry.net.  This file will be very important for reading in WCS info later on
     solverArgs << "-W" << solutionFile;
@@ -1021,6 +1042,13 @@ QStringList ExternalExtractorSolver::getSolverArgsList()
 //for the external solvers from inside the program.
 bool ExternalExtractorSolver::generateAstrometryConfigFile()
 {
+    // If the user didn't want to autogenerate the config file and the file does exist, then use it
+    // If they wanted to autogenerate the config file or if the file doesn't exist, we need to autogenerate it.
+    if(!autoGenerateAstroConfig)
+    {
+        if(QFile(externalPaths.confPath).exists())
+            return false;
+    }
     externalPaths.confPath =  m_BasePath + "/" + m_BaseName + ".cfg";
     QFile configFile(externalPaths.confPath);
     if (configFile.open(QIODevice::WriteOnly) == false)
@@ -1256,8 +1284,6 @@ int ExternalExtractorSolver::getStarsFromXYLSFile()
 //It reads the information from the Solution file from Astrometry.net and puts it into the solution
 bool ExternalExtractorSolver::getSolutionInformation()
 {
-    if(solutionFile == "")
-        solutionFile = m_BasePath + "/" + m_BaseName + ".wcs";
     QFileInfo solutionInfo(solutionFile);
     if(!solutionInfo.exists())
     {
@@ -1577,49 +1603,20 @@ int ExternalExtractorSolver::writeStarExtractorTable()
     int status = 0;
     fitsfile * new_fptr;
 
-    if(m_ExtractorType == EXTRACTOR_INTERNAL && m_SolverType == SOLVER_ASTAP)
+    if(starXYLSFilePath == "")
     {
-        QFileInfo file(fileToProcess);
-        if(!file.exists())
-            return -1;
-
-        if(file.suffix() != "fits" && file.suffix() != "fit")
-        {
-            int ret = saveAsFITS();
-            if(ret != 0)
-                return ret;
-        }
-        else
-        {
-            QString newFileURL = m_BasePath + "/" + m_BaseName + ".fits";
-            QFile::copy(fileToProcess, newFileURL);
-            fileToProcess = newFileURL;
-            fileToProcessIsTempFile = true;
-        }
-
-        if (fits_open_diskfile(&new_fptr, fileToProcess.toLocal8Bit(), READWRITE, &status))
-        {
-            fits_report_error(stderr, status);
-            return status;
-        }
+        starXYLSFilePathIsTempFile = true;
+        starXYLSFilePath = m_BasePath + "/" + m_BaseName + ".xyls";
     }
-    else
+
+    QFile sextractorFile(starXYLSFilePath);
+    if(sextractorFile.exists())
+        sextractorFile.remove();
+
+    if (fits_create_file(&new_fptr, starXYLSFilePath.toLocal8Bit(), &status))
     {
-        if(starXYLSFilePath == "")
-        {
-            starXYLSFilePathIsTempFile = true;
-            starXYLSFilePath = m_BasePath + "/" + m_BaseName + ".xyls";
-        }
-
-        QFile sextractorFile(starXYLSFilePath);
-        if(sextractorFile.exists())
-            sextractorFile.remove();
-
-        if (fits_create_file(&new_fptr, starXYLSFilePath.toLocal8Bit(), &status))
-        {
-            fits_report_error(stderr, status);
-            return status;
-        }
+        fits_report_error(stderr, status);
+        return status;
     }
 
     int tfields = 3;
@@ -1692,35 +1689,28 @@ int ExternalExtractorSolver::writeStarExtractorTable()
 //This was copied and pasted and modified from ImageToFITS in fitsdata in KStars
 int ExternalExtractorSolver::saveAsFITS()
 {
-    QString newFilename = m_BasePath + "/" + m_BaseName + ".fits";
+    //Only merge image channels if it is an RGB image and we are either averaging or integrating the channels
+    if(m_Statistics.channels == 3 && (m_ColorChannel == FITSImage::AVERAGE_RGB || m_ColorChannel == FITSImage::INTEGRATED_RGB))
+        mergeImageChannels();
+
+    QString newFilename = m_BasePath + "/" + m_BaseName + ".fit";
 
     int status = 0;
     fitsfile * new_fptr;
 
-    //I am hoping that this is correct.
-    //I"m trying to set these two variables based on the ndim variable since this class doesn't have access to these variables.
-    long naxis;
-    int channels;
-    if (m_Statistics.ndim < 3)
-    {
-        channels = 1;
-        naxis = 2;
-    }
-    else
-    {
-        channels = 3;
-        naxis = 3;
-    }
-
+    // We are only going to export a monochromatic image because SExtractor and most solvers don't use all three channels
+    // We will export the selected channel if it is an RGB image
+    long naxis = 2;
+    long channelShift = (m_Statistics.channels < 3 || usingMergedChannelImage) ? 0 : m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel;
     long nelements, exposure;
-    long naxes[3] = { m_Statistics.width, m_Statistics.height, channels };
+    long naxes[3] = { m_Statistics.width, m_Statistics.height, 1 };
     char error_status[512] = {0};
 
     QFileInfo newFileInfo(newFilename);
     if(newFileInfo.exists())
         QFile(newFilename).remove();
 
-    nelements = m_Statistics.samples_per_channel * channels;
+    nelements = m_Statistics.samples_per_channel;
 
     /* Create a new File, overwriting existing*/
     if (fits_create_file(&new_fptr, newFilename.toLocal8Bit(), &status))
@@ -1768,7 +1758,7 @@ int ExternalExtractorSolver::saveAsFITS()
     }
 
     /* Write Data */
-    if (fits_write_img(fptr, m_Statistics.dataType, 1, nelements, const_cast<void *>(reinterpret_cast<const void *>(m_ImageBuffer)), &status))
+    if (fits_write_img(fptr, m_Statistics.dataType, 1, nelements, const_cast<void *>(reinterpret_cast<const void *>(m_ImageBuffer + channelShift)), &status))
     {
         fits_report_error(stderr, status);
         return status;

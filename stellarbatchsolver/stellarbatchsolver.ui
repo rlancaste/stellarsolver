@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>884</width>
     <height>600</height>
    </rect>
   </property>
@@ -153,6 +153,41 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QComboBox" name="colorChannel">
+              <property name="toolTip">
+               <string>The Color Channel to use for Star Extraction and Solving of RGB Images.  Note that this does not apply to MonoChromatic images, which only have one channel.</string>
+              </property>
+              <property name="currentIndex">
+               <number>1</number>
+              </property>
+              <item>
+               <property name="text">
+                <string>Red</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Green</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Blue</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Average RGB</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Integrated RGB</string>
+               </property>
+              </item>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
@@ -206,7 +241,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>355</width>
+           <width>336</width>
            <height>68</height>
           </rect>
          </property>
@@ -294,7 +329,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>884</width>
      <height>21</height>
     </rect>
    </property>

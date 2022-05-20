@@ -310,6 +310,7 @@ void StellarBatchSolver::solveImage()
         if(currentImage->searchScale)
             stellarSolver.setSearchScale(currentImage->searchScale->scale_low, currentImage->searchScale->scale_high, currentImage->searchScale->scale_units);
     }
+    stellarSolver.setColorChannel(ui->colorChannel->currentIndex());
     connect(&stellarSolver, &StellarSolver::finished, this, &StellarBatchSolver::solverComplete);
     stellarSolver.start();
 }
@@ -369,6 +370,7 @@ void StellarBatchSolver::extractImage()
         stellarSolver.setProperty("ProcessType", SSolver::EXTRACT_WITH_HFR);
     else
         stellarSolver.setProperty("ProcessType", SSolver::EXTRACT);
+    stellarSolver.setColorChannel(ui->colorChannel->currentIndex());
     stellarSolver.setParameterProfile((SSolver::Parameters::ParametersProfile) ui->extractProfile->currentIndex());
     connect(&stellarSolver, &StellarSolver::finished, this, &StellarBatchSolver::extractorComplete);
     stellarSolver.start();

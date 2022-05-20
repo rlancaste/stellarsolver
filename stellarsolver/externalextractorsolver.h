@@ -37,7 +37,6 @@ class ExternalExtractorSolver : public InternalExtractorSolver
         // External Program Options
         bool cleanupTemporaryFiles = true;      // Whether or not to clean up the temporary files created
         bool autoGenerateAstroConfig = true;    // Option to generate astrometry.cfg file to pass options to the solver
-        bool onlySendFITSFiles = true;          // Option to only send FITS files for compatibility
 
         // This is the WCS Struct that is created when the WCS information gets loaded.
         struct wcsprm *m_wcs
@@ -135,17 +134,17 @@ class ExternalExtractorSolver : public InternalExtractorSolver
          */
         int getStarsFromXYLSFile();
 
-    private:
-        // These are the variables for the external processes
-        QPointer<QProcess> solver;
-        QPointer<QProcess> extractorProcess;
-
         // Note: this method is needed so that the options selected in StellarSolver get passed to the solver
         /**
          * @brief generateAstrometryConfigFile creates the astrometry.cfg file for the local astrometry solver
          * @return true means it was successful
          */
         bool generateAstrometryConfigFile();
+
+    private:
+        // These are the variables for the external processes
+        QPointer<QProcess> solver;
+        QPointer<QProcess> extractorProcess;
 
         /**
          * @brief getSolverArgsList gets the list of arguments to pass to the local astrometry.net solver
@@ -162,7 +161,7 @@ class ExternalExtractorSolver : public InternalExtractorSolver
          * @brief runExternalSolver runs the local astrometry.net solver
          * @return 0 if it succeeeds
          */
-        int runExternalSolver();
+        int runExternalAstrometrySolver();
 
         /**
          * @brief runExternalANSVRSolver runs the local ANSVR solver

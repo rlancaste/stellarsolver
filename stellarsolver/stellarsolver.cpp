@@ -116,12 +116,12 @@ ExtractorSolver* StellarSolver::createExtractorSolver()
         extSolver->externalPaths = m_ExternalPaths;
         extSolver->cleanupTemporaryFiles = m_CleanupTemporaryFiles;
         extSolver->autoGenerateAstroConfig = m_AutoGenerateAstroConfig;
-        extSolver->onlySendFITSFiles = m_OnlySendFITSFiles;
         solver = extSolver;
     }
 
     if(useSubframe)
         solver->setUseSubframe(m_Subframe);
+    solver->m_ColorChannel = m_ColorChannel;
     solver->m_LogToFile = m_LogToFile;
     solver->m_LogFileName = m_LogFileName;
     solver->m_AstrometryLogLevel = m_AstrometryLogLevel;
@@ -269,24 +269,34 @@ void StellarSolver::start()
             }
         }
         //Note that converting the image to a FITS file if desired, doesn't need to be repeated in all the threads, but also CFITSIO fails when accessed by multiple parallel threads.
-        if(m_SolverType == SOLVER_LOCALASTROMETRY && m_ExtractorType == EXTRACTOR_BUILTIN && m_OnlySendFITSFiles)
+        if(m_SolverType == SOLVER_LOCALASTROMETRY && m_ExtractorType == EXTRACTOR_BUILTIN)
         {
             ExternalExtractorSolver *extSolver = static_cast<ExternalExtractorSolver*> (m_ExtractorSolver.data());
             QFileInfo file(extSolver->fileToProcess);
-            if(file.suffix() != "fits" && file.suffix() != "fit")
+            int ret = extSolver->saveAsFITS();
+            if(ret != 0)
             {
-                int ret = extSolver->saveAsFITS();
-                if(ret != 0)
-                {
-                    emit logOutput("Failed to save FITS File.");
-                    return;
-                }
+                emit logOutput("Failed to save FITS File.");
+                return;
             }
+        }
+        // There is no reason to generate a bunch of copies of the config file, just one will do for all the parallel threads.
+        if(m_SolverType == SOLVER_LOCALASTROMETRY)
+        {
+            ExternalExtractorSolver *extSolver = static_cast<ExternalExtractorSolver*> (m_ExtractorSolver.data());
+            extSolver->generateAstrometryConfigFile();
         }
         parallelSolve();
     }
     else if(m_SolverType == SOLVER_ONLINEASTROMETRY)
     {
+        OnlineSolver *onSolver = static_cast<OnlineSolver*> (m_ExtractorSolver.data());
+        int ret = onSolver->saveAsFITS();
+        if(ret != 0)
+        {
+            emit logOutput("Failed to save FITS File.");
+            return;
+        }
         connect(m_ExtractorSolver.data(), &ExtractorSolver::finished, this, &StellarSolver::processFinished);
         m_ExtractorSolver->execute();
     }
@@ -305,6 +315,13 @@ bool StellarSolver::checkParameters()
         emit logOutput("The image buffer is not loaded, please load an image before processing it");
         return false;
     }
+
+    if(m_ProcessType == SOLVE && m_SolverType == SOLVER_WATNEYASTROMETRY && (m_Statistics.dataType == SEP_TFLOAT || m_Statistics.dataType == SEP_TDOUBLE))
+    {
+        emit logOutput("The Watney Solver cannot solve floating point images.");
+        return false;
+    }
+
     if(m_SolverType == SOLVER_ASTAP && m_ExtractorType != EXTRACTOR_BUILTIN)
     {
         if(m_SSLogLevel != LOG_OFF)
@@ -547,10 +564,8 @@ void StellarSolver::finishParallelSolve(int success)
                 wcsData.appendStarsRAandDEC(m_ExtractorStars);
             m_isRunning = false;
         }
-        if(m_ExtractorType !=
-                EXTRACTOR_BUILTIN) //Note this is just cleaning up the files from the star extraction done prior to the parallel solve.  So for built in, it doesn't even do it, so no files to clean up
-            m_ExtractorSolver->cleanupTempFiles();
         m_HasSolved = true;
+        m_ExtractorSolver->cleanupTempFiles();
         emit ready();
     }
     else
@@ -568,6 +583,7 @@ void StellarSolver::finishParallelSolve(int success)
         }
         qDeleteAll(parallelSolvers);
         parallelSolvers.clear();
+        m_ExtractorSolver->cleanupTempFiles();
         emit finished();
     }
 }

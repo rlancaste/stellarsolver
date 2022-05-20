@@ -19,12 +19,39 @@ typedef enum
     BOTH
 } Parity;
 
+typedef enum
+{
+    RED,
+    GREEN,
+    BLUE,
+    AVERAGE_RGB,
+    INTEGRATED_RGB
+} ColorChannel;
+
 static const QString getParityText(Parity parity){
     return parity == FITSImage::NEGATIVE ? "negative" : "positive";
 }
 
 static const QString getShortParityText(Parity parity){
     return parity == FITSImage::NEGATIVE ? "neg" : "pos";
+}
+
+static const QString getColorChannelText(ColorChannel channel){
+    switch(channel)
+    {
+        case RED:
+            return "red";
+        case GREEN:
+            return "green";
+        case BLUE:
+            return "blue";
+        case AVERAGE_RGB:
+            return "RGB";
+        case INTEGRATED_RGB:
+            return "Σ RGB";
+        default:
+            return "red";
+    }
 }
 
 // Stats struct to hold statisical data about the FITS data

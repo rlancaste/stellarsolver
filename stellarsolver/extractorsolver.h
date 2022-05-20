@@ -56,6 +56,10 @@ class ExtractorSolver : public QThread
                                      1, 2, 1
                                     };
 
+        // This determines which color channel in an RGB image should be used for SEP
+        // By Default we should use green since most telescopes are best color corrected for Green
+        int m_ColorChannel = FITSImage::GREEN;
+
         // Astrometry Scale Parameters, These are not saved parameters and change for each image, use the methods to set them
         bool m_UseScale = false;            // Whether or not to use the image scale parameters
         double scalelo = 0;                 // Lower bound of image scale estimate
