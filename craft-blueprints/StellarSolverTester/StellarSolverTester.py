@@ -8,11 +8,11 @@ class subinfo(info.infoclass):
     def setTargets(self):
         self.description = 'StellarSolver Sextractor and Astrometry.net based Library Tester Program'
         self.svnTargets['master'] = "https://github.com/rlancaste/stellarsolver.git"
-        for ver in ['2.2']:
+        for ver in ['2.3']:
             self.targets[ver] = 'https://github.com/rlancaste/stellarsolver/archive/refs/tags/%s.tar.gz' % ver
             self.archiveNames[ver] = "stellarsolver-tester-%s.tar.gz" % ver
             self.targetInstSrc[ver] = "stellarsolver-%s" % ver
-        self.defaultTarget = '2.2'
+        self.defaultTarget = '2.3'
     
     def setDependencies(self):
         self.runtimeDependencies["virtual/base"] = None
