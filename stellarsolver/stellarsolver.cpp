@@ -44,7 +44,14 @@ StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &image
 
 StellarSolver::~StellarSolver()
 {
-
+    for(auto &solver : parallelSolvers)
+      disconnect(solver, &ExtractorSolver::finished, this, &StellarSolver::finishParallelSolve);
+  
+    for(auto &solver : parallelSolvers)
+    {
+        solver->abort();
+        solver->wait();
+    }
 }
 
 void StellarSolver::registerMetaTypes()
@@ -531,6 +538,9 @@ int StellarSolver::whichSolver(ExtractorSolver *solver)
 //This slot listens for signals from the child solvers that they are in fact done with the solve
 void StellarSolver::finishParallelSolve(int success)
 {
+    bool emitReady = false;
+    bool emitFinished = false;
+
     m_ParallelSolversFinishedCount++;
     ExtractorSolver *reportingSolver = qobject_cast<ExtractorSolver*>(sender());
     if(!reportingSolver)
@@ -566,7 +576,7 @@ void StellarSolver::finishParallelSolve(int success)
         }
         m_HasSolved = true;
         m_ExtractorSolver->cleanupTempFiles();
-        emit ready();
+        emitReady = true;
     }
     else
     {
@@ -579,13 +589,16 @@ void StellarSolver::finishParallelSolve(int success)
         m_isRunning = false;
         if(!m_HasSolved){
             m_HasFailed = true;
-            emit ready(); //Since this was emitted earlier if it had solved
+            emitReady = true; //Since this was emitted earlier if it had been solved
         }
         qDeleteAll(parallelSolvers);
         parallelSolvers.clear();
         m_ExtractorSolver->cleanupTempFiles();
-        emit finished();
+        emitFinished=true;
     }
+
+    if (emitReady) emit ready();
+    if (emitFinished) emit finished();
 }
 
 QString StellarSolver::raString(double ra)
