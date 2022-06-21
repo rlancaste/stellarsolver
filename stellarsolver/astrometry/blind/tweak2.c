@@ -277,7 +277,9 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
             // clean up from last round (we do it here so that they're
             // valid when we leave the loop)
             free(theta);
+            theta = NULL;
             free(odds);
+            odds = NULL;
             free(refperm);
             refperm = NULL; //# Modified by Robert Lancaster for the StellarSolver Internal Library, Fix Memory Leak
 
@@ -499,7 +501,9 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
         double pix2;
 
         free(theta);
+        theta = NULL;
         free(odds);
+        odds = NULL;
         free(refperm);
         refperm = NULL; //# Modified by Robert Lancaster for the StellarSolver Internal Library, Fix Memory Leak
         gamma = 1.0;
