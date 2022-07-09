@@ -46,7 +46,7 @@ InternalExtractorSolver::InternalExtractorSolver(ProcessType pType, ExtractorTyp
 
 InternalExtractorSolver::~InternalExtractorSolver()
 {
-    cancelSEP(); // Just in case it has not shut down
+    waitSEP(); // Just in case it has not shut down
     if(downSampledBuffer)
     {
         delete [] downSampledBuffer;
@@ -68,7 +68,7 @@ InternalExtractorSolver::~InternalExtractorSolver()
 //This is the abort method.  For the internal solver it sets a cancel variable. It quits the thread.  And it cancels any SEP threads that are in progress.
 void InternalExtractorSolver::abort()
 {
-    cancelSEP();
+    waitSEP();
     quit();
 
     thejob.bp.cancelled = TRUE;
@@ -77,16 +77,18 @@ void InternalExtractorSolver::abort()
     m_WasAborted = true;
 }
 
-void InternalExtractorSolver::cancelSEP()
+void InternalExtractorSolver::waitSEP()
 {
+    if (futures.empty())
+        return;
+
     for (auto &oneFuture : futures)
     {
         if(oneFuture.isRunning())
-        {
-             oneFuture.cancel();
-             oneFuture.waitForFinished();
-        }
+            oneFuture.waitForFinished();
     }
+
+    futures.clear();
 }
 
 //This method generates child solvers with the options of the current solver
@@ -228,14 +230,16 @@ void computeMargin(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2,
     // Figure out the start and start margins.
     // Make sure these are signed operations.
     int tempStartX = ((int) x1) - ((int)margin);
-    if (tempStartX < 0) {
-      tempStartX = 0;
+    if (tempStartX < 0)
+    {
+        tempStartX = 0;
     }
     *startX = tempStartX;
 
     int tempStartY = ((int) y1) - ((int)margin);
-    if (tempStartY < 0) {
-      tempStartY = 0;
+    if (tempStartY < 0)
+    {
+        tempStartY = 0;
     }
     *startY = tempStartY;
 
@@ -287,13 +291,14 @@ int InternalExtractorSolver::runSEPExtractor()
     // i.e. not including the margins. The endpoints are inclusive. Later, we will not include
     // stars detected in the margins, e.g. points where x < innerStartX or x > innerEndX.
     // Similar for Y.
-    class StartupOffset {
-    public:
-      int startX = 0, startY = 0, width = 0, height = 0;
-      int innerStartX = 0, innerStartY = 0, innerEndX = 0, innerEndY = 0;
-      StartupOffset(int x, int y, int w, int h, int inX1, int inY1, int inX2, int inY2)
-        :startX(x), startY(y), width(w), height(h),
-         innerStartX(inX1), innerStartY(inY1), innerEndX(inX2), innerEndY(inY2) {}
+    class StartupOffset
+    {
+        public:
+            int startX = 0, startY = 0, width = 0, height = 0;
+            int innerStartX = 0, innerStartY = 0, innerEndX = 0, innerEndY = 0;
+            StartupOffset(int x, int y, int w, int h, int inX1, int inY1, int inX2, int inY2)
+                : startX(x), startY(y), width(w), height(h),
+                  innerStartX(inX1), innerStartY(inY1), innerEndX(inX2), innerEndY(inY2) {}
     };
 
     QList<float *> dataBuffers;
@@ -310,9 +315,9 @@ int InternalExtractorSolver::runSEPExtractor()
     // used to 50 (e.g. corresponding to a 100-pixel-wide star).
     int DEFAULT_MARGIN = m_ActiveParameters.maxSize / 2;
     if (DEFAULT_MARGIN <= 20)
-      DEFAULT_MARGIN = 20;
+        DEFAULT_MARGIN = 20;
     else if (DEFAULT_MARGIN > 50)
-      DEFAULT_MARGIN = 50;
+        DEFAULT_MARGIN = 50;
 
     // Only partition if:
     // We have 2 or more threads.
@@ -356,12 +361,12 @@ int InternalExtractorSolver::runSEPExtractor()
                 const uint32_t rawEndY = rawStartY + H_PARTITION_SIZE + offsetH;
 
                 uint32_t startX, startY, subWidth, subHeight;
-                computeMargin(rawStartX, rawStartY, rawEndX-1, rawEndY-1,
+                computeMargin(rawStartX, rawStartY, rawEndX - 1, rawEndY - 1,
                               m_Statistics.width, m_Statistics.height, DEFAULT_MARGIN,
                               &startX, &startY, &subWidth, &subHeight);
 
                 startupOffsets.append(StartupOffset(startX, startY, subWidth, subHeight,
-                                                    rawStartX, rawStartY, rawEndX-1, rawEndY-1));
+                                                    rawStartX, rawStartY, rawEndX - 1, rawEndY - 1));
 
                 auto * data = new float[subWidth * subHeight];
                 allocateDataBuffer(data, startX, startY, subWidth, subHeight);
@@ -388,29 +393,23 @@ int InternalExtractorSolver::runSEPExtractor()
         // In this case, there is no partitioning, but it is still possible that margins apply.
         // E.g. a subframe rectangle with enough space around it to have margins.
         uint32_t startX, startY, subWidth, subHeight;
-        computeMargin(x, y, x+w-1, y+h-1, m_Statistics.width, m_Statistics.height, DEFAULT_MARGIN,
+        computeMargin(x, y, x + w - 1, y + h - 1, m_Statistics.width, m_Statistics.height, DEFAULT_MARGIN,
                       &startX, &startY, &subWidth, &subHeight);
 
         auto * data = new float[subWidth * subHeight];
         allocateDataBuffer(data, startX, startY, subWidth, subHeight);
         dataBuffers.append(data);
-        startupOffsets.append(StartupOffset(startX, startY, subWidth, subHeight, x, y, x+w-1, y+h-1));
+        startupOffsets.append(StartupOffset(startX, startY, subWidth, subHeight, x, y, x + w - 1, y + h - 1));
         FITSImage::Background tempBackground;
         backgrounds.append(tempBackground);
 
         ImageParams parameters = {data, subWidth, subHeight, 0, 0, subWidth, subHeight, static_cast<uint32_t>(m_ActiveParameters.initialKeep), &backgrounds[backgrounds.size() - 1]};
         futures.append(QtConcurrent::run(this, &InternalExtractorSolver::extractPartition, parameters));
     }
-    bool isCancelled = false;
 
     for (auto &oneFuture : futures)
     {
         oneFuture.waitForFinished();
-        if(oneFuture.isCanceled())
-        {
-            isCancelled = true;
-            continue;
-        }
         QList<FITSImage::Star> partitionStars = oneFuture.result();
         QList<FITSImage::Star> acceptedStars;
         if (!startupOffsets.empty())
@@ -420,27 +419,18 @@ int InternalExtractorSolver::runSEPExtractor()
             const int startY = oneOffset.startY;
             for (auto &oneStar : partitionStars)
             {
-              // Don't use stars from the margins (they're detected in other partitions).
-              if (oneStar.x < (oneOffset.innerStartX - startX) ||
-                  oneStar.y < (oneOffset.innerStartY - startY) ||
-                  oneStar.x > (oneOffset.innerEndX   - startX) ||
-                  oneStar.y > (oneOffset.innerEndY   - startY))
-                  continue;
+                // Don't use stars from the margins (they're detected in other partitions).
+                if (oneStar.x < (oneOffset.innerStartX - startX) ||
+                        oneStar.y < (oneOffset.innerStartY - startY) ||
+                        oneStar.x > (oneOffset.innerEndX   - startX) ||
+                        oneStar.y > (oneOffset.innerEndY   - startY))
+                    continue;
                 oneStar.x += startX;
                 oneStar.y += startY;
                 acceptedStars.append(oneStar);
             }
         }
         m_ExtractedStars.append(acceptedStars);
-    }
-    if(isCancelled)
-    {
-        for (auto * buffer : dataBuffers)
-            delete [] buffer;
-        dataBuffers.clear();
-        futures.clear();
-        m_HasExtracted = false;
-        return 1;
     }
 
     double sumGlobal = 0, sumRmsSq = 0;
@@ -565,7 +555,8 @@ QList<FITSImage::Star> InternalExtractorSolver::extractPartition(const ImagePara
     extractor.reset(new Extract());
     // #4 Source Extraction
     // Note that we set deblend_cont = 1.0 to turn off deblending.
-    const double extractionThreshold = m_ActiveParameters.threshold_bg_multiple * bkg->globalrms + m_ActiveParameters.threshold_offset;
+    const double extractionThreshold = m_ActiveParameters.threshold_bg_multiple * bkg->globalrms +
+                                       m_ActiveParameters.threshold_offset;
     //fprintf(stderr, "Using %.1f =  %.1f * %.1f + %.1f\n", extractionThreshold, m_ActiveParameters.threshold_bg_multiple, bkg->globalrms,  m_ActiveParameters.threshold_offset);
     status = extractor->sep_extract(&im, extractionThreshold, SEP_THRESH_ABS, m_ActiveParameters.minarea,
                                     convFilter.data(),
@@ -806,7 +797,8 @@ void InternalExtractorSolver::applyStarFilters(QList<FITSImage::Star> &starList)
 template <typename T>
 void InternalExtractorSolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
 {
-    int channelShift = (m_Statistics.channels < 3 || usingDownsampledImage || usingMergedChannelImage) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
+    int channelShift = (m_Statistics.channels < 3 || usingDownsampledImage
+                        || usingMergedChannelImage) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
     auto * rawBuffer = reinterpret_cast<T const *>(m_ImageBuffer + channelShift);
     float * floatPtr = buffer;
 
@@ -865,7 +857,8 @@ void InternalExtractorSolver::downSampleImageType(int d)
     if(downSampledBuffer)
         delete [] downSampledBuffer;
     downSampledBuffer = new uint8_t[newBufferSize];
-    int channelShift = ( m_Statistics.channels < 3 || usingMergedChannelImage) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
+    int channelShift = ( m_Statistics.channels < 3
+                         || usingMergedChannelImage) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
     auto * sourceBuffer = reinterpret_cast<T const *>(m_ImageBuffer + channelShift);
     auto * destinationBuffer = reinterpret_cast<T *>(downSampledBuffer);
 
@@ -1174,7 +1167,7 @@ int InternalExtractorSolver::runInternalSolver()
         //This sets the depths for the job.
         if (!il_size(engine->default_depths))
         {
-            for(int i = 10; i < 210; i+=10)
+            for(int i = 10; i < 210; i += 10)
                 il_append(engine->default_depths, i);
         }
         if (il_size(job->depths) == 0)
