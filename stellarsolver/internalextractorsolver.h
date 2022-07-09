@@ -171,7 +171,7 @@ class InternalExtractorSolver: public ExtractorSolver
         /**
          * @brief cancelSEP will cancel a star extraction and wait for it to finish
          */
-        void cancelSEP();
+        void waitSEP();
 
         /**
          * @brief getFloatBuffer gets a float buffer from the image buffer for SEP to perform star extraction
