@@ -20,6 +20,7 @@
 #include "stellarsolver.h"
 #include "sep/extract.h"
 #include "qmath.h"
+#include <QMutexLocker>
 
 //CFitsio Includes
 #include <fitsio.h>
@@ -79,6 +80,7 @@ void InternalExtractorSolver::abort()
 
 void InternalExtractorSolver::waitSEP()
 {
+    QMutexLocker locker(&futuresMutex);
     if (futures.empty())
         return;
 
@@ -259,6 +261,7 @@ void computeMargin(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2,
 //I used KStars and the SEP website as a guide for creating these functions
 int InternalExtractorSolver::runSEPExtractor()
 {
+    QMutexLocker locker(&futuresMutex);
     if(convFilter.size() == 0)
     {
         emit logOutput("No convFilter included.");

@@ -9,6 +9,7 @@
 
 #include "extractorsolver.h"
 #include "astrometrylogger.h"
+#include "qmutex.h"
 
 //SEP Includes
 #include "sep/sep.h"
@@ -148,8 +149,9 @@ class InternalExtractorSolver: public ExtractorSolver
         // This is for star extraction, these are the futures for separate threads
         // We need to keep a variable for this avaiable so we can abort the process if needed.
         QVector<QFuture<QList<FITSImage::Star>>> futures;
+        QBasicMutex futuresMutex;
 
-    // InternalExtractorSolver Methods
+        // InternalExtractorSolver Methods
 
         /**
          * @brief prepare_job prepares the job object used by the internal astrometry solver
