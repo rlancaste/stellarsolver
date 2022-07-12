@@ -265,7 +265,7 @@ int InternalExtractorSolver::runSEPExtractor()
     }
 
     // Double check nothing else is running.
-    waitSEP();
+    //waitSEP();
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Starting Internal StellarSolver Star Extractor with the " + m_ActiveParameters.listName + " profile . . .");
@@ -274,7 +274,7 @@ int InternalExtractorSolver::runSEPExtractor()
     {
         if (mergeImageChannels() == false)
         {
-            emit logOutput("Merging image channels fails.");
+            emit logOutput("Merging image channels failed.");
             return -1;
         }
     }
