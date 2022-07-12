@@ -188,35 +188,31 @@ void InternalExtractorSolver::cleanupTempFiles()
     //There are NO temp files anymore for the internal SEP or Astrometry builds!!!
 }
 
-void InternalExtractorSolver::allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
+bool InternalExtractorSolver::allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
     switch (m_Statistics.dataType)
     {
         case SEP_TBYTE:
-            getFloatBuffer<uint8_t>(data, x, y, w, h);
-            break;
+            return getFloatBuffer<uint8_t>(data, x, y, w, h);
         case TSHORT:
-            getFloatBuffer<int16_t>(data, x, y, w, h);
-            break;
+            return getFloatBuffer<int16_t>(data, x, y, w, h);
         case TUSHORT:
-            getFloatBuffer<uint16_t>(data, x, y, w, h);
-            break;
+            return getFloatBuffer<uint16_t>(data, x, y, w, h);
         case TLONG:
-            getFloatBuffer<int32_t>(data, x, y, w, h);
-            break;
+            return getFloatBuffer<int32_t>(data, x, y, w, h);
         case TULONG:
-            getFloatBuffer<uint32_t>(data, x, y, w, h);
-            break;
+            return getFloatBuffer<uint32_t>(data, x, y, w, h);
         case TFLOAT:
-            getFloatBuffer<float>(data, x, y, w, h);
-            break;
+            return getFloatBuffer<float>(data, x, y, w, h);
         case TDOUBLE:
-            getFloatBuffer<double>(data, x, y, w, h);
-            break;
+            return getFloatBuffer<double>(data, x, y, w, h);
         default:
             delete [] data;
             data = 0;
+            return false;
     }
+
+    return false;
 }
 
 namespace
@@ -267,14 +263,30 @@ int InternalExtractorSolver::runSEPExtractor()
         emit logOutput("No convFilter included.");
         return -1;
     }
+
+    // Double check nothing else is running.
+    waitSEP();
+
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Starting Internal StellarSolver Star Extractor with the " + m_ActiveParameters.listName + " profile . . .");
     //Only merge image channels if it is an RGB image and we are either averaging or integrating the channels
     if(m_Statistics.channels == 3 && (m_ColorChannel == FITSImage::AVERAGE_RGB || m_ColorChannel == FITSImage::INTEGRATED_RGB))
-        mergeImageChannels();
+    {
+        if (mergeImageChannels() == false)
+        {
+            emit logOutput("Merging image channels fails.");
+            return -1;
+        }
+    }
     //Only downsample images before SEP if the Sextraction is being used for plate solving
     if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && m_ActiveParameters.downsample != 1)
-        downsampleImage(m_ActiveParameters.downsample);
+    {
+        if (downsampleImage(m_ActiveParameters.downsample) == false)
+        {
+            emit logOutput("Downsampling failed.");
+            return -1;
+        }
+    }
     uint32_t x = 0, y = 0;
     uint32_t w = m_Statistics.width, h = m_Statistics.height;
     uint32_t raw_w = m_Statistics.width, raw_h = m_Statistics.height;
@@ -304,9 +316,8 @@ int InternalExtractorSolver::runSEPExtractor()
                   innerStartX(inX1), innerStartY(inY1), innerEndX(inX2), innerEndY(inY2) {}
     };
 
-    QList<float *> dataBuffers;
-    futures.clear();
-    QList<StartupOffset> startupOffsets;
+    QVector<float *> dataBuffers;
+    QVector<StartupOffset> startupOffsets;
     QList<FITSImage::Background> backgrounds;
 
     // The margin is extra image placed around partitions, so we can detect large stars near
@@ -371,8 +382,14 @@ int InternalExtractorSolver::runSEPExtractor()
                 startupOffsets.append(StartupOffset(startX, startY, subWidth, subHeight,
                                                     rawStartX, rawStartY, rawEndX - 1, rawEndY - 1));
 
-                auto * data = new float[subWidth * subHeight];
-                allocateDataBuffer(data, startX, startY, subWidth, subHeight);
+                auto *data = new float[subWidth * subHeight];
+                if (allocateDataBuffer(data, startX, startY, subWidth, subHeight) == false)
+                {
+                    for (auto *buffer : dataBuffers)
+                        delete [] buffer;
+                    emit logOutput("Failed to allocate memory.");
+                    return -1;
+                }
                 dataBuffers.append(data);
                 FITSImage::Background tempBackground;
                 backgrounds.append(tempBackground);
@@ -399,8 +416,14 @@ int InternalExtractorSolver::runSEPExtractor()
         computeMargin(x, y, x + w - 1, y + h - 1, m_Statistics.width, m_Statistics.height, DEFAULT_MARGIN,
                       &startX, &startY, &subWidth, &subHeight);
 
-        auto * data = new float[subWidth * subHeight];
-        allocateDataBuffer(data, startX, startY, subWidth, subHeight);
+        auto *data = new float[subWidth * subHeight];
+        if (allocateDataBuffer(data, startX, startY, subWidth, subHeight) == false)
+        {
+            for (auto *buffer : dataBuffers)
+                delete [] buffer;
+            emit logOutput("Failed to allocate memory.");
+            return -1;
+        }
         dataBuffers.append(data);
         startupOffsets.append(StartupOffset(startX, startY, subWidth, subHeight, x, y, x + w - 1, y + h - 1));
         FITSImage::Background tempBackground;
@@ -798,7 +821,7 @@ void InternalExtractorSolver::applyStarFilters(QList<FITSImage::Star> &starList)
 }
 
 template <typename T>
-void InternalExtractorSolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
+bool InternalExtractorSolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
 {
     int channelShift = (m_Statistics.channels < 3 || usingDownsampledImage
                         || usingMergedChannelImage) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
@@ -816,41 +839,35 @@ void InternalExtractorSolver::getFloatBuffer(float * buffer, int x, int y, int w
             *floatPtr++ = rawBuffer[offset + x1];
         }
     }
+
+    return true;
 }
 
-void InternalExtractorSolver::downsampleImage(int d)
+bool InternalExtractorSolver::downsampleImage(int d)
 {
     switch (m_Statistics.dataType)
     {
         case SEP_TBYTE:
-            downSampleImageType<uint8_t>(d);
-            break;
+            return downSampleImageType<uint8_t>(d);
         case TSHORT:
-            downSampleImageType<int16_t>(d);
-            break;
+            return downSampleImageType<int16_t>(d);
         case TUSHORT:
-            downSampleImageType<uint16_t>(d);
-            break;
+            return downSampleImageType<uint16_t>(d);
         case TLONG:
-            downSampleImageType<int32_t>(d);
-            break;
+            return downSampleImageType<int32_t>(d);
         case TULONG:
-            downSampleImageType<uint32_t>(d);
-            break;
+            return downSampleImageType<uint32_t>(d);
         case TFLOAT:
-            downSampleImageType<float>(d);
-            break;
+            return downSampleImageType<float>(d);
         case TDOUBLE:
-            downSampleImageType<double>(d);
-            break;
+            return downSampleImageType<double>(d);
         default:
-            return;
+            return false;
     }
-
 }
 
 template <typename T>
-void InternalExtractorSolver::downSampleImageType(int d)
+bool InternalExtractorSolver::downSampleImageType(int d)
 {
     int w = m_Statistics.width;
     int h = m_Statistics.height;
@@ -902,52 +919,49 @@ void InternalExtractorSolver::downSampleImageType(int d)
         scalehi *= d;
     }
     usingDownsampledImage = true;
+    return true;
 }
 
-void InternalExtractorSolver::mergeImageChannels()
+bool InternalExtractorSolver::mergeImageChannels()
 {
     switch (m_Statistics.dataType)
     {
         case SEP_TBYTE:
-            mergeImageChannelsType<uint8_t>();
-            break;
+            return mergeImageChannelsType<uint8_t>();
         case TSHORT:
-            mergeImageChannelsType<int16_t>();
-            break;
+            return mergeImageChannelsType<int16_t>();
         case TUSHORT:
-            mergeImageChannelsType<uint16_t>();
-            break;
+            return mergeImageChannelsType<uint16_t>();
         case TLONG:
-            mergeImageChannelsType<int32_t>();
-            break;
+            return mergeImageChannelsType<int32_t>();
         case TULONG:
-            mergeImageChannelsType<uint32_t>();
-            break;
+            return mergeImageChannelsType<uint32_t>();
         case TFLOAT:
-            mergeImageChannelsType<float>();
-            break;
+            return mergeImageChannelsType<float>();
         case TDOUBLE:
-            mergeImageChannelsType<double>();
-            break;
+            return mergeImageChannelsType<double>();
         default:
-            return;
+            return false;
     }
 
 }
 
 template <typename T>
-void InternalExtractorSolver::mergeImageChannelsType()
+bool InternalExtractorSolver::mergeImageChannelsType()
 {
     if(m_Statistics.channels != 3)
-        return;
+        return false;
     if(m_ColorChannel != FITSImage::INTEGRATED_RGB && m_ColorChannel != FITSImage::AVERAGE_RGB)
-        return;
-    int w = m_Statistics.width;
-    int h = m_Statistics.height;
-    int nextChannel = m_Statistics.samples_per_channel;
-    int channelSize = m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel;
+        return false;
+
+    auto w = m_Statistics.width;
+    auto h = m_Statistics.height;
+    auto nextChannel = m_Statistics.samples_per_channel;
+    auto channelSize = m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel;
+
     if(mergedChannelBuffer)
         delete [] mergedChannelBuffer;
+
     mergedChannelBuffer = new uint8_t[channelSize];
     auto * source = reinterpret_cast<T const *>(m_ImageBuffer);
     auto * dest = reinterpret_cast<T *>(mergedChannelBuffer);
@@ -964,11 +978,13 @@ void InternalExtractorSolver::mergeImageChannelsType()
                 total = source[r] + source[g] + source[b];
             if(m_ColorChannel == FITSImage::AVERAGE_RGB)
                 total = (source[r] + source[g] + source[b]) / 3.0;
-            dest[ x + y * w ] = (T) total;
+            dest[ x + y * w ] = static_cast<T>(total);
         }
     }
+
     m_ImageBuffer = mergedChannelBuffer;
     usingMergedChannelImage = true;
+    return true;
 }
 
 //This method prepares the job file.  It is based upon the methods parse_job_from_qfits_header and engine_read_job_file in engine.c of astrometry.net
