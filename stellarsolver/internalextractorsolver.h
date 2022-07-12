@@ -108,19 +108,20 @@ class InternalExtractorSolver: public ExtractorSolver
          * @param y is the starting y coordinate of the partition to be processed
          * @param w is the width of the partition to be processed
          * @param h is the height of the partition to be processed
+         * @return True if successfull, false otherwise.
          */
-        void allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+        bool allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
 
         /**
          * @brief mergeImageChannels merges the R, G, and B channels of a 3 channel image
          * to make one enhanced channel for star extraction or solving
          */
-        void mergeImageChannels();
+        bool mergeImageChannels();
 
         /**
          * @brief mergeImageChannelsType allows the mergeImageChannels method to handle different data types
          */
-        template <typename T> void mergeImageChannelsType();
+        template <typename T> bool mergeImageChannelsType();
 
     private:
 
@@ -181,19 +182,19 @@ class InternalExtractorSolver: public ExtractorSolver
          * @param w is the width of the buffer
          * @param h is the height of the buffer
          */
-        template <typename T> void getFloatBuffer(float * buffer, int x, int y, int w, int h);
+        template <typename T> bool getFloatBuffer(float * buffer, int x, int y, int w, int h);
 
         /**
          * @brief downsampleImage downsamples the image by the requested factor
          * @param d The factor to downsample by in both dimensions
          */
-        void downsampleImage(int d);
+        bool downsampleImage(int d);
 
         /**
          * @brief downSampleImageType allows the downsampling code to handle various data types
          * @param d The factor to downsample by in both dimensions
          */
-        template <typename T> void downSampleImageType(int d);
+        template <typename T> bool downSampleImageType(int d);
 
 
 };
