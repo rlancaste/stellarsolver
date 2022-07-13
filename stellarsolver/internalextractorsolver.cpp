@@ -317,7 +317,7 @@ int InternalExtractorSolver::runSEPExtractor()
     };
 
     QVector<float *> dataBuffers;
-    QVector<StartupOffset> startupOffsets;
+    QList<StartupOffset> startupOffsets;
     QList<FITSImage::Background> backgrounds;
 
     // The margin is extra image placed around partitions, so we can detect large stars near
