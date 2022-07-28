@@ -265,7 +265,7 @@ int InternalExtractorSolver::runSEPExtractor()
     }
 
     // Double check nothing else is running.
-    waitSEP();
+    //waitSEP();
 
     emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     emit logOutput("Starting Internal StellarSolver Star Extractor with the " + m_ActiveParameters.listName + " profile . . .");
@@ -274,7 +274,7 @@ int InternalExtractorSolver::runSEPExtractor()
     {
         if (mergeImageChannels() == false)
         {
-            emit logOutput("Merging image channels fails.");
+            emit logOutput("Merging image channels failed.");
             return -1;
         }
     }
@@ -317,7 +317,7 @@ int InternalExtractorSolver::runSEPExtractor()
     };
 
     QVector<float *> dataBuffers;
-    QVector<StartupOffset> startupOffsets;
+    QList<StartupOffset> startupOffsets;
     QList<FITSImage::Background> backgrounds;
 
     // The margin is extra image placed around partitions, so we can detect large stars near
