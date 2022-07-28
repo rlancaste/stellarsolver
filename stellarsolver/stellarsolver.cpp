@@ -44,14 +44,11 @@ StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &image
 
 StellarSolver::~StellarSolver()
 {
+    // These lines make sure that before the StellarSolver is deleted, all parallel threads (if any) are shut down
     for(auto &solver : parallelSolvers)
       disconnect(solver, &ExtractorSolver::finished, this, &StellarSolver::finishParallelSolve);
-  
-    for(auto &solver : parallelSolvers)
-    {
-        solver->abort();
-        solver->wait();
-    }
+
+    abortAndWait();
 }
 
 void StellarSolver::registerMetaTypes()
@@ -638,14 +635,20 @@ bool StellarSolver::pixelToWCS(const QPointF &pixelPoint, FITSImage::wcs_point &
 //This is the abort method.  It works in different ways for the different solvers.
 void StellarSolver::abort()
 {
-  for(auto &solver : parallelSolvers) {
+  for(auto &solver : parallelSolvers)
       solver->abort();
-      solver->wait();
-  }
-  if(m_ExtractorSolver) {
+  if(m_ExtractorSolver)
       m_ExtractorSolver->abort();
+}
+
+//This is the abort and wait method, it is useful if you want the solver to be all shut down before moving on
+void StellarSolver::abortAndWait()
+{
+  abort();
+  for(auto &solver : parallelSolvers)
+      solver->wait();
+  if(m_ExtractorSolver)
       m_ExtractorSolver->wait();
-  }
 }
 
 //This method checks all the solvers and the internal running boolean to determine if anything is running.

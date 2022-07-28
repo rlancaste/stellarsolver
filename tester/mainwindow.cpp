@@ -750,7 +750,7 @@ bool MainWindow::prepareForProcesses()
             if(QMessageBox::question(this, "Abort?", "StellarSolver is extracting sources now. Abort it?") == QMessageBox::No)
                 return false;
         }
-        stellarSolver.abort();
+        stellarSolver.abortAndWait();
     }
 
     numberOfTrials = ui->trials->value();
