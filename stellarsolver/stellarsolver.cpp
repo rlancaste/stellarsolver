@@ -47,10 +47,8 @@ StellarSolver::~StellarSolver()
     // These lines make sure that before the StellarSolver is deleted, all parallel threads (if any) are shut down
     for(auto &solver : parallelSolvers)
       disconnect(solver, &ExtractorSolver::finished, this, &StellarSolver::finishParallelSolve);
-    for(auto &solver : parallelSolvers)
-        solver->abort();
-    for(auto &solver : parallelSolvers)
-        solver->wait();
+
+    abortAndWait();
 }
 
 void StellarSolver::registerMetaTypes()
@@ -641,6 +639,16 @@ void StellarSolver::abort()
       solver->abort();
   if(m_ExtractorSolver)
       m_ExtractorSolver->abort();
+}
+
+//This is the abort and wait method, it is useful if you want the solver to be all shut down before moving on
+void StellarSolver::abortAndWait()
+{
+  abort();
+  for(auto &solver : parallelSolvers)
+      solver->wait();
+  if(m_ExtractorSolver)
+      m_ExtractorSolver->wait();
 }
 
 //This method checks all the solvers and the internal running boolean to determine if anything is running.

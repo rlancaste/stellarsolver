@@ -216,6 +216,11 @@ class StellarSolver : public QObject
         void abort();
 
         /**
+         * @brief abort will abort the Star Extraction or Plate Solving process and wait synchronously till that is done.
+         */
+        void abortAndWait();
+
+        /**
          * @brief setParameters sets the Parameters for the StellarSolver based on a Parameters object you set up.
          * @param parameters The Parameters object
          */
