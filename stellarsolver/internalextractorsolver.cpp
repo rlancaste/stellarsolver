@@ -620,21 +620,31 @@ QList<FITSImage::Star> InternalExtractorSolver::extractPartition(const ImagePara
             continue;
         }
 
+        FITSImage::Star oneStar;
+
         //Variables that are obtained from the catalog
         //FOR SOME REASON, I FOUND THAT THE POSITIONS WERE OFF BY 1 PIXEL??
         //This might be because of this: https://sextractor.readthedocs.io/en/latest/Param.html
         //" Following the FITS convention, in SExtractor the center of the first image pixel has coordinates (1.0,1.0). "
-        float xPos = catalog->x[i] + 1;
-        float yPos = catalog->y[i] + 1;
-        float a = catalog->a[i];
-        float b = catalog->b[i];
-        float theta = catalog->theta[i];
+        oneStar.x = catalog->x[i] + 1;
+        oneStar.y = catalog->y[i] + 1;
+        oneStar.x2 = catalog->x2[i];
+        oneStar.y2 = catalog->y2[i];
+        oneStar.xy = catalog->xy[i];
+        oneStar.numPixels = catalog->npix[i];
+        oneStar.errx2 = catalog->errx2[i];
+        oneStar.erry2 = catalog->erry2[i];
+        oneStar.errxy = catalog->errxy[i];
+        oneStar.a = catalog->a[i];
+        oneStar.b = catalog->b[i];
+        oneStar.theta = catalog->theta[i];
+
+        double flux = catalog->flux[i];
+        oneStar.peak = catalog->peak[i];
+
         float cxx = catalog->cxx[i];
         float cyy = catalog->cxx[i];
         float cxy = catalog->cxy[i];
-        double flux = catalog->flux[i];
-        double peak = catalog->peak[i];
-        int numPixels = catalog->npix[i];
 
         //Variables that will be obtained through methods
         double kronrad;
@@ -650,7 +660,7 @@ QList<FITSImage::Star> InternalExtractorSolver::extractPartition(const ImagePara
             //The instructions say to use a fixed value of 6: https://sep.readthedocs.io/en/v1.0.x/api/sep.kron_radius.html
             //Finding the kron radius for the sextraction
 
-            sep_kron_radius(&im, xPos, yPos, cxx, cyy, cxy, 6, 0, &kronrad, &kron_flag);
+            sep_kron_radius(&im, oneStar.x, oneStar.y, cxx, cyy, cxy, 6, 0, &kronrad, &kron_flag);
         }
 
         bool use_circle;
@@ -658,7 +668,7 @@ QList<FITSImage::Star> InternalExtractorSolver::extractPartition(const ImagePara
         switch(m_ActiveParameters.apertureShape)
         {
             case SHAPE_AUTO:
-                use_circle = kronrad * sqrt(a * b) < m_ActiveParameters.r_min;
+                use_circle = kronrad * sqrt(oneStar.a * oneStar.b) < m_ActiveParameters.r_min;
                 break;
 
             case SHAPE_CIRCLE:
@@ -673,18 +683,17 @@ QList<FITSImage::Star> InternalExtractorSolver::extractPartition(const ImagePara
 
         if(use_circle)
         {
-            sep_sum_circle(&im, xPos, yPos, m_ActiveParameters.r_min, 0, m_ActiveParameters.subpix, m_ActiveParameters.inflags, &sum,
+            sep_sum_circle(&im, oneStar.x, oneStar.y, m_ActiveParameters.r_min, 0, m_ActiveParameters.subpix, m_ActiveParameters.inflags, &sum,
                            &sumerr, &kron_area, &kron_flag);
         }
         else
         {
-            sep_sum_ellipse(&im, xPos, yPos, a, b, theta, m_ActiveParameters.kron_fact * kronrad, 0, m_ActiveParameters.subpix,
+            sep_sum_ellipse(&im, oneStar.x, oneStar.y, oneStar.a, oneStar.b, oneStar.theta, m_ActiveParameters.kron_fact * kronrad, 0, m_ActiveParameters.subpix,
                             m_ActiveParameters.inflags, &sum, &sumerr,
                             &kron_area, &kron_flag);
         }
 
-        float mag = m_ActiveParameters.magzero - 2.5 * log10(sum);
-        float HFR = 0;
+        oneStar.mag = m_ActiveParameters.magzero - 2.5 * log10(sum);
 
         if(m_ProcessType == EXTRACT_WITH_HFR)
         {
@@ -692,22 +701,11 @@ QList<FITSImage::Star> InternalExtractorSolver::extractPartition(const ImagePara
             sep_flux_radius(&im, catalog->x[i], catalog->y[i], maxRadius, 0, m_ActiveParameters.subpix, 0, &flux, requested_frac, 2,
                             flux_fractions,
                             &flux_flag);
-            HFR = flux_fractions[0];
+            oneStar.HFR = flux_fractions[0];
         }
 
-        FITSImage::Star oneStar = {xPos,
-                                   yPos,
-                                   mag,
-                                   static_cast<float>(sum),
-                                   static_cast<float>(peak),
-                                   HFR,
-                                   a,
-                                   b,
-                                   qRadiansToDegrees(theta),
-                                   0,
-                                   0,
-                                   numPixels
-                                  };
+        oneStar.flux = flux;
+
         // Make a copy and add it to QList
         partitionStars.append(oneStar);
     }

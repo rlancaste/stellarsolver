@@ -448,14 +448,21 @@ int ExternalExtractorSolver::runExternalExtractor()
         QTextStream out(&paramFile);
         out << "X_IMAGE\n";//                  Object position along x                                   [pixel]
         out << "Y_IMAGE\n";//                  Object position along y                                   [pixel]
+        out << "X2_IMAGE\n";//                 Variance along x                                          [pixel**2]
+        out << "Y2_IMAGE\n";//                 Variance along y                                          [pixel**2]
+        out << "XY_IMAGE\n";//                 Covariance between x and y                                [pixel**2]
+
+        out << "ERRX2_IMAGE\n";//              Variance of position along x                              [pixel**2]
+        out << "ERRY2_IMAGE\n";//              Variance of position along y                              [pixel**2]
+        out << "ERRXY_IMAGE\n";//              Covariance of position between x and y                    [pixel**2]
+        out << "A_IMAGE\n";//                  Profile RMS along major axis                              [pixel]
+        out << "B_IMAGE\n";//                  Profile RMS along minor axis                              [pixel]
+        out << "THETA_IMAGE\n";//              Position angle (CCW/x)                                    [deg]
         out << "MAG_AUTO\n";//                 Kron-like elliptical aperture magnitude                   [mag]
         out << "FLUX_AUTO\n";//                Flux within a Kron-like elliptical aperture               [count]
         out << "FLUX_MAX\n";//                 Peak flux above background                                [count]
-        out << "CXX_IMAGE\n";//                Cxx object ellipse parameter                              [pixel**(-2)]
-        out << "CYY_IMAGE\n";//                Cyy object ellipse parameter                              [pixel**(-2)]
-        out << "CXY_IMAGE\n";//                Cxy object ellipse parameter                              [pixel**(-2)]
         if(m_ProcessType == EXTRACT_WITH_HFR)
-            out << "FLUX_RADIUS\n";//              Fraction-of-light radii                                   [pixel]
+            out << "FLUX_RADIUS\n";//          Fraction-of-light radii                                   [pixel]
         paramFile.close();
     }
     sextractorArgs << "-PARAMETERS_NAME" << paramPath;
@@ -1192,16 +1199,8 @@ int ExternalExtractorSolver::getStarsFromXYLSFile()
     /* read each column, row by row */
     val = value;
     for (jj = 1; jj <= nrows && !status; jj++)
-    {
-        float starx = 0;
-        float stary = 0;
-        float mag = 0;
-        float flux = 0;
-        float peak = 0;
-        float xx = 0;
-        float yy = 0;
-        float xy = 0;
-        float HFR = 0;
+    {      
+        FITSImage::Star star;
 
         for (ii = 1; ii <= ncols; ii++)
         {
@@ -1214,62 +1213,56 @@ int ExternalExtractorSolver::getStarsFromXYLSFile()
                 if(m_SolverType == SOLVER_LOCALASTROMETRY || m_SolverType == SOLVER_ONLINEASTROMETRY)
                 {
                     if(ii == 1)
-                        starx = QString(value).trimmed().toFloat();
+                        star.x = QString(value).trimmed().toFloat();
                     if(ii == 2)
-                        stary = QString(value).trimmed().toFloat();
+                        star.y = QString(value).trimmed().toFloat();
                     if(ii == 3)
-                        flux = QString(value).trimmed().toFloat();
+                        star.flux = QString(value).trimmed().toFloat();
                 }
                 else if(m_SolverType == SOLVER_ASTAP)
                 {
                     if(ii == 1)
-                        starx = QString(value).trimmed().toFloat();
+                        star.x = QString(value).trimmed().toFloat();
                     if(ii == 2)
-                        stary = QString(value).trimmed().toFloat();
+                        star.y = QString(value).trimmed().toFloat();
                 }
                 else
                 {
                     if(ii == 1)
-                        starx = QString(value).trimmed().toFloat();
+                        star.x = QString(value).trimmed().toFloat();
                     if(ii == 2)
-                        stary = QString(value).trimmed().toFloat();
+                        star.y = QString(value).trimmed().toFloat();
                     if(ii == 3)
-                        mag = QString(value).trimmed().toFloat();
+                        star.x2 = QString(value).trimmed().toFloat();
                     if(ii == 4)
-                        flux = QString(value).trimmed().toFloat();
+                        star.y2 = QString(value).trimmed().toFloat();
                     if(ii == 5)
-                        peak = QString(value).trimmed().toFloat();
+                        star.xy = QString(value).trimmed().toFloat();
                     if(ii == 6)
-                        xx = QString(value).trimmed().toFloat();
+                        star.errx2 = QString(value).trimmed().toFloat();
                     if(ii == 7)
-                        yy = QString(value).trimmed().toFloat();
+                        star.erry2 = QString(value).trimmed().toFloat();
                     if(ii == 8)
-                        xy = QString(value).trimmed().toFloat();
-                    if(m_ProcessType == EXTRACT_WITH_HFR && ii == 9)
-                        HFR = QString(value).trimmed().toFloat();
+                        star.errxy = QString(value).trimmed().toFloat();
+                    if(ii == 9)
+                        star.a = QString(value).trimmed().toFloat();
+                    if(ii == 10)
+                        star.b = QString(value).trimmed().toFloat();
+                    if(ii == 11)
+                        star.theta = QString(value).trimmed().toFloat();
+                    if(ii == 12)
+                        star.mag = QString(value).trimmed().toFloat();
+                    if(ii == 13)
+                        star.flux = QString(value).trimmed().toFloat();
+                    if(ii == 14)
+                        star.peak = QString(value).trimmed().toFloat();
+                    if(m_ProcessType == EXTRACT_WITH_HFR && ii == 15)
+                        star.HFR = QString(value).trimmed().toFloat();
                 }
             }
         }
 
-        //  xx  xy      or     a   b
-        //  xy  yy             b   c
-        //Note, I got this translation from these two sources which agree:
-        //https://books.google.com/books?id=JNEn23UyHuAC&pg=PA84&lpg=PA84&dq=ellipse+xx+yy+xy&source=bl&ots=ynAWge4jlb&sig=ACfU3U1pqZTkx8Teu9pBTygI9F-WcTncrg&hl=en&sa=X&ved=2ahUKEwj0s-7C3I7oAhXblnIEHacAAf0Q6AEwBHoECAUQAQ#v=onepage&q=ellipse%20xx%20yy%20xy&f=false
-        //https://cookierobotics.com/007/
-        float a = 0;
-        float b = 0;
-        float theta = 0;
-        if(m_SolverType != SOLVER_LOCALASTROMETRY && m_SolverType != SOLVER_ONLINEASTROMETRY && m_SolverType != SOLVER_ASTAP)
-        {
-            float thing = sqrt( pow(xx - yy, 2) + 4 * pow(xy, 2) );
-            float lambda1 = (xx + yy + thing) / 2;
-            float lambda2 = (xx + yy - thing) / 2;
-            a = sqrt(lambda1);
-            b = sqrt(lambda2);
-            theta = qRadiansToDegrees(atan(xy / (lambda1 - yy)));
-        }
-
-        FITSImage::Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta, 0, 0, (int)(a*b*3.14)};
+        star.numPixels = (int)(star.a * star.b * 3.14);
 
         m_ExtractedStars.append(star);
     }

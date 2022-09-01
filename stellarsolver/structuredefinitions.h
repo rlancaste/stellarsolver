@@ -76,18 +76,31 @@ typedef struct Statistic
 // an image.  It is returned by Source Extraction
 typedef struct Star
 {
-    float x;        // The x position of the star in Pixels
-    float y;        // The y position of the star in Pixels
-    float mag;      // The magnitude of the star, note that this is a relative magnitude based on the star extraction options.
-    float flux;     // The calculated total flux
-    float peak;     // The peak value of the star
-    float HFR;      // The half flux radius of the star
-    float a;        // The semi-major axis of the star
-    float b;        // The semi-minor axis of the star
-    float theta;    // The angle of orientation of the star
-    float ra;       // The right ascension of the star
-    float dec;      // The declination of the star
-    int numPixels;  // The number of pixels occupied by the star in the image.
+    // Position Information
+    float x = 0;        // The x position of the star in Pixels
+    float y = 0;        // The y position of the star in Pixels
+    // Size Information
+    float x2 = 0;       // The x direction spread of the star in Pixels^2
+    float y2 = 0;       // The y direction spread of the star in Pixels^2
+    float xy = 0;       // The diagonal spread of the star in Pixels^2
+    int numPixels = 0;  // The number of pixels occupied by the star in the image.
+    // Position Error
+    float errx2 = 0;    // The variance of the star's x position in Pixels^2
+    float erry2 = 0;    // The variance of the star's y position in Pixels^2
+    float errxy = 0;    // The covariance of the star's x and y positions in Pixels^2
+    // Shape Information
+    float a = 0;        // The semi-major axis of the star
+    float b = 0;        // The semi-minor axis of the star
+    float theta = 0;    // The angle of orientation of the star
+    // Brightness Information
+    float mag = 0;      // The magnitude of the star, note that this is a relative magnitude based on the star extraction options.
+    float flux = 0;     // The calculated total flux
+    float peak = 0;     // The peak value of the star
+    // Optional Information
+    float ra = 0;       // The right ascension of the star
+    float dec = 0;      // The declination of the star
+    float HFR = 0;      // The half flux radius of the star
+
 } Star;
 
 // This struct holds data about the background in an image
