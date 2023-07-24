@@ -54,64 +54,64 @@ ExternalProgramPaths ExternalExtractorSolver::getDefaultExternalPaths(ComputerSy
     ExternalProgramPaths paths;
     switch(system)
     {
-    case LINUX_DEFAULT:
-        paths.confPath = "/etc/astrometry.cfg";
-        paths.sextractorBinaryPath =  "/usr/bin/sextractor";
-        paths.solverPath = "/usr/bin/solve-field";
-        (QFile("/bin/astap").exists()) ?
+        case LINUX_DEFAULT:
+            paths.confPath = "/etc/astrometry.cfg";
+            paths.sextractorBinaryPath =  "/usr/bin/sextractor";
+            paths.solverPath = "/usr/bin/solve-field";
+            (QFile("/bin/astap").exists()) ?
             paths.astapBinaryPath = "/bin/astap" :
-            paths.astapBinaryPath = "/opt/astap/astap";
-        if(QFile("/usr/bin/astap").exists())
-            paths.astapBinaryPath = "/usr/bin/astap";
-        paths.watneyBinaryPath = "/opt/watney/watney-solve";
-        paths.wcsPath = "/usr/bin/wcsinfo";
-        break;
-    case LINUX_INTERNAL:
-        paths.confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
-        paths.sextractorBinaryPath = "/usr/bin/sextractor";
-        paths.solverPath = "/usr/bin/solve-field";
-        (QFile("/bin/astap").exists()) ?
+                                    paths.astapBinaryPath = "/opt/astap/astap";
+            if(QFile("/usr/bin/astap").exists())
+                paths.astapBinaryPath = "/usr/bin/astap";
+            paths.watneyBinaryPath = "/opt/watney/watney-solve";
+            paths.wcsPath = "/usr/bin/wcsinfo";
+            break;
+        case LINUX_INTERNAL:
+            paths.confPath = "$HOME/.local/share/kstars/astrometry/astrometry.cfg";
+            paths.sextractorBinaryPath = "/usr/bin/sextractor";
+            paths.solverPath = "/usr/bin/solve-field";
+            (QFile("/bin/astap").exists()) ?
             paths.astapBinaryPath = "/bin/astap" :
-            paths.astapBinaryPath = "/opt/astap/astap";
-        paths.watneyBinaryPath = "/opt/watney/watney-solve";
-        paths.wcsPath = "/usr/bin/wcsinfo";
-        break;
-    case MAC_HOMEBREW:
-        paths.confPath = "/usr/local/etc/astrometry.cfg";
-        paths.sextractorBinaryPath = "/usr/local/bin/sex";
-        paths.solverPath = "/usr/local/bin/solve-field";
-        paths.astapBinaryPath = "/Applications/ASTAP.app/Contents/MacOS/astap";
-        paths.watneyBinaryPath = "/usr/local/bin/watney-solve";
-        paths.wcsPath = "/usr/local/bin/wcsinfo";
-        break;
-    case WIN_ANSVR:
-        paths.confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg";
-        paths.sextractorBinaryPath = ""; //Not on windows?
-        paths.solverPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe";
-        paths.astapBinaryPath = "C:/Program Files/astap/astap.exe";
-        paths.watneyBinaryPath = "C:/watney/watney-solve.exe";
-        paths.wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
-        break;
-    case WIN_CYGWIN:
-        paths.confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
-        paths.sextractorBinaryPath = ""; //Not on windows?
-        paths.solverPath = "C:/cygwin64/bin/solve-field";
-        paths.astapBinaryPath = "C:/Program Files/astap/astap.exe";
-        paths.watneyBinaryPath = "C:/watney/watney-solve.exe";
-        paths.wcsPath = "C:/cygwin64/bin/wcsinfo";
-        break;
+                                    paths.astapBinaryPath = "/opt/astap/astap";
+            paths.watneyBinaryPath = "/opt/watney/watney-solve";
+            paths.wcsPath = "/usr/bin/wcsinfo";
+            break;
+        case MAC_HOMEBREW:
+            paths.confPath = "/usr/local/etc/astrometry.cfg";
+            paths.sextractorBinaryPath = "/usr/local/bin/sex";
+            paths.solverPath = "/usr/local/bin/solve-field";
+            paths.astapBinaryPath = "/Applications/ASTAP.app/Contents/MacOS/astap";
+            paths.watneyBinaryPath = "/usr/local/bin/watney-solve";
+            paths.wcsPath = "/usr/local/bin/wcsinfo";
+            break;
+        case WIN_ANSVR:
+            paths.confPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/etc/astrometry/backend.cfg";
+            paths.sextractorBinaryPath = ""; //Not on windows?
+            paths.solverPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/solve-field.exe";
+            paths.astapBinaryPath = "C:/Program Files/astap/astap.exe";
+            paths.watneyBinaryPath = "C:/watney/watney-solve.exe";
+            paths.wcsPath = QDir::homePath() + "/AppData/Local/cygwin_ansvr/lib/astrometry/bin/wcsinfo.exe";
+            break;
+        case WIN_CYGWIN:
+            paths.confPath = "C:/cygwin64/usr/etc/astrometry.cfg";
+            paths.sextractorBinaryPath = ""; //Not on windows?
+            paths.solverPath = "C:/cygwin64/bin/solve-field";
+            paths.astapBinaryPath = "C:/Program Files/astap/astap.exe";
+            paths.watneyBinaryPath = "C:/watney/watney-solve.exe";
+            paths.wcsPath = "C:/cygwin64/bin/wcsinfo";
+            break;
     }
     return paths;
 }
 ExternalProgramPaths ExternalExtractorSolver::getDefaultExternalPaths()
 {
-    #if defined(Q_OS_OSX)
-        return getDefaultExternalPaths(MAC_HOMEBREW);
-    #elif defined(Q_OS_LINUX)
-        return getDefaultExternalPaths(LINUX_DEFAULT);
-    #else //Windows
-        return getDefaultExternalPaths(WIN_ANSVR);
-    #endif
+#if defined(Q_OS_OSX)
+    return getDefaultExternalPaths(MAC_HOMEBREW);
+#elif defined(Q_OS_LINUX)
+    return getDefaultExternalPaths(LINUX_DEFAULT);
+#else //Windows
+    return getDefaultExternalPaths(WIN_ANSVR);
+#endif
 }
 
 int ExternalExtractorSolver::extract()
@@ -345,7 +345,8 @@ ExtractorSolver* ExternalExtractorSolver::spawnChildSolver(int n)
 //This is the abort method.  For the external SExtractor and solver, it uses the kill method to abort the processes and writes a cancel file for astrometry-engine to stop.
 void ExternalExtractorSolver::abort()
 {
-    if(solver){
+    if(solver)
+    {
         solver->kill();
         if(m_SolverType == SSolver::SOLVER_LOCALASTROMETRY)
         {
@@ -863,7 +864,8 @@ int ExternalExtractorSolver::runExternalWatneySolver()
         solverArgs << "-z" << "0";
     */
 
-    if(m_AstrometryLogLevel != LOG_NONE){
+    if(m_AstrometryLogLevel != LOG_NONE)
+    {
         if(m_LogFileName == "")
             m_LogFileName = m_BasePath + "/" + m_BaseName + ".log";
         if(QFile(m_LogFileName).exists())
@@ -1097,11 +1099,11 @@ void ExternalExtractorSolver::logSextractor()
                 if (file.open(QIODevice::Append | QIODevice::Text))
                 {
                     QTextStream outstream(&file);
-                    #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-                        outstream << cleanedString << Qt::endl;
-                    #else
-                        outstream << cleanedString << endl;
-                    #endif
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+                    outstream << cleanedString << Qt::endl;
+#else
+                    outstream << cleanedString << endl;
+#endif
                     file.close();
                 }
                 else
@@ -1125,11 +1127,11 @@ void ExternalExtractorSolver::logSolver()
                 if (file.open(QIODevice::Append | QIODevice::Text))
                 {
                     QTextStream outstream(&file);
-                    #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-                        outstream << solverLine << Qt::endl;
-                    #else
-                        outstream << solverLine << endl;
-                    #endif
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+                    outstream << solverLine << Qt::endl;
+#else
+                    outstream << solverLine << endl;
+#endif
                     file.close();
                 }
                 else
@@ -1269,7 +1271,7 @@ int ExternalExtractorSolver::getStarsFromXYLSFile()
             theta = qRadiansToDegrees(atan(xy / (lambda1 - yy)));
         }
 
-        FITSImage::Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta, 0, 0, (int)(a*b*3.14)};
+        FITSImage::Star star = {starx, stary, mag, flux, peak, HFR, a, b, theta, 0, 0, (int)(a*b * 3.14)};
 
         m_ExtractedStars.append(star);
     }
@@ -1444,8 +1446,8 @@ bool ExternalExtractorSolver::getASTAPSolutionInformation()
             dec = ini[1].trimmed().toDouble(&ok[1]);
         else if (ini[0] == "CDELT1")
             pixscale = ini[1].trimmed().toDouble(&ok[2]) * 3600.0;
-        else if (ini[0] == "CROTA2")
-            orient = ini[1].trimmed().toDouble(&ok[3]);
+        else if (ini[0] == "CROTA1")
+            orient = ini[1].trimmed().toDouble(&ok[3]) * -1;
         else if (ini[0] == "CD1_1")
             cd11 = ini[1].trimmed().toDouble(&ok[4]);
         else if (ini[0] == "CD1_2")
@@ -1486,9 +1488,6 @@ bool ExternalExtractorSolver::getASTAPSolutionInformation()
             raErr = (search_ra - ra) * 3600;
             decErr = (search_dec - dec) * 3600;
         }
-
-        if(orient < 0)
-            orient = 360 + orient;
 
         m_Solution = {fieldw, fieldh, ra, dec, orient, pixscale, parity, raErr, decErr};
         emit logOutput("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -1638,7 +1637,7 @@ int ExternalExtractorSolver::writeStarExtractorTable()
         yArray[i] = m_ExtractedStars.at(i).y;
         magArray[i] = m_ExtractedStars.at(i).mag;
     }
-    
+
     int firstrow  = 1;  /* first row in table to write   */
     int firstelem = 1;
     int column = 1;
@@ -1677,12 +1676,12 @@ int ExternalExtractorSolver::writeStarExtractorTable()
     }
     status = 0;
 
-    exit:
-        delete[] xArray;
-        delete[] yArray;
-        delete[] magArray;
+exit:
+    delete[] xArray;
+    delete[] yArray;
+    delete[] magArray;
 
-        return status;
+    return status;
 }
 
 //This is very necessary for solving non-fits images with the external Star Extractor
@@ -1701,7 +1700,8 @@ int ExternalExtractorSolver::saveAsFITS()
     // We are only going to export a monochromatic image because SExtractor and most solvers don't use all three channels
     // We will export the selected channel if it is an RGB image
     long naxis = 2;
-    long channelShift = (m_Statistics.channels < 3 || usingMergedChannelImage) ? 0 : m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel;
+    long channelShift = (m_Statistics.channels < 3
+                         || usingMergedChannelImage) ? 0 : m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel;
     long nelements, exposure;
     long naxes[3] = { m_Statistics.width, m_Statistics.height, 1 };
     char error_status[512] = {0};
@@ -1722,29 +1722,29 @@ int ExternalExtractorSolver::saveAsFITS()
     int bitpix;
     switch(m_Statistics.dataType)
     {
-    case SEP_TBYTE:
-        bitpix = BYTE_IMG;
-        break;
-    case TSHORT:
-        bitpix = SHORT_IMG;
-        break;
-    case TUSHORT:
-        bitpix = USHORT_IMG;
-        break;
-    case TLONG:
-        bitpix = LONG_IMG;
-        break;
-    case TULONG:
-        bitpix = ULONG_IMG;
-        break;
-    case TFLOAT:
-        bitpix = FLOAT_IMG;
-        break;
-    case TDOUBLE:
-        bitpix = DOUBLE_IMG;
-        break;
-    default:
-        bitpix = BYTE_IMG;
+        case SEP_TBYTE:
+            bitpix = BYTE_IMG;
+            break;
+        case TSHORT:
+            bitpix = SHORT_IMG;
+            break;
+        case TUSHORT:
+            bitpix = USHORT_IMG;
+            break;
+        case TLONG:
+            bitpix = LONG_IMG;
+            break;
+        case TULONG:
+            bitpix = ULONG_IMG;
+            break;
+        case TFLOAT:
+            bitpix = FLOAT_IMG;
+            break;
+        case TDOUBLE:
+            bitpix = DOUBLE_IMG;
+            break;
+        default:
+            bitpix = BYTE_IMG;
     }
 
     fitsfile *fptr = new_fptr;
@@ -1758,7 +1758,8 @@ int ExternalExtractorSolver::saveAsFITS()
     }
 
     /* Write Data */
-    if (fits_write_img(fptr, m_Statistics.dataType, 1, nelements, const_cast<void *>(reinterpret_cast<const void *>(m_ImageBuffer + channelShift)), &status))
+    if (fits_write_img(fptr, m_Statistics.dataType, 1, nelements,
+                       const_cast<void *>(reinterpret_cast<const void *>(m_ImageBuffer + channelShift)), &status))
     {
         fits_report_error(stderr, status);
         return status;
