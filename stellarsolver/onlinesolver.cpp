@@ -180,8 +180,8 @@ void OnlineSolver::authenticate()
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
     // If pure IP, add http to it.
-    if (!astrometryAPIURL.startsWith("http"))
-        astrometryAPIURL = "http://" + astrometryAPIURL;
+    if (!astrometryAPIURL.startsWith("https"))
+        astrometryAPIURL = "https://" + astrometryAPIURL;
 
     QUrl url(astrometryAPIURL);
     url.setPath("/api/login");
@@ -521,7 +521,8 @@ void OnlineSolver::onResult(QNetworkReply *reply)
                 abort();
                 return;
             }
-            orientation *= parity;
+            // For astrometry 0.93 and higher this is no longer needed (sb 7-2023)
+            // orientation *= parity;
             double ra = result["ra"].toDouble(&ok);
             if (ok == false)
             {
