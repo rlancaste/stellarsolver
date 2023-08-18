@@ -1,10 +1,16 @@
-libstellarsolver (2.3) focal; urgency=medium
+libstellarsolver (2.5) focal; urgency=medium
+
+  * New release.
+
+ -- Robert Lancaster <rlancaste@gmail.com>  Fri, 17 Aug 2023 23:00:00 -0500
+ 
+libstellarsolver (2.4) focal; urgency=medium
 
   * New release.
 
  -- Robert Lancaster <rlancaste@gmail.com>  Fri, 29 July 2022 18:00:00 -0500
  
- libstellarsolver (2.3) focal; urgency=medium
+libstellarsolver (2.3) focal; urgency=medium
 
   * New release.
 
