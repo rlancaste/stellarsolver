@@ -1,7 +1,7 @@
 %define __cmake_in_source_build %{_vpath_builddir}
 
 Name: stellarsolver
-Version: 2.4.git
+Version: 2.5.git
 Release: %(date -u +%%Y%%m%%d%%H%%M%%S)%{?dist}
 Summary: The Cross Platform Sextractor and Astrometry.net-Based Internal Astrometric Solver
 
@@ -53,6 +53,8 @@ An Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net
 %license LICENSE
 
 %changelog
+* Thu Aug 17 2023 Rob Lancaster <rlancaste@gmail.com> 2.5.git
+- Updating Spec file to latest version
 * Sat May 15 2022 Rob Lancaster <rlancaste@gmail.com> 2.4.git
 - Updating Spec file to latest version
 * Sat May 15 2022 Rob Lancaster <rlancaste@gmail.com> 2.3.git
