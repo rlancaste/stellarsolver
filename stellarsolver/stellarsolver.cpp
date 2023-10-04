@@ -484,6 +484,20 @@ bool StellarSolver::parallelSolversAreRunning() const
 }
 void StellarSolver::processFinished(int code)
 {
+    if(m_ProcessType == SOLVE)
+    {
+        background = m_ExtractorSolver->getBackground();
+        m_ExtractorStars = m_ExtractorSolver->getStarList();
+        if (params.downsample != 1)
+        {
+            for (auto &star : m_ExtractorStars)
+            {
+                star.x *= params.downsample;
+                star.y *= params.downsample;
+            }
+        }
+    }
+
     numStars  = m_ExtractorSolver->getNumStarsFound();
     if(code == 0)
     {
@@ -595,7 +609,20 @@ void StellarSolver::finishParallelSolve(int success)
     }
 
     if (emitReady) emit ready();
-    if (emitFinished) emit finished();
+    if (emitFinished)
+    {
+        background = m_ExtractorSolver->getBackground();
+        m_ExtractorStars = m_ExtractorSolver->getStarList();
+        if (params.downsample != 1)
+        {
+            for (auto &star : m_ExtractorStars)
+            {
+                star.x *= params.downsample;
+                star.y *= params.downsample;
+            }
+        }
+        emit finished();
+    }
 }
 
 QString StellarSolver::raString(double ra)
