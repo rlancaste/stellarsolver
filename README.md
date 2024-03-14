@@ -125,7 +125,7 @@ You can follow this set of steps on ubuntu build the program StellarSolver on Li
 	git clone https://github.com/rlancaste/stellarsolver.git
 	mkdir build
 	cd build
-	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTER=ON ../stellarsolver/
+	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTER=ON ../
 	make -j $(expr $(nproc) + 2)
 	sudo make install
 
