@@ -187,65 +187,27 @@ bool fileio::loadOtherFormat(QString fileName)
 {
     file = fileName;
     QImageReader fileReader(file.toLocal8Bit());
-
-    if (QImageReader::supportedImageFormats().contains(fileReader.format()) == false)
+    
+    if (!fileReader.canRead()) 
     {
-        logIssue("Failed to convert " + file + " to FITS since format, " + fileReader.format() +
-                  ", is not supported in Qt");
+        logIssue(QString("Cannot open '%1' (%2)\n").arg(file, fileReader.errorString()));
         return false;
     }
 
+
     QImage imageFromFile;
-    if(!imageFromFile.load(file.toLocal8Bit()))
+    if(!fileReader.read(&imageFromFile))
     {
-        logIssue("Failed to open image.");
+        logIssue("Failed to open image.\n");
         return false;
     }
 
     imageFromFile = imageFromFile.convertToFormat(QImage::Format_RGB32);
 
-    int fitsBitPix =
-        8; //Note: This will need to be changed.  I think QT only loads 8 bpp images.  Also the depth method gives the total bits per pixel in the image not just the bits per pixel in each channel.
-    switch (fitsBitPix)
-    {
-        case BYTE_IMG:
-            stats.dataType      = SEP_TBYTE;
-            stats.bytesPerPixel = sizeof(uint8_t);
-            break;
-        case SHORT_IMG:
-            // Read SHORT image as USHORT
-            stats.dataType      = TUSHORT;
-            stats.bytesPerPixel = sizeof(int16_t);
-            break;
-        case USHORT_IMG:
-            stats.dataType      = TUSHORT;
-            stats.bytesPerPixel = sizeof(uint16_t);
-            break;
-        case LONG_IMG:
-            // Read LONG image as ULONG
-            stats.dataType      = TULONG;
-            stats.bytesPerPixel = sizeof(int32_t);
-            break;
-        case ULONG_IMG:
-            stats.dataType      = TULONG;
-            stats.bytesPerPixel = sizeof(uint32_t);
-            break;
-        case FLOAT_IMG:
-            stats.dataType      = TFLOAT;
-            stats.bytesPerPixel = sizeof(float);
-            break;
-        case LONGLONG_IMG:
-            stats.dataType      = TLONGLONG;
-            stats.bytesPerPixel = sizeof(int64_t);
-            break;
-        case DOUBLE_IMG:
-            stats.dataType      = TDOUBLE;
-            stats.bytesPerPixel = sizeof(double);
-            break;
-        default:
-            logIssue(QString("Bit depth %1 is not supported.").arg(fitsBitPix));
-            return false;
-    }
+    // because we convert it to 32bit-packed RGB with each color 8 bit, we can hardcode this here
+    stats.bytesPerPixel = 1;
+    stats.dataType      = SEP_TBYTE;
+
 
     stats.width = static_cast<uint16_t>(imageFromFile.width());
     stats.height = static_cast<uint16_t>(imageFromFile.height());
