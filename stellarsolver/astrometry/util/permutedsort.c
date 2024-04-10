@@ -17,7 +17,8 @@
 #endif
 
 #include "permutedsort.h"
-#include "os-features.h" // for qsort_r
+#include "os-features.h"
+#include "ioutils.h"
 
 int* permutation_init(int* perm, int N) {
     int i;
