@@ -18,6 +18,9 @@ set (StellarSolver_VERSION_STRING "${StellarSolver_VERSION_MAJOR}.${StellarSolve
 set(TARGET_EXPORT_NAME ${PROJECT_NAME}Targets)
 set(TARGET_EXPORT_CONFIG ${PROJECT_NAME}Config)
 
+# See download progress
+Set(FETCHCONTENT_QUIET FALSE)
+
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/version.h.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/version.h
@@ -91,6 +94,7 @@ option(BUILD_TESTER "Build stellarsolver tester program, instead of just the lib
 option(BUILD_BATCH_SOLVER "Build stellarsolver batch solver program, instead of just the library" Off)
 option(BUILD_DEMOS "Build stellarsolver basic demonstration programs, instead of just the library" Off)
 option(BUILD_TESTS "Build stellarsolver tests, instead of just the library" Off)
+option(BUILD_CLI "Build stellarsolver command line interface, instead of just the library" Off)
 
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
@@ -300,7 +304,7 @@ install(DIRECTORY
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stellarsolver.pc DESTINATION ${PKGCONFIG_INSTALL_PREFIX})
 
-if(BUILD_TESTER OR BUILD_BATCH_SOLVER OR BUILD_DEMOS OR BUILD_TESTS)
+if(BUILD_TESTER OR BUILD_BATCH_SOLVER OR BUILD_DEMOS OR BUILD_TESTS OR BUILD_CLI)
     set(SSolverUtilsLib_SRCS
         ${CMAKE_CURRENT_SOURCE_DIR}/ssolverutils/fileio.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ssolverutils/imagelabel.cpp
@@ -319,7 +323,7 @@ if(BUILD_TESTER OR BUILD_BATCH_SOLVER OR BUILD_DEMOS OR BUILD_TESTS)
         Qt5::Network
         Qt5::Concurrent
         )
-endif(BUILD_TESTER OR BUILD_BATCH_SOLVER OR BUILD_DEMOS OR BUILD_TESTS)
+endif(BUILD_TESTER OR BUILD_BATCH_SOLVER OR BUILD_DEMOS OR BUILD_TESTS OR BUILD_CLI)
 
 #########################################################################################
 ## Stellar Solver Tester
@@ -494,12 +498,33 @@ if(BUILD_DEMOS)
     if(NOT EXISTS "${CMAKE_BINARY_DIR}/astrometry/")
         message(STATUS "Downloading two index files for solving demos/tests. . .")
         make_directory("${CMAKE_BINARY_DIR}/astrometry/")
-        file(DOWNLOAD "http://data.astrometry.net/4100/index-4107.fits" "${CMAKE_BINARY_DIR}/astrometry/index-4107.fits")
-        file(DOWNLOAD "http://data.astrometry.net/4100/index-4110.fits" "${CMAKE_BINARY_DIR}/astrometry/index-4110.fits")
+        file(DOWNLOAD "http://data.astrometry.net/4100/index-4107.fits" "${CMAKE_BINARY_DIR}/astrometry/index-4107.fits" SHOW_PROGRESS)
+        file(DOWNLOAD "http://data.astrometry.net/4100/index-4110.fits" "${CMAKE_BINARY_DIR}/astrometry/index-4110.fits" SHOW_PROGRESS)
     endif(NOT EXISTS "${CMAKE_BINARY_DIR}/astrometry/")
 
 endif(BUILD_DEMOS)
 
+
+#########################################################################################
+## Stellar Solver Command Line Interface
+#########################################################################################
+if(BUILD_CLI)
+    add_library(CommandLineInterfaceLib STATIC)
+    target_link_libraries(CommandLineInterfaceLib
+        stellarsolver
+        SSolverUtilsLib
+        ${CFITSIO_LIBRARIES}
+        ${GSL_LIBRARIES}
+        ${WCSLIB_LIBRARIES}
+        Qt5::Core
+        Qt5::Concurrent
+        )
+
+    add_executable(CommandLineInterface ${CMAKE_CURRENT_SOURCE_DIR}/cli/main.cpp)
+    set_target_properties(CommandLineInterface PROPERTIES OUTPUT_NAME "stellarsolver-cli")
+    target_link_libraries(CommandLineInterface CommandLineInterfaceLib)
+
+endif(BUILD_CLI)
 #########################################################################################
 ## Stellar Solver Testing
 #########################################################################################
