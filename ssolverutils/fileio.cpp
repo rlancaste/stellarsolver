@@ -188,7 +188,8 @@ bool fileio::loadOtherFormat(QString fileName)
     file = fileName;
     QImageReader fileReader(file.toLocal8Bit());
     
-    if (!fileReader.canRead()) {
+    if (!fileReader.canRead()) 
+    {
         logIssue(QString("Cannot open '%1' (%2)\n").arg(file, fileReader.errorString()));
         return false;
     }
