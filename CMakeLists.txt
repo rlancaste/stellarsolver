@@ -524,6 +524,22 @@ if(BUILD_CLI)
     set_target_properties(CommandLineInterface PROPERTIES OUTPUT_NAME "stellarsolver-cli")
     target_link_libraries(CommandLineInterface CommandLineInterfaceLib)
 
+    if(APPLE)
+        install(TARGETS CommandLineInterface
+        BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
+    )
+    else(APPLE)
+        #installation for Linux and Windows
+        install(TARGETS CommandLineInterface RUNTIME DESTINATION bin)
+    if(WIN32)
+    else(WIN32)
+        #Desktop file for Linux
+        #install(FILES tester/com.github.rlancaste.stellarsolver.desktop
+        #        DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+    endif(WIN32)
+endif(APPLE)
+
 endif(BUILD_CLI)
 #########################################################################################
 ## Stellar Solver Testing

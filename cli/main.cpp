@@ -43,6 +43,12 @@ struct CommandLineParseResult
     std::optional<QString> errorString = std::nullopt;
 };
 
+/**
+ * @brief extracts the profile name from the output of StellarSolver::getBuiltInProfiles()
+ * 
+ * @param profiles 
+ * @return QList<QString> the extracted profile names
+ */
 QList<QString> extractProfileNames(const QList<Parameters> &profiles)
 {
     QList<QString> namesList;
@@ -53,7 +59,12 @@ QList<QString> extractProfileNames(const QList<Parameters> &profiles)
     return namesList;
 }
 
-// TODO docs
+/**
+ * @brief given a list of available profile names concat them for printing the help file
+ * 
+ * @param list the profile names
+ * @return QString concatenated string
+ */
 QString concatProfileNames(const QList<QString> &list)
 {
     QString result;
@@ -65,6 +76,12 @@ QString concatProfileNames(const QList<QString> &list)
     return result;
 }
 
+/**
+ * @brief used for parsing the astrometry.cfg file line by line
+ * We are only interested in the "add_path" directive in the config file, all the other options are currently ignored
+ * @param line the line of the config file to parse
+ * @return std::optional<QString> the content of "add_path" or std::nullopt if not existing in this line
+ */
 std::optional<QString> extractAddPathDirectiveFromConfigLine(QString line)
 {
     QString trimmedLine = line.trimmed(); // Remove leading and trailing whitespace
@@ -85,6 +102,13 @@ std::optional<QString> extractAddPathDirectiveFromConfigLine(QString line)
     return std::nullopt;
 }
 
+/**
+ * @brief parses the command line args and print usage notes in case of error
+ * 
+ * @param parser the command line parser object
+ * @param query the object containing the parsed arguments
+ * @return CommandLineParseResult indicates the result of the parsing
+ */
 CommandLineParseResult parseCommandLine(QCommandLineParser &parser, StellarSolverCliQuery *query)
 {
     using Status = CommandLineParseResult::Status;
@@ -372,6 +396,12 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser, StellarSolve
     return {Status::Ok};
 }
 
+/**
+ * @brief starts the solving for a given image file based on the parsed parameters and print the results to console
+ * 
+ * @param image_file the path to the image file to solve
+ * @param query the object containing the parsed command line parameters
+ */
 void solve(const QString &image_file, StellarSolverCliQuery *query)
 {
 
@@ -388,7 +418,7 @@ void solve(const QString &image_file, StellarSolverCliQuery *query)
     StellarSolver stellarSolver(stats, imageBuffer);
     stellarSolver.setIndexFolderPaths(QStringList() << query->index_files_path);
     stellarSolver.setParameterProfile(query->profile);
-    SSolver::Parameters params;
+    SSolver::Parameters params = stellarSolver.getCurrentParameters();
     if (query->degrees)
     {
         params.search_radius = query->degrees.value();
