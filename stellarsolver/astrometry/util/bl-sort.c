@@ -3,6 +3,8 @@
  # Licensed under a 3-clause BSD style license - see LICENSE
  */
 
+#include "ioutils.h" // for QSORT_R
+
 #include "bl-sort.h"
 // for qsort_r
 #include "os-features.h"
@@ -166,4 +168,3 @@ static int sort_helper_pl(const void* v1, const void* v2, void* userdata) {
 void  pl_sort(pl* list, int (*compare)(const void* v1, const void* v2)) {
     bl_sort_with_userdata(list, sort_helper_pl, compare);
 }
-

@@ -43,7 +43,7 @@
 
 #include "os-features.h"
 #include "ioutils.h"
-//#include "os-features.h"
+#include "qsort_reentrant.c"
 #include "errors.h"
 #include "log.h"
 

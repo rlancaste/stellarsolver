@@ -1227,7 +1227,11 @@ static fitstable_t* open_for_writing(const char* fn, const char* mode, FILE* fid
     else {
         tab->fid = fopen(fn, mode);
         if (!tab->fid) {
-            SYSERROR("Couldn't open output file %s for writing", fn);
+            if (fn != NULL) {
+                SYSERROR("Couldn't open output file %s for writing", fn);
+            } else {
+                SYSERROR("Couldn't open output file because the filename is null");
+            }
             goto bailout;
         }
     }
