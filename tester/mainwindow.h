@@ -8,20 +8,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-//Includes for this project
-#include "structuredefinitions.h"
-#include "stellarsolver.h"
-#include "externalextractorsolver.h"
-#include "onlinesolver.h"
-#include "ssolverutils/fileio.h"
-
-//system includes
-#include "math.h"
-
-#ifndef _MSC_VER
-#include <sys/mman.h>
-#endif
-
 //QT Includes
 #include <QMainWindow>
 #include <QObject>
@@ -38,6 +24,18 @@
 #include <QElapsedTimer>
 #include <QTimer>
 #include <QTableWidget>
+
+//Project Includes
+#include "structuredefinitions.h"
+#include "stellarsolver.h"
+#include "ssolverutils/fileio.h"
+
+//System includes
+#include "math.h"
+
+#ifndef _MSC_VER
+#include <sys/mman.h>
+#endif
 
 //CFitsio Includes
 #include "longnam.h"

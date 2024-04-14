@@ -8,6 +8,7 @@
 #include "externalextractorsolver.h"
 #include <QTextStream>
 #include <QMessageBox>
+
 #include <qmath.h>
 #include <wcshdr.h>
 #include <wcsfix.h>
@@ -1312,7 +1313,7 @@ bool ExternalExtractorSolver::getSolutionInformation()
     //This is a quick way to find out what keys are available
     // emit logOutput(wcsinfo_stdout);
 
-    QStringList wcskeys = wcsinfo_stdout.split(QRegExp("[\n]"));
+    QStringList wcskeys = wcsinfo_stdout.split(QRegularExpression("[\n]"));
 
     QStringList key_value;
 

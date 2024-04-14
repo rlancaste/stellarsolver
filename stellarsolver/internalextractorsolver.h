@@ -6,10 +6,12 @@
     version 2 of the License, or (at your option) any later version.
 */
 #pragma once
+#include <QtConcurrent>
 
 #include "extractorsolver.h"
 #include "astrometrylogger.h"
 #include "qmutex.h"
+
 
 //SEP Includes
 #include "sep/sep.h"
@@ -19,7 +21,7 @@ extern "C" {
 #include "astrometry/engine.h"
 }
 
-#include <QtConcurrent>
+
 
 using namespace SSolver;
 

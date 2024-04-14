@@ -7,13 +7,14 @@
 */
 
 #pragma once
-
-#include "internalextractorsolver.h"
 #include <QProcess>
 #include <QPointer>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
+
+#include "internalextractorsolver.h"
+
 
 using namespace SSolver;
 

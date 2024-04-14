@@ -1,6 +1,6 @@
-#include "fileio.h"
 #include <QFileInfo>
 
+#include "fileio.h"
 
 fileio::fileio()
 {
@@ -662,7 +662,7 @@ bool fileio::parseHeader()
         Record oneRecord;
         // Quotes cause issues for simplified below so we're removing them.
         QString record = recordList.mid(i * 80, 80).remove("'");
-        QStringList properties = record.split(QRegExp("[=/]"));
+        QStringList properties = record.split(QRegularExpression("[=/]"));
         // If it is only a comment
         if (properties.size() == 1)
         {

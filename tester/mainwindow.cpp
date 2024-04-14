@@ -6,16 +6,21 @@
     version 2 of the License, or (at your option) any later version.
 */
 
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-
+//Qt Includes
 #include <QUuid>
 #include <QDebug>
 #include <QImageReader>
 #include <QTableWidgetItem>
 #include <QPainter>
 #include <QDesktopServices>
+#include <QShortcut>
+#include <QThread>
+#include <QInputDialog>
+#include <QtConcurrent>
+#include <QToolTip>
+#include <QtGlobal>
 
+//System Includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,16 +35,12 @@
 #endif
 
 #include <time.h>
-
 #include <assert.h>
 
-#include <QShortcut>
-#include <QThread>
-#include <QInputDialog>
-#include <QtConcurrent>
-#include <QToolTip>
-#include <QtGlobal>
+//Project Includes
 #include "version.h"
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 
 MainWindow::MainWindow() :
     QMainWindow(),
@@ -222,7 +223,7 @@ MainWindow::MainWindow() :
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num)
     {
 
-        ExternalProgramPaths paths = ExternalExtractorSolver::getDefaultExternalPaths((SSolver::ComputerSystemType) num);
+        ExternalProgramPaths paths = StellarSolver::getDefaultExternalPaths((SSolver::ComputerSystemType) num);
         ui->sextractorPath->setText(paths.sextractorBinaryPath);
         ui->configFilePath->setText(paths.confPath);
         ui->solverPath->setText(paths.solverPath);
@@ -452,7 +453,7 @@ MainWindow::MainWindow() :
     timerMonitor.setInterval(1000); //1 sec intervals
     connect(&timerMonitor, &QTimer::timeout, this, [this]()
     {
-        ui->status->setText(QString("Processing Trial %1: %2 s").arg(currentTrial).arg((int)processTimer.elapsed() / 1000) + 1);
+        ui->status->setText(QString("Processing Trial %1: %2 s").arg(currentTrial).arg(((int)processTimer.elapsed() / 1000) + 1));
     });
 
     setWindowIcon(QIcon(":/StellarSolverIcon.png"));
@@ -476,24 +477,19 @@ MainWindow::MainWindow() :
     index = programSettings.value("setPathsIndex", index).toInt();
     ui->setPathsAutomatically->setCurrentIndex(index);
 
-    //This gets a temporary ExternalExtractorSolver to get the defaults
-    //It tries to load from the saved settings if possible as well.
-    ExternalExtractorSolver extTemp(processType, m_ExtractorType, solverType, stats, m_ImageBuffer, this);
-    ExternalProgramPaths paths = extTemp.getDefaultExternalPaths();
+    //These load the default settings from the StellarSolver using a temporary object
+    StellarSolver temp(processType, stats, m_ImageBuffer, this);
+    ExternalProgramPaths paths = temp.getDefaultExternalPaths();
     ui->sextractorPath->setText(programSettings.value("sextractorBinaryPath", paths.sextractorBinaryPath).toString());
     ui->configFilePath->setText(programSettings.value("confPath", paths.confPath).toString());
     ui->solverPath->setText(programSettings.value("solverPath", paths.solverPath).toString());
     ui->astapPath->setText(programSettings.value("astapBinaryPath", paths.astapBinaryPath).toString());
     ui->watneyPath->setText(programSettings.value("watneyBinaryPath", paths.watneyBinaryPath).toString());
     ui->wcsPath->setText(programSettings.value("wcsPath", paths.wcsPath).toString());
-    ui->cleanupTemp->setChecked(programSettings.value("cleanupTemporaryFiles", extTemp.cleanupTemporaryFiles).toBool());
-    ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig",
-            extTemp.autoGenerateAstroConfig).toBool());
+    ui->cleanupTemp->setChecked(programSettings.value("cleanupTemporaryFiles", temp.property("CleanupTemporaryFiles")).toBool());
+    ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig", temp.property("AutoGenerateAstroConfig")).toBool());
     ui->onlineServer->setText(programSettings.value("onlineServer", "http://nova.astrometry.net").toString());
     ui->apiKey->setText(programSettings.value("apiKey", "iczikaqstszeptgs").toString());
-
-    //These load the default settings from the StellarSolver usting a temporary object
-    StellarSolver temp(processType, stats, m_ImageBuffer, this);
     ui->basePath->setText(QDir::tempPath());
     sendSettingsToUI(temp.getCurrentParameters());
     optionsList = temp.getBuiltInProfiles();

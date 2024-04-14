@@ -1,7 +1,11 @@
-#include "stellarbatchsolver.h"
-#include "ui_stellarbatchsolver.h"
+//Qt includes
 #include <QFileDialog>
 #include <QTextStream>
+
+//includes from this project
+#include "stellarbatchsolver.h"
+#include "ui_stellarbatchsolver.h"
+
 
 StellarBatchSolver::StellarBatchSolver():
     QMainWindow(),

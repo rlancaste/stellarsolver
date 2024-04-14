@@ -1,5 +1,7 @@
-#include "testmultiplesyncsolvers.h"
 #include <unistd.h>
+
+#include "testmultiplesyncsolvers.h"
+
 
 TestMultipleSyncSolvers::TestMultipleSyncSolvers()
 {
@@ -21,11 +23,18 @@ TestMultipleSyncSolvers::TestMultipleSyncSolvers()
     {
         extractorsRunning += 2;
         solversRunning += 2;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        QtConcurrent::run(&TestMultipleSyncSolvers::runSynchronousSEP, this, stats1, imageBuffer[i*2]);
+        QtConcurrent::run(&TestMultipleSyncSolvers::runSynchronousSEP, this, stats2, imageBuffer[i*2 + 1]);
+        QtConcurrent::run(&TestMultipleSyncSolvers::runSynchronousSolve, this, stats1, imageBuffer[i*2]);
+        QtConcurrent::run(&TestMultipleSyncSolvers::runSynchronousSolve, this, stats2, imageBuffer[i*2 + 1]);
+#else
         QtConcurrent::run(this, &TestMultipleSyncSolvers::runSynchronousSEP, stats1, imageBuffer[i*2]);
         QtConcurrent::run(this, &TestMultipleSyncSolvers::runSynchronousSEP, stats2, imageBuffer[i*2 + 1]);
         QtConcurrent::run(this, &TestMultipleSyncSolvers::runSynchronousSolve, stats1, imageBuffer[i*2]);
         QtConcurrent::run(this, &TestMultipleSyncSolvers::runSynchronousSolve, stats2, imageBuffer[i*2 + 1]);
-    }
+#endif
+            }
     while(extractorsRunning > 0 || solversRunning > 0)
     {
         usleep(1000);
@@ -45,7 +54,7 @@ uint8_t* TestMultipleSyncSolvers::loadImageBuffer(FITSImage::Statistic &stats, Q
     return imageLoader.getImageBuffer();
 }
 
-void TestMultipleSyncSolvers::runSynchronousSolve(FITSImage::Statistic &stats, uint8_t *imageBuffer)
+void TestMultipleSyncSolvers::runSynchronousSolve(const FITSImage::Statistic &stats, const uint8_t *imageBuffer)
 {
 
     StellarSolver *stellarSolver = new StellarSolver(stats, imageBuffer, nullptr);
@@ -74,7 +83,7 @@ void TestMultipleSyncSolvers::runSynchronousSolve(FITSImage::Statistic &stats, u
     stellarSolver = nullptr;
 }
 
-void TestMultipleSyncSolvers::runSynchronousSEP(FITSImage::Statistic &stats, uint8_t *imageBuffer)
+void TestMultipleSyncSolvers::runSynchronousSEP(const FITSImage::Statistic &stats, const uint8_t *imageBuffer)
 {
     StellarSolver *stellarSolver = new StellarSolver(stats, imageBuffer, nullptr);
 

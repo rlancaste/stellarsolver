@@ -5,6 +5,10 @@
     License as published by the Free Software Foundation; either
     version 2 of the License, or (at your option) any later version.
 */
+#include <QMutexLocker>
+
+#include "internalextractorsolver.h"
+
 #if defined(__APPLE__)
 #include <sys/stat.h>
 #elif defined(_WIN32)
@@ -16,11 +20,10 @@
 
 #include <memory>
 
-#include "internalextractorsolver.h"
-#include "stellarsolver.h"
+
 #include "sep/extract.h"
 #include "qmath.h"
-#include <QMutexLocker>
+
 
 //CFitsio Includes
 #include <fitsio.h>
@@ -404,7 +407,11 @@ int InternalExtractorSolver::runSEPExtractor()
                                           m_ActiveParameters.initialKeep / m_PartitionThreads,
                                           &backgrounds[backgrounds.size() - 1]
                                          };
-                futures.append(QtConcurrent::run(this, &InternalExtractorSolver::extractPartition, parameters));
+                #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+                    futures.append(QtConcurrent::run(&InternalExtractorSolver::extractPartition, this, parameters));
+                #else
+                    futures.append(QtConcurrent::run(this, &InternalExtractorSolver::extractPartition, parameters));
+                #endif
             }
         }
     }
@@ -420,7 +427,7 @@ int InternalExtractorSolver::runSEPExtractor()
         if (allocateDataBuffer(data, startX, startY, subWidth, subHeight) == false)
         {
             for (auto *buffer : dataBuffers)
-                delete [] buffer;
+                    delete [] buffer;
             emit logOutput("Failed to allocate memory.");
             return -1;
         }
@@ -430,7 +437,11 @@ int InternalExtractorSolver::runSEPExtractor()
         backgrounds.append(tempBackground);
 
         ImageParams parameters = {data, subWidth, subHeight, 0, 0, subWidth, subHeight, static_cast<uint32_t>(m_ActiveParameters.initialKeep), &backgrounds[backgrounds.size() - 1]};
-        futures.append(QtConcurrent::run(this, &InternalExtractorSolver::extractPartition, parameters));
+        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+            futures.append(QtConcurrent::run(&InternalExtractorSolver::extractPartition, this, parameters));
+        #else
+            futures.append(QtConcurrent::run(this, &InternalExtractorSolver::extractPartition, parameters));
+        #endif
     }
 
     for (auto &oneFuture : futures)
@@ -476,9 +487,9 @@ int InternalExtractorSolver::runSEPExtractor()
 
     applyStarFilters(m_ExtractedStars);
 
+
     for (auto * buffer : dataBuffers)
         delete [] buffer;
-    dataBuffers.clear();
     futures.clear();
 
     m_HasExtracted = true;

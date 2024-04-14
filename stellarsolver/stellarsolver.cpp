@@ -5,6 +5,8 @@
     License as published by the Free Software Foundation; either
     version 2 of the License, or (at your option) any later version.
 */
+#include <QApplication>
+#include <QSettings>
 #if defined(__APPLE__)
 #include <sys/sysctl.h>
 #elif defined(_WIN32)
@@ -12,13 +14,13 @@
 #else //Linux
 #include <QProcess>
 #endif
+#include "externalextractorsolver.h"
 
 #include "stellarsolver.h"
 #include "extractorsolver.h"
-#include "externalextractorsolver.h"
+
 #include "onlinesolver.h"
-#include <QApplication>
-#include <QSettings>
+
 
 using namespace SSolver;
 
@@ -149,6 +151,17 @@ ExternalProgramPaths StellarSolver::getDefaultExternalPaths(ComputerSystemType s
 {
     return ExternalExtractorSolver::getDefaultExternalPaths(system);
 };
+
+ExternalProgramPaths StellarSolver::getDefaultExternalPaths()
+{
+#if defined(Q_OS_OSX)
+    return getDefaultExternalPaths(MAC_HOMEBREW);
+#elif defined(Q_OS_LINUX)
+    return getDefaultExternalPaths(LINUX_DEFAULT);
+#else //Windows
+    return getDefaultExternalPaths(WIN_ANSVR);
+#endif
+}
 
 QStringList StellarSolver::getIndexFiles(const QStringList &directoryList, int indexToUse, int healpixToUse)
 {
