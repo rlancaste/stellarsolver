@@ -6,12 +6,20 @@
     version 2 of the License, or (at your option) any later version.
 */
 
-#include "stretch.h"
-
-#include <fitsio.h>
-#include <math.h>
+//Qt Includes
 #include <QtConcurrent>
+
+//System Includes
+#include <math.h>
+
+//CFITSIO Includes
+#include <fitsio.h>
+
+//SEP Includes
 #include "sep/sep.h"
+
+//Project Includes
+#include "stretch.h"
 
 namespace {
 

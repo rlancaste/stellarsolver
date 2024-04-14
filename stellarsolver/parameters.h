@@ -1,6 +1,9 @@
 #pragma once
 
+//Qt Includes
 #include <QObject>
+
+//Project Includes
 #include "structuredefinitions.h"
 
 namespace SSolver

@@ -5,9 +5,14 @@
     License as published by the Free Software Foundation; either
     version 2 of the License, or (at your option) any later version.
 */
-#include "onlinesolver.h"
+
+//Qt Includes
 #include <QTimer>
 #include <QEventLoop>
+
+//Project Includes
+#include "onlinesolver.h"
+
 
 OnlineSolver::OnlineSolver(ProcessType type, ExtractorType exType, SolverType solType, const FITSImage::Statistic &imagestats,
                            uint8_t const *imageBuffer, QObject *parent) : ExternalExtractorSolver(type, exType, solType, imagestats, imageBuffer,

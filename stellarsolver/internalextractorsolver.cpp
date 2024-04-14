@@ -5,10 +5,15 @@
     License as published by the Free Software Foundation; either
     version 2 of the License, or (at your option) any later version.
 */
-#include <QMutexLocker>
 
+//Qt Includes
+#include <QMutexLocker>
+#include "qmath.h"
+
+//Project Includes
 #include "internalextractorsolver.h"
 
+//System Includes
 #if defined(__APPLE__)
 #include <sys/stat.h>
 #elif defined(_WIN32)
@@ -21,9 +26,8 @@
 #include <memory>
 
 
+//SEP Includes
 #include "sep/extract.h"
-#include "qmath.h"
-
 
 //CFitsio Includes
 #include <fitsio.h>

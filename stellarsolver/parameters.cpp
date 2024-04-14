@@ -1,5 +1,9 @@
-#include "parameters.h"
+//Qt Includes
 #include <QVariant>
+
+//Project Includes
+#include "parameters.h"
+
 
 bool SSolver::Parameters::operator==(const Parameters& o)
 {

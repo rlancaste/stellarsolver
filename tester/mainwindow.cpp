@@ -463,7 +463,7 @@ MainWindow::MainWindow() :
 
     //These will set the index
     int index = 0;
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     if(QFile("/usr/local/bin/solve-field").exists())
         index = 2;
     else

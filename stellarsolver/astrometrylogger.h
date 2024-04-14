@@ -9,6 +9,8 @@
 #define ASTROMETRYLOGGER_H
 
 #ifdef __cplusplus
+
+//Qt Includes
 #include <QObject>
 #include <QElapsedTimer>
 #include <QTimer>

@@ -7,12 +7,15 @@
 */
 
 #pragma once
+
+//Qt Includes
 #include <QProcess>
 #include <QPointer>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
 
+//Project Includes
 #include "internalextractorsolver.h"
 
 

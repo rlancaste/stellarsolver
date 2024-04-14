@@ -14,9 +14,11 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+//Qt Includes
 #include <QLocale>
 #include <QRegularExpression>
 
+//Project Includes
 #include "dms.h"
 
 #ifdef COUNT_DMS_SINCOS_CALLS

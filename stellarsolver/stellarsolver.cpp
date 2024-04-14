@@ -154,7 +154,7 @@ ExternalProgramPaths StellarSolver::getDefaultExternalPaths(ComputerSystemType s
 
 ExternalProgramPaths StellarSolver::getDefaultExternalPaths()
 {
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     return getDefaultExternalPaths(MAC_HOMEBREW);
 #elif defined(Q_OS_LINUX)
     return getDefaultExternalPaths(LINUX_DEFAULT);
@@ -971,7 +971,7 @@ void addPathToListIfExists(QStringList *list, QString path)
 QStringList StellarSolver::getDefaultIndexFolderPaths()
 {
     QStringList indexFilePaths;
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     //Mac Default location
     addPathToListIfExists(&indexFilePaths, QDir::homePath() + "/Library/Application Support/Astrometry");
     //Homebrew location
@@ -1000,7 +1000,7 @@ bool StellarSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 //But from what I read, getting the Available RAM is inconsistent and buggy on many systems.
 bool StellarSolver::getAvailableRAM(double &availableRAM, double &totalRAM)
 {
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     int mib [] = { CTL_HW, HW_MEMSIZE };
     size_t length;
     length = sizeof(int64_t);
@@ -1072,7 +1072,7 @@ bool StellarSolver::enoughRAMisAvailableFor(const QStringList &indexFolders)
         emit logOutput(
             QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB, Free RAM: %3 GB").arg(
                 totalSize / bytesInGB).arg(totalRAM / bytesInGB).arg(availableRAM / bytesInGB));
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
         emit logOutput("Note: Free RAM for now is reported as Installed RAM on MacOS until I figure out how to get available RAM");
 #endif
     }

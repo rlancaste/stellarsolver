@@ -7,11 +7,13 @@
 */
 #pragma once
 
-//Includes for this project
+//Qt Includes
 #include <QThread>
 #include <QRect>
 #include <QDir>
 #include <QVector>
+
+//Project Includes
 #include "structuredefinitions.h"
 #include "parameters.h"
 #include "wcsdata.h"
