@@ -1,10 +1,9 @@
+//Project Includes
+#include "wcsdata.h"
 
 //WCSLib Includes
 #include <wcshdr.h>
 #include <wcsfix.h>
-
-//Project Includes
-#include "wcsdata.h"
 
 //Astrometry.net includes
 extern "C" {
