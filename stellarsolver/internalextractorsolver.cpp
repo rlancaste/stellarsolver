@@ -475,7 +475,7 @@ int InternalExtractorSolver::runSEPExtractor()
     }
 
     double sumGlobal = 0, sumRmsSq = 0;
-    for (const auto &bg : qAsConst(backgrounds))
+    for (const auto &bg : std::as_const(backgrounds))
     {
         sumGlobal += bg.global;
         sumRmsSq += bg.globalrms * bg.globalrms;
