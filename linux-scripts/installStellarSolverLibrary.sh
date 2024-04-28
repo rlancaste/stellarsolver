@@ -7,7 +7,10 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../
 if [ -f /usr/lib/fedora-release ]; then
   sudo dnf -y install git cmake qt5 cfitsio-devel gsl-devel wcslib-devel
 else
-  sudo apt -y install git cmake qt6-base-dev libcfitsio-dev libgsl-dev wcslib-dev
+    # Qt5 dependencies
+    sudo apt -y install git cmake qt5-default libcfitsio-dev libgsl-dev wcslib-dev
+    # Qt6 dependencies
+    # sudo apt -y install git cmake qt6-base-dev libcfitsio-dev libgsl-dev wcslib-dev
 fi
 
 #This makes and installs the library
