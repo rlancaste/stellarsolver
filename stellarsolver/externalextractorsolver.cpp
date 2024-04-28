@@ -1312,7 +1312,8 @@ bool ExternalExtractorSolver::getSolutionInformation()
     //This is a quick way to find out what keys are available
     // emit logOutput(wcsinfo_stdout);
 
-    QStringList wcskeys = wcsinfo_stdout.split(QRegExp("[\n]"));
+    static QRegularExpression separatorPattern("[\n]");
+    QStringList wcskeys = wcsinfo_stdout.split(separatorPattern);
 
     QStringList key_value;
 

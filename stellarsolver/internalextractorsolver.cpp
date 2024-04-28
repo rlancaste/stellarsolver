@@ -404,7 +404,7 @@ int InternalExtractorSolver::runSEPExtractor()
                                           m_ActiveParameters.initialKeep / m_PartitionThreads,
                                           &backgrounds[backgrounds.size() - 1]
                                          };
-                futures.append(QtConcurrent::run(this, &InternalExtractorSolver::extractPartition, parameters));
+                futures.append(QtConcurrent::run(&InternalExtractorSolver::extractPartition, this, parameters));
             }
         }
     }
@@ -430,7 +430,7 @@ int InternalExtractorSolver::runSEPExtractor()
         backgrounds.append(tempBackground);
 
         ImageParams parameters = {data, subWidth, subHeight, 0, 0, subWidth, subHeight, static_cast<uint32_t>(m_ActiveParameters.initialKeep), &backgrounds[backgrounds.size() - 1]};
-        futures.append(QtConcurrent::run(this, &InternalExtractorSolver::extractPartition, parameters));
+        futures.append(QtConcurrent::run(&InternalExtractorSolver::extractPartition, this, parameters));
     }
 
     for (auto &oneFuture : futures)

@@ -101,7 +101,7 @@ option(BUILD_CLI "Build stellarsolver command line interface, instead of just th
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
 find_package(WCSLIB REQUIRED)
-find_package(Qt5 5.4 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
+find_package(Qt6 6.2.4 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
 
 if(WIN32)
     find_package(Boost 1.45.0 COMPONENTS regex)
@@ -250,10 +250,10 @@ target_link_libraries(stellarsolver
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
     ${WCSLIB_LIBRARIES}
-    Qt5::Core
-    Qt5::Network
-    Qt5::Widgets
-    Qt5::Concurrent
+    Qt6::Core
+    Qt6::Network
+    Qt6::Widgets
+    Qt6::Concurrent
     )
 
 if(WIN32)
@@ -319,11 +319,11 @@ if(BUILD_TESTER OR BUILD_BATCH_SOLVER OR BUILD_DEMOS OR BUILD_TESTS OR BUILD_CLI
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
-        Qt5::Gui
-        Qt5::Widgets
-        Qt5::Core
-        Qt5::Network
-        Qt5::Concurrent
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::Core
+        Qt6::Network
+        Qt6::Concurrent
         )
 endif(BUILD_TESTER OR BUILD_BATCH_SOLVER OR BUILD_DEMOS OR BUILD_TESTS OR BUILD_CLI)
 
@@ -338,7 +338,7 @@ set(StellarSolverTester_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/resources.qrc
     )
 
-qt5_wrap_ui(StellarSolverui_SRCS
+qt6_wrap_ui(StellarSolverui_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/mainwindow.ui
     )
 
@@ -365,11 +365,11 @@ target_link_libraries(StellarSolverTester
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
     ${WCSLIB_LIBRARIES}
-    Qt5::Gui
-    Qt5::Widgets
-    Qt5::Core
-    Qt5::Network
-    Qt5::Concurrent
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::Core
+    Qt6::Network
+    Qt6::Concurrent
     )
 
 if(WIN32)
@@ -405,7 +405,7 @@ if(BUILD_BATCH_SOLVER)
          ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/resources.qrc
         )
 
-    qt5_wrap_ui(StellarBatchSolverui_SRCS
+    qt6_wrap_ui(StellarBatchSolverui_SRCS
         ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/stellarbatchsolver.ui
         )
 
@@ -431,10 +431,10 @@ if(BUILD_BATCH_SOLVER)
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
-        Qt5::Widgets
-        Qt5::Core
-        Qt5::Network
-        Qt5::Concurrent
+        Qt6::Widgets
+        Qt6::Core
+        Qt6::Network
+        Qt6::Concurrent
         )
 
     if(WIN32)
@@ -471,10 +471,10 @@ if(BUILD_DEMOS)
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
-        Qt5::Widgets
-        Qt5::Core
-        Qt5::Network
-        Qt5::Concurrent
+        Qt6::Widgets
+        Qt6::Core
+        Qt6::Network
+        Qt6::Concurrent
         )
 
     add_executable(DemoStarExtract ${CMAKE_CURRENT_SOURCE_DIR}/demos/demostarextract.cpp)
@@ -518,8 +518,8 @@ if(BUILD_CLI)
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
-        Qt5::Core
-        Qt5::Concurrent
+        Qt6::Core
+        Qt6::Concurrent
         )
 
     add_executable(CommandLineInterface ${CMAKE_CURRENT_SOURCE_DIR}/cli/main.cpp)
@@ -554,10 +554,10 @@ if(BUILD_TESTS)
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
-        Qt5::Widgets
-        Qt5::Core
-        Qt5::Network
-        Qt5::Concurrent
+        Qt6::Widgets
+        Qt6::Core
+        Qt6::Network
+        Qt6::Concurrent
         )
 
     add_executable(TestTwoStellarSolvers ${CMAKE_CURRENT_SOURCE_DIR}/tests/testtwostellarsolvers.cpp)
