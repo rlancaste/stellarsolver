@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 void StellarBatchSolver::addImages()
 {
     QStringList fileURLs = QFileDialog::getOpenFileNames(nullptr, "Load Image", dirPath,
-                      "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.png *.tif *.tiff)");
+                      "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.png *.tif *.tiff *.pbm *.pgm *.ppm *.xbm *.xpm)");
     if (fileURLs.isEmpty())
         return;
     for(int i = 0; i< fileURLs.count(); i++)

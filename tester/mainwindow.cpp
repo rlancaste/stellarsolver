@@ -19,6 +19,7 @@
 #include <QtConcurrent>
 #include <QToolTip>
 #include <QtGlobal>
+#include <QMessageBox>
 
 //System Includes
 #include <stdio.h>
@@ -146,7 +147,7 @@ MainWindow::MainWindow() :
         int item = ui->optionsProfile->currentIndex();
         if(item < 1)
         {
-            QMessageBox::critical(nullptr, "Message", "You can't delete this profile");
+            QMessageBox::critical(this, "Message", "You can't delete this profile");
             return;
         }
         ui->optionsProfile->setCurrentIndex(0); //So we don't trigger any loading of any other profiles
@@ -1300,7 +1301,7 @@ bool MainWindow::imageLoad()
         return false;
     }
     QString fileURL = QFileDialog::getOpenFileName(nullptr, "Load Image", dirPath,
-                      "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.png *.tif *.tiff)");
+                      "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.png *.tif *.tiff *.pbm *.pgm *.ppm *.xbm *.xpm)");
     if (fileURL.isEmpty())
         return false;
     QFileInfo fileInfo(fileURL);

@@ -248,7 +248,7 @@ int get_array_subtractor(int dtype, array_writer *f, int *size)
         *f = NULL;
         *size = 0;
         status = ILLEGAL_DTYPE;
-        sprintf(errtext, "in get_array_subtractor(): %d", dtype);
+        snprintf(errtext, 40, "in get_array_subtractor(): %d", dtype); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
         // TODO
         //put_errdetail(errtext);
     }

@@ -543,7 +543,7 @@ static byte * qfits_pixdump_double(const double * buf, int npix, int ptype)
 #ifdef TESTPIXIO
 static void qfitsloader_dump(qfitsloader * ql)
 {
-    fprintf(stderr,
+    debug(
             "file      : %s\n"
             "xtnum     : %d\n"
             "pnum      : %d\n"
@@ -571,7 +571,7 @@ static void qfitsloader_dump(qfitsloader * ql)
             ql->bzero,
             ql->ibuf,
             ql->fbuf,
-            ql->dbuf);
+            ql->dbuf); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 }
 
 int main (int argc, char * argv[])

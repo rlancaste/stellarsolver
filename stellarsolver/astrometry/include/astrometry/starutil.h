@@ -124,6 +124,8 @@ double dec2mercy(double dec);
 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 // Moved ra2hms to header file for easier Windows compilation
 // RA in degrees to H:M:S
+void ra2hms(double ra, int* h, int* m, double* s);
+/**
 inline void ra2hms(double ra, int* h, int* m, double* s) {
     double rem;
     ra = fmod(ra, 360.0);
@@ -141,7 +143,7 @@ inline void ra2hms(double ra, int* h, int* m, double* s) {
     // -> seconds
     rem *= 60.0;
     *s = rem;
-}
+}**/
 
 // Dec in degrees to D:M:S
 void dec2dms(double dec, int* sign, int* d, int* m, double* s);

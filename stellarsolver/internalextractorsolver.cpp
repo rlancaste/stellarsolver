@@ -58,12 +58,12 @@ InternalExtractorSolver::~InternalExtractorSolver()
     if(downSampledBuffer)
     {
         delete [] downSampledBuffer;
-        downSampledBuffer = 0;
+        downSampledBuffer = nullptr;
     }
     if(mergedChannelBuffer)
     {
         delete [] mergedChannelBuffer;
-        mergedChannelBuffer = 0;
+        mergedChannelBuffer = nullptr;
     }
     if(isRunning())
     {
@@ -195,31 +195,29 @@ void InternalExtractorSolver::cleanupTempFiles()
     //There are NO temp files anymore for the internal SEP or Astrometry builds!!!
 }
 
-bool InternalExtractorSolver::allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
+float* InternalExtractorSolver::allocateDataBuffer(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
     switch (m_Statistics.dataType)
     {
         case SEP_TBYTE:
-            return getFloatBuffer<uint8_t>(data, x, y, w, h);
+            return getFloatBuffer<uint8_t>(x, y, w, h);
         case TSHORT:
-            return getFloatBuffer<int16_t>(data, x, y, w, h);
+            return getFloatBuffer<int16_t>(x, y, w, h);
         case TUSHORT:
-            return getFloatBuffer<uint16_t>(data, x, y, w, h);
+            return getFloatBuffer<uint16_t>(x, y, w, h);
         case TLONG:
-            return getFloatBuffer<int32_t>(data, x, y, w, h);
+            return getFloatBuffer<int32_t>(x, y, w, h);
         case TULONG:
-            return getFloatBuffer<uint32_t>(data, x, y, w, h);
+            return getFloatBuffer<uint32_t>(x, y, w, h);
         case TFLOAT:
-            return getFloatBuffer<float>(data, x, y, w, h);
+            return getFloatBuffer<float>(x, y, w, h);
         case TDOUBLE:
-            return getFloatBuffer<double>(data, x, y, w, h);
+            return getFloatBuffer<double>(x, y, w, h);
         default:
-            delete [] data;
-            data = 0;
-            return false;
+            emit logOutput("Failed to allocate memory.");
+            return nullptr;
     }
-
-    return false;
+    return nullptr;
 }
 
 namespace
@@ -389,15 +387,17 @@ int InternalExtractorSolver::runSEPExtractor()
                 startupOffsets.append(StartupOffset(startX, startY, subWidth, subHeight,
                                                     rawStartX, rawStartY, rawEndX - 1, rawEndY - 1));
 
-                auto *data = new float[subWidth * subHeight];
-                if (allocateDataBuffer(data, startX, startY, subWidth, subHeight) == false)
+                float* data = allocateDataBuffer(startX, startY, subWidth, subHeight);
+                if(data == nullptr)
                 {
                     for (auto *buffer : dataBuffers)
                         delete [] buffer;
+                    dataBuffers.clear();
                     emit logOutput("Failed to allocate memory.");
                     return -1;
                 }
-                dataBuffers.append(data);
+                if(data)
+                    dataBuffers.append(data);
                 FITSImage::Background tempBackground;
                 backgrounds.append(tempBackground);
 
@@ -427,15 +427,21 @@ int InternalExtractorSolver::runSEPExtractor()
         computeMargin(x, y, x + w - 1, y + h - 1, m_Statistics.width, m_Statistics.height, DEFAULT_MARGIN,
                       &startX, &startY, &subWidth, &subHeight);
 
-        auto *data = new float[subWidth * subHeight];
-        if (allocateDataBuffer(data, startX, startY, subWidth, subHeight) == false)
+        auto* data = allocateDataBuffer(startX, startY, subWidth, subHeight);
+        if(data == nullptr)
         {
             for (auto *buffer : dataBuffers)
+            {
+                if(buffer)
                     delete [] buffer;
+                buffer = nullptr;
+            }
+            dataBuffers.clear();
             emit logOutput("Failed to allocate memory.");
             return -1;
         }
-        dataBuffers.append(data);
+        if(data)
+            dataBuffers.append(data);
         startupOffsets.append(StartupOffset(startX, startY, subWidth, subHeight, x, y, x + w - 1, y + h - 1));
         FITSImage::Background tempBackground;
         backgrounds.append(tempBackground);
@@ -493,7 +499,11 @@ int InternalExtractorSolver::runSEPExtractor()
 
 
     for (auto * buffer : dataBuffers)
-        delete [] buffer;
+    {
+        if(buffer)
+            delete [] buffer;
+    }
+    dataBuffers.clear();
     futures.clear();
 
     m_HasExtracted = true;
@@ -836,8 +846,19 @@ void InternalExtractorSolver::applyStarFilters(QList<FITSImage::Star> &starList)
 }
 
 template <typename T>
-bool InternalExtractorSolver::getFloatBuffer(float * buffer, int x, int y, int w, int h)
+float* InternalExtractorSolver::getFloatBuffer(int x, int y, int w, int h)
 {
+    float* buffer = nullptr;
+    try
+    {
+        buffer = new float[w * h];
+    }
+    catch (std::bad_alloc&)
+    {
+        emit logOutput("Failed to allocate memory.");
+        return nullptr;
+    }
+
     int channelShift = (m_Statistics.channels < 3 || usingDownsampledImage
                         || usingMergedChannelImage) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
     auto * rawBuffer = reinterpret_cast<T const *>(m_ImageBuffer + channelShift);
@@ -855,7 +876,7 @@ bool InternalExtractorSolver::getFloatBuffer(float * buffer, int x, int y, int w
         }
     }
 
-    return true;
+    return buffer;
 }
 
 bool InternalExtractorSolver::downsampleImage(int d)
@@ -890,8 +911,18 @@ bool InternalExtractorSolver::downSampleImageType(int d)
     //It is d times smaller in width and height
     int newBufferSize = oldBufferSize / (d * d);
     if(downSampledBuffer)
-        delete [] downSampledBuffer;
-    downSampledBuffer = new uint8_t[newBufferSize];
+        delete [] downSampledBuffer;   
+    downSampledBuffer = nullptr;
+    try
+    {
+        downSampledBuffer = new uint8_t[newBufferSize];
+    }
+    catch (std::bad_alloc&)
+    {
+        downSampledBuffer = nullptr;
+        emit logOutput("Failed to allocate memory.");
+        return false;
+    }
     int channelShift = ( m_Statistics.channels < 3
                          || usingMergedChannelImage) ? 0 : ( m_Statistics.samples_per_channel * m_Statistics.bytesPerPixel * m_ColorChannel );
     auto * sourceBuffer = reinterpret_cast<T const *>(m_ImageBuffer + channelShift);
@@ -977,7 +1008,17 @@ bool InternalExtractorSolver::mergeImageChannelsType()
     if(mergedChannelBuffer)
         delete [] mergedChannelBuffer;
 
-    mergedChannelBuffer = new uint8_t[channelSize];
+    mergedChannelBuffer = nullptr;
+    try
+    {
+        mergedChannelBuffer = new uint8_t[channelSize];
+    }
+    catch (std::bad_alloc&)
+    {
+        downSampledBuffer = nullptr;
+        emit logOutput("Failed to allocate memory.");
+        return false;
+    }
     auto * source = reinterpret_cast<T const *>(m_ImageBuffer);
     auto * dest = reinterpret_cast<T *>(mergedChannelBuffer);
 
@@ -1172,8 +1213,22 @@ int InternalExtractorSolver::runInternalSolver()
     blind_t* bp = &(job->bp);
 
     //This will set up the field file to solve as an xylist
-    double *xArray = new double[m_ExtractedStars.size()];
-    double *yArray = new double[m_ExtractedStars.size()];
+    double *xArray = nullptr;
+    double *yArray = nullptr;
+    try
+    {
+        xArray = new double[m_ExtractedStars.size()];
+        yArray = new double[m_ExtractedStars.size()];
+    }
+    catch (std::bad_alloc&)
+    {
+        if(xArray)
+            delete [] xArray;
+        if(yArray)
+            delete [] yArray;
+        emit logOutput("Failed to allocate memory.");
+        return -1;
+    }
 
     int i = 0;
     for(const auto &oneStar : m_ExtractedStars)
@@ -1268,10 +1323,12 @@ int InternalExtractorSolver::runInternalSolver()
     job->depths = nullptr;
     free(fieldToSolve);
     fieldToSolve = nullptr;
-    delete[] xArray;
-    xArray = 0;
-    delete[] yArray;
-    yArray = 0;
+    if(xArray)
+        delete[] xArray;
+    xArray = nullptr;
+    if(yArray)
+        delete[] yArray;
+    yArray = nullptr;
 
     //Note: I can only get these items after the solve because I made a couple of small changes to the Astrometry.net Code.
     //I made it return in solve_fields in blind.c before it ran "cleanup".  I also had it wait to clean up solutions, blind and solver in engine.c.  We will do that after we get the solution information.
