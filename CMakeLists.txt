@@ -103,11 +103,12 @@ find_package(GSL REQUIRED)
 find_package(WCSLIB REQUIRED)
 
 # Option to choose between Qt5 and Qt6
-option(USE_QT5 "Use Qt5" Off)
+option(USE_QT5 "Use Qt5" ON)
 
 if(USE_QT5)
     find_package(Qt5 5.15 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
 else()
+    message(WARNING "QT6 support is fairly new and not fully vetted yet.  Currently there is an issue with partitioning in StellarSolver in QT6.")
     find_package(Qt6 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
 endif()
 
