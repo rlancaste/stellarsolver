@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
 PROJECT(StellarSolver C CXX)
 set(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++" )
+if(APPLE)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++" )
+endif(APPLE)
 
 #cmake_policy(SET CMP0003 NEW)
 

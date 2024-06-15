@@ -199,7 +199,7 @@ MainWindow::MainWindow() :
     ui->vertSplitter->setSizes(QList<int>() << ui->vertSplitter->height() << 0 );
     ui->horSplitter->setSizes(QList<int>() << 100 << ui->horSplitter->width() / 2  << 0 );
 
-    //Settings for the External SExtractor and Solver
+    //Settings for the External Star Extractor and Solver
     ui->configFilePath->setToolTip("The path to the Astrometry.cfg file used by astrometry.net for configuration.");
     ui->sextractorPath->setToolTip("The path to the external SExtractor executable");
     ui->solverPath->setToolTip("The path to the external Astrometry.net solve-field executable");
@@ -502,7 +502,7 @@ MainWindow::MainWindow() :
     }
     optionsAreSaved = true;  //This way the next command won't trigger the unsaved warning.
     ui->optionsProfile->setCurrentIndex(0);
-    ui->extractionProfile->setCurrentIndex(programSettings.value("sextractionProfile", 5).toInt());
+    ui->extractionProfile->setCurrentIndex(programSettings.value("starExtractionProfile", 5).toInt());
     ui->solverProfile->setCurrentIndex(programSettings.value("solverProfile", 4).toInt());
 
     QString storedPaths = programSettings.value("indexFolderPaths", "").toString();
@@ -1921,7 +1921,7 @@ void MainWindow::updateHiddenStarTableColumns()
 
 //Note: The next 3 functions are designed to work in an easily editable way.
 //To add new columns to this table, just add them to the first function
-//To have it fill the column when a Sextraction or Solve is complete, add it to one or both of the next two functions
+//To have it fill the column when a Star Extraction or Solve is complete, add it to one or both of the next two functions
 //So that the column gets setup and then gets filled in.
 
 //This method sets up the results table to start with.
@@ -1987,8 +1987,8 @@ void MainWindow::setupResultsTable()
     updateHiddenResultsTableColumns();
 }
 
-//This adds a Sextraction to the Results Table
-//To add, remove, or change the way certain columns are filled when a sextraction is finished, edit them here.
+//This adds a Star extraction to the Results Table
+//To add, remove, or change the way certain columns are filled when a star extraction is finished, edit them here.
 void MainWindow::addExtractionToTable()
 {
     QTableWidget *table = ui->resultsTable;
@@ -2315,7 +2315,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     programSettings.setValue("setPathsIndex", ui->setPathsAutomatically->currentIndex());
 
     programSettings.setValue("sextractorBinaryPath", ui->sextractorPath->text());
-    programSettings.setValue("sextractionProfile", ui->extractionProfile->currentIndex());
+    programSettings.setValue("starExtractionProfile", ui->extractionProfile->currentIndex());
     programSettings.setValue("confPath", ui->configFilePath->text());
     programSettings.setValue("solverPath", ui->solverPath->text());
     programSettings.setValue("solverProfile", ui->solverProfile->currentIndex());

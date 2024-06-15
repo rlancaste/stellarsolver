@@ -283,7 +283,7 @@ int InternalExtractorSolver::runSEPExtractor()
             return -1;
         }
     }
-    //Only downsample images before SEP if the Sextraction is being used for plate solving
+    //Only downsample images before SEP if the Star extraction is being used for plate solving
     if(m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER && m_ActiveParameters.downsample != 1)
     {
         if (downsampleImage(m_ActiveParameters.downsample) == false)
@@ -673,7 +673,7 @@ QList<FITSImage::Star> InternalExtractorSolver::extractPartition(const ImagePara
         {
             //Constant values
             //The instructions say to use a fixed value of 6: https://sep.readthedocs.io/en/v1.0.x/api/sep.kron_radius.html
-            //Finding the kron radius for the sextraction
+            //Finding the kron radius for the star extraction
 
             sep_kron_radius(&im, xPos, yPos, cxx, cyy, cxy, 6, 0, &kronrad, &kron_flag);
         }

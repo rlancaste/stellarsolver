@@ -256,7 +256,7 @@ class ExtractorSolver : public QThread
     protected:  //Note: These items are not private because they are needed by Child Classes
 
         // Useful State Information
-        bool m_HasExtracted = false;            // This boolean is set when the sextraction is done and successful
+        bool m_HasExtracted = false;            // This boolean is set when the star extraction is done and successful
         bool m_HasSolved = false;               // This boolean is set when the solving is done and successful
         bool m_HasWCS = false;                  // This boolean gets set if the StellarSolver has WCS data to retrieve
         bool m_WasAborted = false;              // This boolean gets set if the StellarSolver was aborted
