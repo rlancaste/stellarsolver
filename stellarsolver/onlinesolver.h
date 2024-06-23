@@ -7,8 +7,7 @@
 */
 #pragma once
 
-#include "externalextractorsolver.h"
-
+//Qt Includes
 #include <QFile>
 #include <QHttpMultiPart>
 #include <QJsonDocument>
@@ -20,6 +19,9 @@
 #include <QTime>
 #include <QElapsedTimer>
 
+//Project Includes
+#include "externalextractorsolver.h"
+
 #define JOB_RETRY_DURATION    2000 /* 2000 ms */
 #define JOB_RETRY_ATTEMPTS    90
 #define STATUS_CHECK_INTERVAL 2000 /* 2000 ms */
@@ -30,7 +32,7 @@ class OnlineSolver : public ExternalExtractorSolver
 {
         Q_OBJECT
     public:
-        explicit OnlineSolver(ProcessType type, ExtractorType sexType, SolverType solType, const FITSImage::Statistic &imagestats,
+        explicit OnlineSolver(ProcessType type, ExtractorType exType, SolverType solType, const FITSImage::Statistic &imagestats,
                               uint8_t const *imageBuffer, QObject *parent);
 
         QString astrometryAPIKey;   // The API key used by the online solver to identify the user solving the image

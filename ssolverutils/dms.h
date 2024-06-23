@@ -17,12 +17,15 @@
 
 #pragma once
 
-#include "nan.h"
-
+//Qt Includes
 #include <QString>
 #include <QDataStream>
 
+//System Includes
 #include <cmath>
+
+//Project Includes
+#include "nan.h"
 
 //#define COUNT_DMS_SINCOS_CALLS true
 //#define PROFILE_SINCOS true

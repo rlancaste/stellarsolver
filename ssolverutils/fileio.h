@@ -1,13 +1,13 @@
 #ifndef FILEIO_H
 #define FILEIO_H
 
+//Qt Includes
 #include <QObject>
 #include <QImageReader>
 #include <QFile>
 #include <QVariant>
 
 //CFitsio Includes
-#include "longnam.h"
 #include "fitsio.h"
 
 //KStars related includes
@@ -16,6 +16,7 @@
 #include "dms.h"
 #include "bayer.h"
 
+//Project Includes
 #include "parameters.h"
 #include "structuredefinitions.h"
 #include "stellarsolver/sep/sep.h"

@@ -5,6 +5,8 @@
     License as published by the Free Software Foundation; either
     version 2 of the License, or (at your option) any later version.
 */
+#include <QApplication>
+#include <QSettings>
 #if defined(__APPLE__)
 #include <sys/sysctl.h>
 #elif defined(_WIN32)
@@ -12,13 +14,13 @@
 #else //Linux
 #include <QProcess>
 #endif
+#include "externalextractorsolver.h"
 
 #include "stellarsolver.h"
 #include "extractorsolver.h"
-#include "externalextractorsolver.h"
+
 #include "onlinesolver.h"
-#include <QApplication>
-#include <QSettings>
+
 
 using namespace SSolver;
 
@@ -149,6 +151,17 @@ ExternalProgramPaths StellarSolver::getDefaultExternalPaths(ComputerSystemType s
 {
     return ExternalExtractorSolver::getDefaultExternalPaths(system);
 };
+
+ExternalProgramPaths StellarSolver::getDefaultExternalPaths()
+{
+#if defined(Q_OS_MACOS)
+    return getDefaultExternalPaths(MAC_HOMEBREW);
+#elif defined(Q_OS_LINUX)
+    return getDefaultExternalPaths(LINUX_DEFAULT);
+#else //Windows
+    return getDefaultExternalPaths(WIN_ANSVR);
+#endif
+}
 
 QStringList StellarSolver::getIndexFiles(const QStringList &directoryList, int indexToUse, int healpixToUse)
 {
@@ -316,9 +329,16 @@ bool StellarSolver::checkParameters()
 {
     if(m_ImageBuffer == nullptr)
     {
-        emit logOutput("The image buffer is not loaded, please load an image before processing it");
+        emit logOutput("The image buffer is not loaded, please load an image before processing it.");
         return false;
     }
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        if(params.partition == true)
+        {
+            emit logOutput("There is a crash sometimes on QT6 when using partitioning. You are using QT6, so I am disabling partitioning to prevent a crash.");
+            params.partition = false;
+        }
+    #endif
 
     if(m_ProcessType == SOLVE && m_SolverType == SOLVER_WATNEYASTROMETRY && (m_Statistics.dataType == SEP_TFLOAT || m_Statistics.dataType == SEP_TDOUBLE))
     {
@@ -958,7 +978,7 @@ void addPathToListIfExists(QStringList *list, QString path)
 QStringList StellarSolver::getDefaultIndexFolderPaths()
 {
     QStringList indexFilePaths;
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     //Mac Default location
     addPathToListIfExists(&indexFilePaths, QDir::homePath() + "/Library/Application Support/Astrometry");
     //Homebrew location
@@ -987,7 +1007,7 @@ bool StellarSolver::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
 //But from what I read, getting the Available RAM is inconsistent and buggy on many systems.
 bool StellarSolver::getAvailableRAM(double &availableRAM, double &totalRAM)
 {
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     int mib [] = { CTL_HW, HW_MEMSIZE };
     size_t length;
     length = sizeof(int64_t);
@@ -1059,7 +1079,7 @@ bool StellarSolver::enoughRAMisAvailableFor(const QStringList &indexFolders)
         emit logOutput(
             QString("Evaluating Installed RAM for inParallel Option.  Total Size of Index files: %1 GB, Installed RAM: %2 GB, Free RAM: %3 GB").arg(
                 totalSize / bytesInGB).arg(totalRAM / bytesInGB).arg(availableRAM / bytesInGB));
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
         emit logOutput("Note: Free RAM for now is reported as Installed RAM on MacOS until I figure out how to get available RAM");
 #endif
     }

@@ -90,7 +90,7 @@ std::optional<QString> extractAddPathDirectiveFromConfigLine(QString line)
         // Check if the line contains 'add_path'
         if (trimmedLine.startsWith("add_path", Qt::CaseInsensitive))
         {
-            QStringList parts = trimmedLine.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+            QStringList parts = trimmedLine.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
             if (parts.size() > 1)
             {
                 // The string after 'add_path' is what we want to extract

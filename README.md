@@ -48,9 +48,13 @@ Another thought I had in the back of my mind was that there were a copule of rea
  
  		git clone https://github.com/rlancaste/stellarsolver.git
  		
- - Run the installLinux.sh script
+ - Change into the directory of the Linux install scripts:
  
- 		./installLinux.sh
+ 		cd stellarsolver/linux-scripts
+ 		
+ - Run the appropriate script for your system and purpose.  For example:
+ 
+ 		./installStellarSolverTesterQt6.sh
  		
  - It will build and install the program and create a shortcut on the desktop
  

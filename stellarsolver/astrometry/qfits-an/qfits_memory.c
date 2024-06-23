@@ -1560,41 +1560,41 @@ static void qfits_memory_dumpcell(
 
     if (qfits_memory_p_memtype[pos] == MEMTYPE_MMAP) {
 #if (QFITS_MEMORY_DEBUG>=1)
-        fprintf(out,
+        debug(
             "M(%p) - %s (%d) maps [%s] for %ld bytes",
             qfits_memory_p_val[pos],
             qfits_memory_p_filename[pos],
             qfits_memory_p_lineno[pos],
             qfits_memory_p_mm_filename[pos],
-            (long)qfits_memory_p_size[pos]);
+            (long)qfits_memory_p_size[pos]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 #else
-        fprintf(out,
+        debug(
             "M(%p) maps [%s] for %ld bytes",
             qfits_memory_p_val[pos],
             qfits_memory_p_mm_filename[pos],
-            (long)qfits_memory_p_size[pos]);
+            (long)qfits_memory_p_size[pos]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 #endif
     } else {
 #if (QFITS_MEMORY_DEBUG>=1)
-        fprintf(out, "%c(%p) - %s (%d) for %ld bytes",
+        debug("%c(%p) - %s (%d) for %ld bytes",
             qfits_memory_p_memtype[pos],
             qfits_memory_p_val[pos],
             qfits_memory_p_filename[pos],
             qfits_memory_p_lineno[pos],
-            (long)qfits_memory_p_size[pos]);
+            (long)qfits_memory_p_size[pos]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 #else
-        fprintf(out, "%c(%p) for %ld bytes",
+        debug("%c(%p) for %ld bytes",
             qfits_memory_p_memtype[pos],
             qfits_memory_p_val[pos],
-            (long)qfits_memory_p_size[pos]);
+            (long)qfits_memory_p_size[pos]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 #endif
     }
     if (qfits_memory_p_memtype[pos]==MEMTYPE_SWAP) {
-        fprintf(out, " swf[%s][%d]",
+        debug(" swf[%s][%d]",
                 qfits_memory_tmpfilename(qfits_memory_p_swapfileid[pos]),
-                qfits_memory_p_swapfd[pos]);
+                qfits_memory_p_swapfd[pos]); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
     }
-    fprintf(out, "\n");
+    debug("\n"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 }
 
 /*----------------------------------------------------------------------------*/

@@ -1,14 +1,18 @@
 #ifndef TESTMULTIPLESYNCSOLVERS_H
 #define TESTMULTIPLESYNCSOLVERS_H
 
-#include <stdio.h>
+//Qt Includes
 #include <QApplication>
 #include <QObject>
+#include <QtConcurrent>
+
+#include <stdio.h>
+
 //Includes for this project
 #include "structuredefinitions.h"
 #include "stellarsolver.h"
 #include "ssolverutils/fileio.h"
-#include <QtConcurrent>
+
 
 class TestMultipleSyncSolvers : public QObject
 {
@@ -16,8 +20,8 @@ class TestMultipleSyncSolvers : public QObject
 public:
     TestMultipleSyncSolvers();
      uint8_t * loadImageBuffer(FITSImage::Statistic &stats, QString fileName);
-    void runSynchronousSolve(FITSImage::Statistic &stats, uint8_t *imageBuffer);
-    void runSynchronousSEP(FITSImage::Statistic &stats, uint8_t *imageBuffer);
+    void runSynchronousSolve(const FITSImage::Statistic &stats, const uint8_t *imageBuffer);
+    void runSynchronousSEP(const FITSImage::Statistic &stats, const uint8_t *imageBuffer);
 public slots:
     void logOutput(QString text);
 private:

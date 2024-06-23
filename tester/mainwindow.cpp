@@ -6,16 +6,22 @@
     version 2 of the License, or (at your option) any later version.
 */
 
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-
+//Qt Includes
 #include <QUuid>
 #include <QDebug>
 #include <QImageReader>
 #include <QTableWidgetItem>
 #include <QPainter>
 #include <QDesktopServices>
+#include <QShortcut>
+#include <QThread>
+#include <QInputDialog>
+#include <QtConcurrent>
+#include <QToolTip>
+#include <QtGlobal>
+#include <QMessageBox>
 
+//System Includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,16 +36,12 @@
 #endif
 
 #include <time.h>
-
 #include <assert.h>
 
-#include <QShortcut>
-#include <QThread>
-#include <QInputDialog>
-#include <QtConcurrent>
-#include <QToolTip>
-#include <QtGlobal>
+//Project Includes
 #include "version.h"
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 
 MainWindow::MainWindow() :
     QMainWindow(),
@@ -145,7 +147,7 @@ MainWindow::MainWindow() :
         int item = ui->optionsProfile->currentIndex();
         if(item < 1)
         {
-            QMessageBox::critical(nullptr, "Message", "You can't delete this profile");
+            QMessageBox::critical(this, "Message", "You can't delete this profile");
             return;
         }
         ui->optionsProfile->setCurrentIndex(0); //So we don't trigger any loading of any other profiles
@@ -197,7 +199,7 @@ MainWindow::MainWindow() :
     ui->vertSplitter->setSizes(QList<int>() << ui->vertSplitter->height() << 0 );
     ui->horSplitter->setSizes(QList<int>() << 100 << ui->horSplitter->width() / 2  << 0 );
 
-    //Settings for the External SExtractor and Solver
+    //Settings for the External Star Extractor and Solver
     ui->configFilePath->setToolTip("The path to the Astrometry.cfg file used by astrometry.net for configuration.");
     ui->sextractorPath->setToolTip("The path to the external SExtractor executable");
     ui->solverPath->setToolTip("The path to the external Astrometry.net solve-field executable");
@@ -222,7 +224,7 @@ MainWindow::MainWindow() :
     connect(ui->setPathsAutomatically, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int num)
     {
 
-        ExternalProgramPaths paths = ExternalExtractorSolver::getDefaultExternalPaths((SSolver::ComputerSystemType) num);
+        ExternalProgramPaths paths = StellarSolver::getDefaultExternalPaths((SSolver::ComputerSystemType) num);
         ui->sextractorPath->setText(paths.sextractorBinaryPath);
         ui->configFilePath->setText(paths.confPath);
         ui->solverPath->setText(paths.solverPath);
@@ -452,7 +454,7 @@ MainWindow::MainWindow() :
     timerMonitor.setInterval(1000); //1 sec intervals
     connect(&timerMonitor, &QTimer::timeout, this, [this]()
     {
-        ui->status->setText(QString("Processing Trial %1: %2 s").arg(currentTrial).arg((int)processTimer.elapsed() / 1000) + 1);
+        ui->status->setText(QString("Processing Trial %1: %2 s").arg(currentTrial).arg(((int)processTimer.elapsed() / 1000) + 1));
     });
 
     setWindowIcon(QIcon(":/StellarSolverIcon.png"));
@@ -462,7 +464,7 @@ MainWindow::MainWindow() :
 
     //These will set the index
     int index = 0;
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     if(QFile("/usr/local/bin/solve-field").exists())
         index = 2;
     else
@@ -476,24 +478,19 @@ MainWindow::MainWindow() :
     index = programSettings.value("setPathsIndex", index).toInt();
     ui->setPathsAutomatically->setCurrentIndex(index);
 
-    //This gets a temporary ExternalExtractorSolver to get the defaults
-    //It tries to load from the saved settings if possible as well.
-    ExternalExtractorSolver extTemp(processType, m_ExtractorType, solverType, stats, m_ImageBuffer, this);
-    ExternalProgramPaths paths = extTemp.getDefaultExternalPaths();
+    //These load the default settings from the StellarSolver using a temporary object
+    StellarSolver temp(processType, stats, m_ImageBuffer, this);
+    ExternalProgramPaths paths = temp.getDefaultExternalPaths();
     ui->sextractorPath->setText(programSettings.value("sextractorBinaryPath", paths.sextractorBinaryPath).toString());
     ui->configFilePath->setText(programSettings.value("confPath", paths.confPath).toString());
     ui->solverPath->setText(programSettings.value("solverPath", paths.solverPath).toString());
     ui->astapPath->setText(programSettings.value("astapBinaryPath", paths.astapBinaryPath).toString());
     ui->watneyPath->setText(programSettings.value("watneyBinaryPath", paths.watneyBinaryPath).toString());
     ui->wcsPath->setText(programSettings.value("wcsPath", paths.wcsPath).toString());
-    ui->cleanupTemp->setChecked(programSettings.value("cleanupTemporaryFiles", extTemp.cleanupTemporaryFiles).toBool());
-    ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig",
-            extTemp.autoGenerateAstroConfig).toBool());
+    ui->cleanupTemp->setChecked(programSettings.value("cleanupTemporaryFiles", temp.property("CleanupTemporaryFiles")).toBool());
+    ui->generateAstrometryConfig->setChecked(programSettings.value("autoGenerateAstroConfig", temp.property("AutoGenerateAstroConfig")).toBool());
     ui->onlineServer->setText(programSettings.value("onlineServer", "http://nova.astrometry.net").toString());
     ui->apiKey->setText(programSettings.value("apiKey", "iczikaqstszeptgs").toString());
-
-    //These load the default settings from the StellarSolver usting a temporary object
-    StellarSolver temp(processType, stats, m_ImageBuffer, this);
     ui->basePath->setText(QDir::tempPath());
     sendSettingsToUI(temp.getCurrentParameters());
     optionsList = temp.getBuiltInProfiles();
@@ -505,7 +502,7 @@ MainWindow::MainWindow() :
     }
     optionsAreSaved = true;  //This way the next command won't trigger the unsaved warning.
     ui->optionsProfile->setCurrentIndex(0);
-    ui->extractionProfile->setCurrentIndex(programSettings.value("sextractionProfile", 5).toInt());
+    ui->extractionProfile->setCurrentIndex(programSettings.value("starExtractionProfile", 5).toInt());
     ui->solverProfile->setCurrentIndex(programSettings.value("solverProfile", 4).toInt());
 
     QString storedPaths = programSettings.value("indexFolderPaths", "").toString();
@@ -1304,7 +1301,7 @@ bool MainWindow::imageLoad()
         return false;
     }
     QString fileURL = QFileDialog::getOpenFileName(nullptr, "Load Image", dirPath,
-                      "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.png *.tif *.tiff)");
+                      "Images (*.fits *.fit *.bmp *.gif *.jpg *.jpeg *.png *.tif *.tiff *.pbm *.pgm *.ppm *.xbm *.xpm)");
     if (fileURL.isEmpty())
         return false;
     QFileInfo fileInfo(fileURL);
@@ -1924,7 +1921,7 @@ void MainWindow::updateHiddenStarTableColumns()
 
 //Note: The next 3 functions are designed to work in an easily editable way.
 //To add new columns to this table, just add them to the first function
-//To have it fill the column when a Sextraction or Solve is complete, add it to one or both of the next two functions
+//To have it fill the column when a Star Extraction or Solve is complete, add it to one or both of the next two functions
 //So that the column gets setup and then gets filled in.
 
 //This method sets up the results table to start with.
@@ -1990,8 +1987,8 @@ void MainWindow::setupResultsTable()
     updateHiddenResultsTableColumns();
 }
 
-//This adds a Sextraction to the Results Table
-//To add, remove, or change the way certain columns are filled when a sextraction is finished, edit them here.
+//This adds a Star extraction to the Results Table
+//To add, remove, or change the way certain columns are filled when a star extraction is finished, edit them here.
 void MainWindow::addExtractionToTable()
 {
     QTableWidget *table = ui->resultsTable;
@@ -2318,7 +2315,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     programSettings.setValue("setPathsIndex", ui->setPathsAutomatically->currentIndex());
 
     programSettings.setValue("sextractorBinaryPath", ui->sextractorPath->text());
-    programSettings.setValue("sextractionProfile", ui->extractionProfile->currentIndex());
+    programSettings.setValue("starExtractionProfile", ui->extractionProfile->currentIndex());
     programSettings.setValue("confPath", ui->configFilePath->text());
     programSettings.setValue("solverPath", ui->solverPath->text());
     programSettings.setValue("solverProfile", ui->solverProfile->currentIndex());

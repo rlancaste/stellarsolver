@@ -293,6 +293,8 @@ double dms2dec(int sgn, int d, int m, double s) {
     return sgn * (d + ((m + (s / 60.0)) / 60.0));
 }
 
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
+// Moved ra2hms to header file for easier Windows compilation
 // RA in degrees to H:M:S
 inline void ra2hms(double ra, int* h, int* m, double* s) {
     double rem;
@@ -312,7 +314,6 @@ inline void ra2hms(double ra, int* h, int* m, double* s) {
     rem *= 60.0;
     *s = rem;
 }
-
 // Dec in degrees to D:M:S
 void dec2dms(double dec, int* sign, int* d, int* m, double* s) {
     double rem;

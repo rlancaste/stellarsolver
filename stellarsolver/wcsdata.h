@@ -1,13 +1,17 @@
 #ifndef WCSDATA_H
 #define WCSDATA_H
 
-#include "structuredefinitions.h"
+//Qt Includes
 #include <QPointF>
 #include <QList>
 
+//Astrometry.net Includes
 extern "C" {
 #include "astrometry/sip.h"
 }
+
+//Project Includes
+#include "structuredefinitions.h"
 
 class WCSData
 {

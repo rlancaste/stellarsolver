@@ -7,19 +7,23 @@
 */
 #pragma once
 
-#include "extractorsolver.h"
-#include "astrometrylogger.h"
+//Qt Includes
+#include <QtConcurrent>
 #include "qmutex.h"
 
 //SEP Includes
 #include "sep/sep.h"
+
+//Project Includes
+#include "extractorsolver.h"
+#include "astrometrylogger.h"
 
 //Astrometry.net includes
 extern "C" {
 #include "astrometry/engine.h"
 }
 
-#include <QtConcurrent>
+
 
 using namespace SSolver;
 
@@ -109,9 +113,9 @@ class InternalExtractorSolver: public ExtractorSolver
          * @param y is the starting y coordinate of the partition to be processed
          * @param w is the width of the partition to be processed
          * @param h is the height of the partition to be processed
-         * @return True if successfull, false otherwise.
+         * @return The data buffer if successfull, a nullptr otherwise.
          */
-        bool allocateDataBuffer(float *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+        float* allocateDataBuffer(uint32_t x, uint32_t y, uint32_t w, uint32_t h);
 
         /**
          * @brief mergeImageChannels merges the R, G, and B channels of a 3 channel image
@@ -184,7 +188,7 @@ class InternalExtractorSolver: public ExtractorSolver
          * @param w is the width of the buffer
          * @param h is the height of the buffer
          */
-        template <typename T> bool getFloatBuffer(float * buffer, int x, int y, int w, int h);
+        template <typename T> float* getFloatBuffer(int x, int y, int w, int h);
 
         /**
          * @brief downsampleImage downsamples the image by the requested factor

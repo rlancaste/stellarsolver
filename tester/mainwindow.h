@@ -8,21 +8,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-//Includes for this project
-#include "structuredefinitions.h"
-#include "stellarsolver.h"
-#include "externalextractorsolver.h"
-#include "onlinesolver.h"
-#include "ssolverutils/fileio.h"
-
-//system includes
-#include "math.h"
-
-#ifndef _MSC_VER
-#include <sys/mman.h>
-#endif
-
-//QT Includes
+//Qt Includes
 #include <QMainWindow>
 #include <QObject>
 #include <QWidget>
@@ -39,37 +25,30 @@
 #include <QTimer>
 #include <QTableWidget>
 
-//CFitsio Includes
-#include "longnam.h"
-#include "fitsio.h"
+//Project Includes
+#include "structuredefinitions.h"
+#include "stellarsolver.h"
+#include "ssolverutils/fileio.h"
 
-//KStars related includes
-#include "ssolverutils/stretch.h"
+//System includes
 #include "math.h"
-#include "ssolverutils/dms.h"
-#include "ssolverutils/bayer.h"
+
+#ifndef _MSC_VER
+#include <sys/mman.h>
+#endif
 
 //Astrometry.net includes
 extern "C"{
-#include "tic.h"
-#include "os-features.h"
-//#include "fileutils.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
 #include "ioutils.h"
 #include "bl.h"
 #include "an-bool.h"
 #include "solver.h"
-#include "fitsioutils.h"
 #include "astrometry/blind.h"
 #include "log.h"
 #include "engine.h"
-#include "gslutils.h"
 #include "anqfits.h"
 #include "ioutils.h"
-#include "fitsioutils.h"
-#include "permutedsort.h"
 #include "fitstable.h"
-//#include "sip_qfits.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library, removed includes
-#include "sip-utils.h"
 }
 
 namespace Ui {

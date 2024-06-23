@@ -5,15 +5,21 @@
     License as published by the Free Software Foundation; either
     version 2 of the License, or (at your option) any later version.
 */
-#include "externalextractorsolver.h"
+
+//Qt Includes
 #include <QTextStream>
 #include <QMessageBox>
 #include <qmath.h>
+
+//WCS Includes
 #include <wcshdr.h>
 #include <wcsfix.h>
 
 //CFitsio Includes
 #include <fitsio.h>
+
+//Project Includes
+#include "externalextractorsolver.h"
 
 // This needs to be static even if there are parallel StellarSolvers so that each solver and child solver gets a unique identifier
 static int solverNum = 1;
@@ -105,7 +111,7 @@ ExternalProgramPaths ExternalExtractorSolver::getDefaultExternalPaths(ComputerSy
 }
 ExternalProgramPaths ExternalExtractorSolver::getDefaultExternalPaths()
 {
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     return getDefaultExternalPaths(MAC_HOMEBREW);
 #elif defined(Q_OS_LINUX)
     return getDefaultExternalPaths(LINUX_DEFAULT);
@@ -1312,7 +1318,7 @@ bool ExternalExtractorSolver::getSolutionInformation()
     //This is a quick way to find out what keys are available
     // emit logOutput(wcsinfo_stdout);
 
-    QStringList wcskeys = wcsinfo_stdout.split(QRegExp("[\n]"));
+    QStringList wcskeys = wcsinfo_stdout.split(QRegularExpression("[\n]"));
 
     QStringList key_value;
 

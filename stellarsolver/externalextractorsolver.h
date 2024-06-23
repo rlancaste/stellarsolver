@@ -8,12 +8,16 @@
 
 #pragma once
 
-#include "internalextractorsolver.h"
+//Qt Includes
 #include <QProcess>
 #include <QPointer>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
+
+//Project Includes
+#include "internalextractorsolver.h"
+
 
 using namespace SSolver;
 

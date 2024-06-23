@@ -1,6 +1,8 @@
-#include "fileio.h"
+//Qt Includes
 #include <QFileInfo>
 
+//Project Includes
+#include "fileio.h"
 
 fileio::fileio()
 {
@@ -662,7 +664,7 @@ bool fileio::parseHeader()
         Record oneRecord;
         // Quotes cause issues for simplified below so we're removing them.
         QString record = recordList.mid(i * 80, 80).remove("'");
-        QStringList properties = record.split(QRegExp("[=/]"));
+        QStringList properties = record.split(QRegularExpression("[=/]"));
         // If it is only a comment
         if (properties.size() == 1)
         {
@@ -809,24 +811,23 @@ bool fileio::saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint
                 key == "BZERO" ||
                 key == "BSCALE")
             continue;
-
-        switch (value.type())
+        switch (static_cast<QMetaType::Type>(value.userType()))
         {
-            case QVariant::Int:
+            case QMetaType::Int:
             {
                 int number = value.toInt();
                 fits_write_key(fptr, TINT, key.toLatin1().constData(), &number, comment.toLatin1().constData(), &status);
             }
             break;
 
-            case QVariant::Double:
+            case QMetaType::Double:
             {
                 double number = value.toDouble();
                 fits_write_key(fptr, TDOUBLE, key.toLatin1().constData(), &number, comment.toLatin1().constData(), &status);
             }
             break;
 
-            case QVariant::String:
+            case QMetaType::QString:
             default:
             {
                 if(key == "COMMENT" && (value.toString().contains("FITS (Flexible Image Transport System) format") ||

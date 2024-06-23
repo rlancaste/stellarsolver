@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
 PROJECT(StellarSolver C CXX)
 set(CMAKE_CXX_STANDARD 17)
-
+if(APPLE)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++" )
+endif(APPLE)
 
 #cmake_policy(SET CMP0003 NEW)
 
@@ -101,7 +103,16 @@ option(BUILD_CLI "Build stellarsolver command line interface, instead of just th
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
 find_package(WCSLIB REQUIRED)
-find_package(Qt5 5.4 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
+
+# Option to choose between Qt5 and Qt6
+option(USE_QT5 "Use Qt5" ON)
+
+if(USE_QT5)
+    find_package(Qt5 5.15 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
+else()
+    message(WARNING "QT6 support is fairly new and not fully vetted yet.  Currently there is an issue with partitioning in StellarSolver in QT6.")
+    find_package(Qt6 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
+endif()
 
 if(WIN32)
     find_package(Boost 1.45.0 COMPONENTS regex)
@@ -250,10 +261,10 @@ target_link_libraries(stellarsolver
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
     ${WCSLIB_LIBRARIES}
-    Qt5::Core
-    Qt5::Network
-    Qt5::Widgets
-    Qt5::Concurrent
+    Qt::Core
+    Qt::Network
+    Qt::Widgets
+    Qt::Concurrent
     )
 
 if(WIN32)
@@ -319,11 +330,11 @@ if(BUILD_TESTER OR BUILD_BATCH_SOLVER OR BUILD_DEMOS OR BUILD_TESTS OR BUILD_CLI
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
-        Qt5::Gui
-        Qt5::Widgets
-        Qt5::Core
-        Qt5::Network
-        Qt5::Concurrent
+        Qt::Gui
+        Qt::Widgets
+        Qt::Core
+        Qt::Network
+        Qt::Concurrent
         )
 endif(BUILD_TESTER OR BUILD_BATCH_SOLVER OR BUILD_DEMOS OR BUILD_TESTS OR BUILD_CLI)
 
@@ -337,10 +348,7 @@ set(StellarSolverTester_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/mainwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tester/resources.qrc
     )
-
-qt5_wrap_ui(StellarSolverui_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/tester/mainwindow.ui
-    )
+set(CMAKE_AUTOUIC ON)
 
 if(APPLE)
 set(MACOSX_BUNDLE_ICON_FILE StellarSolverIcon.icns)
@@ -365,11 +373,11 @@ target_link_libraries(StellarSolverTester
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
     ${WCSLIB_LIBRARIES}
-    Qt5::Gui
-    Qt5::Widgets
-    Qt5::Core
-    Qt5::Network
-    Qt5::Concurrent
+    Qt::Gui
+    Qt::Widgets
+    Qt::Core
+    Qt::Network
+    Qt::Concurrent
     )
 
 if(WIN32)
@@ -405,7 +413,7 @@ if(BUILD_BATCH_SOLVER)
          ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/resources.qrc
         )
 
-    qt5_wrap_ui(StellarBatchSolverui_SRCS
+    qt_wrap_ui(StellarBatchSolverui_SRCS
         ${CMAKE_CURRENT_SOURCE_DIR}/stellarbatchsolver/stellarbatchsolver.ui
         )
 
@@ -431,10 +439,10 @@ if(BUILD_BATCH_SOLVER)
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
-        Qt5::Widgets
-        Qt5::Core
-        Qt5::Network
-        Qt5::Concurrent
+        Qt::Widgets
+        Qt::Core
+        Qt::Network
+        Qt::Concurrent
         )
 
     if(WIN32)
@@ -471,10 +479,10 @@ if(BUILD_DEMOS)
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
-        Qt5::Widgets
-        Qt5::Core
-        Qt5::Network
-        Qt5::Concurrent
+        Qt::Widgets
+        Qt::Core
+        Qt::Network
+        Qt::Concurrent
         )
 
     add_executable(DemoStarExtract ${CMAKE_CURRENT_SOURCE_DIR}/demos/demostarextract.cpp)
@@ -518,8 +526,8 @@ if(BUILD_CLI)
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
-        Qt5::Core
-        Qt5::Concurrent
+        Qt::Core
+        Qt::Concurrent
         )
 
     add_executable(CommandLineInterface ${CMAKE_CURRENT_SOURCE_DIR}/cli/main.cpp)
@@ -554,10 +562,10 @@ if(BUILD_TESTS)
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
-        Qt5::Widgets
-        Qt5::Core
-        Qt5::Network
-        Qt5::Concurrent
+        Qt::Widgets
+        Qt::Core
+        Qt::Network
+        Qt::Concurrent
         )
 
     add_executable(TestTwoStellarSolvers ${CMAKE_CURRENT_SOURCE_DIR}/tests/testtwostellarsolvers.cpp)

@@ -8,9 +8,10 @@
 #pragma once
 
 //Includes for this project
+#include "extractorsolver.h"
 #include "structuredefinitions.h"
 #include "wcsdata.h"
-#include "extractorsolver.h"
+
 #include "parameters.h"
 #include "version.h"
 
@@ -84,6 +85,13 @@ class StellarSolver : public QObject
          * @return The appropriate ExernalProgramPaths Object
          */
         static ExternalProgramPaths getDefaultExternalPaths(ComputerSystemType system);
+
+        /**
+         * @brief getDefaultExternalPaths gets the default external program paths appropriate for the current Computer System
+         * @param system is the selected system setup
+         * @return The appropriate ExernalProgramPaths Object
+         */
+        static ExternalProgramPaths getDefaultExternalPaths();
 
 
         // Notes for the function below:

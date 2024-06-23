@@ -14,12 +14,12 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-
-#include "dms.h"
-
+//Qt Includes
 #include <QLocale>
+#include <QRegularExpression>
 
-#include <QRegExp>
+//Project Includes
+#include "dms.h"
 
 #ifdef COUNT_DMS_SINCOS_CALLS
 long unsigned dms::dms_constructor_calls         = 0;
@@ -59,7 +59,7 @@ bool dms::setFromString(const QString &str, bool isDeg)
     double s(0.0);
     bool checkValue(false), badEntry(false), negative(false);
     QString entry = str.trimmed();
-    entry.remove(QRegExp("[hdms'\"°]"));
+    entry.remove(QRegularExpression("[hdms'\"°]"));
 
     //Account for localized decimal-point settings
     //QString::toDouble() requires that the decimal symbol is "."

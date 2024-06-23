@@ -1,13 +1,17 @@
 #ifndef STELLARBATCHSOLVER_H
 #define STELLARBATCHSOLVER_H
 
+//Qt includes
 #include <QMainWindow>
 #include <QApplication>
+#include <QDir>
+
+//includes from this project
 #include "structuredefinitions.h"
 #include "ssolverutils/fileio.h"
 #include "stellarsolver.h"
 #include "wcsdata.h"
-#include <QDir>
+
 
 namespace Ui {
 

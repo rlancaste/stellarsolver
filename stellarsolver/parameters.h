@@ -1,6 +1,9 @@
 #pragma once
 
+//Qt Includes
 #include <QObject>
+
+//Project Includes
 #include "structuredefinitions.h"
 
 namespace SSolver
@@ -134,14 +137,14 @@ static QString getScaleUnitString(SSolver::ScaleUnits scaleunit)
 
 // This is the list of operations that the Stellarsolver can do.
 // You need to set this either directly or using a method before starting the process.
-typedef enum { EXTRACT,            //This just sextracts the sources
-               EXTRACT_WITH_HFR,   //This sextracts the sources and finds the HFR
+typedef enum { EXTRACT,            //This just extracts the sources
+               EXTRACT_WITH_HFR,   //This extracts the sources and finds the HFR
                SOLVE                //This solves the image
              } ProcessType;
 
 typedef enum { EXTRACTOR_INTERNAL, //This uses internal SEP to Extract Sources
                EXTRACTOR_EXTERNAL,  //This uses the external SExtractor to Extract Sources.
-               EXTRACTOR_BUILTIN  //This uses whatever default sextraction method the selected solver uses
+               EXTRACTOR_BUILTIN  //This uses whatever default star extraction method the selected solver uses
              } ExtractorType;
 
 typedef enum { SOLVER_STELLARSOLVER,    //This uses the internal build of astrometry.net
@@ -332,7 +335,7 @@ class Parameters
         short inflags = 0;                  // Note sure if we need them?
 
         //Star Extractor Extraction Parameters
-            // This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during sextraction.
+            // This is the 'zero' magnitude used for settting the magnitude scale for the stars in the image during star extraction.
         double magzero =  20;
 
         double minarea = 10;            // This is the minimum area in pixels for a star detection, smaller stars are ignored.

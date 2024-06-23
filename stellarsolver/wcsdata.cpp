@@ -1,4 +1,7 @@
+//Project Includes
 #include "wcsdata.h"
+
+//WCSLib Includes
 #include <wcshdr.h>
 #include <wcsfix.h>
 

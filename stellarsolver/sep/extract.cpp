@@ -521,14 +521,14 @@ int Extract::sep_extract(sep_image *image, float thresh, int thresh_type,
                 if (freeinfo.firstpix == freeinfo.lastpix)
                 {
                     status = PIXSTACK_FULL;
-                    sprintf(errtext,
+                    snprintf(errtext, 240,
                             "The limit of %d active object pixels over the "
                             "detection threshold was reached. Check that "
                             "the image is background subtracted and the "
                             "detection threshold is not too low. If you "
                             "need to increase the limit, use "
                             "set_extract_pixstack.",
-                            (int)mem_pixstack);
+                            (int)mem_pixstack); //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve warning
                     // TODO report error
                     //put_errdetail(errtext);
                     goto exit;

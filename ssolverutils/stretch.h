@@ -8,8 +8,11 @@
 
 #pragma once
 
-#include <memory>
+//Qt Includes
 #include <QImage>
+
+//System Includes
+#include <memory>
 
 struct StretchParams1Channel
 {
