@@ -329,9 +329,16 @@ bool StellarSolver::checkParameters()
 {
     if(m_ImageBuffer == nullptr)
     {
-        emit logOutput("The image buffer is not loaded, please load an image before processing it");
+        emit logOutput("The image buffer is not loaded, please load an image before processing it.");
         return false;
     }
+    #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        if(params.partition == true)
+        {
+            emit logOutput("There is a crash sometimes on QT6 when using partitioning. You are using QT6, so I am disabling partitioning to prevent a crash.");
+            params.partition = false;
+        }
+    #endif
 
     if(m_ProcessType == SOLVE && m_SolverType == SOLVER_WATNEYASTROMETRY && (m_Statistics.dataType == SEP_TFLOAT || m_Statistics.dataType == SEP_TDOUBLE))
     {
