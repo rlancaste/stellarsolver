@@ -141,7 +141,7 @@ ExtractorSolver* StellarSolver::createExtractorSolver()
         solver->setSearchScale(m_ScaleLow, m_ScaleHigh, m_ScaleUnit);
     if(m_UsePosition)
         solver->setSearchPositionInDegrees(m_SearchRA, m_SearchDE);
-    if(m_SSLogLevel != LOG_OFF)
+    if(m_AstrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
         connect(solver, &ExtractorSolver::logOutput, this, &StellarSolver::logOutput);
 
     return solver;
@@ -571,6 +571,11 @@ void StellarSolver::finishParallelSolve(int success)
             if(solver != reportingSolver && solver->isRunning())
                 solver->abort();
         }
+        if(m_AstrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
+        {
+            for(auto solver : parallelSolvers)
+                disconnect(solver, &ExtractorSolver::logOutput, m_ExtractorSolver.data(), &ExtractorSolver::logOutput);
+        }
         if(m_SSLogLevel != LOG_OFF)
         {
             emit logOutput(QString("Successfully solved with child solver: %1").arg(whichSolver(reportingSolver)));
@@ -597,6 +602,9 @@ void StellarSolver::finishParallelSolve(int success)
     }
     else
     {
+        disconnect(reportingSolver, &ExtractorSolver::finished, this, &StellarSolver::finishParallelSolve);
+        if(m_AstrometryLogLevel != SSolver::LOG_NONE || m_SSLogLevel != SSolver::LOG_OFF)
+            disconnect(reportingSolver, &ExtractorSolver::logOutput, m_ExtractorSolver.data(), &ExtractorSolver::logOutput);
         if(m_SSLogLevel != LOG_OFF && !m_HasSolved)
             emit logOutput(QString("Child solver: %1 did not solve or was aborted").arg(whichSolver(reportingSolver)));
     }
