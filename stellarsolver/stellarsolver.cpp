@@ -458,7 +458,17 @@ void StellarSolver::parallelSolve()
             double high = minScale + scaleConst * pow(thread + 1, 2);
             ExtractorSolver *solver = m_ExtractorSolver->spawnChildSolver(thread);
             connect(solver, &ExtractorSolver::finished, this, &StellarSolver::finishParallelSolve);
-            solver->setSearchScale(low, high, units);
+            if (m_ProcessType == SOLVE && m_SolverType == SOLVER_STELLARSOLVER &&
+                m_ExtractorSolver->m_ActiveParameters.downsample != 1 &&
+                m_ExtractorSolver->scaleunit == ARCSEC_PER_PIX)
+            {
+                // The main solver downsamples and accouts for this in the search scale
+                // but the spawned solvers also need that accounting.
+                double d = m_ExtractorSolver->m_ActiveParameters.downsample;
+                solver->setSearchScale(low*d, high*d, units);
+            }
+            else
+                solver->setSearchScale(low, high, units);
             parallelSolvers.append(solver);
             if(m_SSLogLevel != LOG_OFF)
                 emit logOutput(QString("Solver # %1, Low %2, High %3 %4").arg(parallelSolvers.count()).arg(low).arg(high).arg(
