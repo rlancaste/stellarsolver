@@ -8,7 +8,7 @@ class subinfo(info.infoclass):
         self.svnTargets["master"] = "https://github.com/rlancaste/stellarsolver.git"
         for ver in ["2.6"]:
             self.targets[ver] = f"https://github.com/rlancaste/stellarsolver/archive/refs/tags/{ver}.tar.gz"
-            self.archiveNames[ver] = f"stellarsolver-tester-{ver}.tar.gz"
+            self.archiveNames[ver] = f"stellarsolver-{ver}.tar.gz"
             self.targetInstSrc[ver] = f"stellarsolver-{ver}"
         self.defaultTarget = "2.6"
     
