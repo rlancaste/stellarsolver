@@ -32,7 +32,7 @@ BuildRequires: pkgconfig(Qt5) >= 5.4
 An Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net and SEP (sextractor)
 
 
-%prep -v
+%prep
 %autosetup -v -n %{name}-master
 
 %build
