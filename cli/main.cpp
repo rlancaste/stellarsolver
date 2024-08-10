@@ -5,6 +5,7 @@
 #include <QString>
 #include <QHostAddress>
 #include <QDebug>
+#include <QList>
 #include <optional>
 
 #include "structuredefinitions.h"
@@ -25,6 +26,7 @@ struct StellarSolverCliQuery
     std::optional<double> scale_high = std::nullopt;
     SSolver::ScaleUnits units = SSolver::DEG_WIDTH;
     std::optional<int> cpu_limit = std::nullopt;
+    QString save_fits_path = "";
     // TODO what should be the default for mac or windows?
     QString index_files_path = "/usr/share/astrometry";
     SSolver::Parameters::ParametersProfile profile = SSolver::Parameters::PARALLEL_SMALLSCALE;
@@ -152,6 +154,10 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser, StellarSolve
                        {{"l", "cpulimit"},
                         "Give up solving after the specified number of seconds of CPU time",
                         "seconds"},
+                       {{"o", "save-fits"},
+                        "Save image as .fit with included header data from solution\n"
+                        "WARNING: Overwrites files!",
+                        "path"},
                        {"config",
                         "Use this 'solve-field' compatible 'astrometry.cfg' to specify the index file location",
                         "path"},
@@ -346,6 +352,12 @@ CommandLineParseResult parseCommandLine(QCommandLineParser &parser, StellarSolve
             return {Status::Error, "Argument: '-l, --cpulimit' is not a valid integer"};
         }
     }
+
+    if (parser.isSet("save-fits"))
+    {
+        query->save_fits_path = parser.value("save-fits");
+    }
+
     if (parser.isSet("config"))
     {
         std::optional<QString> addPathDirective = std::nullopt;
@@ -457,6 +469,13 @@ void solve(const QString &image_file, StellarSolverCliQuery *query)
     printf("Field size: %f x %f arcminutes\n", solution.fieldWidth, solution.fieldHeight);
     printf("Field rotation angle: up is %f degrees E of N\n", solution.orientation);
     printf("Field parity: %s\n\n", FITSImage::getShortParityText(solution.parity).toUtf8().data());
+
+    if (!query->save_fits_path.isEmpty())
+    {
+        printf("Saving new image to: %s\n\n", query->save_fits_path.toUtf8().data());
+        const QList<fileio::Record> &recs = imageLoader.getRecords();
+        imageLoader.saveAsFITS(query->save_fits_path, stats, imageBuffer, solution, recs, true);
+    }
 }
 
 int main(int argc, char *argv[])
