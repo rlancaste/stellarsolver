@@ -712,7 +712,7 @@ bool fileio::parseHeader()
 }
 
 //This was copied and pasted and modified from ImageToFITS and injectWCS in fitsdata in KStars
-bool fileio::saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint8_t *imageBuffer, FITSImage::Solution solution, QList<Record> &records, bool hasSolution)
+bool fileio::saveAsFITS(QString fileName, FITSImage::Statistic &imageStats, uint8_t *imageBuffer, FITSImage::Solution solution, const QList<Record> &records, bool hasSolution)
 {
     int status = 0;
     fitsfile * new_fptr;
