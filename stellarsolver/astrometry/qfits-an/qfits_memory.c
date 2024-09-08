@@ -38,10 +38,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/mman.h>
 #ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #include <sys/resource.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #else
 #include "windows.h"
 #include "io.h"
@@ -52,6 +52,7 @@
 #include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
 #include "qfits_error.h"
+#include "ioutils.h"
 
 /*-----------------------------------------------------------------------------
                                 Defines
@@ -212,16 +213,6 @@ static void qfits_memory_dumpcell(int, FILE*);
 static char * qfits_memory_tmpfilename(int);
 static char * strdup_(const char * str);
 void qfits_memory_status_(const char *, int);
-
-#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
-static char* mmap_file(int fildes, off_t mapsize)
-{
-    HANDLE fm, h;
-    h = (HANDLE)_get_osfhandle(fildes);
-    fm = CreateFileMapping(h, NULL, PAGE_READONLY, 0, mapsize, NULL);
-    return MapViewOfFile(fm, FILE_MAP_READ, 0, 0, mapsize);
-}
-#endif
 
 /*----------------------------------------------------------------------------*/
 /**
@@ -466,25 +457,6 @@ void * qfits_memory_calloc(
     
     ptr = qfits_memory_malloc(nmemb * size, filename, lineno);
     return memset(ptr, 0, nmemb * size);
-}
-
-
-// copied from ioutils.c
-
-static void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* mapsize, int* pgap) {
-#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
-    SYSTEM_INFO system_info;
-    GetSystemInfo (&system_info);
-    int ps = system_info.dwPageSize;
-#else
-    int ps = getpagesize();
-#endif
-
-	int gap = start % ps;
-	// start must be a multiple of pagesize.
-	*mapstart = start - gap;
-	*mapsize  = size  + gap;
-	*pgap = gap;
 }
 
 void qfits_memory_fdealloc2(

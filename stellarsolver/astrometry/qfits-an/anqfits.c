@@ -14,11 +14,11 @@
 
 #ifndef _WIN32 //# Modified by Jasem Mutlaq for the StellarSolver Internal Library
 #include <unistd.h>
+#include <sys/mman.h>
 #endif
 
 #include <assert.h>
 #include <errno.h>
-#include <sys/mman.h>
 
 #include "anqfits.h"
 #include "qfits_std.h"

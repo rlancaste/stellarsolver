@@ -35,7 +35,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
@@ -44,6 +43,7 @@
 #else
 #include <regex.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #endif
 
 #include "qfits_config.h"
