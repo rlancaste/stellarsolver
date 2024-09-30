@@ -96,7 +96,11 @@ ATTRIB_FORMAT(printf,2,3)
 void get_mmap_size(size_t start, size_t size, off_t* mapstart, size_t* mapsize, int* pgap);
 
 #ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
+#ifndef MAP_FAILED
+#define MAP_FAILED NULL
+#endif
 char* mmap_file(int fildes, off_t mapsize);
+int munmap(void *addr, size_t len);
 #endif
 
 // If "dir" is NULL, create temp file in $TMP, or /tmp if not set.

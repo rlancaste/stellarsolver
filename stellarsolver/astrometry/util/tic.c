@@ -10,7 +10,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #else
-#include <Windows.h>
+#include <windows.h>
 #endif
 #include <stdio.h>
 #include <string.h>
