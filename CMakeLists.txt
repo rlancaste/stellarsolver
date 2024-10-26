@@ -257,7 +257,7 @@ else(WIN32)
     add_library(stellarsolver SHARED ${ALL_SRCS})
 endif(WIN32)
 
-target_link_libraries(stellarsolver
+target_link_libraries(stellarsolver PUBLIC
     ${CFITSIO_LIBRARIES}
     ${GSL_LIBRARIES}
     ${WCSLIB_LIBRARIES}
@@ -268,7 +268,7 @@ target_link_libraries(stellarsolver
     )
 
 if(WIN32)
-    target_link_libraries(stellarsolver)
+    target_link_libraries(stellarsolver PUBLIC wsock32)
     target_link_libraries(stellarsolver INTERFACE Boost::regex)
 else(WIN32)
     set_target_properties(stellarsolver PROPERTIES VERSION ${StellarSolver_VERSION_STRING} SOVERSION ${StellarSolver_SOVERSION} OUTPUT_NAME stellarsolver)
@@ -327,7 +327,7 @@ if(BUILD_TESTER OR BUILD_BATCH_SOLVER OR BUILD_DEMOS OR BUILD_TESTS OR BUILD_CLI
         ${CMAKE_CURRENT_SOURCE_DIR}/ssolverutils/dms.cpp
         )
     add_library(SSolverUtilsLib STATIC ${SSolverUtilsLib_SRCS})
-    target_link_libraries(SSolverUtilsLib
+    target_link_libraries(SSolverUtilsLib PUBLIC
         ${CFITSIO_LIBRARIES}
         ${GSL_LIBRARIES}
         ${WCSLIB_LIBRARIES}
@@ -368,7 +368,7 @@ if(APPLE)
 endif(APPLE)
 
 
-target_link_libraries(StellarSolverTester
+target_link_libraries(StellarSolverTester PUBLIC
     stellarsolver
     SSolverUtilsLib
     ${CFITSIO_LIBRARIES}
@@ -382,7 +382,7 @@ target_link_libraries(StellarSolverTester
     )
 
 if(WIN32)
-    target_link_libraries(StellarSolverTester wsock32)
+    target_link_libraries(StellarSolverTester PUBLIC wsock32)
     target_link_libraries(StellarSolverTester INTERFACE Boost::regex)
 endif(WIN32)
 
@@ -435,7 +435,7 @@ if(BUILD_BATCH_SOLVER)
         SET_TARGET_PROPERTIES(StellarBatchSolver PROPERTIES MACOSX_BUNDLE TRUE)
     endif(APPLE)
 
-    target_link_libraries(StellarBatchSolver
+    target_link_libraries(StellarBatchSolver PUBLIC
         stellarsolver
         SSolverUtilsLib
         ${CFITSIO_LIBRARIES}
@@ -448,7 +448,7 @@ if(BUILD_BATCH_SOLVER)
         )
 
     if(WIN32)
-        target_link_libraries(StellarBatchSolver wsock32)
+        target_link_libraries(StellarBatchSolver PUBLIC wsock32)
         target_link_libraries(StellarBatchSolver INTERFACE Boost::regex)
     endif(WIN32)
 
@@ -476,7 +476,7 @@ endif(BUILD_BATCH_SOLVER)
 #########################################################################################
 if(BUILD_DEMOS)
     add_library(StellarSolverDemosLib STATIC)
-    target_link_libraries(StellarSolverDemosLib
+    target_link_libraries(StellarSolverDemosLib PUBLIC
         stellarsolver
         SSolverUtilsLib
         ${CFITSIO_LIBRARIES}
@@ -489,21 +489,21 @@ if(BUILD_DEMOS)
         )
 
     add_executable(DemoStarExtract ${CMAKE_CURRENT_SOURCE_DIR}/demos/demostarextract.cpp)
-    target_link_libraries(DemoStarExtract StellarSolverDemosLib)
+    target_link_libraries(DemoStarExtract PUBLIC StellarSolverDemosLib)
     add_executable(DemoPlateSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demoplatesolve.cpp)
-    target_link_libraries(DemoPlateSolve StellarSolverDemosLib)
+    target_link_libraries(DemoPlateSolve PUBLIC StellarSolverDemosLib)
     add_executable(DemoExtractSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demoextractsolve.cpp)
-    target_link_libraries(DemoExtractSolve StellarSolverDemosLib)
+    target_link_libraries(DemoExtractSolve PUBLIC StellarSolverDemosLib)
     add_executable(DemoFITSStarExtract ${CMAKE_CURRENT_SOURCE_DIR}/demos/demofitsstarextract.cpp)
-    target_link_libraries(DemoFITSStarExtract StellarSolverDemosLib)
+    target_link_libraries(DemoFITSStarExtract PUBLIC StellarSolverDemosLib)
     add_executable(DemoFITSPlateSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demofitsplatesolve.cpp)
-    target_link_libraries(DemoFITSPlateSolve StellarSolverDemosLib)
+    target_link_libraries(DemoFITSPlateSolve PUBLIC StellarSolverDemosLib)
     add_executable(DemoFITSExtractSolve ${CMAKE_CURRENT_SOURCE_DIR}/demos/demofitsextractsolve.cpp)
-    target_link_libraries(DemoFITSExtractSolve StellarSolverDemosLib)
+    target_link_libraries(DemoFITSExtractSolve PUBLIC StellarSolverDemosLib)
     add_executable(DemoSignalsSlots ${CMAKE_CURRENT_SOURCE_DIR}/demos/demosignalsslots.cpp)
-    target_link_libraries(DemoSignalsSlots StellarSolverDemosLib)
+    target_link_libraries(DemoSignalsSlots PUBLIC StellarSolverDemosLib)
     add_executable(DemoMultipleSolves ${CMAKE_CURRENT_SOURCE_DIR}/demos/demomultiplesolves.cpp)
-    target_link_libraries(DemoMultipleSolves StellarSolverDemosLib)
+    target_link_libraries(DemoMultipleSolves PUBLIC StellarSolverDemosLib)
 
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/pleiades.jpg" DESTINATION "${CMAKE_BINARY_DIR}/")
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/randomsky.fits" DESTINATION "${CMAKE_BINARY_DIR}/")
@@ -523,7 +523,7 @@ endif(BUILD_DEMOS)
 #########################################################################################
 if(BUILD_CLI)
     add_library(CommandLineInterfaceLib STATIC)
-    target_link_libraries(CommandLineInterfaceLib
+    target_link_libraries(CommandLineInterfaceLib PUBLIC
         stellarsolver
         SSolverUtilsLib
         ${CFITSIO_LIBRARIES}
@@ -535,7 +535,7 @@ if(BUILD_CLI)
 
     add_executable(CommandLineInterface ${CMAKE_CURRENT_SOURCE_DIR}/cli/main.cpp)
     set_target_properties(CommandLineInterface PROPERTIES OUTPUT_NAME "stellarsolver-cli")
-    target_link_libraries(CommandLineInterface CommandLineInterfaceLib)
+    target_link_libraries(CommandLineInterface PUBLIC CommandLineInterfaceLib)
 
     if(APPLE)
         install(TARGETS CommandLineInterface
@@ -559,7 +559,7 @@ endif(BUILD_CLI)
 #########################################################################################
 if(BUILD_TESTS)
     add_library(StellarSolverTestsLib STATIC)
-    target_link_libraries(StellarSolverTestsLib
+    target_link_libraries(StellarSolverTestsLib PUBLIC
         stellarsolver
         SSolverUtilsLib
         ${CFITSIO_LIBRARIES}
@@ -572,11 +572,11 @@ if(BUILD_TESTS)
         )
 
     add_executable(TestTwoStellarSolvers ${CMAKE_CURRENT_SOURCE_DIR}/tests/testtwostellarsolvers.cpp)
-    target_link_libraries(TestTwoStellarSolvers StellarSolverTestsLib)
+    target_link_libraries(TestTwoStellarSolvers PUBLIC StellarSolverTestsLib)
     add_executable(TestDeleteSolver ${CMAKE_CURRENT_SOURCE_DIR}/tests/testdeletesolver.cpp)
-    target_link_libraries(TestDeleteSolver StellarSolverTestsLib)
+    target_link_libraries(TestDeleteSolver PUBLIC StellarSolverTestsLib)
     add_executable(TestMultipleSyncSolvers ${CMAKE_CURRENT_SOURCE_DIR}/tests/testmultiplesyncsolvers.cpp)
-    target_link_libraries(TestMultipleSyncSolvers StellarSolverTestsLib)
+    target_link_libraries(TestMultipleSyncSolvers PUBLIC StellarSolverTestsLib)
 
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/pleiades.jpg" DESTINATION "${CMAKE_BINARY_DIR}/")
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/randomsky.fits" DESTINATION "${CMAKE_BINARY_DIR}/")
