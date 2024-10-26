@@ -268,7 +268,8 @@ target_link_libraries(stellarsolver
     )
 
 if(WIN32)
-    target_link_libraries(stellarsolver wsock32 INTERFACE Boost::regex)
+    target_link_libraries(stellarsolver)
+    target_link_libraries(stellarsolver INTERFACE Boost::regex)
 else(WIN32)
     set_target_properties(stellarsolver PROPERTIES VERSION ${StellarSolver_VERSION_STRING} SOVERSION ${StellarSolver_SOVERSION} OUTPUT_NAME stellarsolver)
 endif(WIN32)
@@ -381,7 +382,8 @@ target_link_libraries(StellarSolverTester
     )
 
 if(WIN32)
-    target_link_libraries(StellarSolverTester wsock32 INTERFACE Boost::regex)
+    target_link_libraries(StellarSolverTester wsock32)
+    target_link_libraries(StellarSolverTester INTERFACE Boost::regex)
 endif(WIN32)
 
 if(APPLE)
@@ -446,7 +448,8 @@ if(BUILD_BATCH_SOLVER)
         )
 
     if(WIN32)
-        target_link_libraries(StellarBatchSolver wsock32 INTERFACE Boost::regex)
+        target_link_libraries(StellarBatchSolver wsock32)
+        target_link_libraries(StellarBatchSolver INTERFACE Boost::regex)
     endif(WIN32)
 
     if(APPLE)
