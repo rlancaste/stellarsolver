@@ -10,11 +10,8 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
-#include <boost/regex.h>
-#else
-#include <regex.h>
-#endif
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
+//#include <regex.h>
 
 #include "astrometry/an-bool.h"
 #include "astrometry/bl.h"
@@ -97,7 +94,8 @@ char* errors_stop_logging_to_string(const char* separator);
 /*
  Convenience function to report an error from the regex module.
  */
-void errors_regex_error(int errcode, const regex_t* re);
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
+//void errors_regex_error(int errcode, const regex_t* re);
 
 /***    End globals   ***/
 
