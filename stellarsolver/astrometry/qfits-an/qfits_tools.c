@@ -39,9 +39,9 @@
 #include <fcntl.h>
 
 #ifdef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
-#include <boost/regex.h>
+//#include <boost/regex.h>
 #else
-#include <regex.h>
+//#include <regex.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #endif
