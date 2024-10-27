@@ -211,37 +211,36 @@ qfits_header* fitsbin_get_primary_header(const fitsbin_t* fb);
 void fitsbin_set_primary_header(fitsbin_t* fb, const qfits_header* hdr);
 
 // (pads to FITS block size)
-int fitsbin_write_primary_header(fitsbin_t* fb);
+//int fitsbin_write_primary_header(fitsbin_t* fb); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 // (pads to FITS block size)
-int fitsbin_fix_primary_header(fitsbin_t* fb);
+//int fitsbin_fix_primary_header(fitsbin_t* fb); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 qfits_header* fitsbin_get_chunk_header(fitsbin_t* fb, fitsbin_chunk_t* chunk);
 
-int fitsbin_write_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk);
+//int fitsbin_write_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
-int fitsbin_write_chunk_flipped(fitsbin_t* fb, fitsbin_chunk_t* chunk,
-                                int wordsize);
+//int fitsbin_write_chunk_flipped(fitsbin_t* fb, fitsbin_chunk_t* chunk, int wordsize); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 // (pads to FITS block size)
-int fitsbin_write_chunk_header(fitsbin_t* fb, fitsbin_chunk_t* chunk);
+//int fitsbin_write_chunk_header(fitsbin_t* fb, fitsbin_chunk_t* chunk); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 // (pads to FITS block size)
 int fitsbin_fix_chunk_header(fitsbin_t* fb, fitsbin_chunk_t* chunk);
 
-int fitsbin_write_item(fitsbin_t* fb, fitsbin_chunk_t* chunk, void* data);
+//int fitsbin_write_item(fitsbin_t* fb, fitsbin_chunk_t* chunk, void* data); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
-int fitsbin_write_items(fitsbin_t* fb, fitsbin_chunk_t* chunk, void* data, int N);
+//int fitsbin_write_items(fitsbin_t* fb, fitsbin_chunk_t* chunk, void* data, int N); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 
 // direct FILE* output:
 
-int fitsbin_write_primary_header_to(fitsbin_t* fb, FILE* fid);
+//int fitsbin_write_primary_header_to(fitsbin_t* fb, FILE* fid); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
-int fitsbin_write_chunk_header_to(fitsbin_t* fb, fitsbin_chunk_t* chunk, FILE* fid);
+//int fitsbin_write_chunk_header_to(fitsbin_t* fb, fitsbin_chunk_t* chunk, FILE* fid); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
-int fitsbin_write_items_to(fitsbin_chunk_t* chunk, void* data, int N, FILE* fid);
+//int fitsbin_write_items_to(fitsbin_chunk_t* chunk, void* data, int N, FILE* fid); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
-int fitsbin_write_chunk_to(fitsbin_t* fb, fitsbin_chunk_t* chunk, FILE* fid);
+//int fitsbin_write_chunk_to(fitsbin_t* fb, fitsbin_chunk_t* chunk, FILE* fid); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 #endif

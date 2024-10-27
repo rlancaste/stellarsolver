@@ -88,6 +88,7 @@ static char* expkey_strupc(const char *, char* buf);
   Formatting is done according to FITS standard.
  */
 /*----------------------------------------------------------------------------*/
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 void qfits_card_build(
         char        *   line,
         const char  *   key,
@@ -105,46 +106,46 @@ void qfits_card_build(
 
     if (line==NULL || key==NULL) return;
 
-    /* Set the line with zeroes */
+    // Set the line with zeroes
     memset(line, ' ', 80);
     if (key==NULL) return;
 
-    /* END keyword*/
+    // END keyword
     if (!strcmp(key, "END")) {
-        /* Write key and return */
+        // Write key and return
         sprintf(line, "END");
         return;
     }
-    /* HISTORY, COMMENT and blank keywords */
+    // HISTORY, COMMENT and blank keywords
     if (!strcmp(key, "HISTORY") ||
         !strcmp(key, "COMMENT") ||
         !strcmp(key, "CONTINUE") ||
         !strncmp(key, "        ", 8)) {
-        /* Write key */
+        // Write key
         sprintf(line, "%s ", key);
         if (val==NULL) return;
 
-        /* There is a value to write, copy it correctly */
+        // There is a value to write, copy it correctly
         len = strlen(val);
-        /* 72 is 80 (FITS line size) - 8 (sizeof COMMENT or HISTORY) */
+        // 72 is 80 (FITS line size) - 8 (sizeof COMMENT or HISTORY)
         if (len>72) len=72;
         strncpy(line+8, val, len);
         return;
     }
 
-    /* Check for NULL values */
+    // Check for NULL values
     if (val==NULL) cval[0]='\0';
     else if (strlen(val)<1) cval[0]='\0';
     else strcpy(cval, val);
 
-    /* Check for NULL comments */
+    // Check for NULL comments
     if (com==NULL) strcpy(ccom, "no comment");
     else strcpy(ccom, com);
 
-    /* Set hierarch flag */
+    // Set hierarch flag
     if (!strncmp(key, "HIERARCH", 8)) hierarch ++;
 
-    /* Boolean, int, float or complex */
+    // Boolean, int, float or complex
     if (qfits_is_int(cval) ||
             qfits_is_float(cval) ||
             qfits_is_boolean(cval) ||
@@ -156,7 +157,7 @@ void qfits_card_build(
         return;
     }
 
-    /* Blank or NULL values */
+    // Blank or NULL values
     if (cval[0]==0) {
         if (hierarch) {
             sprintf(safe_line, "%-29s=                    / %s", key, ccom);
@@ -168,7 +169,7 @@ void qfits_card_build(
         return;
     }
 
-    /* Can only be a string - Make simple quotes ['] as double [''] */
+    // Can only be a string - Make simple quotes ['] as double ['']
     memset(cval_q, 0, 81);
     qfits_pretty_string_r(cval, cval2);
     j=0;
@@ -194,11 +195,11 @@ void qfits_card_build(
     }
     strncpy(line, safe_line, 80);
 
-    /* Null-terminate in any case */
+    // Null-terminate in any case
     line[80]='\0';
     return;
 }
-
+**/
 // Thread-safe version.
 char* qfits_getkey_r(const char* line, char* key)
 {
@@ -229,7 +230,7 @@ char* qfits_getkey_r(const char* line, char* key)
         strcpy(key, "END");
         return key;
     }
-	/* Neither does CONTINUE. */
+    /* Neither does CONTINUE. */
     if (!strncmp(line, "CONTINUE ", 9)) {
         strcpy(key, "CONTINUE");
         return key;

@@ -143,6 +143,7 @@ char* qfits_pretty_string_r(const char * s, char* pretty) {
   Identifies if a FITS value is boolean.
  */
 /*----------------------------------------------------------------------------*/
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int qfits_is_boolean(const char * s)
 {
     if (s==NULL) return 0;
@@ -151,7 +152,7 @@ int qfits_is_boolean(const char * s)
     if (s[0]=='T' || s[0]=='F') return 1;
     return 0;
 }
-
+**/
 /*----------------------------------------------------------------------------*/
 /**
   @brief    Identify if a FITS value is an int.
@@ -161,6 +162,7 @@ int qfits_is_boolean(const char * s)
   Identifies if a FITS value is an integer.
  */
 /*----------------------------------------------------------------------------*/
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int qfits_is_int(const char * s)
 {
     regex_t re_int;
@@ -176,7 +178,7 @@ int qfits_is_int(const char * s)
     regfree(&re_int); 
     return (status) ? 0 : 1;
 }
-
+**/
 /*----------------------------------------------------------------------------*/
 /**
   @brief    Identify if a FITS value is float.
@@ -186,6 +188,7 @@ int qfits_is_int(const char * s)
   Identifies if a FITS value is float.
  */
 /*----------------------------------------------------------------------------*/
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int qfits_is_float(const char * s)
 {
     regex_t re_float;
@@ -201,7 +204,7 @@ int qfits_is_float(const char * s)
     regfree(&re_float); 
     return (status) ? 0 : 1;
 }
-
+**/
 /*----------------------------------------------------------------------------*/
 /**
   @brief    Identify if a FITS value is complex.
@@ -211,6 +214,7 @@ int qfits_is_float(const char * s)
   Identifies if a FITS value is complex.
  */
 /*----------------------------------------------------------------------------*/
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int qfits_is_complex(const char * s)
 {
     regex_t re_cmp;
@@ -226,7 +230,7 @@ int qfits_is_complex(const char * s)
     regfree(&re_cmp); 
     return (status) ? 0 : 1;
 }
-
+**/
 /*----------------------------------------------------------------------------*/
 /**
   @brief    Identify if a FITS value is string.
@@ -259,6 +263,7 @@ int qfits_is_string(const char * s)
   - QFITS_STRING (5) for a FITS string.
  */
 /*----------------------------------------------------------------------------*/
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int qfits_get_type(const char * s)
 {
     if (s==NULL) return QFITS_UNKNOWN;
@@ -268,6 +273,7 @@ int qfits_get_type(const char * s)
     if (qfits_is_complex(s)) return QFITS_COMPLEX;
     return QFITS_STRING;
 }
+**/
 
 
 /*----------------------------------------------------------------------------*/

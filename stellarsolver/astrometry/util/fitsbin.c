@@ -189,6 +189,7 @@ int fitsbin_close(fitsbin_t* fb) {
     return rtn;
 }
 
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int fitsbin_write_primary_header(fitsbin_t* fb) {
     if (in_memory(fb)) return 0;
     return fitsfile_write_primary_header(fb->fid, fb->primheader,
@@ -198,7 +199,7 @@ int fitsbin_write_primary_header(fitsbin_t* fb) {
 int fitsbin_write_primary_header_to(fitsbin_t* fb, FILE* fid) {
     off_t end;
     return fitsfile_write_primary_header(fid, fb->primheader, &end, "");
-}
+}**/
 
 qfits_header* fitsbin_get_primary_header(const fitsbin_t* fb) {
     return fb->primheader;
@@ -208,13 +209,13 @@ void fitsbin_set_primary_header(fitsbin_t* fb, const qfits_header* hdr) {
     qfits_header_destroy(fb->primheader);
     fb->primheader = qfits_header_copy(hdr);
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int fitsbin_fix_primary_header(fitsbin_t* fb) {
     if (in_memory(fb)) return 0;
     return fitsfile_fix_primary_header(fb->fid, fb->primheader,
                                        &fb->primheader_end, fb->filename);
 }
-
+**/
 qfits_header* fitsbin_get_chunk_header(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
     qfits_table* table;
     int tablesize;
@@ -243,7 +244,7 @@ qfits_header* fitsbin_get_chunk_header(fitsbin_t* fb, fitsbin_chunk_t* chunk) {
     chunk->header = hdr;
     return hdr;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int write_chunk(fitsbin_t* fb, fitsbin_chunk_t* chunk, int flipped) {
     int N;
     if (fitsbin_write_chunk_header(fb, chunk)) {
@@ -399,7 +400,7 @@ int fitsbin_write_items(fitsbin_t* fb, fitsbin_chunk_t* chunk, void* data, int N
 int fitsbin_write_item(fitsbin_t* fb, fitsbin_chunk_t* chunk, void* data) {
     return fitsbin_write_items(fb, chunk, data, 1);
 }
-
+**/
 // Like fitsioutils.c : fits_find_table_column(), but using our cache...
 static int find_table_column(fitsbin_t* fb, const char* colname, off_t* pstart, off_t* psize, int* pext) {
     int i;

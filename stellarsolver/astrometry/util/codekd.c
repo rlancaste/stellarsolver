@@ -20,11 +20,11 @@ static codetree_t* codetree_alloc() {
     }
     return s;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int codetree_append_to(codetree_t* s, FILE* fid) {
     return kdtree_fits_append_tree_to(s->tree, s->header, fid);
 }
-
+**/
 int codetree_N(codetree_t* s) {
     return s->tree->ndata;
 }
@@ -144,7 +144,7 @@ codetree_t* codetree_new() {
     qfits_header_add(s->header, "AN_FILE", AN_FILETYPE_CODETREE, "This file is a code kdtree.", NULL);
     return s;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int codetree_write_to_file(codetree_t* s, const char* fn) {
     return kdtree_fits_write(s->tree, fn, s->header);
 }
@@ -152,3 +152,4 @@ int codetree_write_to_file(codetree_t* s, const char* fn) {
 int codetree_write_to_file_flipped(codetree_t* s, const char* fn) {
     return kdtree_fits_write_flipped(s->tree, fn, s->header);
 }
+**/

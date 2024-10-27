@@ -80,6 +80,7 @@ qfits_header* kdtree_fits_get_primary_header(kdtree_fits_t* io);
 kdtree_fits_t* kdtree_fits_open_for_writing(const char* fn);
 
 // writes the primary header and the tree.
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int kdtree_fits_write_tree(kdtree_fits_t* io, const kdtree_t* kd,
                            const qfits_header* add_headers);
 
@@ -99,12 +100,14 @@ int kdtree_fits_write_primary_header(kdtree_fits_t* io,
 int kdtree_fits_write_chunk(kdtree_fits_t* io, fitsbin_chunk_t* chunk);
 
 int kdtree_fits_write_chunk_to(fitsbin_chunk_t* chunk, FILE* fid);
+**/
 
 int kdtree_fits_close(kdtree_t* io);
 
 int kdtree_fits_io_close(kdtree_fits_t* io);
 
 // flipped-endian writing...
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int kdtree_fits_write_chunk_flipped(kdtree_fits_t* io, fitsbin_chunk_t* chunk,
                                     int wordsize);
 
@@ -114,7 +117,7 @@ int kdtree_fits_write_tree_flipped(kdtree_fits_t* io, const kdtree_t* kd,
                                    const qfits_header* inhdr);
 int kdtree_fits_append_tree_flipped(kdtree_fits_t* io, const kdtree_t* kd,
                                     const qfits_header* inhdr);
-
+**/
 
 // names (actually prefixes) of FITS tables.
 #define KD_STR_HEADER    "kdtree_header"

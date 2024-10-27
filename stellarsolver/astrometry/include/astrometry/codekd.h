@@ -40,11 +40,11 @@ int codetree_close(codetree_t* s);
 
 // for writing
 codetree_t* codetree_new(void);
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int codetree_append_to(codetree_t* s, FILE* fid);
 
 int codetree_write_to_file(codetree_t* s, const char* fn);
 
 int codetree_write_to_file_flipped(codetree_t* s, const char* fn);
-
+**/
 #endif
