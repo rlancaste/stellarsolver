@@ -148,7 +148,7 @@ static keytuple * keytuple_new(const char *, const char *, const char *,
 static void keytuple_del(keytuple *);
 //static void keytuple_dmp(const keytuple *);
 static keytype keytuple_type(const char *);
-static int qfits_header_makeline(char *, const keytuple *, int);
+//static int qfits_header_makeline(char *, const keytuple *, int); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 /*----------------------------------------------------------------------------*/
 /**
@@ -920,7 +920,7 @@ int qfits_header_getboolean(
     }
     return ret;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int qfits_header_write_line(const qfits_header* hdr, int line, char* result) {
     keytuple* k;
     int i;
@@ -934,7 +934,7 @@ int qfits_header_write_line(const qfits_header* hdr, int line, char* result) {
     qfits_header_makeline(result, k, 1);
     return 0;
 }
-
+**/
 
 /*----------------------------------------------------------------------------*/
 /**
@@ -945,6 +945,7 @@ int qfits_header_write_line(const qfits_header* hdr, int line, char* result) {
   Dumps a FITS header to an opened file pointer.
  */
 /*----------------------------------------------------------------------------*/
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int qfits_header_dump(
         const qfits_header  *   hdr,
         FILE                *   out)
@@ -959,7 +960,7 @@ int qfits_header_dump(
     k = (keytuple*)hdr->first;
     n_out = 0;
     while (k!=NULL) {
-        /* Make line from information in the node */
+        // Make line from information in the node
         qfits_header_makeline(line, k, 1);
         if ((fwrite(line, 1, 80, out))!=80) {
             debug("error dumping FITS header"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
@@ -968,7 +969,7 @@ int qfits_header_dump(
         n_out ++;
         k=k->next;
     }
-    /* Blank-pad the output */
+    // Blank-pad the output
     memset(line, ' ', 80);
     while (n_out % 36) {
         fwrite(line, 1, 80, out);
@@ -992,7 +993,7 @@ int qfits_header_list(
     k = (keytuple*)hdr->first;
     n_out = 0;
     while (k!=NULL) {
-        /* Make line from information in the node */
+        // Make line from information in the node
         qfits_header_makeline(line, k, 1);
         if ((fwrite(line, 1, 80, out))!=80) {
             debug("error dumping FITS header"); //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
@@ -1004,7 +1005,7 @@ int qfits_header_list(
     }
     return 0;
 }
-
+**/
 /**@}*/
 
 /*----------------------------------------------------------------------------*/
@@ -1176,6 +1177,7 @@ void qfits_header_debug_dump(const qfits_header* hdr) {
   If conservative is set to 0, a new line will be formatted.
  */
 /*----------------------------------------------------------------------------*/
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int qfits_header_makeline(
         char            *   line,
         const keytuple  *   k,
@@ -1186,7 +1188,7 @@ static int qfits_header_makeline(
 
     if (line==NULL || k==NULL) return -1;
 
-    /* If a previous line information is there, use it as is */
+    // If a previous line information is there, use it as is
     if (conservative) {
         if (k->lin != NULL) {
             memcpy(line, k->lin, 80);
@@ -1194,7 +1196,7 @@ static int qfits_header_makeline(
             return 0;
         }
     }
-    /* Got to build keyword from scratch */
+    // Got to build keyword from scratch
     memset(blankline, 0, 81);
     qfits_card_build(blankline, k->key, k->val, k->com);
     memset(line, ' ', 80);
@@ -1206,7 +1208,7 @@ static int qfits_header_makeline(
     line[80]='\0';
     return 0;
 }
-
+**/
 /*----------------------------------------------------------------------------*/
 /**
   @brief	Find a matching key in a header.

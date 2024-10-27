@@ -142,7 +142,7 @@ int MANGLE(kdtree_read_fits)(kdtree_fits_t* io, kdtree_t* kd) {
 
     return 0;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 #define WRITE_CHUNK()                                                   \
     do {                                                                \
         if (flip_endian) {                                              \
@@ -376,6 +376,6 @@ int MANGLE(kdtree_write_fits)(kdtree_fits_t* io, const kdtree_t* kd,
     return 0;
 }
 #undef WRITE_CHUNK
-
+**/
 
 #endif

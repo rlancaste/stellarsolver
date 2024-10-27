@@ -196,10 +196,10 @@ int startree_check_inverse_perm(startree_t* s);
 // for writing
 startree_t* startree_new(void);
 
-int startree_write_to_file(startree_t* s, const char* fn);
+//int startree_write_to_file(startree_t* s, const char* fn); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
-int startree_write_to_file_flipped(startree_t* s, const char* fn);
+//int startree_write_to_file_flipped(startree_t* s, const char* fn); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
-int startree_append_to(startree_t* s, FILE* fid);
+//int startree_append_to(startree_t* s, FILE* fid); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 #endif

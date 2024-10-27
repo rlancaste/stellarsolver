@@ -1089,7 +1089,7 @@ qfits_header* fitstable_get_header(fitstable_t* t) {
     }
     return t->header;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 void fitstable_next_extension(fitstable_t* tab) {
     if (is_writing(tab))
         fits_pad_file(tab->fid);
@@ -1113,7 +1113,7 @@ void fitstable_next_extension(fitstable_t* tab) {
     tab->table = NULL;
     tab->header = NULL;
 }
-
+**/
 static fitstable_t* fitstable_new() {
     fitstable_t* tab;
     tab = calloc(1, sizeof(fitstable_t));
@@ -1143,7 +1143,7 @@ fitstable_t* fitstable_open_in_memory() {
     }
     return NULL;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int fitstable_switch_to_reading(fitstable_t* table) {
     assert(in_memory(table));
     // store the current extension.
@@ -1154,7 +1154,7 @@ int fitstable_switch_to_reading(fitstable_t* table) {
     table->extension = 1;
     return fitstable_open_extension(table, table->extension);
 }
-
+**/
 static
 fitstable_t* _fitstable_open(const char* fn) {
     fitstable_t* tab;
@@ -1280,7 +1280,7 @@ fitstable_t* fitstable_open_for_appending_to(FILE* fid) {
     }
     return tab;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int fitstable_append_to(fitstable_t* intable, FILE* fid) {
     fitstable_t* outtable;
     qfits_header* tmphdr;
@@ -1318,7 +1318,7 @@ int fitstable_append_to(fitstable_t* intable, FILE* fid) {
     fitstable_close(outtable);
     return status; //# Modified by Robert Lancaster for the StellarSolver Internal Library, to prevent leak
 }
-
+**/
 int fitstable_close(fitstable_t* tab) {
     int i;
     int rtn = 0;
@@ -1527,7 +1527,7 @@ int fitstable_read_extension(fitstable_t* tab, int ext) {
     if (ok) return 0;
     return -1;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int fitstable_write_primary_header(fitstable_t* t) {
     if (in_memory(t)) return 0;
     return fitsfile_write_primary_header(t->fid, t->primheader,
@@ -1539,7 +1539,7 @@ int fitstable_fix_primary_header(fitstable_t* t) {
     return fitsfile_fix_primary_header(t->fid, t->primheader,
                                        &t->end_header_offset, t->fn);
 }
-
+**/
 // Called just before starting to write a new field.
 int fitstable_new_table(fitstable_t* t) {
     if (t->table) {
@@ -1552,7 +1552,7 @@ int fitstable_new_table(fitstable_t* t) {
     t->header = qfits_table_ext_header_default(t->table);
     return 0;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int fitstable_write_header(fitstable_t* t) {
     if (!t->header) {
         if (fitstable_new_table(t)) {
@@ -1565,11 +1565,11 @@ int fitstable_write_header(fitstable_t* t) {
                                  &t->table_offset, &t->end_table_offset,
                                  t->extension, t->fn);
 }
-
+**/
 int fitstable_pad_with(fitstable_t* t, char pad) {
     return fitsfile_pad_with(t->fid, pad);
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int fitstable_fix_header(fitstable_t* t) {
     // update NAXIS2 to reflect the number of rows written.
     fits_header_mod_int(t->header, "NAXIS2", t->table->nr, NULL);
@@ -1585,7 +1585,7 @@ int fitstable_fix_header(fitstable_t* t) {
     }
     return 0; //fits_pad_file(t->fid);
 }
-
+**/
 void fitstable_close_table(fitstable_t* tab) {
     int i;
     if (tab->table) {

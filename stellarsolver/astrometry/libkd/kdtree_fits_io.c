@@ -88,7 +88,7 @@ kdtree_t* kdtree_fits_read(const char* fn, const char* treename,
     }
     return kd;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int write_convenience(const kdtree_t* kd, const char* fn,
                              const qfits_header* hdr, anbool flipped) {
     kdtree_fits_t* io;
@@ -118,7 +118,7 @@ int kdtree_fits_write(const kdtree_t* kdtree, const char* fn,
                       const qfits_header* hdr) {
     return write_convenience(kdtree, fn, hdr, FALSE);
 }
-
+**/
 /*
  bl* kdtree_fits_get_chunks(const kdtree_t* kd) {
  bl* chunks = bl_new(4, sizeof(fitsbin_chunk_t));
@@ -308,7 +308,7 @@ kdtree_t* kdtree_fits_read_tree(kdtree_fits_t* io, const char* treename,
 
     return kd;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int kdtree_fits_write_chunk(kdtree_fits_t* io, fitsbin_chunk_t* chunk) {
     fitsbin_t* fb = kdtree_fits_get_fitsbin(io);
     if (fitsbin_write_chunk(fb, chunk)) {
@@ -384,7 +384,7 @@ int kdtree_fits_write_tree_flipped(kdtree_fits_t* io, const kdtree_t* kd,
     return (kdtree_fits_write_primary_header(io, NULL) ||
             kdtree_fits_append_tree_flipped(io, kd, inhdr));
 }
-
+**/
 int kdtree_fits_io_close(kdtree_fits_t* io) {
     fitsbin_t* fb;
     fb = kdtree_fits_get_fitsbin(io);

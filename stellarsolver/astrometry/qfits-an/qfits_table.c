@@ -1656,12 +1656,13 @@ int * qfits_query_column_nulls(
  Notice that no main header is produced, only the extension part.
  */
 /*----------------------------------------------------------------------------*/
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int qfits_table_append_xtension(
                                 FILE                *   outfile,
                                 const qfits_table   *   t,
                                 const void          **  data)
 {
-    /* Append the extension */
+    // Append the extension
     if (t->tab_t == QFITS_BINTABLE) {
         if (qfits_table_append_bin_xtension(outfile, t, data) == -1) {
             qfits_error("in writing fits table");
@@ -1678,7 +1679,7 @@ int qfits_table_append_xtension(
     }
     return 0;
 }
-
+**/
 /*----------------------------------------------------------------------------*/
 /**
  @brief    Appends a specified extension header + data to a FITS table file.
@@ -1695,22 +1696,23 @@ int qfits_table_append_xtension(
  Notice that no main header is produced, only the extension part.
  */
 /*----------------------------------------------------------------------------*/
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int qfits_table_append_xtension_hdr(
                                     FILE                *   outfile,
                                     const qfits_table   *   t,
                                     const void          **  data,
                                     const qfits_header  *   hdr)
 {
-    /* Write the fits header in the file  */
+    // Write the fits header in the file
     if (qfits_header_dump(hdr, outfile) == -1) {
         qfits_error("cannot dump header in file");
         return -1;
     }
 
-    /* Append the data to the file */
+    // Append the data to the file
     return qfits_table_append_data(outfile, t, data);
 }
-
+**/
 /*----------------------------------------------------------------------------*/
 /**
  @brief    given a col and a row, find out the string to write for display
@@ -2353,6 +2355,7 @@ static char * qfits_build_format(const qfits_col * col)
  Notice that no main header is produced, only the extension part.
  */
 /*----------------------------------------------------------------------------*/
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int qfits_table_append_bin_xtension(
                                            FILE                *   outfile,
                                            const qfits_table   *   t,
@@ -2365,7 +2368,7 @@ static int qfits_table_append_bin_xtension(
         return -1;
     }
 
-    /* Write the fits header in the file  */
+    // Write the fits header in the file
     if (qfits_header_dump(fh, outfile) == -1) {
         qfits_error("cannot dump header in file");
         qfits_header_destroy(fh);
@@ -2374,10 +2377,10 @@ static int qfits_table_append_bin_xtension(
     }
     qfits_header_destroy(fh);
 
-    /* Append the data to the file */
+    // Append the data to the file
     return qfits_table_append_data(outfile, t, data);
 }
-
+**/
 /*----------------------------------------------------------------------------*/
 /**
  @brief    Appends an extension header + data to a FITS ASCII table file.
@@ -2396,6 +2399,7 @@ static int qfits_table_append_bin_xtension(
  Notice that no main header is produced, only the extension part.
  */
 /*----------------------------------------------------------------------------*/
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int qfits_table_append_ascii_xtension(
                                              FILE                *   outfile,
                                              const qfits_table   *   t,
@@ -2408,7 +2412,7 @@ static int qfits_table_append_ascii_xtension(
         return -1;
     }
 
-    /* Write the fits header in the file  */
+    // Write the fits header in the file
     if (qfits_header_dump(fh, outfile) == -1) {
         qfits_error("cannot dump header in file");
         qfits_header_destroy(fh);
@@ -2416,10 +2420,10 @@ static int qfits_table_append_ascii_xtension(
     }
     qfits_header_destroy(fh);
     
-    /* Append the data to the file */
+    // Append the data to the file
     return qfits_table_append_data(outfile, t, data);
 } 
-
+**/
 /*----------------------------------------------------------------------------*/
 /**
  @brief    Appends data to a FITS table file.

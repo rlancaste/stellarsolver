@@ -289,8 +289,7 @@ int * qfits_query_column_nulls(const qfits_table *, int, const int *, int *,
 int qfits_compute_table_width(const qfits_table * th);
 
 int qfits_table_append_xtension(FILE *, const qfits_table *, const void **);
-int qfits_table_append_xtension_hdr(FILE *, const qfits_table *, const void **,
-                                    const qfits_header *);
+//int qfits_table_append_xtension_hdr(FILE *, const qfits_table *, const void **, const qfits_header *); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 char * qfits_table_field_to_string(const qfits_table *, int, int, int);
 
 const qfits_col* qfits_table_get_col(const qfits_table* t, int i);

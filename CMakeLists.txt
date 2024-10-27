@@ -114,10 +114,6 @@ else()
     find_package(Qt6 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
 endif()
 
-if(WIN32)
-    find_package(Boost 1.45.0 COMPONENTS regex)
-endif(WIN32)
-
 if (NOT CFITSIO_FOUND OR CFITSIO_VERSION_MAJOR LESS 3)
   message(FATAL_ERROR "CFITSIO version too old, Please install cfitsio 3.x and try again. http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html")
 endif (NOT CFITSIO_FOUND OR CFITSIO_VERSION_MAJOR LESS 3)
@@ -269,7 +265,6 @@ target_link_libraries(stellarsolver PUBLIC
 
 if(WIN32)
     target_link_libraries(stellarsolver PUBLIC wsock32)
-    target_link_libraries(stellarsolver PUBLIC Boost::regex)
 else(WIN32)
     set_target_properties(stellarsolver PROPERTIES VERSION ${StellarSolver_VERSION_STRING} SOVERSION ${StellarSolver_SOVERSION} OUTPUT_NAME stellarsolver)
 endif(WIN32)
@@ -383,7 +378,6 @@ target_link_libraries(StellarSolverTester PUBLIC
 
 if(WIN32)
     target_link_libraries(StellarSolverTester PUBLIC wsock32)
-    target_link_libraries(StellarSolverTester PUBLIC Boost::regex)
 endif(WIN32)
 
 if(APPLE)
@@ -449,7 +443,6 @@ if(BUILD_BATCH_SOLVER)
 
     if(WIN32)
         target_link_libraries(StellarBatchSolver PUBLIC wsock32)
-        target_link_libraries(StellarBatchSolver PUBLIC Boost::regex)
     endif(WIN32)
 
     if(APPLE)

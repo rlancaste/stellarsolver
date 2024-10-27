@@ -108,6 +108,6 @@ int qfits_header_getboolean(const qfits_header *, const char *, int);
 int qfits_header_dump(const qfits_header *, FILE *);
 char * qfits_header_findmatch(const qfits_header * hdr, const char * key);
 
-int qfits_header_write_line(const qfits_header* hdr, int line, char* result);
+//int qfits_header_write_line(const qfits_header* hdr, int line, char* result); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 #endif

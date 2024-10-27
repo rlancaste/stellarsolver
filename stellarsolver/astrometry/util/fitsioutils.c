@@ -27,7 +27,7 @@
 #include "errors.h"
 #include "log.h"
 #include "errors.h"
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 Malloc
 char* fits_to_string(const qfits_header* hdr, int* size) {
     int N = qfits_header_n(hdr);
@@ -71,7 +71,7 @@ int fits_write_header(const qfits_header* hdr, const char* fn) {
     }
     return 0;
 }
-
+**/
 
 qfits_table* fits_copy_table(qfits_table* tbl) {
     qfits_table* out;
@@ -165,7 +165,7 @@ int fits_pixdump(const qfitsdumper * qd) {
 
 
 
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int fits_write_float_image(const float* img, int nx, int ny, const char* fn) {
     int rtn;
     qfitsdumper qoutimg;
@@ -210,11 +210,11 @@ int fits_write_i16_image(const int16_t* img, int nx, int ny, const char* fn) {
         ERROR("Failed to write FITS image to file \"%s\"", fn);
     return rtn;
 }
-
+**/
 static void errfunc(char* errstr) {
     report_error("qfits", -1, __func__, "%s", errstr);
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int fits_write_header_and_image(const qfits_header* hdr, const qfitsdumper* qd, int W) {
     FILE* fid;
     const char* fn = qd->filename;
@@ -260,7 +260,7 @@ int fits_write_header_and_image(const qfits_header* hdr, const qfitsdumper* qd, 
     }
     return 0;
 }
-
+**/
 qfits_header* fits_get_header_for_image2(int W, int H, int bitpix,
                                          qfits_header* addtoheader) {
     return fits_get_header_for_image3(W, H, bitpix, 1, addtoheader);

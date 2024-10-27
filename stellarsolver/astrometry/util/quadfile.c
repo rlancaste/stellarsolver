@@ -215,7 +215,7 @@ quadfile_t* quadfile_open_for_writing(const char* fn) {
 quadfile_t* quadfile_open_in_memory() {
     return open_for_writing(NULL);
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int quadfile_switch_to_reading(quadfile_t* qf) {
     if (quadfile_fix_header(qf)) {
         ERROR("Failed to fix quads header");
@@ -232,7 +232,7 @@ int quadfile_switch_to_reading(quadfile_t* qf) {
     qf->quadarray = quads_chunk(qf)->data;
     return 0;
 }
-
+**/
 static void add_to_header(qfits_header* hdr, quadfile_t* qf) {
     fits_header_mod_int(hdr, "DIMQUADS", qf->dimquads, "Number of stars in a quad.");
     fits_header_mod_int(hdr, "NQUADS", qf->numquads, "Number of quads.");
@@ -243,7 +243,7 @@ static void add_to_header(qfits_header* hdr, quadfile_t* qf) {
     fits_header_mod_int(hdr, "HEALPIX", qf->healpix, "Healpix of this index.");
     fits_header_mod_int(hdr, "HPNSIDE", qf->hpnside, "Nside of the healpixelization");
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int quadfile_write_header(quadfile_t* qf) {
     fitsbin_t* fb = qf->fb;
     fitsbin_chunk_t* chunk = quads_chunk(qf);
@@ -336,7 +336,7 @@ int quadfile_fix_header(quadfile_t* qf) {
     }
     return 0;
 }
-
+**/
 double quadfile_get_index_scale_upper_arcsec(const quadfile_t* qf) {
     return rad2arcsec(qf->index_scale_upper);
 }

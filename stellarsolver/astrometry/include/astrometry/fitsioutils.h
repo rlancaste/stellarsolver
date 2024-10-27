@@ -16,8 +16,8 @@
 
 void fits_use_error_system(void);
 
-Malloc
-char* fits_to_string(const qfits_header* hdr, int* size);
+//Malloc
+//char* fits_to_string(const qfits_header* hdr, int* size); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 int fits_write_float_image(const float* img, int nx, int ny, const char* fn);
 
@@ -37,7 +37,7 @@ qfits_header* fits_get_header_for_image3(int W, int H, int bitpix, int planes,
 
 /* Writes the FITS header to the given filename, then pads and closes the file.
  */
-int fits_write_header(const qfits_header* hdr, const char* filename);
+//int fits_write_header(const qfits_header* hdr, const char* filename); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 /** Writes the given FITS header and image.
 
@@ -45,7 +45,7 @@ int fits_write_header(const qfits_header* hdr, const char* filename);
 
  Of "hdr" is non-null, "W" is ignored.
  */
-int fits_write_header_and_image(const qfits_header* hdr, const qfitsdumper* qd, int W);
+//int fits_write_header_and_image(const qfits_header* hdr, const qfitsdumper* qd, int W); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 
 double fits_get_double_val(const qfits_table* table, int column,

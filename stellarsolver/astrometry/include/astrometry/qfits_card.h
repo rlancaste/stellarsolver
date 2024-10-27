@@ -32,7 +32,7 @@
                         Function ANSI C prototypes
  -----------------------------------------------------------------------------*/
 
-void qfits_card_build(char *, const char *, const char *, const char *);
+//void qfits_card_build(char *, const char *, const char *, const char *); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 // NOT THREAD-SAFE
 char* qfits_getvalue(const char*);

@@ -42,7 +42,7 @@ quadfile_t* quadfile_open_for_writing(const char* quadfname);
 
 quadfile_t* quadfile_open_in_memory(void);
 
-int quadfile_switch_to_reading(quadfile_t* qf);
+//int quadfile_switch_to_reading(quadfile_t* qf); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 int quadfile_close(quadfile_t* qf);
 
@@ -57,15 +57,15 @@ int quadfile_check(const quadfile_t* qf);
 int quadfile_get_stars(const quadfile_t* qf, unsigned int quadid,
                        unsigned int* stars);
 
-int quadfile_write_quad(quadfile_t* qf, unsigned int* stars);
+//int quadfile_write_quad(quadfile_t* qf, unsigned int* stars); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 int quadfile_dimquads(const quadfile_t* qf);
 
 int quadfile_nquads(const quadfile_t* qf);
 
-int quadfile_fix_header(quadfile_t* qf);
+//int quadfile_fix_header(quadfile_t* qf); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
-int quadfile_write_header(quadfile_t* qf);
+//int quadfile_write_header(quadfile_t* qf); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 double quadfile_get_index_scale_upper_arcsec(const quadfile_t* qf);
 
@@ -73,8 +73,8 @@ double quadfile_get_index_scale_lower_arcsec(const quadfile_t* qf);
 
 qfits_header* quadfile_get_header(const quadfile_t* qf);
 
-int quadfile_write_header_to(quadfile_t* qf, FILE* fid);
+//int quadfile_write_header_to(quadfile_t* qf, FILE* fid); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
-int quadfile_write_all_quads_to(quadfile_t* qf, FILE* fid);
+//int quadfile_write_all_quads_to(quadfile_t* qf, FILE* fid); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 #endif

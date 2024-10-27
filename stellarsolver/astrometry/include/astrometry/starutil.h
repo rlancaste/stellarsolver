@@ -75,8 +75,8 @@ InlineDeclare Const double jdtomjd(double jd);
 InlineDeclare Const double xy2ra(double x, double y);
 InlineDeclare Const double z2dec(double z);
 
-double atora(const char* str);
-double atodec(const char* str);
+//double atora(const char* str); //# Modified by Robert Lancaster for the StellarSolver Internal Library
+//double atodec(const char* str); //# Modified by Robert Lancaster for the StellarSolver Internal Library
 
 double mag2flux(double mag);
 

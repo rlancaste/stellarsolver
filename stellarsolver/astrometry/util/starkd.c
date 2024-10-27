@@ -532,7 +532,7 @@ startree_t* startree_new() {
     s->writing = TRUE;
     return s;
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 static int write_to_file(startree_t* s, const char* fn, anbool flipped,
                          FILE* fid) {
     bl* chunks;
@@ -616,4 +616,4 @@ int startree_write_to_file_flipped(startree_t* s, const char* fn) {
 int startree_append_to(startree_t* s, FILE* fid) {
     return write_to_file(s, NULL, FALSE, fid);
 }
-
+**/

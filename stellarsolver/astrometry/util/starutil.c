@@ -15,11 +15,7 @@
 #include <sys/types.h>
 
 //# Modified by Robert Lancaster for the StellarSolver Internal Library
-#ifdef _WIN32
-#include <boost/regex.h>
-#else
-#include <regex.h>
-#endif
+//#include <regex.h>
 
 #include "os-features.h"
 #include "keywords.h"
@@ -83,8 +79,8 @@ void radecrange2xyzrange(double ralo, double declo, double rahi, double dechi,
     minxyz[1] = MIN(uylo * minmult, uylo * maxmult);
     maxxyz[1] = MAX(uyhi * minmult, uyhi * maxmult);
 }
-
-
+//# Modified by Robert Lancaster for the StellarSolver Internal Library
+/**
 static int parse_hms_string(const char* str,
                             int* sign, int* term1, int* term2, double* term3) {
     anbool matched;
@@ -184,7 +180,7 @@ double atodec(const char* str) {
         return HUGE_VAL;
     return dec;
 }
-
+**/
 double mag2flux(double mag) {
     return pow(POGSON, -mag);
 }

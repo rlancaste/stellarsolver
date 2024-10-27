@@ -17,7 +17,7 @@
 int fitsfile_pad_with(FILE* fid, char pad) {
     return fits_pad_file_with(fid, pad);
 }
-
+/** //# Modified by Robert Lancaster for the StellarSolver Internal Library
 int fitsfile_write_header(FILE* fid, qfits_header* hdr,
                           off_t* start_offset, off_t* end_offset,
                           int ext, const char* fn) {
@@ -81,5 +81,5 @@ int fitsfile_fix_primary_header(FILE* fid, qfits_header* hdr,
     off_t zero = 0;
     return fitsfile_fix_header(fid, hdr, &zero, end_offset, 0, fn);
 }
-
+**/
 
