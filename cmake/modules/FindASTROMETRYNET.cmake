@@ -35,7 +35,7 @@ if (ASTROMETRYNET_INCLUDE_DIR AND ASTROMETRYNET_LIBRARIES)
 
   # in cache already
   set(ASTROMETRYNET_FOUND TRUE)
-  message(STATUS "Found ASTROMETRYNET: ${ASTROMETRYNET_LIBRARIES}")
+  message(STATUS "Found ASTROMETRY.NET in cache: ${ASTROMETRYNET_LIBRARIES}")
 
 
 else (ASTROMETRYNET_INCLUDE_DIR AND ASTROMETRYNET_LIBRARIES)
@@ -48,11 +48,20 @@ else (ASTROMETRYNET_INCLUDE_DIR AND ASTROMETRYNET_LIBRARIES)
   endif (NOT WIN32)
 
   find_path(ASTROMETRYNET_INCLUDE_DIR solver.h
+      PATH_SUFFIXES astrometry
       ${PC_CFITSIO_INCLUDE_DIRS}
       ${_obIncDir}
       ${GNUWIN32_DIR}/include
-      $ENV{HOME}/AstroRoot/craft-root/include/astrometry
-      /usr/include/astrometry
+      ${craftRoot}/include
+      ${CMAKE_INSTALL_PREFIX}/include
+      /usr/include
+  )
+
+  find_library(WCSLIB_LIBRARIES NAMES NAMES libastrometry.so libastrometry-dev libastrometry0
+    PATHS
+      ${craftRoot}/lib
+      ${CMAKE_INSTALL_PREFIX}/lib
+    NO_DEFAULT_PATH
   )
 
   find_library(ASTROMETRYNET_LIBRARIES NAMES libastrometry.so libastrometry-dev libastrometry0
@@ -60,7 +69,6 @@ else (ASTROMETRYNET_INCLUDE_DIR AND ASTROMETRYNET_LIBRARIES)
         ${PC_ASTROMETRYNET_LIBRARY_DIRS}
         ${_obIncDir}
         ${GNUWIN32_DIR}/include
-        $ENV{HOME}/AstroRoot/craft-root/lib
         /usr/lib/x86_64-linux-gnu/lib
   )
 
@@ -72,11 +80,11 @@ else (ASTROMETRYNET_INCLUDE_DIR AND ASTROMETRYNET_LIBRARIES)
 
   if (ASTROMETRYNET_FOUND)
     if (NOT ASTROMETRYNET_FIND_QUIETLY)
-      message(STATUS "Found ASTROMETRYNET: ${ASTROMETRYNET_LIBRARIES}")
+      message(STATUS "Found ASTROMETRY.NET: ${ASTROMETRYNET_LIBRARIES}")
     endif (NOT ASTROMETRYNET_FIND_QUIETLY)
   else (ASTROMETRYNET_FOUND)
     if (ASTROMETRYNET_FIND_REQUIRED)
-      message(FATAL_ERROR "ASTROMETRYNET development library not found. Please install libastrometry-dev and try again.")
+      message(FATAL_ERROR "ASTROMETRY.NET development library not found. Please install libastrometry-dev and try again.")
     endif (ASTROMETRYNET_FIND_REQUIRED)
   endif (ASTROMETRYNET_FOUND)
 

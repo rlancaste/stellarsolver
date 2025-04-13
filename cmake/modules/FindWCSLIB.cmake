@@ -35,7 +35,7 @@ if (WCSLIB_INCLUDE_DIR AND WCSLIB_LIBRARIES)
 
   # in cache already
   set(WCSLIB_FOUND TRUE)
-  message(STATUS "Found WCSLIB: ${WCSLIB_LIBRARIES}, ${WCSLIB_INCLUDE_DIR}")
+  message(STATUS "Found WCSLIB in cache: ${WCSLIB_LIBRARIES}, ${WCSLIB_INCLUDE_DIR}")
 
 else (WCSLIB_INCLUDE_DIR AND WCSLIB_LIBRARIES)
 
@@ -51,13 +51,22 @@ else (WCSLIB_INCLUDE_DIR AND WCSLIB_LIBRARIES)
     ${PC_WCSLIB_INCLUDE_DIRS}
     ${_obIncDir}
     ${GNUWIN32_DIR}/include
+    ${craftRoot}/include
+    ${CMAKE_INSTALL_PREFIX}/include
   )
-  
+
+  find_library(WCSLIB_LIBRARIES NAMES wcs wcslib libwcslib
+    PATHS
+      ${craftRoot}/lib
+      ${CMAKE_INSTALL_PREFIX}/lib
+    NO_DEFAULT_PATH
+  )
+
   find_library(WCSLIB_LIBRARIES NAMES wcs wcslib
     PATHS
-    ${PC_WCSLIB_LIBRARY_DIRS}
-    ${_obLinkDir}
-    ${GNUWIN32_DIR}/lib
+      ${PC_WCSLIB_LIBRARY_DIRS}
+      ${_obLinkDir}
+      ${GNUWIN32_DIR}/lib
   )
   
   if(WCSLIB_INCLUDE_DIR AND WCSLIB_LIBRARIES)

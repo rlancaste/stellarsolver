@@ -47,18 +47,27 @@ else (STELLARSOLVER_INCLUDE_DIR AND STELLARSOLVER_LIBRARIES)
   endif (NOT WIN32)
 
   find_path(STELLARSOLVER_INCLUDE_DIR stellarsolver.h
-            ${_obIncDir}
-            ${GNUWIN32_DIR}/include/libstellarsolver/
-            /usr/include/libstellarsolver
-            /Users/rlancaste/AstroRoot/craft-root/include/libstellarsolver/
-
-        )
+    PATH_SUFFIXES libstellarsolver
+      ${_obIncDir}
+      ${GNUWIN32_DIR}/include/
+      /usr/include
+      ${craftRoot}/include
+      $ENV{CRAFT_ROOT}/include
+  )
 
   find_library(STELLARSOLVER_LIBRARIES NAMES stellarsolver libstellarsolver.a
     PATHS
-        ${_obIncDir}
-        ${GNUWIN32_DIR}/lib
-        /Users/rlancaste/AstroRoot/craft-root/lib
+      ${craftRoot}/lib
+      ${CMAKE_INSTALL_PREFIX}/lib
+    NO_DEFAULT_PATH
+  )
+
+  find_library(STELLARSOLVER_LIBRARIES NAMES stellarsolver libstellarsolver.a
+    PATHS
+      ${_obIncDir}
+      ${GNUWIN32_DIR}/lib
+      ${craftRoot}/lib
+      ${CMAKE_INSTALL_PREFIX}/lib
   )
 
   if(STELLARSOLVER_INCLUDE_DIR AND STELLARSOLVER_LIBRARIES)

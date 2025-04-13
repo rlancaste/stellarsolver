@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 PROJECT(StellarSolver C CXX)
 set(CMAKE_CXX_STANDARD 17)
 if(APPLE)
@@ -359,7 +359,13 @@ endif(WIN32)
 add_executable(StellarSolverTester ${StellarSolverTester_SRCS} ${StellarSolverui_SRCS} ${StellarSolverTesterApp_ICON})
 
 if(APPLE)
-    SET_TARGET_PROPERTIES(StellarSolverTester PROPERTIES MACOSX_BUNDLE TRUE)
+    SET_TARGET_PROPERTIES(StellarSolverTester PROPERTIES
+      MACOSX_BUNDLE TRUE
+      MACOSX_BUNDLE_GUI_IDENTIFIER com.rlancaste.stellarsolvertester
+      MACOSX_BUNDLE_BUNDLE_NAME StellarSolverTester
+      MACOSX_BUNDLE_BUNDLE_VERSION ${StellarSolver_VERSION_STRING}
+      MACOSX_BUNDLE_SHORT_VERSION_STRING ${StellarSolver_VERSION_STRING}
+    )
 endif(APPLE)
 
 
@@ -426,7 +432,13 @@ if(BUILD_BATCH_SOLVER)
     add_executable(StellarBatchSolver ${StellarBatchSolver_SRCS} ${StellarBatchSolverui_SRCS} ${StellarBatchSolver_ICON})
 
     if(APPLE)
-        SET_TARGET_PROPERTIES(StellarBatchSolver PROPERTIES MACOSX_BUNDLE TRUE)
+        SET_TARGET_PROPERTIES(StellarSolverTester PROPERTIES
+          MACOSX_BUNDLE TRUE
+          MACOSX_BUNDLE_GUI_IDENTIFIER com.rlancaste.stellarbatchsolver
+          MACOSX_BUNDLE_BUNDLE_NAME StellarBatchSolver
+          MACOSX_BUNDLE_BUNDLE_VERSION ${StellarSolver_VERSION_STRING}
+          MACOSX_BUNDLE_SHORT_VERSION_STRING ${StellarSolver_VERSION_STRING}
+        )
     endif(APPLE)
 
     target_link_libraries(StellarBatchSolver PUBLIC
