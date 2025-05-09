@@ -10,13 +10,22 @@ endif(APPLE)
 # Timestamp build
 string(TIMESTAMP StellarSolver_BUILD_TS UTC)
 
+# Option to choose between Qt5 and Qt6
+option(USE_QT5 "Use Qt5" ON)
+
+if(USE_QT5)
+    set (StellarSolver_QTVERSION qt5)
+else()
+    set (StellarSolver_QTVERSION qt6)
+endif()
+
 # StellarSolver Version 2.6
 set (StellarSolver_VERSION_MAJOR 2)
 set (StellarSolver_VERSION_MINOR 6)
 
-set (StellarSolver_SOVERSION "${StellarSolver_VERSION_MAJOR}")
-set (StellarSolver_VERSION ${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR})
-set (StellarSolver_VERSION_STRING "${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR}")
+set (StellarSolver_SOVERSION "${StellarSolver_QTVERSION}.${StellarSolver_VERSION_MAJOR}")
+set (StellarSolver_VERSION ${StellarSolver_QTVERSION}.${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR})
+set (StellarSolver_VERSION_STRING "${StellarSolver_QTVERSION}.${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR}")
 
 # Exports
 set(TARGET_EXPORT_NAME ${PROJECT_NAME}Targets)
@@ -103,9 +112,6 @@ option(BUILD_CLI "Build stellarsolver command line interface, instead of just th
 find_package(CFITSIO REQUIRED)
 find_package(GSL REQUIRED)
 find_package(WCSLIB REQUIRED)
-
-# Option to choose between Qt5 and Qt6
-option(USE_QT5 "Use Qt5" ON)
 
 if(USE_QT5)
     find_package(Qt5 5.15 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
