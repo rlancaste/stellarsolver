@@ -14,18 +14,18 @@ string(TIMESTAMP StellarSolver_BUILD_TS UTC)
 option(USE_QT5 "Use Qt5" ON)
 
 if(USE_QT5)
-    set (StellarSolver_QTVERSION qt5)
+    set (StellarSolver_QTVERSION 5)
 else()
-    set (StellarSolver_QTVERSION qt6)
+    set (StellarSolver_QTVERSION 6)
 endif()
 
 # StellarSolver Version 2.6
 set (StellarSolver_VERSION_MAJOR 2)
 set (StellarSolver_VERSION_MINOR 6)
 
-set (StellarSolver_SOVERSION "${StellarSolver_QTVERSION}.${StellarSolver_VERSION_MAJOR}")
-set (StellarSolver_VERSION ${StellarSolver_QTVERSION}.${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR})
-set (StellarSolver_VERSION_STRING "${StellarSolver_QTVERSION}.${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR}")
+set (StellarSolver_SOVERSION "${StellarSolver_VERSION_MAJOR}")
+set (StellarSolver_VERSION ${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR})
+set (StellarSolver_VERSION_STRING "${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR}")
 
 # Exports
 set(TARGET_EXPORT_NAME ${PROJECT_NAME}Targets)
@@ -272,7 +272,7 @@ target_link_libraries(stellarsolver PUBLIC
 if(WIN32)
     target_link_libraries(stellarsolver PUBLIC wsock32)
 else(WIN32)
-    set_target_properties(stellarsolver PROPERTIES VERSION ${StellarSolver_VERSION_STRING} SOVERSION ${StellarSolver_SOVERSION} OUTPUT_NAME stellarsolver)
+    set_target_properties(stellarsolver PROPERTIES VERSION ${StellarSolver_VERSION_STRING} SOVERSION ${StellarSolver_SOVERSION} OUTPUT_NAME stellarsolver${StellarSolver_QTVERSION})
 endif(WIN32)
 
 if (MSVC) # We need to disable some warnings caused by using code designed for Unix on a Windows machine, otherwise astrometry code gives over 1500 warnings.
