@@ -434,7 +434,7 @@ if(BUILD_BATCH_SOLVER)
     add_executable(StellarBatchSolver ${StellarBatchSolver_SRCS} ${StellarBatchSolverui_SRCS} ${StellarBatchSolver_ICON})
 
     if(APPLE)
-        SET_TARGET_PROPERTIES(StellarSolverTester PROPERTIES
+        SET_TARGET_PROPERTIES(StellarBatchSolver PROPERTIES
           MACOSX_BUNDLE TRUE
           MACOSX_BUNDLE_GUI_IDENTIFIER com.rlancaste.stellarbatchsolver
           MACOSX_BUNDLE_BUNDLE_NAME StellarBatchSolver
