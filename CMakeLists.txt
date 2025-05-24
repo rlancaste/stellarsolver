@@ -10,9 +10,9 @@ endif(APPLE)
 # Timestamp build
 string(TIMESTAMP StellarSolver_BUILD_TS UTC)
 
-# StellarSolver Version 2.6
+# StellarSolver Version 2.7
 set (StellarSolver_VERSION_MAJOR 2)
-set (StellarSolver_VERSION_MINOR 6)
+set (StellarSolver_VERSION_MINOR 7)
 
 set (StellarSolver_SOVERSION "${StellarSolver_VERSION_MAJOR}")
 set (StellarSolver_VERSION ${StellarSolver_VERSION_MAJOR}.${StellarSolver_VERSION_MINOR})

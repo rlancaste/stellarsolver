@@ -53,7 +53,9 @@ An Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net
 %license LICENSE
 
 %changelog
-* Thu Jul 06 2024 Rob Lancaster <rlancaste@gmail.com> 2.5.git
+* Thu May 24 2025 Rob Lancaster <rlancaste@gmail.com> 2.7.git
+- Updating Spec file to latest version
+* Thu Jul 06 2024 Rob Lancaster <rlancaste@gmail.com> 2.6.git
 - Updating Spec file to latest version
 * Thu Aug 17 2023 Rob Lancaster <rlancaste@gmail.com> 2.5.git
 - Updating Spec file to latest version
