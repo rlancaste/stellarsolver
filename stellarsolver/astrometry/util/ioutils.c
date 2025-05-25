@@ -917,9 +917,7 @@ anbool file_exists(const char* fn) {
 #ifndef _MSC_VER //# Modified by Robert Lancaster for the StellarSolver Internal Library
     return fn && (access(fn, F_OK) == 0);
 #else
-    DWORD dwAttrib = GetFileAttributes(fn);
-    return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
-                !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+    return fn && (access(fn, 0) == 0);
 #endif
 }
 
@@ -928,9 +926,7 @@ anbool file_readable(const char* fn) {
     return fn && (access(fn, R_OK) == 0);
 #else
     //NOTE: THIS NEEDS TO BE CHANGED, IT JUST DETERMINES THAT THE FILE EXISTS!
-    DWORD dwAttrib = GetFileAttributes(fn);
-    return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
-                !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+    return fn && (access(fn, 0) == 0);
 #endif
 }
 
