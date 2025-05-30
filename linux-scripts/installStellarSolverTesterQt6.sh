@@ -5,7 +5,7 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../
 
 #This installs the dependencies
 if [ -f /usr/lib/fedora-release ]; then
-  sudo dnf -y install git cmake qt6 cfitsio-devel gsl-devel wcslib-devel
+  sudo dnf -y install git cmake automake gcc gcc-c++ kernel-devel qt6-qtbase-devel cfitsio-devel gsl-devel wcslib-devel
 else
   sudo apt -y install g++ git cmake qt6-base-dev libgl1-mesa-dev libcfitsio-dev libgsl-dev wcslib-dev
 fi

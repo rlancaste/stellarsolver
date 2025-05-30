@@ -39,16 +39,7 @@
 
 //Astrometry.net includes
 extern "C"{
-#include "ioutils.h"
-#include "bl.h"
-#include "an-bool.h"
-#include "solver.h"
-#include "astrometry/blind.h"
-#include "log.h"
 #include "engine.h"
-#include "anqfits.h"
-#include "ioutils.h"
-#include "fitstable.h"
 }
 
 namespace Ui {
