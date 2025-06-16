@@ -229,6 +229,9 @@ int qfits_is_fits(const char * filename)
     magic = qfits_calloc(FITS_MAGIC_SZ+1, sizeof(char));
     if (fread(magic, 1, FITS_MAGIC_SZ, fp) != FITS_MAGIC_SZ) {
 		qfits_error("failed to read file [%s]: %s", filename, strerror(errno));
+        // Tidy up to avoid leaking file descriptors
+        fclose(fp);
+        qfits_free(magic);
 		return -1;
 	}
     fclose(fp);
