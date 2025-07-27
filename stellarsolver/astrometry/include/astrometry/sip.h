@@ -8,7 +8,7 @@
 
 //#include <stdio.h> //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve conflict
 #include "astrometry/an-bool.h"
-#include "astrometry/keywords.h"
+//#include "astrometry/keywords.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve qt conflict
 
 #define SIP_MAXORDER 10
 
@@ -137,16 +137,16 @@ void   sip_pixelxy2xyzarr(const sip_t* sip, double px, double py, double *xyz);
 // RA,Dec in degrees to Pixels.
 // Returns FALSE if the point is on the opposite side of the sphere (and hence the point
 // does not project onto the tangent plane)
-WarnUnusedResult
+//WarnUnusedResult //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve qt conflict
 anbool sip_radec2pixelxy(const sip_t* sip, double a, double d, double *px, double *py);
 
-WarnUnusedResult
+//WarnUnusedResult //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve qt conflict
 anbool sip_radec2pixelxy_check(const sip_t* sip, double ra, double dec, double *px, double *py);
 
-WarnUnusedResult
+//WarnUnusedResult //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve qt conflict
 anbool sip_xyzarr2pixelxy(const sip_t* sip, const double* xyz, double *px, double *py);
 
-WarnUnusedResult
+//WarnUnusedResult //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve qt conflict
 anbool sip_xyz2pixelxy(const sip_t* sip, double x, double y, double z, double *px, double *py);
 
 // Pixels to Intermediate World Coordinates in degrees.
@@ -189,12 +189,12 @@ void   tan_pixelxy2radecarr(const tan_t* wcs_tan, double px, double py, double *
 
 // RA,Dec in degrees to Pixels.
 // Returns FALSE if the point is on the opposite side of the sphere.
-WarnUnusedResult
+//WarnUnusedResult //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve qt conflict
 anbool   tan_radec2pixelxy(const tan_t* wcs_tan, double ra, double dec, double *px, double *py);
 
 // xyz unit vector to Pixels.
 // Returns TRUE if all is good.
-WarnUnusedResult
+//WarnUnusedResult //# Modified by Robert Lancaster for the StellarSolver Internal Library to resolve qt conflict
 anbool   tan_xyzarr2pixelxy(const tan_t* wcs_tan, const double* xyz, double *px, double *py);
 
 void tan_iwc2pixelxy(const tan_t* tan, double iwcx, double iwcy,
