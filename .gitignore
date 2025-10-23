@@ -34,3 +34,5 @@ documentation
 install_manifest.txt
 .idea
 *.kdev4
+
+package.xml
