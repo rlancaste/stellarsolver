@@ -9,6 +9,8 @@
 #include <math.h>
 #include <QString>
 
+#include "stellarsolver_export.h"
+
 namespace FITSImage
 {
 
@@ -55,7 +57,7 @@ static const QString getColorChannelText(ColorChannel channel){
 }
 
 // Stats struct to hold statisical data about the FITS data
-typedef struct Statistic
+typedef struct STELLARSOLVER_API Statistic
 {
     double min[3] = {0}, max[3] = {0};  // Minimum and Maximum R, G, B pixel values in the image
     double mean[3] = {0};               // Average R, G, B value of the pixels in the image
@@ -74,7 +76,7 @@ typedef struct Statistic
 
 // This structure holds data about sources that are found within
 // an image.  It is returned by Source Extraction
-typedef struct Star
+typedef struct STELLARSOLVER_API Star
 {
     float x;        // The x position of the star in Pixels
     float y;        // The y position of the star in Pixels
@@ -92,7 +94,7 @@ typedef struct Star
 
 // This struct holds data about the background in an image
 // It is returned by source extraction
-typedef struct Background
+typedef struct STELLARSOLVER_API Background
 {
     int bw, bh;             // single tile width, height
     float global;           // global mean
@@ -102,7 +104,7 @@ typedef struct Background
 
 // This struct contains information about the astrometric solution
 // for an image.
-typedef struct Solution
+typedef struct STELLARSOLVER_API Solution
 {
     double fieldWidth;  // The calculated width of the field in arcminutes
     double fieldHeight; // The calculated height of the field in arcminutes
@@ -116,7 +118,7 @@ typedef struct Solution
 } Solution;
 
 // This is a point in the World Coordinate System with both RA and DEC.
-typedef struct wcs_point
+typedef struct STELLARSOLVER_API wcs_point
 {
     float ra;           // The Right Ascension in degrees
     float dec;          // The Declination in degrees

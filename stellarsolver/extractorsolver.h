@@ -14,13 +14,14 @@
 #include <QVector>
 
 //Project Includes
+#include "stellarsolver_export.h"
 #include "structuredefinitions.h"
 #include "parameters.h"
 #include "wcsdata.h"
 
 using namespace SSolver;
 
-class ExtractorSolver : public QThread
+class STELLARSOLVER_API ExtractorSolver : public QThread
 {
         Q_OBJECT
     public:

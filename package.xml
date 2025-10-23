@@ -1,0 +1,8 @@
+<package format="3">
+    <name>stellarsolver</name>
+    <version>1.0.0</version>
+    <description>StellarSolver built as part of ROS2 workspace</description>
+    <maintainer email="you@example.com">You</maintainer>
+    <license>LGPL-3.0</license>
+    <buildtool_depend>ament_cmake</buildtool_depend>
+</package>
