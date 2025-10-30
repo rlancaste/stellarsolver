@@ -46,6 +46,10 @@ public:
      */
     bool appendStarsRAandDEC(QList<FITSImage::Star> &stars);
 
+    double getCRVAL(int i) const { return wcs.wcstan.crval[i]; }
+    double getCRPIX(int i) const { return wcs.wcstan.crpix[i]; }
+    double getCD(int i, int j) const { return wcs.wcstan.cd[i][j]; }
+
 private:
 
     bool hasWCS = false;
