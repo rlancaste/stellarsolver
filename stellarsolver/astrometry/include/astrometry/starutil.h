@@ -7,6 +7,7 @@
 #define STARUTIL_H
 
 #include <math.h>
+#include "stellarsolver_export.h"
 #include "astrometry/an-bool.h"
 #include "astrometry/keywords.h"
 
@@ -124,7 +125,7 @@ double dec2mercy(double dec);
 //# Modified by Robert Lancaster for the StellarSolver Internal Library
 // Moved ra2hms to header file for easier Windows compilation
 // RA in degrees to H:M:S
-void ra2hms(double ra, int* h, int* m, double* s);
+STELLARSOLVER_API void ra2hms(double ra, int* h, int* m, double* s);
 /**
 inline void ra2hms(double ra, int* h, int* m, double* s) {
     double rem;
@@ -146,13 +147,13 @@ inline void ra2hms(double ra, int* h, int* m, double* s) {
 }**/
 
 // Dec in degrees to D:M:S
-void dec2dms(double dec, int* sign, int* d, int* m, double* s);
+STELLARSOLVER_API void dec2dms(double dec, int* sign, int* d, int* m, double* s);
 
 double hms2ra(int h, int m, double s);
 double dms2dec(int sgn, int d, int m, double s);
 
-void ra2hmsstring(double ra, char* str);
-void dec2dmsstring(double dec, char* str);
+STELLARSOLVER_API void ra2hmsstring(double ra, char* str);
+STELLARSOLVER_API void dec2dmsstring(double dec, char* str);
 
 void project_hammer_aitoff_x(double x, double y, double z, double* projx, double* projy);
 

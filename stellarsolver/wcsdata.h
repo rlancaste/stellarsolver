@@ -11,9 +11,10 @@ extern "C" {
 }
 
 //Project Includes
+#include "stellarsolver_export.h"
 #include "structuredefinitions.h"
 
-class WCSData
+class STELLARSOLVER_API WCSData
 {
 public:
     struct wcsprm *m_wcs; // This is a struct used by wcslib for wcs info loaded from a file

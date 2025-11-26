@@ -4,6 +4,7 @@
 #include <QObject>
 
 //Project Includes
+#include "stellarsolver_export.h"
 #include "structuredefinitions.h"
 
 namespace SSolver
@@ -94,7 +95,7 @@ static QString getConvFilterString(SSolver::ConvFilterType type)
 
 //This is a structure to hold the paths to the external programs for solving.
 //This makes the paths easier to access and set
-typedef struct
+typedef struct STELLARSOLVER_API ExternalProgramPaths
 {
     QString confPath;               //Path to the Astrometry Config File
     QString sextractorBinaryPath;   //Path to the SExtractor Program binary
@@ -304,7 +305,7 @@ static QString getLogLevelString(SSolver::logging_level logLevel)
 //The values here are the defaults unless they get changed.
 //If you are fine with those defaults, you don't need to set any of them.
 
-class Parameters
+class STELLARSOLVER_API Parameters
 {
     public:
 
