@@ -6,6 +6,10 @@ if(APPLE)
 endif(APPLE)
 
 #cmake_policy(SET CMP0003 NEW)
+# Hide all symbols by default
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
+add_compile_options(-fvisibility=hidden $<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden>)
 
 # Timestamp build
 string(TIMESTAMP StellarSolver_BUILD_TS UTC)
@@ -302,6 +306,7 @@ set(PKGCONFIG_INSTALL_PREFIX "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 
 install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/stellarsolver.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/stellarsolver_export.h
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/structuredefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/extractorsolver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/parameters.h
