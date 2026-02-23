@@ -109,7 +109,7 @@ find_package(GSL REQUIRED)
 find_package(WCSLIB REQUIRED)
 
 # Option to choose between Qt5 and Qt6
-option(USE_QT5 "Use Qt5" ON)
+option(USE_QT5 "Use Qt5" Off)
 
 if(USE_QT5)
     find_package(Qt5 5.15 REQUIRED COMPONENTS Gui Widgets Core Concurrent Network)
