@@ -1,7 +1,10 @@
 #!/usr/bin/make -f
 
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/cmake.mk
+%:
+	dh $@ --buildsystem=cmake --parallel
 
-#DEB_SRCDIR=stellarsolver
-DEB_DH_SHLIBDEPS_ARGS=-u--ignore-missing-info
+override_dh_shlibdeps:
+	dh_shlibdeps -- --ignore-missing-info
+
+override_dh_auto_build:
+	dh_auto_build -- -j$(shell nproc)
