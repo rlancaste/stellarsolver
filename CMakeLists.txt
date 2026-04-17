@@ -255,8 +255,10 @@ set(ALL_SRCS
 
 if (WIN32)
     add_library(stellarsolver STATIC ${ALL_SRCS})
+    target_compile_definitions(stellarsolver PUBLIC stellarsolver_STATIC)
 else(WIN32)
     add_library(stellarsolver SHARED ${ALL_SRCS})
+    target_compile_definitions(stellarsolver PRIVATE stellarsolver_EXPORTS)
 endif(WIN32)
 
 target_link_libraries(stellarsolver PUBLIC
