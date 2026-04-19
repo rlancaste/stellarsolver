@@ -1,30 +1,42 @@
 Source: libstellarsolver
 Section: libs
-Priority: extra
+Priority: optional
 Maintainer: Jasem Mutlaq <mutlaqja@ikarustech.com>
-Build-Depends: debhelper (>= 9), cdbs, cmake, qtbase5-dev, zlib1g-dev, libcfitsio3-dev|libcfitsio-dev, wcslib-dev, libgsl-dev
-Standards-Version: 3.9.1 
+Build-Depends:
+ debhelper-compat (= 13),
+ cmake,
+ pkg-config,
+ qt6-base-dev,
+ qt6-base-dev-tools,
+ qt6-declarative-dev,
+ qt6-svg-dev,
+ zlib1g-dev,
+ libcfitsio-dev,
+ wcslib-dev,
+ libgsl-dev
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
 
 Package: libstellarsolver
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: StellarSolver Library
  .
- This package includes an Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net and SEP.
+ This package includes an Astrometric Plate Solver for Mac, Linux, and Windows,
+ built on Astrometry.net and SEP.
 
 Package: libstellarsolver-dev
 Architecture: any
-Depends: libstellarsolver (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Depends: libstellarsolver (= ${binary:Version}), ${misc:Depends}
 Description: StellarSolver Library development headers
  .
- This package includes development headers for an Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net and SEP.
+ Development headers for the StellarSolver astrometric plate solving library.
 
-Package: libstellarsolver-dbg
-Priority: extra
+Package: libstellarsolver-dbgsym
 Section: debug
+Priority: optional
 Architecture: any
 Depends: libstellarsolver (= ${binary:Version}), ${misc:Depends}
-Description: StellarSolver Library debug symbols
+Description: debug symbols for libstellarsolver
  .
- This package contains debug symbols.
-
+ This package contains debug symbols for libstellarsolver.
