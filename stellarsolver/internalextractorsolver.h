@@ -27,7 +27,7 @@ extern "C" {
 
 using namespace SSolver;
 
-class InternalExtractorSolver: public ExtractorSolver
+class STELLARSOLVER_API InternalExtractorSolver: public ExtractorSolver
 {
     public:
         explicit InternalExtractorSolver(ProcessType pType, ExtractorType eType, SolverType sType,

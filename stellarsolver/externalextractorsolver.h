@@ -21,7 +21,7 @@
 
 using namespace SSolver;
 
-class ExternalExtractorSolver : public InternalExtractorSolver
+class STELLARSOLVER_API ExternalExtractorSolver : public InternalExtractorSolver
 {
         Q_OBJECT
     public:
