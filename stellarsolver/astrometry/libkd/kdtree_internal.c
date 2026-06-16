@@ -1473,17 +1473,61 @@ static void copy_data_double(const kdtree_t* kd, int start, int N,
 #endif
 }
 
-static dtype* kdqsort_arr;
-static int kdqsort_D;
+struct kdqsort_context {
+    const dtype* arr;
+    int D;
+};
 
-static int kdqsort_compare(const void* v1, const void* v2)
+struct portable_qsort_r_adapter {
+    int (*compar)(const void *, const void *, void *);
+    void *arg;
+};
+
+#if defined(_WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
+static int windows_qsort_s_adapter(void *context, const void *v1, const void *v2) {
+    struct portable_qsort_r_adapter *adapter = (struct portable_qsort_r_adapter *)context;
+    return adapter->compar(v1, v2, adapter->arg);
+}
+static void portable_qsort_r(void *base, size_t nmemb, size_t size,
+                             int (*compar)(const void *, const void *, void *),
+                             void *arg) {
+    struct portable_qsort_r_adapter adapter;
+    adapter.compar = compar;
+    adapter.arg = arg;
+    qsort_s(base, nmemb, size, windows_qsort_s_adapter, &adapter);
+}
+
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+static int bsd_qsort_r_adapter(void *thunk, const void *v1, const void *v2) {
+    struct portable_qsort_r_adapter *adapter = (struct portable_qsort_r_adapter *)thunk;
+    return adapter->compar(v1, v2, adapter->arg);
+}
+static void portable_qsort_r(void *base, size_t nmemb, size_t size,
+                             int (*compar)(const void *, const void *, void *),
+                             void *arg) {
+    struct portable_qsort_r_adapter adapter;
+    adapter.compar = compar;
+    adapter.arg = arg;
+    qsort_r(base, nmemb, size, &adapter, bsd_qsort_r_adapter);
+}
+
+#else
+static void portable_qsort_r(void *base, size_t nmemb, size_t size,
+                             int (*compar)(const void *, const void *, void *),
+                             void *arg) {
+    qsort_r(base, nmemb, size, compar, arg);
+}
+#endif
+
+static int kdqsort_compare(const void* v1, const void* v2, void* thunk)
 {
+    struct kdqsort_context* ctx = (struct kdqsort_context*)thunk;
     int i1, i2;
     dtype val1, val2;
     i1 = *((int*)v1);
     i2 = *((int*)v2);
-    val1 = kdqsort_arr[(size_t)i1 * (size_t)kdqsort_D];
-    val2 = kdqsort_arr[(size_t)i2 * (size_t)kdqsort_D];
+    val1 = ctx->arr[(size_t)i1 * (size_t)ctx->D];
+    val2 = ctx->arr[(size_t)i2 * (size_t)ctx->D];
     if (val1 < val2)
         return -1;
     else if (val1 > val2)
@@ -1497,6 +1541,7 @@ static int kdtree_qsort(dtype *arr, unsigned int *parr, int l, int r, int D, int
     int i, j, N;
     dtype* tmparr;
     int* tmpparr;
+    struct kdqsort_context ctx;
 
     N = r - l + 1;
     permute = MALLOC((size_t)N * sizeof(int));
@@ -1506,10 +1551,10 @@ static int kdtree_qsort(dtype *arr, unsigned int *parr, int l, int r, int D, int
     }
     for (i = 0; i < N; i++)
         permute[i] = i;
-    kdqsort_arr = arr + (size_t)l * (size_t)D + (size_t)d;
-    kdqsort_D = D;
+    ctx.arr = arr + (size_t)l * (size_t)D + (size_t)d;
+    ctx.D = D;
 
-    qsort(permute, N, sizeof(int), kdqsort_compare);
+    portable_qsort_r(permute, N, sizeof(int), kdqsort_compare, &ctx);
 
     // permute the data one dimension at a time...
     tmparr = MALLOC(N * sizeof(dtype));

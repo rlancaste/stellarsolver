@@ -15,7 +15,57 @@
 #include "an-bool.h"
 #include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
-static pl* estack = NULL;
+#if defined(_WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
+#include <windows.h>
+static DWORD estack_tls_key = TLS_OUT_OF_INDEXES;
+static void init_tls() {
+    if (estack_tls_key == TLS_OUT_OF_INDEXES) {
+        estack_tls_key = TlsAlloc();
+    }
+}
+static pl* get_estack() {
+    init_tls();
+    if (estack_tls_key == TLS_OUT_OF_INDEXES) return NULL;
+    return (pl*)TlsGetValue(estack_tls_key);
+}
+static void set_estack(pl* val) {
+    init_tls();
+    if (estack_tls_key != TLS_OUT_OF_INDEXES) {
+        TlsSetValue(estack_tls_key, val);
+    }
+}
+#else
+#include <pthread.h>
+static pthread_key_t estack_key;
+static pthread_once_t estack_key_once = PTHREAD_ONCE_INIT;
+
+static void estack_destructor(void* val) {
+    pl* stack = (pl*)val;
+    if (stack) {
+        int i;
+        for (i = 0; i < pl_size(stack); i++) {
+            err_t* e = pl_get(stack, i);
+            error_free(e);
+        }
+        pl_free(stack);
+    }
+}
+
+static void make_estack_key() {
+    pthread_key_create(&estack_key, estack_destructor);
+}
+
+static pl* get_estack() {
+    pthread_once(&estack_key_once, make_estack_key);
+    return (pl*)pthread_getspecific(estack_key);
+}
+
+static void set_estack(pl* val) {
+    pthread_once(&estack_key_once, make_estack_key);
+    pthread_setspecific(estack_key, val);
+}
+#endif
+
 static anbool atexit_registered = FALSE;
 
 static err_t* error_copy(err_t* e) {
@@ -85,8 +135,10 @@ void errors_clear_stack() {
 }
 
 err_t* errors_get_state() {
+    pl* estack = get_estack();
     if (!estack) {
         estack = pl_new(4);
+        set_estack(estack);
         // register an atexit() function to clean up.
         if (!atexit_registered) {
             if (atexit(errors_free) == 0)
@@ -104,6 +156,7 @@ err_t* errors_get_state() {
 }
 
 void errors_free() {
+    pl* estack = get_estack();
     int i;
     if (!estack)
         return;
@@ -112,14 +165,16 @@ void errors_free() {
         error_free(e);
     }
     pl_free(estack);
-    estack = NULL;
+    set_estack(NULL);
 }
 
 void errors_push_state() {
+    pl* estack;
     err_t* now;
     err_t* snapshot;
     // make sure the stack and current state are initialized
     errors_get_state();
+    estack = get_estack();
     now = pl_pop(estack);
     snapshot = error_copy(now);
     pl_push(estack, snapshot);
@@ -129,8 +184,11 @@ void errors_push_state() {
 }
 
 void errors_pop_state() {
-    err_t* now = pl_pop(estack);
-    error_free(now);
+    pl* estack = get_estack();
+    if (estack) {
+        err_t* now = pl_pop(estack);
+        error_free(now);
+    }
 }
 
 void errors_print_stack(FILE* f) {
@@ -272,4 +330,3 @@ void error_stack_clear(err_t* e) {
     }
     bl_remove_all(e->errstack);
 }
-

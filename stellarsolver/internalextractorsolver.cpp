@@ -24,6 +24,7 @@
 #endif
 
 #include <memory>
+#include <atomic>
 
 
 //SEP Includes
@@ -41,7 +42,7 @@ extern "C" {
 using namespace SSolver;
 using namespace SEP;
 
-static int solverNum = 1;
+static std::atomic<int> solverNum{1};
 
 InternalExtractorSolver::InternalExtractorSolver(ProcessType pType, ExtractorType eType, SolverType sType,
         const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer, QObject *parent) : ExtractorSolver(pType, eType, sType,
