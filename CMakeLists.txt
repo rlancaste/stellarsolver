@@ -607,6 +607,9 @@ if(BUILD_TESTS)
     )
     target_link_libraries(TestThreadSafeErrors PUBLIC StellarSolverTestsLib)
 
+    add_executable(TestTorture ${CMAKE_CURRENT_SOURCE_DIR}/tests/testtorture.cpp)
+    target_link_libraries(TestTorture PUBLIC StellarSolverTestsLib)
+
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/pleiades.jpg" DESTINATION "${CMAKE_BINARY_DIR}/")
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/randomsky.fits" DESTINATION "${CMAKE_BINARY_DIR}/")
     # Note: These are the index files that solve the above images best.
