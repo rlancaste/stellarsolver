@@ -46,12 +46,10 @@ ExternalExtractorSolver::~ExternalExtractorSolver()
     free(colUnits);
     free(magUnits);
 
-    if(isRunning())
-    {
-        quit();
-        requestInterruption();
-        wait();
-    }
+    disconnect();
+    quit();
+    requestInterruption();
+    wait();
 }
 
 //The following methods are available to get the default paths for different operating systems and configurations.

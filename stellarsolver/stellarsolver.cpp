@@ -46,11 +46,24 @@ StellarSolver::StellarSolver(ProcessType type, const FITSImage::Statistic &image
 
 StellarSolver::~StellarSolver()
 {
-    // These lines make sure that before the StellarSolver is deleted, all parallel threads (if any) are shut down
     for(auto &solver : parallelSolvers)
       disconnect(solver, &ExtractorSolver::finished, this, &StellarSolver::finishParallelSolve);
 
     abortAndWait();
+
+    for(auto *solver : parallelSolvers)
+    {
+        solver->disconnect();
+        solver->wait();
+    }
+    qDeleteAll(parallelSolvers);
+    parallelSolvers.clear();
+
+    if(m_ExtractorSolver)
+    {
+        m_ExtractorSolver->disconnect();
+        m_ExtractorSolver->wait();
+    }
 }
 
 void StellarSolver::registerMetaTypes()
@@ -82,6 +95,8 @@ bool StellarSolver::loadNewImageBuffer(const FITSImage::Statistic &imagestats, u
     m_UseScale = false;
     m_ScaleHigh = 0;
     m_ScaleLow = 0;
+    for (auto *solver : parallelSolvers)
+        solver->wait();
     qDeleteAll(parallelSolvers);
     parallelSolvers.clear();
     m_ExtractorSolver.reset();
@@ -424,6 +439,8 @@ void StellarSolver::parallelSolve()
 {
     if(params.multiAlgorithm == NOT_MULTI || !(m_SolverType == SOLVER_STELLARSOLVER || m_SolverType == SOLVER_LOCALASTROMETRY))
         return;
+    for (auto *solver : parallelSolvers)
+        solver->wait();
     qDeleteAll(parallelSolvers);
     parallelSolvers.clear();
     m_ParallelSolversFinishedCount = 0;
@@ -626,7 +643,9 @@ void StellarSolver::finishParallelSolve(int success)
             m_HasFailed = true;
             emitReady = true; //Since this was emitted earlier if it had been solved
         }
-        qDeleteAll(parallelSolvers);
+        for (auto *solver : parallelSolvers)
+        solver->wait();
+    qDeleteAll(parallelSolvers);
         parallelSolvers.clear();
         m_ExtractorSolver->cleanupTempFiles();
         emitFinished=true;

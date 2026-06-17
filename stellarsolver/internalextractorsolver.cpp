@@ -66,12 +66,10 @@ InternalExtractorSolver::~InternalExtractorSolver()
         delete [] mergedChannelBuffer;
         mergedChannelBuffer = nullptr;
     }
-    if(isRunning())
-    {
-        quit();
-        requestInterruption();
-        wait();
-    }
+    disconnect();
+    quit();
+    requestInterruption();
+    wait();
 }
 
 //This is the abort method.  For the internal solver it sets a cancel variable. It quits the thread.  And it cancels any SEP threads that are in progress.
