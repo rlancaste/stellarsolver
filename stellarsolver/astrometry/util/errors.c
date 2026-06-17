@@ -10,30 +10,69 @@
 #include <errno.h>
 #include <stdio.h>
 
+#include "os-features.h" //# Modified for the StellarSolver Internal Library for thread safety
 #include "errors.h"
 #include "ioutils.h"
 #include "an-bool.h"
 #include "log.h" //# Modified by Robert Lancaster for the StellarSolver Internal Library for logging
 
+//# Modified for the StellarSolver Internal Library for thread safety:
+//  - Windows: FlsAlloc with destructor + InitOnceExecuteOnce (requires Vista+)
+//  - POSIX: pthread_key_create with destructor + pthread_once
+//  - atexit race fixed with pthread_once / InitOnceExecuteOnce
 #if defined(_WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
 #include <windows.h>
-static DWORD estack_tls_key = TLS_OUT_OF_INDEXES;
-static void init_tls() {
-    if (estack_tls_key == TLS_OUT_OF_INDEXES) {
-        estack_tls_key = TlsAlloc();
+static DWORD estack_fls_key = FLS_OUT_OF_INDEXES;
+
+static void estack_destructor(void* val) {
+    pl* stack = (pl*)val;
+    if (stack) {
+        int i;
+        for (i = 0; i < pl_size(stack); i++) {
+            err_t* e = pl_get(stack, i);
+            error_free(e);
+        }
+        pl_free(stack);
     }
 }
+
+static VOID WINAPI estack_fls_destructor(PVOID val) {
+    estack_destructor(val);
+}
+
+static INIT_ONCE tls_init_once = INIT_ONCE_STATIC_INIT;
+static BOOL CALLBACK init_tls_callback(PINIT_ONCE once, PVOID param, PVOID *context) {
+    (void)once; (void)param; (void)context;
+    estack_fls_key = FlsAlloc(estack_fls_destructor);
+    return TRUE;
+}
+
+static void init_tls() {
+    InitOnceExecuteOnce(&tls_init_once, init_tls_callback, NULL, NULL);
+}
+
 static pl* get_estack() {
     init_tls();
-    if (estack_tls_key == TLS_OUT_OF_INDEXES) return NULL;
-    return (pl*)TlsGetValue(estack_tls_key);
+    if (estack_fls_key == FLS_OUT_OF_INDEXES) return NULL;
+    return (pl*)FlsGetValue(estack_fls_key);
 }
 static void set_estack(pl* val) {
     init_tls();
-    if (estack_tls_key != TLS_OUT_OF_INDEXES) {
-        TlsSetValue(estack_tls_key, val);
+    if (estack_fls_key != FLS_OUT_OF_INDEXES) {
+        FlsSetValue(estack_fls_key, val);
     }
 }
+
+static INIT_ONCE atexit_init_once = INIT_ONCE_STATIC_INIT;
+static BOOL CALLBACK register_atexit_callback(PINIT_ONCE once, PVOID param, PVOID *context) {
+    (void)once; (void)param; (void)context;
+    atexit(errors_free);
+    return TRUE;
+}
+static void register_atexit() {
+    InitOnceExecuteOnce(&atexit_init_once, register_atexit_callback, NULL, NULL);
+}
+
 #else
 #include <pthread.h>
 static pthread_key_t estack_key;
@@ -64,9 +103,15 @@ static void set_estack(pl* val) {
     pthread_once(&estack_key_once, make_estack_key);
     pthread_setspecific(estack_key, val);
 }
-#endif
 
-static anbool atexit_registered = FALSE;
+static pthread_once_t atexit_once = PTHREAD_ONCE_INIT;
+static void register_atexit_fn() {
+    atexit(errors_free);
+}
+static void register_atexit() {
+    pthread_once(&atexit_once, register_atexit_fn);
+}
+#endif
 
 static err_t* error_copy(err_t* e) {
     int i, N;
@@ -81,6 +126,7 @@ static err_t* error_copy(err_t* e) {
     return copy;
 }
 
+// NOT thread-safe: global FILE*. No callers of errors_print_on_exit() in StellarSolver.
 static FILE* print_errs_fid;
 static void print_errs(void) {
     FILE* fid = print_errs_fid;
@@ -139,11 +185,7 @@ err_t* errors_get_state() {
     if (!estack) {
         estack = pl_new(4);
         set_estack(estack);
-        // register an atexit() function to clean up.
-        if (!atexit_registered) {
-            if (atexit(errors_free) == 0)
-                atexit_registered = TRUE;
-        }
+        register_atexit(); //# Modified for the StellarSolver Internal Library for thread safety
     } 
     if (!pl_size(estack)) {
         err_t* e = error_new();
@@ -204,7 +246,9 @@ void report_error(const char* modfile, int modline,
 }
 
 void report_errno() {
-    error_report(errors_get_state(), "system", -1, "", "%s", strerror(errno));
+    char errbuf[128]; //# Modified for the StellarSolver Internal Library for thread safety
+    portable_strerror_r(errno, errbuf, sizeof(errbuf)); //# Modified for the StellarSolver Internal Library for thread safety
+    error_report(errors_get_state(), "system", -1, "", "%s", errbuf);
 }
 
 err_t* error_new() {

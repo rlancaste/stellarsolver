@@ -410,7 +410,7 @@ static void compute_splitbits(kdtree_t* kd) {
 /* Sorts results by kq->sdists */
 static int kdtree_qsort_results(kdtree_qres_t *kq, int D) {
     int beg[KDTREE_MAX_RESULTS], end[KDTREE_MAX_RESULTS], i = 0, j, L, R;
-    static etype piv_vec[KDTREE_MAX_DIM];
+    etype piv_vec[KDTREE_MAX_DIM];
     unsigned int piv_perm;
     double piv;
 
@@ -1478,46 +1478,6 @@ struct kdqsort_context {
     int D;
 };
 
-struct portable_qsort_r_adapter {
-    int (*compar)(const void *, const void *, void *);
-    void *arg;
-};
-
-#if defined(_WIN32) || defined(_MSC_VER) || defined(__MINGW32__)
-static int windows_qsort_s_adapter(void *context, const void *v1, const void *v2) {
-    struct portable_qsort_r_adapter *adapter = (struct portable_qsort_r_adapter *)context;
-    return adapter->compar(v1, v2, adapter->arg);
-}
-static void portable_qsort_r(void *base, size_t nmemb, size_t size,
-                             int (*compar)(const void *, const void *, void *),
-                             void *arg) {
-    struct portable_qsort_r_adapter adapter;
-    adapter.compar = compar;
-    adapter.arg = arg;
-    qsort_s(base, nmemb, size, windows_qsort_s_adapter, &adapter);
-}
-
-#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
-static int bsd_qsort_r_adapter(void *thunk, const void *v1, const void *v2) {
-    struct portable_qsort_r_adapter *adapter = (struct portable_qsort_r_adapter *)thunk;
-    return adapter->compar(v1, v2, adapter->arg);
-}
-static void portable_qsort_r(void *base, size_t nmemb, size_t size,
-                             int (*compar)(const void *, const void *, void *),
-                             void *arg) {
-    struct portable_qsort_r_adapter adapter;
-    adapter.compar = compar;
-    adapter.arg = arg;
-    qsort_r(base, nmemb, size, &adapter, bsd_qsort_r_adapter);
-}
-
-#else
-static void portable_qsort_r(void *base, size_t nmemb, size_t size,
-                             int (*compar)(const void *, const void *, void *),
-                             void *arg) {
-    qsort_r(base, nmemb, size, compar, arg);
-}
-#endif
 
 static int kdqsort_compare(const void* v1, const void* v2, void* thunk)
 {

@@ -70,7 +70,7 @@
 static char * qfits_bintable_field_to_string(const qfits_table *, int, int,int);
 static char * qfits_asciitable_field_to_string(const qfits_table *, int, int, 
                                                int);
-static char * qfits_build_format(const qfits_col *);
+static char * qfits_build_format(const qfits_col *, char *); //# Modified for the StellarSolver Internal Library for thread safety
 static int qfits_table_append_bin_xtension(FILE *, const qfits_table *, 
                                            const void **);
 static int qfits_table_append_ascii_xtension(FILE *, const qfits_table *, 
@@ -78,6 +78,7 @@ static int qfits_table_append_ascii_xtension(FILE *, const qfits_table *,
 static int qfits_table_append_data(FILE *, const qfits_table *, const void **);
 static int qfits_table_get_field_size(int, const qfits_col *);
 static char * qfits_strstrip(const char *);
+static int qfits_strcmp_trimmed(const char *, const char *); //# Modified for the StellarSolver Internal Library for thread safety
 static double qfits_str2dec(const char *, int);
 
 /*----------------------------------------------------------------------------*/
@@ -196,9 +197,10 @@ qfits_header * qfits_table_ext_header_default(const qfits_table * t)
         curr_col = t->col;
         for (i=0; i<t->nc; i++) {
             sprintf(str_val, "TFORM%d", i+1);
-            sprintf(str_val2, "'%s'", qfits_build_format(curr_col));
+            { char fmt_buf[16]; //# Modified for the StellarSolver Internal Library for thread safety
+            sprintf(str_val2, "'%s'", qfits_build_format(curr_col, fmt_buf)); }
             qfits_header_append(fh, str_val, str_val2, "Format of field", NULL);
-                    
+
             sprintf(str_val, "TTYPE%d", i+1);
             sprintf(str_val2, "%s", curr_col->tlabel);
             qfits_header_append(fh, str_val, str_val2, "Field label", NULL);
@@ -262,9 +264,10 @@ qfits_header * qfits_table_ext_header_default(const qfits_table * t)
             qfits_header_append(fh, str_val, str_val2, "Field label", NULL);
             
             sprintf(str_val, "TFORM%d", i+1);
-            sprintf(str_val2, "'%s'", qfits_build_format(curr_col));
+            { char fmt_buf[16]; //# Modified for the StellarSolver Internal Library for thread safety
+            sprintf(str_val2, "'%s'", qfits_build_format(curr_col, fmt_buf)); }
             qfits_header_append(fh, str_val, str_val2, "Format of field", NULL);
-                    
+
             sprintf(str_val, "TBCOL%d", i+1);
             sprintf(str_val2, "%d", col_pos);
             qfits_header_append(fh, str_val, str_val2,"Start column of field",
@@ -1106,7 +1109,7 @@ void * qfits_query_column_data(
             field[col->atom_nb]='\0';
             /* Write the data in out_array */
             /* Test if a NULL val is encoutered */
-            if (!strcmp(col->nullval, qfits_strstrip(field))) {
+            if (!qfits_strcmp_trimmed(col->nullval, field)) { //# Modified for the StellarSolver Internal Library for thread safety
                 ((int*)out_array)[i] = inull;
             } else {
                 ((int*)out_array)[i] = (int)atoi(field); 
@@ -1127,7 +1130,7 @@ void * qfits_query_column_data(
             field[col->atom_nb]='\0';
             /* Write the data in out_array */
             /* Test if a NULL val is encoutered */
-            if (!strcmp(col->nullval, qfits_strstrip(field))) {
+            if (!qfits_strcmp_trimmed(col->nullval, field)) { //# Modified for the StellarSolver Internal Library for thread safety
                 ((float*)out_array)[i] = fnull;
             } else {
                 /* Add the decimal handling */
@@ -1315,7 +1318,7 @@ void * qfits_query_column_seq_data(
             field[col->atom_nb]='\0';
             /* Write the data in out_array */
             /* Test if a NULL val is encoutered */
-            if (!strcmp(col->nullval, qfits_strstrip(field))) {
+            if (!qfits_strcmp_trimmed(col->nullval, field)) { //# Modified for the StellarSolver Internal Library for thread safety
                 ((int*)out_array)[i] = inull;
             } else {
                 ((int*)out_array)[i] = (int)atoi(field); 
@@ -1337,7 +1340,7 @@ void * qfits_query_column_seq_data(
             field[col->atom_nb]='\0';
             /* Write the data in out_array */
             /* Test if a NULL val is encoutered */
-            if (!strcmp(col->nullval, qfits_strstrip(field))) {
+            if (!qfits_strcmp_trimmed(col->nullval, field)) { //# Modified for the StellarSolver Internal Library for thread safety
                 ((float*)out_array)[i] = fnull;
             } else {
                 /* Add the decimal handling */
@@ -1360,7 +1363,7 @@ void * qfits_query_column_seq_data(
             field[col->atom_nb]='\0';
             /* Write the data in out_array */
             /* Test if a NULL val is encoutered */
-            if (!strcmp(col->nullval, qfits_strstrip(field))) {
+            if (!qfits_strcmp_trimmed(col->nullval, field)) { //# Modified for the StellarSolver Internal Library for thread safety
                 ((double*)out_array)[i] = dnull;
             } else {
                 /* Add the decimal handling */
@@ -1523,7 +1526,7 @@ int * qfits_query_column_nulls(
             memcpy(field, &in_array[i*col->atom_nb], col->atom_nb);
             field[col->atom_nb]='\0';
             /* Test if a NULL val is encoutered */
-            if (!strcmp(col->nullval, qfits_strstrip(field))) {
+            if (!qfits_strcmp_trimmed(col->nullval, field)) { //# Modified for the StellarSolver Internal Library for thread safety
                 out_array[i] = 1;    
                 (*nb_nulls)++;
             } 
@@ -2172,13 +2175,14 @@ static char * qfits_bintable_field_to_string(
  This function returns a pointer to a statically allocated string,
  which is identical to the input string, except that all blank
  characters at the end and the beg. of the string have been removed.
- Do not free or modify the returned string! 
- Since the returned string is statically allocated, it will be modified at 
+ Do not free or modify the returned string!
+ Since the returned string is statically allocated, it will be modified at
  each function call (not re-entrant).
  */
 /*----------------------------------------------------------------------------*/
 static char * qfits_strstrip(const char * s)
 {
+    // NOT thread-safe: returns pointer to static buffer.
     static char l[1024+1];
     char * last;
 
@@ -2197,6 +2201,32 @@ static char * qfits_strstrip(const char * s)
     *last = '\0';
 
     return (char*)l;
+}
+
+//# Modified for the StellarSolver Internal Library for thread safety
+// Thread-safe strcmp against a trimmed version of s.
+// Equivalent to strcmp(ref, qfits_strstrip(s)) without a static buffer.
+static int qfits_strcmp_trimmed(const char *ref, const char *s)
+{
+    const char *end;
+    size_t len;
+
+    if (s == NULL || ref == NULL) {
+        if (s == ref) return 0;
+        return ref ? 1 : -1;
+    }
+
+    while (isspace((int)*s) && *s) s++;
+
+    end = s + strlen(s);
+    while (end > s && isspace((int)*(end - 1))) end--;
+    len = (size_t)(end - s);
+
+    {
+        int cmp = strncmp(ref, s, len);
+        if (cmp != 0) return cmp;
+        return ref[len] == '\0' ? 0 : (int)(unsigned char)ref[len];
+    }
 }
 
 /*----------------------------------------------------------------------------*/
@@ -2301,9 +2331,9 @@ int qfits_table_interpret_type(
  @return    The string to write to TFORM
  */
 /*----------------------------------------------------------------------------*/
-static char * qfits_build_format(const qfits_col * col)
+//# Modified for the StellarSolver Internal Library for thread safety
+static char * qfits_build_format(const qfits_col * col, char * sval)
 {
-    static char sval[10];
     int         nb;
         
     switch (col->atom_type) {

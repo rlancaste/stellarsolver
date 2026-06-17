@@ -1072,26 +1072,21 @@ int fits_blocks_needed(int size) {
     return (size + FITS_BLOCK_SIZE - 1) / FITS_BLOCK_SIZE;
 }
 
-static char fits_endian_string[16];
-static int  fits_endian_string_inited = 0;
-
-static void fits_init_endian_string() {
-    if (!fits_endian_string_inited) {
+//# Modified for the StellarSolver Internal Library for thread safety
+// Returns a string literal based on runtime endianness detection.
+// Idempotent assignment -- safe under concurrent access.
+char* fits_get_endian_string() {
+    static char* endian_str = NULL;
+    if (!endian_str) {
         uint32_t endian = ENDIAN_DETECTOR;
         unsigned char* cptr = (unsigned char*)&endian;
-        fits_endian_string_inited = 1;
-        sprintf(fits_endian_string, "%02x:%02x:%02x:%02x", (uint)cptr[0], (uint)cptr[1], (uint)cptr[2], (uint)cptr[3]);
+        endian_str = (cptr[0] == 0x04) ? "04:03:02:01" : "01:02:03:04";
     }
+    return endian_str;
 }
 
 void fits_fill_endian_string(char* str) {
-    fits_init_endian_string();
-    strcpy(str, fits_endian_string);
-}
-
-char* fits_get_endian_string() {
-    fits_init_endian_string();
-    return fits_endian_string;
+    strcpy(str, fits_get_endian_string());
 }
 
 void fits_add_endian(qfits_header* header) {

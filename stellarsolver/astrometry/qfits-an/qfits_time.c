@@ -41,6 +41,7 @@
 #include "tic.h"
 #endif
 
+#include "os-features.h" //# Modified for the StellarSolver Internal Library for thread safety
 #include "qfits_time.h"
 
 /*-----------------------------------------------------------------------------
@@ -124,6 +125,7 @@ struct timeval {
   statically allocated string in the function, so no need to free it.
  */
 /*----------------------------------------------------------------------------*/
+// NOT thread-safe: returns pointer to static buffer.
 char * qfits_get_datetime_iso8601(void)
 {
     static char date_iso8601[20];
@@ -198,13 +200,14 @@ static long qfits_time_now(void)
 /*----------------------------------------------------------------------------*/
 static long timer_to_date(time_t time_secs)
 {
+    struct tm tm_buf; //# Modified for the StellarSolver Internal Library for thread safety
     struct tm *time_struct;
 
     if (time_secs == 0) {
         return 0;
     } else {
         /*  Convert into a long value CCYYMMDD */
-        time_struct = localtime (&time_secs);
+        time_struct = portable_localtime_r(&time_secs, &tm_buf); //# Modified for the StellarSolver Internal Library for thread safety
         if (time_struct) {
             time_struct-> tm_year += 1900;
             return (MAKE_DATE (    time_struct-> tm_year / 100,
@@ -232,13 +235,14 @@ static long timer_to_date(time_t time_secs)
 /*----------------------------------------------------------------------------*/
 static long timer_to_time(time_t time_secs)
 {
+    struct tm tm_buf; //# Modified for the StellarSolver Internal Library for thread safety
     struct tm *time_struct;
 
     if (time_secs == 0) {
         return 0;
     } else {
         /*  Convert into a long value HHMMSS00 */
-        time_struct = localtime (&time_secs);
+        time_struct = portable_localtime_r(&time_secs, &tm_buf); //# Modified for the StellarSolver Internal Library for thread safety
         if (time_struct) {
             return (MAKE_TIME (time_struct-> tm_hour,
                                time_struct-> tm_min,

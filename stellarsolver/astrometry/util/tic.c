@@ -20,6 +20,7 @@
 #include "errors.h"
 #include "log.h"
 
+// NOT thread-safe: call from main thread only.
 static time_t starttime;
 static double starttime2;
 static double startutime, startstime;

@@ -238,6 +238,7 @@ void matrix_vector_3(double* m, double* v, double* result) {
 
 #define GAUSSIAN_SAMPLE_INVALID -1e300
 
+// NOT thread-safe: static y2 cache and rand() are shared mutable state.
 double gaussian_sample(double mean, double stddev) {
     // from http://www.taygeta.com/random/gaussian.html
     // Algorithm by Dr. Everett (Skip) Carter, Jr.

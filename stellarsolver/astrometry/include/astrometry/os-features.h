@@ -125,6 +125,99 @@ void qsort_r(void *base, size_t nmemb, size_t sz,
 
 #endif
 
+//# Modified for the StellarSolver Internal Library for thread safety
+// Portable reentrant wrappers for platform-specific APIs.
+// Each wraps the platform's reentrant variant behind a uniform interface.
+// _WIN32 selects the Windows path (MSVC and MinGW).
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <errno.h>
+
+// --- portable_qsort_r ---
+// Uses GNU-style comparator: compar(v1, v2, arg) with thunk last.
+// Adapters handle BSD (thunk-first) and Windows (qsort_s) conventions.
+
+struct portable_qsort_r_adapter {
+    int (*compar)(const void *, const void *, void *);
+    void *arg;
+};
+
+#if defined(_WIN32)
+static inline int portable_qsort_r_win_adapter(void *context, const void *v1, const void *v2) {
+    struct portable_qsort_r_adapter *adapter = (struct portable_qsort_r_adapter *)context;
+    return adapter->compar(v1, v2, adapter->arg);
+}
+static inline void portable_qsort_r(void *base, size_t nmemb, size_t size,
+                                    int (*compar)(const void *, const void *, void *),
+                                    void *arg) {
+    struct portable_qsort_r_adapter adapter;
+    adapter.compar = compar;
+    adapter.arg = arg;
+    qsort_s(base, nmemb, size, portable_qsort_r_win_adapter, &adapter);
+}
+
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+static inline int portable_qsort_r_bsd_adapter(void *thunk, const void *v1, const void *v2) {
+    struct portable_qsort_r_adapter *adapter = (struct portable_qsort_r_adapter *)thunk;
+    return adapter->compar(v1, v2, adapter->arg);
+}
+static inline void portable_qsort_r(void *base, size_t nmemb, size_t size,
+                                    int (*compar)(const void *, const void *, void *),
+                                    void *arg) {
+    struct portable_qsort_r_adapter adapter;
+    adapter.compar = compar;
+    adapter.arg = arg;
+    qsort_r(base, nmemb, size, &adapter, portable_qsort_r_bsd_adapter);
+}
+
+#else
+static inline void portable_qsort_r(void *base, size_t nmemb, size_t size,
+                                    int (*compar)(const void *, const void *, void *),
+                                    void *arg) {
+    qsort_r(base, nmemb, size, compar, arg);
+}
+#endif
+
+// --- portable_strtok_r ---
+static inline char* portable_strtok_r(char *str, const char *delim, char **saveptr) {
+#ifdef _WIN32
+    return strtok_s(str, delim, saveptr);
+#else
+    return strtok_r(str, delim, saveptr);
+#endif
+}
+
+// --- portable_localtime_r ---
+// Returns result on success, NULL on failure (uniform across platforms).
+static inline struct tm* portable_localtime_r(const time_t *timep, struct tm *result) {
+#ifdef _WIN32
+    return localtime_s(result, timep) == 0 ? result : NULL;
+#else
+    return localtime_r(timep, result);
+#endif
+}
+
+// --- portable_strerror_r ---
+// Always fills buf. Falls back to the error number on failure.
+// Handles GNU strerror_r (returns char*) vs POSIX strerror_r (returns int).
+static inline void portable_strerror_r(int errnum, char *buf, size_t buflen) {
+#if defined(_WIN32)
+    if (strerror_s(buf, buflen, errnum) != 0)
+        snprintf(buf, buflen, "errno %d", errnum);
+#elif defined(_GNU_SOURCE) || (defined(__GLIBC__) && defined(__USE_GNU))
+    char *res = strerror_r(errnum, buf, buflen);
+    if (res != buf) {
+        strncpy(buf, res, buflen - 1);
+        buf[buflen - 1] = '\0';
+    }
+#else
+    if (strerror_r(errnum, buf, buflen) != 0)
+        snprintf(buf, buflen, "errno %d", errnum);
+#endif
+}
+
 // As suggested in http://gcc.gnu.org/onlinedocs/gcc-4.3.0/gcc/Function-Names.html
 #if __STDC_VERSION__ < 199901L
 # if __GNUC__ >= 2
