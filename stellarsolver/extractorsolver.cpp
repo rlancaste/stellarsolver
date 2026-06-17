@@ -25,7 +25,12 @@ ExtractorSolver::ExtractorSolver(ProcessType pType, ExtractorType eType, SolverT
 
 ExtractorSolver::~ExtractorSolver()
 {
-
+    if (isRunning())
+    {
+        quit();
+        requestInterruption();
+        wait();
+    }
 }
 
 //This is a convenience function used to set all the scale parameters based on the FOV high and low values wit their units.

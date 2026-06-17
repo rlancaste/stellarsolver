@@ -13,6 +13,8 @@
 #include <QDir>
 #include <QVector>
 
+#include <atomic>
+
 //Project Includes
 #include "stellarsolver_export.h"
 #include "structuredefinitions.h"
@@ -257,10 +259,10 @@ class STELLARSOLVER_API ExtractorSolver : public QThread
     protected:  //Note: These items are not private because they are needed by Child Classes
 
         // Useful State Information
-        bool m_HasExtracted = false;            // This boolean is set when the star extraction is done and successful
-        bool m_HasSolved = false;               // This boolean is set when the solving is done and successful
-        bool m_HasWCS = false;                  // This boolean gets set if the StellarSolver has WCS data to retrieve
-        bool m_WasAborted = false;              // This boolean gets set if the StellarSolver was aborted
+        std::atomic<bool> m_HasExtracted{false};  // This boolean is set when the star extraction is done and successful
+        std::atomic<bool> m_HasSolved{false};    // This boolean is set when the solving is done and successful
+        std::atomic<bool> m_HasWCS{false};       // This boolean gets set if the StellarSolver has WCS data to retrieve
+        std::atomic<bool> m_WasAborted{false};   // This boolean gets set if the StellarSolver was aborted
 
         // Subframing Options
         bool m_UseSubframe = false;             // Whether or not to use the subframe for star extraction
@@ -275,8 +277,8 @@ class STELLARSOLVER_API ExtractorSolver : public QThread
         FITSImage::Background m_Background;     // This is a report on the background levels found during star extraction
         QList<FITSImage::Star> m_ExtractedStars;// This is the list of stars that get extracted from the image
         FITSImage::Solution m_Solution;         // This is the solution that comes back from the Solver
-        short solutionIndexNumber = -1;         // This is the index number of the index used to solve the image.
-        short solutionHealpix = -1;             // This is the healpix of the index used to solve the image.
+        std::atomic<short> solutionIndexNumber{-1}; // This is the index number of the index used to solve the image.
+        std::atomic<short> solutionHealpix{-1};    // This is the healpix of the index used to solve the image.
 
         // This is the cancel file path that astrometry.net monitors.  If it detects this file, it aborts the solve
         QString cancelfn;           //Filename whose creation signals the process to stop
