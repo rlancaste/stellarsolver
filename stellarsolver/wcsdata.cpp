@@ -126,3 +126,27 @@ bool WCSData::appendStarsRAandDEC(QList<FITSImage::Star> &stars)
     }
 }
 
+double WCSData::getCRVAL(int i) const 
+{
+    if(internalWCS)
+        return wcs.wcstan.crval[i];
+    else
+        return m_wcs->crval[i];
+}
+
+double WCSData::getCRPIX(int i) const 
+{ 
+    if(internalWCS)
+        return wcs.wcstan.crpix[i]; 
+    else
+        return m_wcs->crpix[i];
+}
+
+double WCSData::getCD(int i, int j) const 
+{ 
+    if(internalWCS)
+        return wcs.wcstan.cd[i][j]; 
+    else
+        return m_wcs->cd[i*2 + j];
+}
+
