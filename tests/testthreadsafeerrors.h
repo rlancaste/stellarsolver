@@ -6,7 +6,8 @@
 #include <QObject>
 #include <QtConcurrent>
 #include <QMutex>
-#include <QSet>
+#include <set>
+#include <string>
 
 class TestThreadSafeErrors : public QObject
 {
@@ -19,7 +20,7 @@ public:
 
 private:
     QMutex seenNamesMutex;
-    QSet<QString> seenNames;
+    std::set<std::string> seenNames;
 };
 
 #endif // TESTTHREADSAFEERRORS_H

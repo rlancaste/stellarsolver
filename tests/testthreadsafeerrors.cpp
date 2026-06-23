@@ -136,15 +136,17 @@ void TestThreadSafeErrors::runConcurrentSolverNum()
                 delete externalSolver;
                 
                 instance->seenNamesMutex.lock();
-                if (instance->seenNames.contains(internalName) || instance->seenNames.contains(externalName)) {
+                std::string intStr = internalName.toStdString();
+                std::string extStr = externalName.toStdString();
+                if (instance->seenNames.count(intStr) > 0 || instance->seenNames.count(extStr) > 0) {
                     printf("ERROR: Duplicate baseName detected! internalName=%s, externalName=%s\n",
                            internalName.toUtf8().constData(), externalName.toUtf8().constData());
                     fflush(stdout);
                     instance->seenNamesMutex.unlock();
-                    exit(1);
+                    _exit(1);
                 }
-                instance->seenNames.insert(internalName);
-                instance->seenNames.insert(externalName);
+                instance->seenNames.insert(intStr);
+                instance->seenNames.insert(extStr);
                 instance->seenNamesMutex.unlock();
             }
         }
