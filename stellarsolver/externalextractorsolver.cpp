@@ -17,12 +17,13 @@
 
 //CFitsio Includes
 #include <fitsio.h>
+#include <atomic>
 
 //Project Includes
 #include "externalextractorsolver.h"
 
 // This needs to be static even if there are parallel StellarSolvers so that each solver and child solver gets a unique identifier
-static int solverNum = 1;
+static std::atomic<int> solverNum{1};
 
 ExternalExtractorSolver::ExternalExtractorSolver(ProcessType type, ExtractorType exType, SolverType solType,
         const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalExtractorSolver(type, exType,

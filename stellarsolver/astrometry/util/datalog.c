@@ -11,6 +11,7 @@
 
 #include "datalog.h"
 
+// NOT thread-safe: global state. No callers in StellarSolver.
 static data_log_t g_datalog;
 
 static data_log_t* get_logger() {

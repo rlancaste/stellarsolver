@@ -977,6 +977,7 @@ char* strdup_safe(const char* str) {
 }
 
 #ifndef _WIN32 //# Modified by Robert Lancaster for the StellarSolver Internal Library
+// NOT thread-safe: signal handlers are process-global.
 static int oldsigbus_valid = 0;
 static struct sigaction oldsigbus;
 static void sigbus_handler(int sig) {

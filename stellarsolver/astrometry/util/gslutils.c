@@ -26,6 +26,7 @@ static void errhandler(const char * reason,
           gsl_strerror(gsl_errno));
 }
 
+// NOT thread-safe: must be called once before spawning threads.
 void gslutils_use_error_system() {
     gsl_set_error_handler(errhandler);
 }

@@ -591,6 +591,21 @@ if(BUILD_TESTS)
     target_link_libraries(TestDeleteSolver PUBLIC StellarSolverTestsLib)
     add_executable(TestMultipleSyncSolvers ${CMAKE_CURRENT_SOURCE_DIR}/tests/testmultiplesyncsolvers.cpp)
     target_link_libraries(TestMultipleSyncSolvers PUBLIC StellarSolverTestsLib)
+    add_executable(TestThreadSafeErrors 
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/testthreadsafeerrors.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/errors.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/util/bl.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/kdtree.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/kdtree_dim.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/kdtree_mem.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/kdint_ddd.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/kdint_fff.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/kdint_ddu.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/kdint_duu.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/kdint_dds.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/stellarsolver/astrometry/libkd/kdint_dss.c
+    )
+    target_link_libraries(TestThreadSafeErrors PUBLIC StellarSolverTestsLib)
 
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/pleiades.jpg" DESTINATION "${CMAKE_BINARY_DIR}/")
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/demos/randomsky.fits" DESTINATION "${CMAKE_BINARY_DIR}/")

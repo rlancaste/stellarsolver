@@ -41,6 +41,7 @@
 #include <unistd.h>
 #endif
 
+#include "os-features.h" //# Modified for the StellarSolver Internal Library for thread safety
 #include "qfits_std.h"
 #include "qfits_card.h"
 #include "qfits_tools.h"
@@ -471,6 +472,7 @@ char * qfits_getcomment(const char * line) {
 char* qfits_expand_keyword_r(const char * keyword, char* expanded) {
     char        ws[81];
     char    *    token;
+    char    *    saveptr; //# Modified for the StellarSolver Internal Library for thread safety
 
     /* Bulletproof entries */
     if (keyword==NULL) return NULL;
@@ -482,11 +484,11 @@ char* qfits_expand_keyword_r(const char * keyword, char* expanded) {
     /* Regular shortFITS keyword */
     sprintf(expanded, "HIERARCH ESO");
     expkey_strupc(keyword, ws);
-    token = strtok(ws, ".");
+    token = portable_strtok_r(ws, ".", &saveptr); //# Modified for the StellarSolver Internal Library for thread safety
     while (token!=NULL) {
         strcat(expanded, " ");
         strcat(expanded, token);
-        token = strtok(NULL, ".");
+        token = portable_strtok_r(NULL, ".", &saveptr); //# Modified for the StellarSolver Internal Library for thread safety
     }
     return expanded;
 }

@@ -166,6 +166,7 @@ static void makeplot(const char* plotfn, char* bgimgfn, int W, int H,
     logmsg("Wrote plot %s\n", plotfn);
 }
 
+// NOT thread-safe: debug-only code, disabled by default.
 static char* tdebugfn(const char* name) {
     static char fn[256];
     static int plotnum = 0;
