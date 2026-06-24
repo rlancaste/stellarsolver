@@ -1,6 +1,6 @@
-import glob
 import info
 from Package.CMakePackageBase import CMakePackageBase
+
 
 class subinfo(info.infoclass):
     def setTargets(self):
@@ -11,7 +11,7 @@ class subinfo(info.infoclass):
             self.archiveNames[ver] = f"stellarsolver-{ver}.tar.gz"
             self.targetInstSrc[ver] = f"stellarsolver-{ver}"
         self.defaultTarget = "2.8"
-    
+
     def setDependencies(self):
         self.runtimeDependencies["virtual/base"] = None
         self.runtimeDependencies["libs/qt/qtbase"] = None
@@ -19,8 +19,9 @@ class subinfo(info.infoclass):
         self.runtimeDependencies["libs/mman"] = None
         self.runtimeDependencies["libs/cfitsio"] = None
         self.runtimeDependencies["libs/zlib"] = None
-        self.runtimeDependencies["boost-regex"] = None
+        self.runtimeDependencies["libs/boost"] = None
         self.runtimeDependencies["libs/wcslib"] = None
+
 
 class Package(CMakePackageBase):
     def __init__(self, **kwargs):
