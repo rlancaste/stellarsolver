@@ -9,6 +9,8 @@
 //Qt Includes
 #include <QTextStream>
 #include <QMessageBox>
+#include <QMutexLocker>
+#include <QRecursiveMutex>
 #include <qmath.h>
 
 //WCS Includes
@@ -24,6 +26,16 @@
 
 // This needs to be static even if there are parallel StellarSolvers so that each solver and child solver gets a unique identifier
 static std::atomic<int> solverNum{1};
+
+// CFITSIO is only thread safe when it is built reentrant (USE_PTHREADS / --enable-reentrant), and several builds,
+// such as the Craft ones for macOS and Windows, are not. Its file driver then gives the same handle to two threads that
+// open files at the same time, and one of them reads through a closed FILE. Parallel child solvers that solve together
+// all load their WCS files at once, so every CFITSIO file operation in this class takes this lock.
+static QRecursiveMutex &cfitsioMutex()
+{
+    static QRecursiveMutex mutex;
+    return mutex;
+}
 
 ExternalExtractorSolver::ExternalExtractorSolver(ProcessType type, ExtractorType exType, SolverType solType,
         const FITSImage::Statistic &imagestats, uint8_t const *imageBuffer, QObject *parent) : InternalExtractorSolver(type, exType,
@@ -1167,6 +1179,7 @@ int ExternalExtractorSolver::getStarsFromXYLSFile()
     long nelements[1000];
     long jj, nrows, kk;
 
+    QMutexLocker cfitsioLocker(&cfitsioMutex());
     if (fits_open_diskfile(&new_fptr, starXYLSFilePath.toLocal8Bit(), READONLY, &status))
     {
         fits_report_error(stderr, status);
@@ -1617,6 +1630,7 @@ int ExternalExtractorSolver::writeStarExtractorTable()
     if(sextractorFile.exists())
         sextractorFile.remove();
 
+    QMutexLocker cfitsioLocker(&cfitsioMutex());
     if (fits_create_file(&new_fptr, starXYLSFilePath.toLocal8Bit(), &status))
     {
         fits_report_error(stderr, status);
@@ -1718,6 +1732,7 @@ int ExternalExtractorSolver::saveAsFITS()
     nelements = m_Statistics.samples_per_channel;
 
     /* Create a new File, overwriting existing*/
+    QMutexLocker cfitsioLocker(&cfitsioMutex());
     if (fits_create_file(&new_fptr, newFilename.toLocal8Bit(), &status))
     {
         fits_report_error(stderr, status);
@@ -1833,6 +1848,7 @@ int ExternalExtractorSolver::loadWCS()
 
     fitsfile *fptr { nullptr };
 
+    QMutexLocker cfitsioLocker(&cfitsioMutex());
     if (fits_open_diskfile(&fptr, solutionFile.toLocal8Bit(), READONLY, &status))
     {
         char errmsg[512];
