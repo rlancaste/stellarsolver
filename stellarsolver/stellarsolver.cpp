@@ -641,6 +641,8 @@ void StellarSolver::finishParallelSolve(int success)
         m_isRunning = false;
         if(!m_HasSolved){
             m_HasFailed = true;
+            //Report the extracted stars like a single threaded solve does, callers use it to diagnose the failure
+            numStars = m_ExtractorSolver->getNumStarsFound();
             emitReady = true; //Since this was emitted earlier if it had been solved
         }
         for (auto *solver : parallelSolvers)
