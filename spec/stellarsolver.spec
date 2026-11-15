@@ -26,6 +26,7 @@ BuildRequires: pkgconfig(cfitsio)
 BuildRequires: pkgconfig(gsl)
 BuildRequires: pkgconfig(wcslib)
 BuildRequires: pkgconfig(Qt5) >= 5.4
+BuildRequires: qt5-qtbase-devel
 
 
 %description
@@ -36,7 +37,7 @@ An Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net
 %autosetup -v -n %{name}-master
 
 %build
-%cmake
+%cmake -DUSE_QT5=ON
 %cmake_build
 
 
@@ -52,7 +53,7 @@ An Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net
 
 %license LICENSE
 
-%changelog]
+%changelog
 * Mon Nov 09 2026 Rob Lancaster <rlancaste@gmail.com> 2.9.git
 - Updating Spec file to latest version
 * Wed June 24 2026 Rob Lancaster <rlancaste@gmail.com> 2.8.git
