@@ -1,8 +1,6 @@
-%define __cmake_in_source_build %{_vpath_builddir}
-
 Name: stellarsolver
 Version: 2.9.git
-Release: %(date -u +%%Y%%m%%d%%H%%M%%S)%{?dist}
+Release: %(T=%{_topdir}; mkdir -p $T 2>/dev/null; [ -f $T/.release-stamp-%{name} ] || date -u +%%Y%%m%%d%%H%%M%%S > $T/.release-stamp-%{name} 2>/dev/null; cat $T/.release-stamp-%{name} 2>/dev/null || date -u +%%Y%%m%%d%%H%%M%%S)%{?dist}
 Summary: The Cross Platform Sextractor and Astrometry.net-Based Internal Astrometric Solver
 
 License: LGPLv3
@@ -19,6 +17,8 @@ Provides: stellarsolver.so
 Provides: stellarsolver.a
 
 BuildRequires: cmake
+BuildRequires: gcc
+BuildRequires: gcc-c++
 BuildRequires: systemd
 BuildRequires: extra-cmake-modules
 
@@ -36,8 +36,8 @@ An Astrometric Plate Solver for Mac, Linux, and Windows, built on Astrometry.net
 %autosetup -v -n %{name}-master
 
 %build
-%cmake .
-%make_build
+%cmake
+%cmake_build
 
 
 %install
