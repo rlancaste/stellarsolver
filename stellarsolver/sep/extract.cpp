@@ -141,7 +141,7 @@ void Extract::apply_mask_line(arraybuffer *mbuf, arraybuffer *imbuf, arraybuffer
 {
     int i;
 
-    for (i = 0; i < mbuf->bw; i++)
+    for (i = 0; i < mbuf->bw - 1; i++)
     {
         if (mbuf->lastline[i] > 0.0)
         {
@@ -159,7 +159,7 @@ int Extract::sep_extract(sep_image *image, float thresh, int thresh_type,
                          int clean_flag, double clean_param,
                          sep_catalog **catalog)
 {
-    arraybuffer       dbuf, nbuf, mbuf;
+    arraybuffer       dbuf{}, nbuf{}, mbuf{};
     infostruct        curpixinfo, initinfo, freeinfo;
     objliststruct     objlist;
     char              newmarker;
@@ -742,10 +742,8 @@ exit:
     free(survives);
     survives = 0;                //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
     arraybuffer_free(&dbuf);
-    if (image->noise)
-        arraybuffer_free(&nbuf);
-    if (image->mask)
-        arraybuffer_free(&mbuf);
+    arraybuffer_free(&nbuf);
+    arraybuffer_free(&mbuf);
     if (conv){
         free(convnorm);
         convnorm = 0;            //# Added by Hy Murveit for the StellarSolver Internal Library for memory safety.
