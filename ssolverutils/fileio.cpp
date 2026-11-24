@@ -553,7 +553,7 @@ bool fileio::getSolverOptionsFromFITS()
             logIssue(QString("FITS header: cannot find OBJCTDEC (%1).").arg(QString(error_status)));
         }
     }
-    else
+    else if (coord_ok)
     {
         dms deDMS = dms::fromString(objectde_str, true);
         dec       = deDMS.Degrees();
