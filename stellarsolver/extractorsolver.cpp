@@ -68,7 +68,7 @@ double ExtractorSolver::convertToDegreeHeight(double scale)
             return arcsec2deg(scale) * (double) m_Statistics.height;
             break;
         case FOCAL_MM:
-            return rad2deg(atan(36. / (2. * scale)));
+            return rad2deg(2. * atan(36. / (2. * scale)));
             break;
         default:
             return scale;
