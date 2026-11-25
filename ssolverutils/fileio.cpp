@@ -522,6 +522,7 @@ bool fileio::getSolverOptionsFromFITS()
     char objectra_str[32];
     if (fits_read_key(fptr, TSTRING, "OBJCTRA", objectra_str, comment, &status))
     {
+        status = 0;
         if (fits_read_key(fptr, TDOUBLE, "RA", &ra, comment, &status))
         {
             fits_report_error(stderr, status);
@@ -543,6 +544,7 @@ bool fileio::getSolverOptionsFromFITS()
     char objectde_str[32];
     if (coord_ok && fits_read_key(fptr, TSTRING, "OBJCTDEC", objectde_str, comment, &status))
     {
+        status = 0;
         if (fits_read_key(fptr, TDOUBLE, "DEC", &dec, comment, &status))
         {
             fits_report_error(stderr, status);
@@ -551,7 +553,7 @@ bool fileio::getSolverOptionsFromFITS()
             logIssue(QString("FITS header: cannot find OBJCTDEC (%1).").arg(QString(error_status)));
         }
     }
-    else
+    else if (coord_ok)
     {
         dms deDMS = dms::fromString(objectde_str, true);
         dec       = deDMS.Degrees();
@@ -578,9 +580,11 @@ bool fileio::getSolverOptionsFromFITS()
         return true;
     }
 
+    status = 0;
     if (fits_read_key(fptr, TDOUBLE, "FOCALLEN", &fits_focal_length, comment, &status))
     {
         int integer_focal_length = -1;
+        status = 0;
         if (fits_read_key(fptr, TINT, "FOCALLEN", &integer_focal_length, comment, &status))
         {
             fits_report_error(stderr, status);
