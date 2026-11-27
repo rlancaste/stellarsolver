@@ -1115,8 +1115,8 @@ bool InternalExtractorSolver::prepare_job()
             case FOCAL_MM:
                 emit logOutput(QString("Scale range: %1 to %2 mm focal length").arg (scalelo).arg (scalehi));
                 // "35 mm" film is 36 mm wide.
-                appu = rad2arcsec(atan(36. / (2. * scalelo))) / (double)m_Statistics.width;
-                appl = rad2arcsec(atan(36. / (2. * scalehi))) / (double)m_Statistics.width;
+                appu = rad2arcsec(2. * atan(36. / (2. * scalelo))) / (double)m_Statistics.width;
+                appl = rad2arcsec(2. * atan(36. / (2. * scalehi))) / (double)m_Statistics.width;
                 break;
             default:
                 emit logOutput(QString("Unknown scale unit code %1").arg (scaleunit));
